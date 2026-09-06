@@ -49,6 +49,22 @@
 #ifndef _SHARED_PTR_BASE_H
 #define _SHARED_PTR_BASE_H 1
 
+namespace __gnu_cxx _GLIBCXX_VISIBILITY(default)
+{
+_GLIBCXX_BEGIN_NAMESPACE_VERSION
+
+  /**
+   *  @brief  Constants for the different types of lock policy.
+   *  @ingroup  pointers
+   */
+  enum _Lock_policy { _S_single, _S_mutex, _S_atomic };
+
+  // The transpiled output has no threads, so the single policy is the default.
+  static const _Lock_policy __default_lock_policy = _S_single;
+
+_GLIBCXX_END_NAMESPACE_VERSION
+} // namespace __gnu_cxx
+
 namespace std _GLIBCXX_VISIBILITY(default)
 {
 _GLIBCXX_BEGIN_NAMESPACE_VERSION

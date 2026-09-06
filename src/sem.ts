@@ -713,7 +713,20 @@ export class Cx {
     if (s.k === "typedef") return s.fq;
     if (s.k === "ns") return s.fq;
     if (s.k === "tmpl") return s.t.fq;
+    if (s.k === "enumval") return this.enumValFq(s.e, s.item);
     return "";
+  }
+
+  // An enumerator has no entry of its own: it lives in the namespace that
+  // holds its enum, so that namespace plus the item name is its fq.
+  enumValFq(e: EnumInfo, item: string): string {
+    const i = e.fq.lastIndexOf("::");
+    return (i < 0 ? "" : e.fq.slice(0, i + 2)) + item;
+  }
+
+  enumValOfFq(fq: string): Sym | null {
+    const i = fq.lastIndexOf("::");
+    return this.findEnumVal(i < 0 ? "" : fq.slice(0, i), i < 0 ? fq : fq.slice(i + 2));
   }
 
   resolveClassName(parts: QSeg[], scope: Scope): string {
@@ -814,6 +827,8 @@ export class Cx {
     if (this.typedefs.has(fq)) return { k: "typedef", fq };
     if (this.tmpls.has(fq)) return { k: "tmpl", t: this.tmpls.get(fq) as TmplInfo };
     if (this.nss.has(fq)) return { k: "ns", fq };
+    const ev = this.enumValOfFq(fq);
+    if (ev) return ev;
     return null;
   }
 

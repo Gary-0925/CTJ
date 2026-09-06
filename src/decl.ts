@@ -168,7 +168,8 @@ export function parseClassBody(p: Parser, head: ClassHead, a: At): ClassDecl {
     if (p.atEnd()) {
       // Keep the members collected so far: losing the rest of the translation
       // unit over one unbalanced brace hides every error that follows.
-      p.warn("unterminated class body, keeping the members parsed so far", p.peek());
+      p.warn(`unterminated body of ${head.kind} ${name} opened at ${a.file}:${a.line}, `
+        + "keeping the members parsed so far", p.peek());
       break;
     }
     try {
@@ -238,7 +239,7 @@ export function parseNamespace(p: Parser, isInline: boolean): NamespaceDecl {
   if (p.peek().t === "{") {
     const nm = p.anonName("ns");
     p.pos++;
-    const decls = parseNsBody(p);
+    const decls = parseNsBody(p, at(t));
     return { kind: "ns", name: nm, aliasOf: [], decls, isInline, ...at(t) };
   }
   const first = p.expect("ident").v;
@@ -257,7 +258,7 @@ export function parseNamespace(p: Parser, isInline: boolean): NamespaceDecl {
   }
   p.expect("{");
   let inner: Decl = {
-    kind: "ns", name: last(parts), aliasOf: [], decls: parseNsBody(p), isInline, ...at(t),
+    kind: "ns", name: last(parts), aliasOf: [], decls: parseNsBody(p, at(t)), isInline, ...at(t),
   };
   for (let i = parts.length - 2; i >= 0; i--) {
     inner = { kind: "ns", name: parts[i], aliasOf: [], decls: [inner], isInline, ...at(t) };
@@ -265,11 +266,12 @@ export function parseNamespace(p: Parser, isInline: boolean): NamespaceDecl {
   return inner as NamespaceDecl;
 }
 
-function parseNsBody(p: Parser): Decl[] {
+function parseNsBody(p: Parser, opened: At): Decl[] {
   const out: Decl[] = [];
   while (!p.eat("}")) {
     if (p.atEnd()) {
-      p.warn("unterminated namespace body, keeping the declarations parsed so far", p.peek());
+      p.warn(`unterminated namespace body opened at ${opened.file}:${opened.line}, `
+        + "keeping the declarations parsed so far", p.peek());
       return out;
     }
     try {

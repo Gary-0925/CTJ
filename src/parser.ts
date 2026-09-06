@@ -620,7 +620,10 @@ export class Parser {
       this.skipGnu();
       if (this.isIdent("template")) this.pos++;
       const t = this.peek();
+      // The caller reads the operator itself, but the keyword belongs to the
+      // name: leaving it behind makes "Cls::operator+" look like a conversion.
       if (allowOp && t.t === "ident" && t.v === "operator") {
+        this.pos++;
         parts.push(qseg("operator"));
         break;
       }
@@ -684,6 +687,21 @@ export class Parser {
       let neg = 0;
       while (this.peek().t === "!") { this.pos++; neg++; }
       let ta = this.parseAbstractType();
+      // "function<_Res(_ArgTypes...)>": inside an argument list a "(" after a
+      // type starts a function type instead of ending the type.
+      if (this.peek().t === "(") {
+        const fm = this.mark();
+        let fn: { params: TypeNode[]; variadic: boolean } | null = null;
+        try {
+          const ps = this.parseParamList();
+          const nx = this.peek().t;
+          if (nx === "," || nx === ">" || nx === ">>" || nx === "...") {
+            fn = { params: ps.map(x => x.type), variadic: ps.some(x => x.variadic) };
+          }
+        } catch { fn = null; }
+        if (fn) ta.func = fn;
+        else this.reset(fm);
+      }
       if (neg && ta.parts.length) {
         let ex: Expr = { kind: "id", parts: ta.parts, global: ta.global, file: ta.file, line: ta.line };
         for (let i = 0; i < neg; i++) ex = { kind: "unary", op: "!", arg: ex, postfix: false, file: ta.file, line: ta.line };
