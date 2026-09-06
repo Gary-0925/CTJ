@@ -41,20 +41,7 @@ http.createServer((req, res) => {
       res.writeHead(404, { "Content-Type": "text/plain" }).end("404 " + url);
       return;
     }
-    // A preview proxy can block or mangle a second request for the
-    // transpiler, so the page it serves carries the bundle inline. index.html
-    // on disk keeps the plain tag and works behind any static server.
-    let body = data;
-    if (path.basename(file) === "index.html") {
-      const tag = '<script src="dist/ctj.js"></script>';
-      const html = data.toString("utf8");
-      if (html.includes(tag) && fs.existsSync(path.join(root, "dist", "ctj.js"))) {
-        const bundle = fs.readFileSync(path.join(root, "dist", "ctj.js"), "utf8");
-        // A function, not a string: the bundle contains $ patterns that a
-        // replacement string would interpret.
-        body = Buffer.from(html.replace(tag, () => "<script>\n" + bundle + "\n</script>"), "utf8");
-      }
-    }
+    const body = data;
     console.log(`${req.socket.remoteAddress} ${req.method} ${raw} 200 ${body.length}`);
     res.writeHead(200, {
       "Content-Type": TYPES[path.extname(file)] || "application/octet-stream",

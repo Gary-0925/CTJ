@@ -260,84 +260,6 @@ function fmtValue(v) {
   return String(v);
 }
 
-function transpile() {
-  if (typeof CTJ === "undefined") {
-    $("code").textContent = "";
-    $("out").className = "err";
-    $("out").textContent = "转译器还没就绪 —— " + loadNote +
-      "\n\n若为加载失败，请在项目目录运行 npm run build（或 npm run serve）后刷新页面。";
-    setStatus("转译器未加载：" + loadNote);
-    return;
-  }
-  const target = $("target").value;
-  const source = $("source").value;
-  $("warnings").style.display = "none";
-  $("out").textContent = "";
-  $("out").className = "";
-  const t0 = performance.now();
-  loadHeaders().then(hdrs => {
-    let res;
-    try {
-      res = CTJ.transpile(source, { target: target, headers: hdrs });
-    } catch (err) {
-      lastCode = "";
-      $("code").textContent = "";
-      $("out").className = "err";
-      $("out").textContent = (err.file ? err.file + ":" + (err.line || 0) + ": " : "") + err.message;
-      setStatus("转译失败");
-      return;
-    }
-    lastCode = res.code;
-    $("code").textContent = res.code;
-    $("codeTitle").textContent = "转译结果 — " + (target === "php" ? "PHP" : "JavaScript") + " · " + res.code.length + " 字符";
-    const warns = res.warnings || [];
-    if (warns.length) {
-      $("warnings").innerHTML = "";
-      warns.slice(0, 50).forEach(w => {
-        const d = document.createElement("div");
-        d.textContent = w;
-        $("warnings").appendChild(d);
-      });
-      if (warns.length > 50) {
-        const d = document.createElement("div");
-        d.textContent = "… 另有 " + (warns.length - 50) + " 条警告";
-        $("warnings").appendChild(d);
-      }
-      $("warnings").style.display = "block";
-    }
-    setStatus("转译完成，用时 " + (performance.now() - t0).toFixed(0) + " ms" +
-      (headers ? "，标准库头文件 " + Object.keys(headers).length + " 个" : ""));
-  });
-}
-
-function run() {
-  if (!lastCode) { setStatus("请先转译"); return; }
-  if ($("target").value !== "js") { setStatus("浏览器只能运行 JavaScript，PHP 结果请复制到服务端执行"); return; }
-  const lines = [];
-  const shim = {
-    log: (...a) => lines.push(a.map(fmtValue).join(" ")),
-    error: (...a) => lines.push(a.map(fmtValue).join(" ")),
-  };
-  try {
-    new Function("console", lastCode)(shim);
-    $("out").className = "";
-    $("out").textContent = lines.join("\n");
-    setStatus("运行完成");
-  } catch (err) {
-    $("out").className = "err";
-    $("out").textContent = lines.join("\n") + (lines.length ? "\n" : "") + "运行时错误: " + err.message;
-    setStatus("运行出错");
-  }
-}
-
-const exampleSelect = $("example");
-Object.keys(EXAMPLES).forEach(name => {
-  const o = document.createElement("option");
-  o.value = name;
-  o.textContent = name;
-  exampleSelect.appendChild(o);
-});
-exampleSelect.addEventListener("change", () => { $("source").value = EXAMPLES[exampleSelect.value];
 // Two ways to get the transpiler, because a preview frame may allow one and
 // not the other: a <script src> needs script-src, a fetch needs connect-src.
 // Both bypass the cache, and both say what went wrong.
@@ -423,7 +345,86 @@ function loadTranspiler() {
   el.onerror = () => fetchTranspiler(url);
   document.head.appendChild(el);
 }
-loadTranspiler(); });
+loadTranspiler();
+
+function transpile() {
+  if (typeof CTJ === "undefined") {
+    $("code").textContent = "";
+    $("out").className = "err";
+    $("out").textContent = "转译器还没就绪 —— " + loadNote +
+      "\n\n若为加载失败，请在项目目录运行 npm run build（或 npm run serve）后刷新页面。";
+    setStatus("转译器未加载：" + loadNote);
+    return;
+  }
+  const target = $("target").value;
+  const source = $("source").value;
+  $("warnings").style.display = "none";
+  $("out").textContent = "";
+  $("out").className = "";
+  const t0 = performance.now();
+  loadHeaders().then(hdrs => {
+    let res;
+    try {
+      res = CTJ.transpile(source, { target: target, headers: hdrs });
+    } catch (err) {
+      lastCode = "";
+      $("code").textContent = "";
+      $("out").className = "err";
+      $("out").textContent = (err.file ? err.file + ":" + (err.line || 0) + ": " : "") + err.message;
+      setStatus("转译失败");
+      return;
+    }
+    lastCode = res.code;
+    $("code").textContent = res.code;
+    $("codeTitle").textContent = "转译结果 — " + (target === "php" ? "PHP" : "JavaScript") + " · " + res.code.length + " 字符";
+    const warns = res.warnings || [];
+    if (warns.length) {
+      $("warnings").innerHTML = "";
+      warns.slice(0, 50).forEach(w => {
+        const d = document.createElement("div");
+        d.textContent = w;
+        $("warnings").appendChild(d);
+      });
+      if (warns.length > 50) {
+        const d = document.createElement("div");
+        d.textContent = "… 另有 " + (warns.length - 50) + " 条警告";
+        $("warnings").appendChild(d);
+      }
+      $("warnings").style.display = "block";
+    }
+    setStatus("转译完成，用时 " + (performance.now() - t0).toFixed(0) + " ms" +
+      (headers ? "，标准库头文件 " + Object.keys(headers).length + " 个" : ""));
+  });
+}
+
+function run() {
+  if (!lastCode) { setStatus("请先转译"); return; }
+  if ($("target").value !== "js") { setStatus("浏览器只能运行 JavaScript，PHP 结果请复制到服务端执行"); return; }
+  const lines = [];
+  const shim = {
+    log: (...a) => lines.push(a.map(fmtValue).join(" ")),
+    error: (...a) => lines.push(a.map(fmtValue).join(" ")),
+  };
+  try {
+    new Function("console", lastCode)(shim);
+    $("out").className = "";
+    $("out").textContent = lines.join("\n");
+    setStatus("运行完成");
+  } catch (err) {
+    $("out").className = "err";
+    $("out").textContent = lines.join("\n") + (lines.length ? "\n" : "") + "运行时错误: " + err.message;
+    setStatus("运行出错");
+  }
+}
+
+const exampleSelect = $("example");
+Object.keys(EXAMPLES).forEach(name => {
+  const o = document.createElement("option");
+  o.value = name;
+  o.textContent = name;
+  exampleSelect.appendChild(o);
+});
+exampleSelect.addEventListener("change", () => { $("source").value = EXAMPLES[exampleSelect.value]; });
 exampleSelect.value = "基础语法";
 $("source").value = EXAMPLES[exampleSelect.value];
 
