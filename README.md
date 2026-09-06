@@ -77,7 +77,7 @@ npm test                # 运行 test/cases 下的全部用例
 
 已知限制：
 
-- 模板偏特化未实现（会给出警告并跳过），因此依赖 SFINAE 的 `enable_if` 一类写法不可用；`<map> <set> <iostream> <sstream>` 目前在语义分析阶段就会失败。
+- 模板偏特化未实现（会给出警告并跳过），因此依赖 SFINAE 的 `enable_if` 一类写法不可用。`<vector> <string> <map> <set> <iostream> <sstream>` 这类依赖大量偏特化的头文件目前还转译不了：解析器会在 `include/tuple` 等处失去同步，最后连 `main` 都收集不到，只留下 `unterminated namespace body` 和 `no main function found` 两条警告。
 - `include/stdio.h` 只声明了 `printf` 一族而没有实现，调用它们会在运行时抛出 `unresolved external`；请用 `__ctj_js` / `__ctj_php` 输出。
 - libstdc++ 的 `iostream` / `locale` 依赖编译好的库文件，无法转译。
 - 转译结果使用 JavaScript 的 `number`，`long long`、`unsigned` 等只保证在 53 位整数范围内语义一致。

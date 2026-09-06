@@ -442,7 +442,9 @@ export function parseTParams(p: Parser): TParam[] {
       let isPack = false;
       if (p.eat("...")) isPack = true;
       let def: TypeNode | Expr | null = null;
-      if (p.eat("=")) def = parseExpr(p, 2);
+      // Stop below the relational precedence so the closing '>' of the
+      // parameter list is not taken for a comparison operator.
+      if (p.eat("=")) def = parseExpr(p, 10);
       out.push({ kind: "nontype", name: nm || p.anonName("np"), type: spec.type, def, isPack, ...at(t) });
     }
     p.skipGnu();
