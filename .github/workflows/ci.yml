@@ -1,0 +1,37 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+permissions:
+  contents: read
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [20, 22]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: npm
+      - name: 安装依赖
+        run: npm ci
+      - name: 构建
+        run: npm run build
+      - name: 检查构建产物
+        run: |
+          test -s dist/ctj.js
+          test -s include.json
+          node -e "const s=require('fs').statSync('include.json'); console.log('include.json', s.size, 'bytes')"
+      - name: 运行测试用例
+        run: npm test
+      - name: 冒烟测试
+        run: npm run demo
