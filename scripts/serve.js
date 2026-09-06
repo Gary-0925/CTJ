@@ -36,9 +36,11 @@ http.createServer((req, res) => {
   }
   fs.readFile(file, (err, body) => {
     if (err) {
+      console.log(`${req.socket.remoteAddress} ${req.method} ${url} 404`);
       res.writeHead(404, { "Content-Type": "text/plain" }).end("404 " + url);
       return;
     }
+    console.log(`${req.socket.remoteAddress} ${req.method} ${url} 200 ${body.length}`);
     res.writeHead(200, {
       "Content-Type": TYPES[path.extname(file)] || "application/octet-stream",
       "Content-Length": body.length,
