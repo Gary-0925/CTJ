@@ -64,6 +64,8 @@ export class Parser {
   warnings: string[] = [];
   inClass: ClassDecl[] = [];
   typeScopes: Set<string>[] = [new Set()];
+  nsNames: Set<string> = new Set();
+  classTypes: Map<string, Set<string>> = new Map();
   pending: PendingBody[] = [];
   anon: { n: number } = { n: 0 };
 
@@ -175,6 +177,20 @@ export class Parser {
     last(this.typeScopes).add(name);
   }
 
+  registerNamespace(name: string): void {
+    this.nsNames.add(name);
+  }
+
+  // The type names declared inside a class, kept so that they can be made
+  // visible again when a member of that class is defined outside of it.
+  recordClassTypes(name: string): void {
+    this.classTypes.set(name, new Set(last(this.typeScopes)));
+  }
+
+  pushTypeScope(names: Set<string>): void {
+    this.typeScopes.push(names);
+  }
+
   isTypeName(name: string): boolean {
     if (BASIC_TYPES.has(name) || name === "auto") return true;
     for (let i = this.typeScopes.length - 1; i >= 0; i--) {
@@ -187,6 +203,8 @@ export class Parser {
     const p = new Parser(toks);
     p.warnings = this.warnings;
     p.typeScopes = this.typeScopes;
+    p.nsNames = this.nsNames;
+    p.classTypes = this.classTypes;
     p.anon = this.anon;
     return p;
   }
@@ -238,7 +256,8 @@ export class Parser {
       this.pos++;
       return [{ kind: "empty", ...at(t) }];
     }
-    if (t.t !== "ident") fail(`expected declaration, got '${t.v}'`, t.file, t.line, t.col);
+    // "~Cls()" starts a destructor, which has no return type of its own.
+    if (t.t !== "ident" && t.t !== "~") fail(`expected declaration, got '${t.v}'`, t.file, t.line, t.col);
     if (t.v === "inline" && this.peek(1).t === "ident" && this.peek(1).v === "namespace") {
       this.pos++;
       return [parseNamespace(this, true)];
@@ -381,7 +400,15 @@ export class Parser {
         const toks = this.collectBalancedTry();
         this.pending.push({ func: fn, toks });
       } else {
-        fn.body = this.parseFuncBody();
+        // The members of the class are in scope in the body of an out-of-line
+        // member definition, so its type names stay visible while parsing it.
+        const owner = d.name.length >= 2 ? this.classTypes.get(d.name[0].n) : undefined;
+        if (owner) this.pushTypeScope(owner);
+        try {
+          fn.body = this.parseFuncBody();
+        } finally {
+          if (owner) this.popScope();
+        }
       }
     } else {
       this.expect(";");
@@ -454,7 +481,13 @@ export class Parser {
     if (!q.parts.length) return true;
     const b = q.parts[q.parts.length - 1].n;
     if (b.startsWith("~")) return false;
-    return this.isTypeName(b);
+    if (this.isTypeName(b)) return true;
+    if (q.parts.length < 2) return false;
+    // "Outer::Inner x" / "std::streampos x": the head of a qualified name is a
+    // class or a namespace, and only the whole name denotes the type.  When a
+    // "(" follows, the name is the function being defined instead.
+    if (!this.isTypeName(q.parts[0].n) && !this.nsNames.has(q.parts[0].n)) return false;
+    return this.peek().t !== "(";
   }
 
   isCtorDefName(q: TypeNode): boolean {
@@ -776,7 +809,15 @@ export class Parser {
       break;
     }
     this.parseDeclaratorCore(d);
-    this.parseDeclaratorSuffix(d);
+    // In "Cls::method(const value_type& v)" the members of Cls are in scope in
+    // the parameter list, so its type names have to be visible while parsing it.
+    const owner = d.name.length >= 2 ? this.classTypes.get(d.name[0].n) : undefined;
+    if (owner) this.pushTypeScope(owner);
+    try {
+      this.parseDeclaratorSuffix(d);
+    } finally {
+      if (owner) this.popScope();
+    }
     return d;
   }
 

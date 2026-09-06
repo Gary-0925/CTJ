@@ -678,7 +678,20 @@ export class Cx {
       }
       return;
     }
-    this.tmpls.set(fq, { fq, kind, tparams, decl: inner, scope: this.snapScope(scope), specs: [] });
+    if (scope.cls) {
+      const short = inner.kind === "func" ? last(inner.name.map(s => s.n)) : (inner as ClassDecl).name;
+      if (short) scope.cls.nested.set(short, fq);
+    }
+    // A template may be declared first with its default arguments and defined
+    // later without them, so the defaults of an earlier declaration are kept.
+    const prev = this.tmpls.get(fq);
+    if (prev) {
+      tparams.forEach((tp, i) => {
+        const old = prev.tparams[i];
+        if (!tp.def && old && old.def) tp.def = old.def;
+      });
+    }
+    this.tmpls.set(fq, { fq, kind, tparams, decl: inner, scope: this.snapScope(scope), specs: prev ? prev.specs : [] });
   }
 
   resolveNsName(parts: QSeg[], scope: Scope): string {
@@ -723,8 +736,9 @@ export class Cx {
       const v = scope.locals[i].get(name);
       if (v) return { k: "var", v };
     }
-    if (scope.cls) {
-      const m = this.lookupMember(scope.cls.fq, name, new Set());
+    // The names of the enclosing classes are visible inside a nested class.
+    for (let c = scope.cls; c; c = c.scope.cls) {
+      const m = this.lookupMember(c.fq, name, new Set());
       if (m.field) {
         const cls = this.classes.get(m.owner) as ClsInfo;
         const fd = cls.fields.get(name) as VarDecl;
@@ -815,7 +829,7 @@ export class Cx {
   fieldVar(cls: ClsInfo, name: string, fd: VarDecl): VarInfo {
     return {
       fq: cls.fq + "::" + name, short: name, mangled: name,
-      decl: fd, scope: cls.scope, typeCache: null, storage: "plain",
+      decl: fd, scope: this.memberScope(cls), typeCache: null, storage: "plain",
       isGlobal: false, isStatic: cls.fieldStatic.has(name),
       isParam: false, isField: true, lifted: false, referenced: false,
     };
@@ -1022,11 +1036,17 @@ export class Cx {
     return fn.retCache;
   }
 
+  // A member declaration is resolved in the scope of its own class, so that
+  // typedefs and nested names declared next to it are visible.
+  memberScope(cls: ClsInfo): Scope {
+    return { ns: cls.scope.ns.slice(), cls, locals: [], fn: null, returns: [] };
+  }
+
   fieldType(cls: ClsInfo, name: string): CppType {
     let t = cls.fieldTypes.get(name);
     if (!t) {
       const fd = cls.fields.get(name) as VarDecl;
-      t = this.resolveTypeNode(fd.type, cls.scope);
+      t = this.resolveTypeNode(fd.type, this.memberScope(cls));
       cls.fieldTypes.set(name, t);
     }
     return t;
@@ -1076,6 +1096,12 @@ export class Cx {
         this.markCls(cls.fq);
       } else if (s.t.kind === "alias") {
         base = this.instantiateAlias(s.t.fq, [], scope);
+      } else if (s.t.kind === "func" && (s.t.decl as FuncDecl).isCtor && s.t.scope.cls) {
+        // A constructor template named in a type position stands for its class.
+        const cls = s.t.scope.cls;
+        base = new CppType(cls.fq);
+        base.segs = [{ n: cls.fromTmpl || cls.fq, a: cls.instArgs.slice() }];
+        this.markCls(cls.fq);
       } else this.fail(`'${s.t.fq}' is not a type`, tn);
     } else if (s.k === "enumval") {
       const vals = this.enumValues(s.e);
@@ -1084,6 +1110,14 @@ export class Cx {
       const v = constEval(this, { kind: "id", parts: tn.parts, global: tn.global, file: tn.file, line: tn.line }, scope);
       if (typeof v !== "number") this.fail(`'${tn.parts.map(x => x.n).join("::")}' is not a type`, tn);
       base = CppType.basic("__value" + Math.trunc(v));
+    } else if (s.k === "func" && (s as Sym & { k: "func" }).fns.some(f => f.isCtor)) {
+      // "new_allocator<_Tp1>" names a constructor, which in a type position
+      // stands for the class it constructs.
+      const cls = this.classes.get((s as Sym & { k: "func" }).fns[0].cls);
+      if (!cls) this.fail(`'${tn.parts.map(x => x.n).join("::")}' is not a type`, tn);
+      base = new CppType(cls.fq);
+      base.segs = [{ n: cls.fromTmpl || cls.fq, a: cls.instArgs.slice() }];
+      this.markCls(cls.fq);
     } else this.fail(`'${tn.parts.map(x => x.n).join("::")}' is not a type`, tn);
     this.applyTypeSuffix(base, tn, scope);
     return base;
@@ -1191,7 +1225,7 @@ export class Cx {
         const exist = this.findMethod(cls, decl);
         if (exist && !exist.decl.body && decl.body) {
           exist.decl = decl;
-          exist.scope = this.snapScope(cls.scope);
+          exist.scope = this.memberScope(cls);
         } else if (!exist) {
           this.addMethod(cls, this.methodShort(decl), decl, cls.scope);
         }

@@ -187,7 +187,12 @@ export function parseUnary(p: Parser): Expr {
     if (t.v === "typeid") return parseTypeid(p);
     if (t.v === "noexcept") return parseNoexcept(p);
     if (t.v === "throw") fail("throw is only supported as a statement", t.file, t.line, t.col);
-    if (t.v === "operator") fail("unexpected 'operator' in expression", t.file, t.line, t.col);
+    if (t.v === "operator") {
+      // "operator[](0)" calls the member operator of the current object.
+      p.pos++;
+      const r = p.parseOperator();
+      return { kind: "id", parts: [qseg(r.convType ? "#conv" : "operator" + r.op)], global: false, ...at(t) };
+    }
     if (t.v === "decltype") fail("unexpected 'decltype' in expression", t.file, t.line, t.col);
     return parseIdExpr(p);
   }

@@ -29,16 +29,15 @@ function finalizeFields(cx: Cx): void {
       if (fd.init || fd.directInit) {
         const v: VarInfo = {
           fq: cls.fq + "::" + name, short: name, mangled: name,
-          decl: fd, scope: cls.scope, typeCache: ft,
+          decl: fd, scope: cx.memberScope(cls), typeCache: ft,
           storage: isBoxedVar(ft) ? "box" : "plain",
           isGlobal: false, isStatic: cls.fieldStatic.has(name),
           isParam: false, isField: true, lifted: false, referenced: true,
         };
-        const sub = cx.snapScope(cls.scope);
-        sub.fn = null;
+        const sub = cx.memberScope(cls);
         annotateVarInit(cx, v, sub);
       } else if (fcls && cx.classes.has(fcls)) {
-        const r = tryResolveCtor(cx, fcls, [], cls.scope);
+        const r = tryResolveCtor(cx, fcls, [], cx.memberScope(cls));
         if (r) cx.getAnn(fd).call = r.fn;
       }
     }

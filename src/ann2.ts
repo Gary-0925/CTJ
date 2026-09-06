@@ -707,6 +707,8 @@ export function resolveOverload(cx: Cx, cands: FuncInfo[], tmpls: TmplInfo[], ar
   if (!best) cx.fail("no matching function for call", t);
   if ((best as FuncInfo).isDelete) cx.fail("call to deleted function", t);
   cx.markFunc(best as FuncInfo);
+  // A static member is emitted as part of its class, so the class is needed too.
+  if ((best as FuncInfo).isStatic && (best as FuncInfo).cls) cx.markCls((best as FuncInfo).cls);
   return { fn: best as FuncInfo, convs: bestConvs };
 }
 

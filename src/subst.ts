@@ -77,6 +77,16 @@ function substQSeg(s: QSeg, env: SubstEnv): QSeg {
   return qseg(s.n, substTArgs(s.a, env));
 }
 
+// A qualified name whose single part is a template parameter is replaced by the
+// whole name of the substituted type, which may have several parts.
+export function substQName(parts: QSeg[], env: SubstEnv): QSeg[] {
+  if (parts.length === 1 && !parts[0].a.length) {
+    const rep = env.types.get(parts[0].n);
+    if (rep) return typeToSegs(rep);
+  }
+  return parts.map(s => substQSeg(s, env));
+}
+
 export function substTArgs(args: TypeNode[], env: SubstEnv): TypeNode[] {
   const out: TypeNode[] = [];
   for (const a of args) {
@@ -352,7 +362,7 @@ export function substDecl(d: Decl, env: SubstEnv): Decl {
     case "class":
       return {
         kind: "class", name: d.name, cls: d.cls,
-        bases: d.bases.map(b => ({ name: b.name.map(s => substQSeg(s, env)), access: b.access, isVirtual: b.isVirtual, file: b.file, line: b.line })),
+        bases: d.bases.map(b => ({ name: substQName(b.name, env), access: b.access, isVirtual: b.isVirtual, file: b.file, line: b.line })),
         members: d.members.map(m => substDecl(m, env)),
         isDeclOnly: d.isDeclOnly, specArgs: substTArgs(d.specArgs, env),
         isPartialSpec: d.isPartialSpec, file: f, line: l,

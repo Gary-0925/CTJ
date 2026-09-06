@@ -183,6 +183,7 @@ export function parseClassBody(p: Parser, head: ClassHead, a: At): ClassDecl {
     }
   }
   p.flushPending();
+  if (head.name) p.recordClassTypes(head.name);
   p.popScope();
   p.inClass.pop();
   return cls;
@@ -239,6 +240,7 @@ export function parseNamespace(p: Parser, isInline: boolean): NamespaceDecl {
     return { kind: "ns", name: nm, aliasOf: [], decls, isInline, ...at(t) };
   }
   const first = p.expect("ident").v;
+  p.registerNamespace(first);
   p.skipGnu();
   if (p.eat("=")) {
     const target = p.parseQualifiedName(false);
@@ -246,7 +248,11 @@ export function parseNamespace(p: Parser, isInline: boolean): NamespaceDecl {
     return { kind: "ns", name: first, aliasOf: target, decls: null, isInline, ...at(t) };
   }
   const parts = [first];
-  while (p.eat("::")) parts.push(p.expect("ident").v);
+  while (p.eat("::")) {
+    const nm = p.expect("ident").v;
+    p.registerNamespace(nm);
+    parts.push(nm);
+  }
   p.expect("{");
   let inner: Decl = {
     kind: "ns", name: last(parts), aliasOf: [], decls: parseNsBody(p), isInline, ...at(t),
