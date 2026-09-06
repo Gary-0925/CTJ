@@ -1399,6 +1399,10 @@ class PhpGen {
 
   pbox(s: string, e: Expr, t: CppType): string {
     const x = this.complex(s, e);
+    // "this + 1" addresses the storage that follows the object, as
+    // "reinterpret_cast<_CharT*>(this + 1)" does in a header that keeps its
+    // data behind the object: the instance gets an array to be addressed in.
+    if (e.kind === "this") return `["a" => (isset($this->ctj_a) ? $this->ctj_a : ($this->ctj_a = [])), "i" => (isset($this->ctj_i) ? $this->ctj_i : 0)]`;
     if (t.dims.length && !t.isBox()) return `["a" => ${x}, "i" => 0]`;
     return x;
   }
@@ -1888,7 +1892,10 @@ class PhpGen {
     if (fcls && this.cx.classes.has(fcls)) {
       const cn = phpClsName(this.cx.classes.get(fcls) as ClsInfo);
       const obj = a.call ? this.ctorExpr(cn, a.call as FuncInfo, e.args, a.convs) : `new ${cn}()`;
-      return `(${slot} = ${obj})`;
+      // The object goes into the storage it was given and keeps its address, so
+      // that "this + 1" can find the storage again; what the expression yields
+      // is the pointer to that storage.
+      return `((${slot} = ${obj}) && ((${slot}->ctj_a = ${pp}["a"]) || true) && ((${slot}->ctj_i = ${pp}["i"]) || true) ? ["a" => ${pp}["a"], "i" => ${pp}["i"]] : null)`;
     }
     const v = e.args.length ? this.ex(e.args[0]) : this.zero(t);
     return `(${slot} = ${v})`;

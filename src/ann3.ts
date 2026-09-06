@@ -288,6 +288,18 @@ function typeTrait(cx: Cx, nm: string, args: Expr[], scope: Scope): number | nul
   }
 }
 
+// "static const size_type npos" carries its constness in the type rather than
+// among the flags of the declaration.
+function isConstVar(cx: Cx, v: VarInfo): boolean {
+  if (v.decl.flags.includes("const") || v.decl.flags.includes("constexpr")) return true;
+  try {
+    const t = v.typeCache || cx.resolveTypeNode(v.decl.type, v.scope);
+    return !!t && t.cnst;
+  } catch {
+    return false;
+  }
+}
+
 export function constEval(cx: Cx, e: Expr, scope: Scope): number | string | null {
   return constEvalInner(cx, e, scope, new Set());
 }
@@ -311,7 +323,7 @@ function constEvalInner(cx: Cx, e: Expr, scope: Scope, seen: Set<string>): numbe
       if (s.k === "var") {
         const v = s.v;
         if (v.fq && seen.has(v.fq)) return null;
-        if (v.decl.flags.includes("const") || v.decl.flags.includes("constexpr")) {
+        if (isConstVar(cx, v)) {
           const init = v.decl.init || (v.decl.directInit && v.decl.directInit[0]);
           if (!init || (init as Expr).kind === "initlist") return null;
           if (v.fq) seen.add(v.fq);
@@ -374,7 +386,13 @@ function constEvalInner(cx: Cx, e: Expr, scope: Scope, seen: Set<string>): numbe
       if (!e.type) return null;
       const t = cx.resolveTypeNode(e.type, scope);
       if (t.ptr > 0 || t.isFunc) return null;
-      return constEvalInner(cx, e.arg, scope, seen);
+      // "_CharT()" value-initialises: the empty list stands for zero.
+      if (e.arg.kind === "initlist" && !(e.arg as InitListExpr).items.length) return 0;
+      const a = constEvalInner(cx, e.arg, scope, seen);
+      if (typeof a !== "number") return a;
+      // An unsigned value wraps, and the width is the 32-bit one: a JS number
+      // cannot hold a 64-bit unsigned range.
+      return isUnsignedName(coreName(t)) ? a >>> 0 : a;
     }
     case "call": {
       const nm = e.fn.kind === "id" && e.fn.parts.length === 1 ? e.fn.parts[0].n : "";

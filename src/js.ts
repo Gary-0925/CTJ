@@ -130,6 +130,25 @@ class JsGen {
     return `$t${this.tmpN++}`;
   }
 
+  // The temporaries a body needs are only known once it has been emitted, so
+  // the body goes into a buffer and the declarations follow the signature.
+  withTmpDecl(signature: string, body: () => void): void {
+    const base = this.tmpN;
+    const save = this.out;
+    const lines: string[] = [];
+    this.out = lines;
+    this.ind += "  ";
+    body();
+    this.ind = this.ind.slice(0, -2);
+    this.out = save;
+    this.line(signature);
+    this.ind += "  ";
+    if (this.tmpN > base) this.line(this.tmpDecl(base, this.tmpN));
+    for (const l of lines) this.out.push(l);
+    this.ind = this.ind.slice(0, -2);
+    this.line(`}`);
+  }
+
   tmpDecl(a: number, b: number): string {
     const ns: string[] = [];
     for (let i = a; i < b; i++) ns.push(`$t${i}`);
@@ -157,7 +176,8 @@ class JsGen {
         const ft = this.cx.fieldType(c, name);
         const init = fd.init || (fd.directInit ? null : null);
         if (init) {
-          this.line(`static ${safeJsName(name)} = ${this.argFor(ft, init as Expr, null)};`);
+          const folded = this.foldStaticConst(c, ft, fd, init as Expr);
+          this.line(`static ${safeJsName(name)} = ${folded !== null ? folded : this.argFor(ft, init as Expr, null)};`);
         } else if (fd.directInit && fd.directInit.length) {
           const a = this.cx.getAnn(fd);
           if (a.call) {
@@ -257,12 +277,12 @@ class JsGen {
     this.line(`this.__init_${cn}(...$a);`);
     this.ind = this.ind.slice(0, -2);
     this.line(`}`);
-    this.line(`__init_${cn}(...$a) {`);
-    this.ind += "  ";
-    if (all.length <= 1) {
-      if (all.length) this.ctorBranch(c, all[0].fn, all[0].inh);
-      else this.ctorDefault(c);
-    } else {
+    this.withTmpDecl(`__init_${cn}(...$a) {`, () => {
+      if (all.length <= 1) {
+        if (all.length) this.ctorBranch(c, all[0].fn, all[0].inh);
+        else this.ctorDefault(c);
+        return;
+      }
       // An "instanceof" guard is exact while the one for a pointer or reference
       // only tells an object from a number, so a branch that names a class has
       // to be tried before one that takes a box.
@@ -278,9 +298,7 @@ class JsGen {
         this.line(`}`);
       });
       this.line(`else { throw new Error("no matching constructor"); }`);
-    }
-    this.ind = this.ind.slice(0, -2);
-    this.line(`}`);
+    });
   }
 
   matchCond(fn: FuncInfo, _i: number, sib?: Map<string, string[]>): string {
@@ -530,27 +548,25 @@ class JsGen {
       this.line(`}`);
       return;
     }
-    this.line(`${pre}${m}(...$a) {`);
-    this.ind += "  ";
-    const sib = this.siblingClasses(use);
-    use.forEach((fn, i) => {
-      this.line(`${i === 0 ? "if" : "else if"} (${this.matchCond(fn, i, sib[i])}) {`);
-      this.ind += "  ";
-      const ps = this.cx.funcParams(fn);
-      this.alias.push(new Map());
-      ps.forEach((p, j) => {
-        if (!p.variadic && p.name) this.alias[this.alias.length - 1].set(p.name, this.ctorArg(p, j));
+    this.withTmpDecl(`${pre}${m}(...$a) {`, () => {
+      const sib = this.siblingClasses(use);
+      use.forEach((fn, i) => {
+        this.line(`${i === 0 ? "if" : "else if"} (${this.matchCond(fn, i, sib[i])}) {`);
+        this.ind += "  ";
+        const ps = this.cx.funcParams(fn);
+        this.alias.push(new Map());
+        ps.forEach((p, j) => {
+          if (!p.variadic && p.name) this.alias[this.alias.length - 1].set(p.name, this.ctorArg(p, j));
+        });
+        this.fnStack.push(fn);
+        this.bodyStmts(fn.decl.body || []);
+        this.fnStack.pop();
+        this.alias.pop();
+        this.ind = this.ind.slice(0, -2);
+        this.line(`}`);
       });
-      this.fnStack.push(fn);
-      this.bodyStmts(fn.decl.body || []);
-      this.fnStack.pop();
-      this.alias.pop();
-      this.ind = this.ind.slice(0, -2);
-      this.line(`}`);
+      this.line(`else { throw new Error("no matching overload"); }`);
     });
-    this.line(`else { throw new Error("no matching overload"); }`);
-    this.ind = this.ind.slice(0, -2);
-    this.line(`}`);
   }
 
   // The allocation operators are declared by <new> with no body; storage comes
@@ -1365,7 +1381,9 @@ class JsGen {
     const pre: string[] = [];
     const v: string[] = [];
     for (const it of items) {
-      if (this.isSimple(it.e)) { v.push(this.paren(it.s)); continue; }
+      // The box an addressed "this" yields is built in place, so it earns a
+      // name of its own even though "this" itself would not need one.
+      if (this.isSimple(it.e) && it.e.kind !== "this") { v.push(this.paren(it.s)); continue; }
       const t = this.tmp();
       pre.push(`${t} = ${it.s}`);
       v.push(t);
@@ -1384,6 +1402,10 @@ class JsGen {
 
   pbox(s: string, e: Expr, t: CppType): string {
     const x = this.complex(s, e);
+    // "this + 1" addresses the storage that follows the object, as
+    // "reinterpret_cast<_CharT*>(this + 1)" does in a header that keeps its
+    // data behind the object: the instance gets an array to be addressed in.
+    if (e.kind === "this") return `{a: (this.ctj_a || (this.ctj_a = [])), i: (this.ctj_i || 0)}`;
     if (t.dims.length && !t.isBox()) return `{a: ${x}, i: 0}`;
     return x;
   }
@@ -1664,6 +1686,21 @@ class JsGen {
     return `(() => { throw new Error("unresolved ${name}"); })()`;
   }
 
+  // A "static const" integral member is a constant expression in C++, and
+  // folding it keeps the emitted initializer from reading a class that the
+  // target language has not finished defining yet.
+  foldStaticConst(c: ClsInfo, ft: CppType, fd: VarDecl, init: Expr): string | null {
+    const cnst = ft.cnst || fd.flags.includes("const") || fd.flags.includes("constexpr");
+    if (!cnst || ft.ptr || ft.ref || ft.dims.length || ft.isBox()) return null;
+    if (!isIntegerName(coreName(ft))) return null;
+    try {
+      const v = constEval(this.cx, init, this.cx.memberScope(c));
+      return typeof v === "number" ? String(v) : null;
+    } catch {
+      return null;
+    }
+  }
+
   blankScope(): Scope {
     return rootScope();
   }
@@ -1926,9 +1963,10 @@ class JsGen {
       const obj = a.call
         ? this.ctorExpr(cn, a.call as FuncInfo, e.args, a.convs, t)
         : `new ${cn}()`;
-      // The object goes into the storage it was given, and what the expression
-      // yields is a pointer to that storage.
-      return `(${slot} = ${obj}, {a: ${pp}.a, i: ${pp}.i})`;
+      // The object goes into the storage it was given and keeps its address, so
+      // that "this + 1" can find the storage again; what the expression yields
+      // is the pointer to that storage.
+      return `(${slot} = ${obj}, ${slot}.ctj_a = ${pp}.a, ${slot}.ctj_i = ${pp}.i, {a: ${pp}.a, i: ${pp}.i})`;
     }
     const v = e.args.length ? this.ex(e.args[0]) : this.zero(t);
     return `(${slot} = ${v})`;

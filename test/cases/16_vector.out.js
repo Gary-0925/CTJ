@@ -198,6 +198,21 @@ class std_allocator_char extends gnu_cxx_new_allocator_char {
     gnu_cxx_new_allocator_char.prototype.__dtor.call(this);
   }
 }
+class std_basic_string_char_std_char_traits_char_std_allocator_char_Rep_base {
+  _M_length;
+  _M_capacity;
+  _M_refcount;
+  constructor(...$a) {
+    this.__init_std_basic_string_char_std_char_traits_char_std_allocator_char_Rep_base(...$a);
+  }
+  __init_std_basic_string_char_std_char_traits_char_std_allocator_char_Rep_base(...$a) {
+    this._M_length = 0;
+    this._M_capacity = 0;
+    this._M_refcount = 0;
+  }
+  __dtor() {
+  }
+}
 class std_basic_string_char_std_char_traits_char_std_allocator_char_Alloc_hider extends std_allocator_char {
   _M_p;
   constructor(...$a) {
@@ -221,7 +236,7 @@ class std_basic_string_char_std_char_traits_char_std_allocator_char {
   }
   __dtor() {
   }
-  static npos = ((-(1)) >>> 0);
+  static npos = 4294967295;
 }
 class std_allocator_char_rebind_char {
   __dtor() {
@@ -261,6 +276,21 @@ class std_allocator_wchar_t extends gnu_cxx_new_allocator_wchar_t {
     gnu_cxx_new_allocator_wchar_t.prototype.__dtor.call(this);
   }
 }
+class std_basic_string_wchar_t_std_char_traits_wchar_t_std_allocator_wchar_t_Rep_base {
+  _M_length;
+  _M_capacity;
+  _M_refcount;
+  constructor(...$a) {
+    this.__init_std_basic_string_wchar_t_std_char_traits_wchar_t_std_allocator_wchar_t_Rep_base(...$a);
+  }
+  __init_std_basic_string_wchar_t_std_char_traits_wchar_t_std_allocator_wchar_t_Rep_base(...$a) {
+    this._M_length = 0;
+    this._M_capacity = 0;
+    this._M_refcount = 0;
+  }
+  __dtor() {
+  }
+}
 class std_basic_string_wchar_t_std_char_traits_wchar_t_std_allocator_wchar_t_Alloc_hider extends std_allocator_wchar_t {
   _M_p;
   constructor(...$a) {
@@ -284,7 +314,7 @@ class std_basic_string_wchar_t_std_char_traits_wchar_t_std_allocator_wchar_t {
   }
   __dtor() {
   }
-  static npos = ((-(1)) >>> 0);
+  static npos = 4294967295;
 }
 class std_allocator_wchar_t_rebind_wchar_t {
   __dtor() {
@@ -324,6 +354,21 @@ class std_allocator_char16_t extends gnu_cxx_new_allocator_char16_t {
     gnu_cxx_new_allocator_char16_t.prototype.__dtor.call(this);
   }
 }
+class std_basic_string_char16_t_std_char_traits_char16_t_std_allocator_char16_t_Rep_base {
+  _M_length;
+  _M_capacity;
+  _M_refcount;
+  constructor(...$a) {
+    this.__init_std_basic_string_char16_t_std_char_traits_char16_t_std_allocator_char16_t_Rep_base(...$a);
+  }
+  __init_std_basic_string_char16_t_std_char_traits_char16_t_std_allocator_char16_t_Rep_base(...$a) {
+    this._M_length = 0;
+    this._M_capacity = 0;
+    this._M_refcount = 0;
+  }
+  __dtor() {
+  }
+}
 class std_basic_string_char16_t_std_char_traits_char16_t_std_allocator_char16_t_Alloc_hider extends std_allocator_char16_t {
   _M_p;
   constructor(...$a) {
@@ -347,7 +392,7 @@ class std_basic_string_char16_t_std_char_traits_char16_t_std_allocator_char16_t 
   }
   __dtor() {
   }
-  static npos = ((-(1)) >>> 0);
+  static npos = 4294967295;
 }
 class std_allocator_char16_t_rebind_char16_t {
   __dtor() {
@@ -387,6 +432,21 @@ class std_allocator_char32_t extends gnu_cxx_new_allocator_char32_t {
     gnu_cxx_new_allocator_char32_t.prototype.__dtor.call(this);
   }
 }
+class std_basic_string_char32_t_std_char_traits_char32_t_std_allocator_char32_t_Rep_base {
+  _M_length;
+  _M_capacity;
+  _M_refcount;
+  constructor(...$a) {
+    this.__init_std_basic_string_char32_t_std_char_traits_char32_t_std_allocator_char32_t_Rep_base(...$a);
+  }
+  __init_std_basic_string_char32_t_std_char_traits_char32_t_std_allocator_char32_t_Rep_base(...$a) {
+    this._M_length = 0;
+    this._M_capacity = 0;
+    this._M_refcount = 0;
+  }
+  __dtor() {
+  }
+}
 class std_basic_string_char32_t_std_char_traits_char32_t_std_allocator_char32_t_Alloc_hider extends std_allocator_char32_t {
   _M_p;
   constructor(...$a) {
@@ -410,7 +470,7 @@ class std_basic_string_char32_t_std_char_traits_char32_t_std_allocator_char32_t 
   }
   __dtor() {
   }
-  static npos = ((-(1)) >>> 0);
+  static npos = 4294967295;
 }
 class std_allocator_char32_t_rebind_char32_t {
   __dtor() {
@@ -1269,7 +1329,7 @@ class std_is_base_to_derived_ref_int_int_value1 {
   }
   __dtor() {
   }
-  static value = std_integral_constant_bool_value0.value;
+  static value = 0;
 }
 class std_and_std_is_lvalue_reference_int_std_is_rvalue_reference_int extends std_is_lvalue_reference_int {
   constructor(...$a) {
@@ -1927,7 +1987,7 @@ class std_declval_protector_int {
   }
   __dtor() {
   }
-  static __stop = false;
+  static __stop = 0;
 }
 class std_iterator_std_random_access_iterator_tag_int_long_int_P_int_R {
   __dtor() {
@@ -1993,10 +2053,6 @@ class std_tuple {
   __dtor() {
   }
 }
-class std_shared_ptr_int_P {
-  __dtor() {
-  }
-}
 class gnu_cxx_char_traits_int_P {
   __dtor() {
   }
@@ -2010,6 +2066,21 @@ class std_char_traits_int_P extends gnu_cxx_char_traits_int_P {
   }
   __dtor() {
     gnu_cxx_char_traits_int_P.prototype.__dtor.call(this);
+  }
+}
+class std_basic_string_int_P_std_char_traits_int_P_std_allocator_int_P_Rep_base {
+  _M_length;
+  _M_capacity;
+  _M_refcount;
+  constructor(...$a) {
+    this.__init_std_basic_string_int_P_std_char_traits_int_P_std_allocator_int_P_Rep_base(...$a);
+  }
+  __init_std_basic_string_int_P_std_char_traits_int_P_std_allocator_int_P_Rep_base(...$a) {
+    this._M_length = 0;
+    this._M_capacity = 0;
+    this._M_refcount = 0;
+  }
+  __dtor() {
   }
 }
 class std_basic_string_int_P_std_char_traits_int_P_std_allocator_int_P_Alloc_hider extends std_allocator_int_P {
@@ -2035,10 +2106,72 @@ class std_basic_string_int_P_std_char_traits_int_P_std_allocator_int_P {
   }
   __dtor() {
   }
-  static npos = ((-(1)) >>> 0);
+  static npos = 4294967295;
 }
 class std_allocator_int_P_rebind_int_P {
   __dtor() {
+  }
+}
+class std_Mutex_base_value0 {
+  __dtor() {
+  }
+}
+class std_Sp_counted_base_value0 extends std_Mutex_base_value0 {
+  _M_use_count;
+  _M_weak_count;
+  constructor(...$a) {
+    super();
+    this.__init_std_Sp_counted_base_value0(...$a);
+  }
+  __init_std_Sp_counted_base_value0(...$a) {
+    this._M_use_count = 0;
+    this._M_weak_count = 0;
+  }
+  __dtor() {
+    std_Mutex_base_value0.prototype.__dtor.call(this);
+  }
+  _M_dispose() {
+    throw new Error("pure virtual called");
+  }
+  _M_destroy() {
+  }
+  _M_get_deleter($p0) {
+    throw new Error("pure virtual called");
+  }
+}
+class std_shared_count_value0 {
+  _M_pi;
+  constructor(...$a) {
+    this.__init_std_shared_count_value0(...$a);
+  }
+  __init_std_shared_count_value0(...$a) {
+    this._M_pi = null;
+  }
+  __dtor() {
+  }
+}
+class std_shared_ptr_int_P_value0 {
+  _M_ptr;
+  _M_refcount;
+  constructor(...$a) {
+    this.__init_std_shared_ptr_int_P_value0(...$a);
+  }
+  __init_std_shared_ptr_int_P_value0(...$a) {
+    this._M_ptr = null;
+    this._M_refcount = new std_shared_count_value0();
+  }
+  __dtor() {
+  }
+}
+class std_shared_ptr_int_P extends std_shared_ptr_int_P_value0 {
+  constructor(...$a) {
+    super();
+    this.__init_std_shared_ptr_int_P(...$a);
+  }
+  __init_std_shared_ptr_int_P(...$a) {
+  }
+  __dtor() {
+    std_shared_ptr_int_P_value0.prototype.__dtor.call(this);
   }
 }
 function std_throw_bad_alloc(...$a) { throw new Error("unresolved external: std::__throw_bad_alloc"); }

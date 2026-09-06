@@ -17,7 +17,7 @@ class Head1_long {
   }
   __dtor() {
   }
-  static n = (1 + 0);
+  static n = 1;
 }
 function main() {
   (console.log((Count_int_double_char.n), (Head1_long.n)));

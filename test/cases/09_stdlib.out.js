@@ -10,28 +10,28 @@ class std_numeric_limits_int {
   static max() {
     return 2147483647;
   }
-  static is_specialized = true;
-  static digits = ((4 * 8) - ((-(1)) < 0));
-  static digits10 = (Math.trunc((((4 * 8) - ((-(1)) < 0)) * 643) / 2136));
+  static is_specialized = 1;
+  static digits = 31;
+  static digits10 = 9;
   static max_digits10 = 0;
-  static is_signed = true;
-  static is_integer = true;
-  static is_exact = true;
+  static is_signed = 1;
+  static is_integer = 1;
+  static is_exact = 1;
   static radix = 2;
   static min_exponent = 0;
   static min_exponent10 = 0;
   static max_exponent = 0;
   static max_exponent10 = 0;
-  static has_infinity = false;
-  static has_quiet_NaN = false;
-  static has_signaling_NaN = false;
+  static has_infinity = 0;
+  static has_quiet_NaN = 0;
+  static has_signaling_NaN = 0;
   static has_denorm = 0;
-  static has_denorm_loss = false;
-  static is_iec559 = false;
-  static is_bounded = true;
-  static is_modulo = false;
-  static traps = true;
-  static tinyness_before = false;
+  static has_denorm_loss = 0;
+  static is_iec559 = 0;
+  static is_bounded = 1;
+  static is_modulo = 0;
+  static traps = 1;
+  static tinyness_before = 0;
   static round_style = 0;
 }
 function strlen(s) {

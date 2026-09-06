@@ -737,6 +737,15 @@ export class Cx {
       fq = ownerParts.length
         ? this.ownerFq(ownerParts, scope) + "::" + short
         : this.memberFq(scope, short);
+    } else if (inner.kind === "var") {
+
+      // The definition of a static data member, written outside the class.
+      kind = "data";
+      const short = last(inner.name.map(s => s.n));
+      const ownerParts = inner.name.slice(0, -1);
+      fq = ownerParts.length
+        ? this.ownerFq(ownerParts, scope) + "::" + short
+        : this.memberFq(scope, short);
     } else if (inner.kind === "typedef") {
       kind = "alias";
       fq = this.memberFq(scope, inner.name);
@@ -1598,7 +1607,21 @@ export class Cx {
       // The member can belong to a nested class of the instantiated one:
       // "W2<int>::N::get" is a method of W2<int>::N, not of W2<int>.
       const owner = this.classes.get(this.nsOfFq(newFq)) || cls;
-      if (t.kind === "func" && !rest.length) {
+      if (t.kind === "data" && !rest.length) {
+        const decl = substDecl(t.decl, env) as VarDecl;
+        const short = last(decl.name).n;
+        const fd = owner.fields.get(short);
+        // The declaration inside the class carries no value; the definition
+        // does, and it is what the emitted static field is initialized from.
+        if (fd && !fd.init && !fd.directInit && decl.init) {
+          owner.fields.set(short, decl);
+          try {
+            typeOf(this, decl.init, this.memberScope(owner));
+          } catch {
+            /* the emitter reports a value it cannot evaluate */
+          }
+        }
+      } else if (t.kind === "func" && !rest.length) {
         const decl = substDecl(t.decl, env) as FuncDecl;
         this.annDefaults(decl, this.memberScope(owner));
         const exist = this.findMethod(owner, decl);

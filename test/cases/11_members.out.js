@@ -67,7 +67,7 @@ class Str_char_Traits_char {
     }
     return (a.a[a.i] - b.a[b.i]);
   }
-  static npos = (-(1));
+  static npos = -1;
 }
 class Node_double_Rebind_int {
   __dtor() {

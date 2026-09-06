@@ -597,6 +597,13 @@ export class Parser {
       try {
         const q = this.parseQualifiedType();
         if (this.isCtorDefName(q)) { this.reset(m); break; }
+        // With a type already in hand, a qualified name that an "=" or a ";"
+        // follows is the declarator being declared rather than more of the type:
+        // "typename W<T>::size_type W<T>::npos = 100;".
+        if (type && (this.peek().t === "=" || this.peek().t === ";" || this.peek().t === ",")) {
+          this.reset(m);
+          break;
+        }
         if (!this.typeTailIsType(q)) { this.reset(m); break; }
         type = this.mergeBase(type, q, prefix, t);
       } catch {
