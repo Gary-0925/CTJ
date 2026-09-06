@@ -166,8 +166,10 @@ export function parseClassBody(p: Parser, head: ClassHead, a: At): ClassDecl {
   p.expect("{");
   while (!p.eat("}")) {
     if (p.atEnd()) {
-      const t = p.peek();
-      fail("unterminated class body", t.file, t.line, t.col);
+      // Keep the members collected so far: losing the rest of the translation
+      // unit over one unbalanced brace hides every error that follows.
+      p.warn("unterminated class body, keeping the members parsed so far", p.peek());
+      break;
     }
     try {
       for (const d of p.parseDecls(true)) {
@@ -267,8 +269,8 @@ function parseNsBody(p: Parser): Decl[] {
   const out: Decl[] = [];
   while (!p.eat("}")) {
     if (p.atEnd()) {
-      const t = p.peek();
-      fail("unterminated namespace body", t.file, t.line, t.col);
+      p.warn("unterminated namespace body, keeping the declarations parsed so far", p.peek());
+      return out;
     }
     try {
       for (const d of p.parseDecls(false)) out.push(d);
