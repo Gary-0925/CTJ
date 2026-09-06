@@ -571,6 +571,12 @@ export class Parser {
       if (v === "operator" || v === "template" || v === "~") break;
       if (!this.isTypeName(v) && this.peek(1).t !== "::" && this.peek(1).t !== "<") break;
       if (this.peek(1).t === "(" && !type && !prefix.length) break;
+      // "typedef typename R::iterator iterator;": once a type is complete, an
+      // identifier that is itself a type name is the declarator being declared
+      // rather than another piece of the type.
+      if (type && this.isTypeName(v) && this.peek(1).t !== "::" && this.peek(1).t !== "<"
+        && (this.peek(1).t === ";" || this.peek(1).t === "," || this.peek(1).t === "="
+          || this.peek(1).t === "(" || this.peek(1).t === "[")) break;
       // "unsigned long size_t": with base keywords already seen, the type name
       // that follows is the declarator being declared, not part of the type.
       if (prefix.length && !type) break;
