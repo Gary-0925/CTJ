@@ -498,6 +498,9 @@ function typeOfCast(cx: Cx, e: CastExpr, scope: Scope): CppType {
   }
   if (isNumericish(cx, target) && isNumericish(cx, st)) return target;
   if (tn === "__null" || sn === "__null") return target;
+  // Only the reference qualification differs, as in "static_cast<_Tp&&>(__t)":
+  // the value denoted is the same one, so there is nothing to convert.
+  if (st.ptr === target.ptr && noRef(st).key() === noRef(target).key()) return target;
   cx.fail(`cannot cast`, e);
 }
 

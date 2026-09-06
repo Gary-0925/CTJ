@@ -1535,7 +1535,7 @@ export class Cx {
   }
 
   buildEnv(tparams: TParam[], args: CppType[]): SubstEnv {
-    const env: SubstEnv = { types: new Map(), packs: new Map(), values: new Map(), valuePacks: new Map(), packNames: new Map() };
+    const env: SubstEnv = { types: new Map(), packs: new Map(), values: new Map(), valuePacks: new Map(), packNames: new Map(), packOf: new Map() };
     let ai = 0;
     for (const tp of tparams) {
       if (tp.isPack) {

@@ -72,37 +72,25 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
 	if (__n > this->max_size())
 	  std::__throw_bad_alloc();
 
-	// Transpiled storage is an array of objects, not raw bytes.
-	return new _Tp[__n];
+	return static_cast<_Tp*>(::operator new(__n * sizeof(_Tp)));
       }
 
       void
       deallocate(pointer __p, size_type)
-      { (void)__p; }  // the target language reclaims the storage itself
+      { ::operator delete(__p); }
 
-      // Transpiled storage is an array in the target language, so the limit is
-      // the largest count such an array can hold rather than an address space.
       size_type
       max_size() const _GLIBCXX_USE_NOEXCEPT
-      { return 1073741823 / sizeof(_Tp); }
+      { return size_t(-1) / sizeof(_Tp); }
 
-      // Placement new needs raw storage, which transpiled code does not have,
-      // so constructing into an existing object is spelled as an assignment.
+      template<typename _Up, typename... _Args>
+        void
+        construct(_Up* __p, _Args&&... __args)
+	{ ::new((void *)__p) _Up(std::forward<_Args>(__args)...); }
+
       template<typename _Up>
         void
-        construct(_Up* __p)
-	{ *__p = _Up(); }
-
-      template<typename _Up, typename _Vp>
-        void
-        construct(_Up* __p, const _Vp& __val)
-	{ *__p = __val; }
-
-      // Transpiled objects are garbage collected, so there is nothing to
-      // release when an element goes away.
-      template<typename _Up>
-        void
-        destroy(_Up*) { }
+        destroy(_Up* __p) { __p->~_Up(); }
     };
 
   template<typename _Tp>

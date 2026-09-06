@@ -46,8 +46,8 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
     inline _Tp*
     __addressof(_Tp& __r) _GLIBCXX_NOEXCEPT
     {
-      // CTJ: the cast chain only reinterprets the address of __r.
-      return &__r;
+      return reinterpret_cast<_Tp*>
+	(&const_cast<char&>(reinterpret_cast<const volatile char&>(__r)));
     }
 
 _GLIBCXX_END_NAMESPACE_VERSION
