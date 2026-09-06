@@ -53,7 +53,7 @@ __ctj_php("print($1 . PHP_EOL)", x); // 只在 PHP 目标下生效
 python3 -m http.server 8080
 ```
 
-打开 `http://localhost:8080/` 即可：左侧写 C++，右侧得到目标代码，可切换 JavaScript / PHP，JavaScript 结果可以直接在页面里运行，警告与运行输出分别显示在下方。页面内置了基础语法、指针与数组、类与继承、模板、标准库头文件、PHP 后端六个示例。
+打开 `http://localhost:8080/` 即可：左侧写 C++，右侧得到目标代码，可切换 JavaScript / PHP，JavaScript 结果可以直接在页面里运行，警告与运行输出分别显示在下方。页面内置了基础语法、指针与数组、类与继承、模板、类模板与成员、标准库容器、标准库头文件、PHP 后端八个示例。
 
 ## 命令行
 
@@ -71,13 +71,15 @@ npm test                # 运行 test/cases 下的全部用例
 
 - 基本类型、指针、引用、数组（含多维与指针运算）、`struct` / `class`、继承与虚函数（含通过基类指针的动态派发）、构造与析构、运算符重载、名字空间、`enum`、`typedef` / `using` 别名、`static` / `const` 成员、lambda、`new` / `delete`。
 - 函数模板与类模板（含非类型模板参数、成员函数、默认模板实参）、模板实参推导与重载决议（同一模板可以按需实例化出多个版本）。
-- 标准头文件中已经跑通并有测试覆盖的：`<cstring> <cstdlib> <cstddef> <cstdint> <climits> <limits> <exception> <new> <typeinfo>`。
-- 能够完整通过预处理与语法分析、但其模板尚未全部跑通的：`<utility> <vector> <string> <algorithm> <queue> <stack> <functional>`。
-- `<cmath>`、`<initializer_list>` 可以用，但 `<cmath>` 的 C++ `abs` 重载与 `initializer_list` 的范围 `for` 还不行。
+- 标准头文件中已经跑通并有测试覆盖的：`<cstring> <cstdlib> <cstddef> <cstdint> <climits> <limits> <exception> <new> <typeinfo> <math.h>`。
+- `<vector>` 可以真正使用（见 `test/cases/16_vector.cpp`）：`bits/stl_vector.h` 与 `bits/vector.tcc` 会和用户代码一起被转译，`push_back`、`size`、`operator[]` 读写、`clear` 与按下标遍历都能运行；`std::vector<T> w = v;` 这样的拷贝构造还不行。
+- 模板偏特化已经实现（见 `test/cases/15_partial_spec.cpp`），`__are_same<_Tp, _Tp>`、`__enable_if<true, _Tp>` 一类写法可用。
+- 能够完整通过预处理、语法分析与代码生成，但内部模板尚未全部跑通的：`<functional> <tuple> <utility> <string> <map> <set> <initializer_list> <cmath>`。
 
 已知限制：
 
-- 模板偏特化未实现（会给出警告并跳过），因此依赖 SFINAE 的 `enable_if` 一类写法不可用。`<vector> <string> <map> <set> <iostream> <sstream>` 这类依赖大量偏特化的头文件目前还转译不了：解析器会在 `include/tuple` 等处失去同步，最后连 `main` 都收集不到，只留下 `unterminated namespace body` 和 `no main function found` 两条警告。
+- `#include <algorithm>` 会让解析器在 `bits/random.tcc` 里失去同步，把后面的 `main` 一起吃掉，最后只剩一条 `no main function found`；`<algorithm>` 目前不要用（`std::max`、`std::min` 由 `bits/stl_algobase.h` 提供，随 `<vector>` 一起可用）。另外 `include/` 还缺少 `bits/uniform_int_dist.h`。
+- `<iostream>` 一类头文件会在 `bits/locale_classes.h` 的 `locale::id` 处失败。
 - `include/stdio.h` 只声明了 `printf` 一族而没有实现，调用它们会在运行时抛出 `unresolved external`；请用 `__ctj_js` / `__ctj_php` 输出。
 - libstdc++ 的 `iostream` / `locale` 依赖编译好的库文件，无法转译。
 - 转译结果使用 JavaScript 的 `number`，`long long`、`unsigned` 等只保证在 53 位整数范围内语义一致。
