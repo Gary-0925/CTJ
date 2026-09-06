@@ -314,10 +314,14 @@ function typeOfUnary(cx: Cx, e: UnaryExpr, scope: Scope): CppType {
 }
 
 function typeOfBinary(cx: Cx, e: BinaryExpr, scope: Scope): CppType {
-  const lt = typeOf(cx, e.l, scope);
-  const rt = typeOf(cx, e.r, scope);
+  const rawL = typeOf(cx, e.l, scope);
+  const rawR = typeOf(cx, e.r, scope);
   const ann = cx.getAnn(e);
-  if (e.op === ",") return rt;
+  if (e.op === ",") return rawR;
+  // Outside a plain assignment an lvalue of reference type behaves as the type
+  // it refers to; only the assignment needs to know it writes through one.
+  const lt = e.op === "=" ? rawL : rawL.core();
+  const rt = e.op === "=" ? rawR : rawR.core();
   const lop = isClassVal(cx, lt) || isClassBox(cx, lt);
   const rop = isClassVal(cx, rt) || isClassBox(cx, rt);
   if ((lop || rop) && e.op !== "&&" && e.op !== "||") {
@@ -389,7 +393,9 @@ function typeOfAssign(cx: Cx, e: AssignExpr, scope: Scope): CppType {
     if (!p && !(lt.ptr > 0 && isIntegerish(cx, rt))) cx.fail(`bad operands to '${e.op}'`, e);
     return lt;
   }
-  if (lt.isBox() && !rt.isBox() && !rt.dims.length && rt.name !== "__null") markBoxedOf(cx, e.r);
+  // Storing through a reference is a plain write; only a pointer target needs
+  // the value on the right to live in a box.
+  if (lt.ptr > 0 && !rt.isBox() && !rt.dims.length && rt.name !== "__null") markBoxedOf(cx, e.r);
   const m = matchScore(cx, lt, rt, e.r, scope, true);
   if (m.s < 0) cx.fail("cannot convert in assignment", e);
   ann.conv = m.conv;

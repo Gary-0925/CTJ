@@ -1232,6 +1232,12 @@ class JsGen {
     }
     if (!pB && aB) {
       if (at && at.name === "__null" && coreName(p) === "bool") return "false";
+      // Reading a reference variable already yields the value it refers to;
+      // only an expression that produces a fat pointer needs one more step.
+      if (x.kind === "id") {
+        const sym = this.cx.getAnn(x).sym;
+        if (sym && sym.k === "var" && sym.v.typeCache && sym.v.typeCache.ref) return this.ex(x);
+      }
       return this.deref(x);
     }
     if (coreName(p) === "bool" && at && at.isBox() && !at.isFunc) return `(${this.ex(x)} != null)`;
