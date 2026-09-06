@@ -336,12 +336,22 @@ Object.keys(EXAMPLES).forEach(name => {
   exampleSelect.appendChild(o);
 });
 exampleSelect.addEventListener("change", () => { $("source").value = EXAMPLES[exampleSelect.value];
-// Loading dist/ctj.js as text keeps a proxy or a stale cache from silently
-// handing the page something that is not the transpiler, and says which it was.
-function loadTranspiler() {
-  if (typeof CTJ !== "undefined") { setStatus("就绪"); return; }
-  setStatus("正在获取 dist/ctj.js …");
-  fetch("dist/ctj.js?v=" + Date.now(), { cache: "no-store" })
+// Two ways to get the transpiler, because a preview frame may allow one and
+// not the other: a <script src> needs script-src, a fetch needs connect-src.
+// Both bypass the cache, and both say what went wrong.
+function transpilerFailed(msg) {
+  setStatus("dist/ctj.js 加载失败：" + msg);
+  $("out").className = "err";
+  $("out").textContent = "dist/ctj.js 加载失败：" + msg +
+    "\n\n请在项目目录运行 npm run build（或 npm run serve）后刷新页面。";
+}
+
+function transpilerReady(bytes) {
+  setStatus(bytes ? "就绪（转译器 " + bytes + " 字节）" : "就绪");
+}
+
+function fetchTranspiler(url) {
+  fetch(url, { cache: "no-store" })
     .then(r => {
       if (!r.ok) throw new Error("HTTP " + r.status + " " + r.statusText);
       const type = r.headers.get("content-type") || "(none)";
@@ -352,15 +362,24 @@ function loadTranspiler() {
         el.textContent = text;
         document.head.appendChild(el);
         if (typeof CTJ === "undefined") throw new Error("已执行 " + text.length + " 字节但没有定义 CTJ");
-        setStatus("就绪（转译器 " + text.length + " 字节）");
+        transpilerReady(text.length);
       });
     })
-    .catch(err => {
-      const msg = "dist/ctj.js 加载失败：" + err.message;
-      setStatus(msg);
-      $("out").className = "err";
-      $("out").textContent = msg + "\n\n请在项目目录运行 npm run build（或 npm run serve）后刷新页面。";
-    });
+    .catch(err => transpilerFailed(err.message + "（script 标签方式也未成功）"));
+}
+
+function loadTranspiler() {
+  if (typeof CTJ !== "undefined") { transpilerReady(); return; }
+  setStatus("正在加载 dist/ctj.js …");
+  const url = "dist/ctj.js?v=" + Date.now();
+  const el = document.createElement("script");
+  el.src = url;
+  el.onload = () => {
+    if (typeof CTJ !== "undefined") transpilerReady();
+    else fetchTranspiler(url);
+  };
+  el.onerror = () => fetchTranspiler(url);
+  document.head.appendChild(el);
 }
 loadTranspiler(); });
 exampleSelect.value = "基础语法";
