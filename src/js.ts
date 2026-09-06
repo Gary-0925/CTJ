@@ -1366,6 +1366,12 @@ class JsGen {
       let m = name.slice("__builtin_".length);
       if (m === "nan" || m === "nanf" || m === "nans") return "NaN";
       if (m === "inf" || m === "inff" || m === "huge_val") return "Infinity";
+      // JavaScript spells the absolute-value functions "abs".
+      if (m === "fabs" || m === "fabsf" || m === "fabsl") m = "abs";
+      // JavaScript has no Math.fmod; the % operator computes the same value.
+      if (m === "fmod" || m === "fmodf" || m === "fmodl") {
+        return `((${this.ex(e.args[0])}) % (${this.ex(e.args[1])}))`;
+      }
       if (m.endsWith("f") && (Math as unknown as Record<string, unknown>)[m.slice(0, -1)] !== undefined) m = m.slice(0, -1);
       return `Math.${m}(${e.args.map(x => this.ex(x)).join(", ")})`;
     }
