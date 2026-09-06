@@ -75,6 +75,7 @@
 </main>
 <footer><span id="status">就绪</span></footer>
 
+<script src="dist/ctj.js"></script>
 <script>
 "use strict";
 
@@ -263,8 +264,9 @@ function transpile() {
   if (typeof CTJ === "undefined") {
     $("code").textContent = "";
     $("out").className = "err";
-    $("out").textContent = "转译器还没就绪，请看页面底部的状态提示；若提示加载失败，请运行 npm run build（或 npm run serve）后刷新。";
-    setStatus("转译器未加载");
+    $("out").textContent = "转译器还没就绪 —— " + loadNote +
+      "\n\n若为加载失败，请在项目目录运行 npm run build（或 npm run serve）后刷新页面。";
+    setStatus("转译器未加载：" + loadNote);
     return;
   }
   const target = $("target").value;
@@ -339,18 +341,23 @@ exampleSelect.addEventListener("change", () => { $("source").value = EXAMPLES[ex
 // Two ways to get the transpiler, because a preview frame may allow one and
 // not the other: a <script src> needs script-src, a fetch needs connect-src.
 // Both bypass the cache, and both say what went wrong.
+let loadNote = "正在加载 dist/ctj.js …";
+
 function transpilerFailed(msg) {
-  setStatus("dist/ctj.js 加载失败：" + msg);
+  loadNote = "加载失败：" + msg;
+  setStatus("dist/ctj.js " + loadNote);
   $("out").className = "err";
   $("out").textContent = "dist/ctj.js 加载失败：" + msg +
     "\n\n请在项目目录运行 npm run build（或 npm run serve）后刷新页面。";
 }
 
 function transpilerReady(bytes) {
-  setStatus(bytes ? "就绪（转译器 " + bytes + " 字节）" : "就绪");
+  loadNote = bytes ? "就绪（转译器 " + bytes + " 字节）" : "就绪";
+  setStatus(loadNote);
 }
 
 function fetchTranspiler(url) {
+  loadNote = "script 标签方式没有定义 CTJ，改用 fetch";
   fetch(url, { cache: "no-store" })
     .then(r => {
       if (!r.ok) throw new Error("HTTP " + r.status + " " + r.statusText);
@@ -371,12 +378,13 @@ function fetchTranspiler(url) {
 function loadTranspiler() {
   if (typeof CTJ !== "undefined") { transpilerReady(); return; }
   setStatus("正在加载 dist/ctj.js …");
-  const url = "dist/ctj.js?v=" + Date.now();
+  const stamp = Date.now();
+  const url = "dist/ctj.js?v=" + stamp + "&via=tag";
   const el = document.createElement("script");
   el.src = url;
   el.onload = () => {
     if (typeof CTJ !== "undefined") transpilerReady();
-    else fetchTranspiler(url);
+    else fetchTranspiler("dist/ctj.js?v=" + stamp + "&via=fetch");
   };
   el.onerror = () => fetchTranspiler(url);
   document.head.appendChild(el);

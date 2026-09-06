@@ -28,19 +28,32 @@ const TYPES = {
 };
 
 http.createServer((req, res) => {
-  const url = decodeURIComponent((req.url || "/").split("?")[0]);
+  const raw = req.url || "/";
+  const url = decodeURIComponent(raw.split("?")[0]);
   const file = path.join(root, url === "/" ? "index.html" : url);
   if (file !== root && !file.startsWith(root + path.sep)) {
     res.writeHead(403, { "Content-Type": "text/plain" }).end("forbidden");
     return;
   }
-  fs.readFile(file, (err, body) => {
+  fs.readFile(file, (err, data) => {
     if (err) {
-      console.log(`${req.socket.remoteAddress} ${req.method} ${url} 404`);
+      console.log(`${req.socket.remoteAddress} ${req.method} ${raw} 404`);
       res.writeHead(404, { "Content-Type": "text/plain" }).end("404 " + url);
       return;
     }
-    console.log(`${req.socket.remoteAddress} ${req.method} ${url} 200 ${body.length}`);
+    // A preview proxy can block or mangle a second request for the
+    // transpiler, so the page it serves carries the bundle inline. index.html
+    // on disk keeps the plain tag and works behind any static server.
+    let body = data;
+    if (path.basename(file) === "index.html") {
+      const tag = '<script src="dist/ctj.js"></script>';
+      const html = data.toString("utf8");
+      if (html.includes(tag) && fs.existsSync(path.join(root, "dist", "ctj.js"))) {
+        const bundle = fs.readFileSync(path.join(root, "dist", "ctj.js"), "utf8");
+        body = Buffer.from(html.replace(tag, "<script>\n" + bundle + "\n</script>"), "utf8");
+      }
+    }
+    console.log(`${req.socket.remoteAddress} ${req.method} ${raw} 200 ${body.length}`);
     res.writeHead(200, {
       "Content-Type": TYPES[path.extname(file)] || "application/octet-stream",
       "Content-Length": body.length,

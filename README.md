@@ -50,12 +50,12 @@ __ctj_php("print($1 . PHP_EOL)", x); // 只在 PHP 目标下生效
 `index.html` 需要与 `dist/ctj.js`、`include.json` 一起通过 HTTP 提供（`include.json` 是用 `fetch` 读取的）：
 
 ```
-npm run serve          # 缺少 dist/ctj.js 或 include.json 时先构建，并禁止浏览器缓存
+npm run serve          # 缺少构建产物时先构建；把转译器内联进页面；禁止缓存
 # 或者用任意静态服务器
 python3 -m http.server 8080
 ```
 
-打开 `http://localhost:8000/`（或 `http://localhost:8080/`）即可：左侧写 C++，右侧得到目标代码，可切换 JavaScript / PHP，JavaScript 结果可以直接在页面里运行，警告与运行输出分别显示在下方。页面内置了基础语法、指针与数组、类与继承、模板、类模板与成员、标准库容器、标准库头文件、PHP 后端八个示例。如果页面提示转译器未加载，通常是 `dist/ctj.js` 还没构建，或浏览器缓存了之前的一次失败请求；页面会带时间戳重新获取一次，也可以强制刷新（Ctrl+Shift+R）。
+打开 `http://localhost:8000/`（或 `http://localhost:8080/`）即可：左侧写 C++，右侧得到目标代码，可切换 JavaScript / PHP，JavaScript 结果可以直接在页面里运行，警告与运行输出分别显示在下方。页面内置了基础语法、指针与数组、类与继承、模板、类模板与成员、标准库容器、标准库头文件、PHP 后端八个示例。`npm run serve` 提供的页面已把 `dist/ctj.js` 内联进 HTML（磁盘上的 `index.html` 仍是普通的 `<script src>`），因此除 `include.json` 外不再有第二个请求——某些反向代理会缓存或拦掉对子资源脚本的请求，页面就会一直停在“转译器未加载”。若用其它静态服务器且页面提示转译器未加载，页面会带时间戳重新获取一次（先 `<script>` 标签，失败再 `fetch`），也可以强制刷新（Ctrl+Shift+R）；状态栏会写明失败原因（HTTP 状态、content-type、字节数）。
 
 ## 命令行
 
