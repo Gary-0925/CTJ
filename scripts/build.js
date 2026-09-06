@@ -16,7 +16,16 @@ execFileSync(process.execPath, [tsc, "-p", root], { stdio: "inherit" });
 
 const dist = path.join(root, "dist", "ctj.js");
 const kb = n => (n / 1024).toFixed(0) + " KB";
-console.log(`dist/ctj.js: ${kb(fs.statSync(dist).size)}`);
+
+// The playground shows this, so a page running an older bundle says so.
+let stamp = new Date().toISOString().slice(0, 19).replace("T", " ") + "Z";
+try {
+  stamp = execFileSync("git", ["rev-parse", "--short", "HEAD"], { cwd: root, encoding: "utf8" }).trim() + " " + stamp;
+} catch {
+  // not a git checkout
+}
+fs.appendFileSync(dist, `\nCTJ.version = ${JSON.stringify(stamp)};\n`);
+console.log(`dist/ctj.js: ${kb(fs.statSync(dist).size)} (${stamp})`);
 
 function collect(dir, prefix) {
   const out = {};

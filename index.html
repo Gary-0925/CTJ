@@ -351,9 +351,43 @@ function transpilerFailed(msg) {
     "\n\n请在项目目录运行 npm run build（或 npm run serve）后刷新页面。";
 }
 
-function transpilerReady(bytes) {
-  loadNote = bytes ? "就绪（转译器 " + bytes + " 字节）" : "就绪";
+function transpilerReady() {
+  loadNote = "就绪" + (CTJ.version ? " · " + CTJ.version : "");
   setStatus(loadNote);
+  selfCheck();
+}
+
+// A page that runs an older bundle is the failure that is hardest to see, so
+// the page checks its own transpiler on the case that used to break.
+let selfChecked = false;
+function selfCheck() {
+  if (selfChecked || typeof CTJ === "undefined" || !headers) return;
+  selfChecked = true;
+  const src = [
+    "#include <vector>",
+    "int main() {",
+    "  std::vector<int> v;",
+    "  for (int i = 1; i <= 5; i++) v.push_back(i * i);",
+    "  int sum = 0;",
+    "  for (unsigned i = 0; i < v.size(); i++) sum += v[i];",
+    '  __ctj_js("console.log($1)", sum);',
+    "  return 0;",
+    "}",
+  ].join("\n");
+  let note;
+  try {
+    const res = CTJ.transpile(src, { target: "js", headers });
+    let got = "(没有输出)";
+    new Function("console", res.code)({ log: (...a) => { got = a.map(fmtValue).join(" "); } });
+    note = got === "55" ? "自检通过" : "自检失败：vector 示例得到 " + got;
+  } catch (err) {
+    note = "自检失败：" + err.message;
+  }
+  setStatus(loadNote + " · " + note);
+  if (note !== "自检通过") {
+    $("out").className = "err";
+    $("out").textContent = note + "\n\n页面里的转译器不是当前构建的，请重新加载页面。";
+  }
 }
 
 function fetchTranspiler(url) {
@@ -369,7 +403,7 @@ function fetchTranspiler(url) {
         el.textContent = text;
         document.head.appendChild(el);
         if (typeof CTJ === "undefined") throw new Error("已执行 " + text.length + " 字节但没有定义 CTJ");
-        transpilerReady(text.length);
+        transpilerReady();
       });
     })
     .catch(err => transpilerFailed(err.message + "（script 标签方式也未成功）"));
@@ -411,7 +445,7 @@ $("source").addEventListener("keydown", e => {
 
 // Headers finishing must not report "ready" while the transpiler is still
 // missing, or a failed load would be hidden behind a green status.
-loadHeaders().then(() => { if (typeof CTJ !== "undefined") setStatus("就绪"); });
+loadHeaders().then(() => { if (typeof CTJ !== "undefined") { setStatus(loadNote); selfCheck(); } });
 </script>
 </body>
 </html>
