@@ -418,6 +418,9 @@ function typeOfNew(cx: Cx, e: NewExpr, scope: Scope): CppType {
   }
   if (e.isArray) {
     if (e.args.length) cx.fail("new array with initializer", e);
+    // The element count is an ordinary expression, so "new _Tp[__n]" needs the
+    // names in it annotated like any other argument.
+    for (const d of e.type.dims) typeOf(cx, d, scope);
     if (clsFq && cx.classes.has(clsFq)) {
       const r = resolveCtor(cx, clsFq, [], scope, e, true);
       ann.call = r.fn;
@@ -524,7 +527,7 @@ export function resolveCtor(cx: Cx, clsFq: string, args: { t: CppType; e: Expr }
   if (!allowExplicit) cands = cands.filter(f => !f.decl.flags.includes("explicit") || args.length !== 1);
   const tmpls: TmplInfo[] = [];
   const tfq = clsFq + "::" + (cls as ClsInfo).decl.name;
-  if (cx.tmpls.has(tfq)) tmpls.push(cx.tmpls.get(tfq) as TmplInfo);
+  for (const tm of cx.tmplsOf(tfq)) if (!tmpls.includes(tm)) tmpls.push(tm);
   if (!cands.length && !tmpls.length) cx.fail(`no constructor of '${clsFq}'`, t);
   return resolveOverload(cx, cands, tmpls, args, scope, t);
 }
@@ -574,7 +577,7 @@ function resolveCallExpr(cx: Cx, e: CallExpr, scope: Scope): CppType {
           if (!cands.includes(f)) cands.push(f);
         }
       }
-      if (cx.tmpls.has(fq)) tmpls.push(cx.tmpls.get(fq) as TmplInfo);
+      for (const tm of cx.tmplsOf(fq)) if (!tmpls.includes(tm)) tmpls.push(tm);
       if (s.k === "tmpl" && !tmpls.includes(s.t)) tmpls.push(s.t);
       const xt = last((fn as IdExpr).parts).a.map(a => cx.resolveTypeNode(a, scope));
       const r = resolveOverload(cx, cands, tmpls, argTs, scope, e, xt.length ? xt : undefined);
@@ -658,7 +661,7 @@ function memberCall(cx: Cx, e: CallExpr, fn: MemberExpr, argTs: { t: CppType; e:
   const cands = m.methods ? m.methods.slice() : [];
   const tmpls: TmplInfo[] = [];
   const tfq = m.owner + "::" + fn.field;
-  if (cx.tmpls.has(tfq)) tmpls.push(cx.tmpls.get(tfq) as TmplInfo);
+  for (const tm of cx.tmplsOf(tfq)) if (!tmpls.includes(tm)) tmpls.push(tm);
   if (!cands.length && !tmpls.length) cx.fail(`'${clsFq}' has no method '${fn.field}'`, fn);
   const xt = fn.targs.map(a => cx.resolveTypeNode(a, scope));
   const r = resolveOverload(cx, cands, tmpls, argTs, scope, e, xt.length ? xt : undefined, objT.cnst);
@@ -857,6 +860,7 @@ function deduceOne(cx: Cx, tn: TypeNode, t: CppType, env: Map<string, CppType>, 
   if (tn.parts.length === 1 && !tn.parts[0].a.length) {
     if (!env.has(first)) {
       const c = stripForDeduce(t);
+      if (tn.ptr > 0) c.ptr = Math.max(0, t.ptr - tn.ptr);
       env.set(first, c);
     }
     tn.dims.forEach((d, i) => {
@@ -1021,7 +1025,7 @@ export function findOperator(cx: Cx, op: string, l: { t: CppType; e: Expr } | nu
     const fq = cx.stripAll(l.t);
     const m = cx.lookupMember(fq, key, new Set());
     const tmpls: TmplInfo[] = [];
-    if (cx.tmpls.has(fq + "::" + key)) tmpls.push(cx.tmpls.get(fq + "::" + key) as TmplInfo);
+    for (const tm of cx.tmplsOf(fq + "::" + key)) if (!tmpls.includes(tm)) tmpls.push(tm);
     consider(m.methods ? m.methods.slice() : [], tmpls, r ? [r] : (postfix ? [{ t: CppType.basic("int"), e: argsLR[1].e }] : []));
   }
   const cands: FuncInfo[] = [];
@@ -1157,7 +1161,8 @@ function markBoxedOf(cx: Cx, e: Expr): void {
   while (cur.kind === "cast") cur = cur.arg;
   if (cur.kind === "id") {
     const s = cx.getAnn(cur).sym;
-    if (s && s.k === "var") {
+    // A field is stored in its object, so it has no boxing convention of its own.
+    if (s && s.k === "var" && !s.v.isField) {
       if (s.v.storage === "plain") s.v.storage = "boxed";
       else if (s.v.storage === "box" && !(s.v.typeCache && s.v.typeCache.ref)) s.v.storage = "bbox";
     }

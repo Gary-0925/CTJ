@@ -238,6 +238,9 @@ export class Cx {
   enums = new Map<string, EnumInfo>();
   typedefs = new Map<string, { target: TypeNode; scope: Scope }>();
   tmpls = new Map<string, TmplInfo>();
+  // Templates that share a name are overloads of each other, which the map
+  // above cannot hold: it keeps one template per name for type resolution.
+  tmplOverloads = new Map<string, TmplInfo[]>();
   funcInsts = new Map<string, FuncInfo>();
   nsFuncIndex = new Map<string, FuncInfo[]>();
   nss = new Map<string, NsInfo>();
@@ -457,10 +460,17 @@ export class Cx {
     const sub: Scope = { ns: scope.ns.slice(), cls, locals: [], fn: null, returns: [] };
     cls.bases = [];
     for (const b of d.bases) {
-      const bfq = this.resolveClassName(b.name, scope);
+      // A base of a nested class can name a member of the enclosing one.
+      const bfq = this.resolveClassName(b.name, sub);
       cls.bases.push({ fq: bfq, access: b.access, isVirtual: b.isVirtual });
     }
     this.collect(d.members, sub);
+  }
+
+  // The name a class declares itself with: an instance of a template is called
+  // by the template's short name, the arguments belong to its key.
+  declaredName(c: ClsInfo): string {
+    return c.fromTmpl ? last(c.fromTmpl.split("::")) : c.short;
   }
 
   blankCls(fq: string, short: string, decl: ClassDecl, scope: Scope): ClsInfo {
@@ -658,8 +668,13 @@ export class Cx {
     } else if (inner.kind === "func") {
       kind = "func";
       const nm = inner.name.map(s => s.n);
-      fq = nm.length > 1 ? nm.slice(0, -1).join("::") + "::" + last(nm) : this.memberFq(scope, last(nm));
-      if (inner.op) fq = (nm.length > 1 ? nm.slice(0, -1).join("::") : scopeName(scope)) + "::operator" + inner.op;
+      // An out-of-line definition spells its class without the namespace around
+      // it, so the prefix has to be resolved to the class's own fq for the
+      // member to be attached to the instances of that class.
+      const short = inner.op ? "operator" + inner.op : last(nm);
+      fq = nm.length > 1
+        ? this.ownerFq(inner.name.slice(0, -1), scope) + "::" + short
+        : this.memberFq(scope, short);
     } else if (inner.kind === "typedef") {
       kind = "alias";
       fq = this.memberFq(scope, inner.name);
@@ -691,7 +706,35 @@ export class Cx {
         if (!tp.def && old && old.def) tp.def = old.def;
       });
     }
-    this.tmpls.set(fq, { fq, kind, tparams, decl: inner, scope: this.snapScope(scope), specs: prev ? prev.specs : [] });
+    this.registerTmpl({ fq, kind, tparams, decl: inner, scope: this.snapScope(scope), specs: prev ? prev.specs : [] });
+  }
+
+  registerTmpl(t: TmplInfo): void {
+    this.tmpls.set(t.fq, t);
+    if (t.kind !== "func") return;
+    const list = this.tmplOverloads.get(t.fq) || [];
+    const sig = this.tmplSig(t);
+    const i = list.findIndex(x => this.tmplSig(x) === sig);
+    // A definition following a declaration is the same template, not an overload.
+    if (i >= 0) list[i] = t;
+    else list.push(t);
+    this.tmplOverloads.set(t.fq, list);
+  }
+
+  tmplSig(t: TmplInfo): string {
+    const d = t.decl as FuncDecl;
+    const ps = (d.params || []).map(p => JSON.stringify(p.type.parts.map(s => s.n + s.a.length))
+      + p.type.ptr + p.type.ref + (p.isPack ? "..." : "")).join(",");
+    const tps = t.tparams.map(x => x.kind + (x.isPack ? "..." : "")).join(",");
+    return [tps, ps, d.op || "", d.flags.includes("const") ? "c" : ""].join("|");
+  }
+
+  // Every template declared under this name, for overload resolution.
+  tmplsOf(fq: string): TmplInfo[] {
+    const list = this.tmplOverloads.get(fq);
+    if (list && list.length) return list;
+    const one = this.tmpls.get(fq);
+    return one ? [one] : [];
   }
 
   resolveNsName(parts: QSeg[], scope: Scope): string {
@@ -729,8 +772,29 @@ export class Cx {
     return this.findEnumVal(i < 0 ? "" : fq.slice(0, i), i < 0 ? fq : fq.slice(i + 2));
   }
 
+  // The base a constructor initializer names, either directly or through a
+  // typedef of the class as in "vector() : _Base() { }".
+  ctorBase(cls: ClsInfo, name: QSeg[]): string | null {
+    const spelled = name.map(s => s.n).join("::");
+    const direct = cls.bases.find(x => x.fq === spelled || last(x.fq.split("::")) === spelled);
+    if (direct) return direct.fq;
+    let s: Sym | null = null;
+    try {
+      s = this.resolveSym(name, false, this.memberScope(cls));
+      if (s && s.k === "typedef") s = this.symOfType(this.expandTypedef(s.fq, new Set()));
+    } catch {
+      return null;
+    }
+    if (!s || s.k !== "class") return null;
+    const hit = cls.bases.find(x => x.fq === s!.cls!.fq);
+    return hit ? hit.fq : null;
+  }
+
   resolveClassName(parts: QSeg[], scope: Scope): string {
-    const s = this.resolveSym(parts, false, scope);
+    let s = this.resolveSym(parts, false, scope);
+    // A base may be named through a typedef, as in
+    // "struct _Vector_impl : public _Tp_alloc_type".
+    if (s && s.k === "typedef") s = this.symOfType(this.expandTypedef(s.fq, new Set()));
     if (s && s.k === "class") return s.cls.fq;
     this.fail(`unknown base class '${parts.map(x => x.n).join("::")}'`);
   }
@@ -759,6 +823,7 @@ export class Cx {
       }
       if (m.methods) return { k: "func", fns: m.methods };
       if (m.nested) return this.symOfNested(m.nested);
+      if (m.typedef) return { k: "typedef", fq: m.typedef };
     }
     for (let i = scope.ns.length; i >= 0; i--) {
       const pre = scope.ns.slice(0, i).join("::");
@@ -850,8 +915,8 @@ export class Cx {
     };
   }
 
-  lookupMember(clsFq: string, name: string, seen: Set<string>): { field: boolean; methods: FuncInfo[] | null; nested: string | null; owner: string } {
-    const r = { field: false, methods: null as FuncInfo[] | null, nested: null as string | null, owner: clsFq };
+  lookupMember(clsFq: string, name: string, seen: Set<string>): { field: boolean; methods: FuncInfo[] | null; nested: string | null; typedef: string | null; owner: string } {
+    const r = { field: false, methods: null as FuncInfo[] | null, nested: null as string | null, typedef: null as string | null, owner: clsFq };
     const cls = this.classes.get(clsFq);
     if (!cls || seen.has(clsFq)) return r;
     seen.add(clsFq);
@@ -888,6 +953,14 @@ export class Cx {
       r.owner = clsFq;
       return r;
     }
+    // "_Vector_impl : public _Tp_alloc_type": a typedef of the enclosing class
+    // names a base class of a nested one.
+    const tfq = clsFq + "::" + name;
+    if (this.typedefs.has(tfq)) {
+      r.typedef = tfq;
+      r.owner = clsFq;
+      return r;
+    }
     let methods = r.methods ? r.methods.slice() : null;
     for (const b of cls.bases) {
       const sub = this.lookupMember(b.fq, name, seen);
@@ -901,6 +974,7 @@ export class Cx {
         }
       }
       if (sub.nested && !methods && !r.field) return sub;
+      if (sub.typedef && !methods && !r.field) return sub;
     }
     if (methods) {
       r.methods = methods;
@@ -911,6 +985,13 @@ export class Cx {
 
   resolveSym(parts: QSeg[], global: boolean, scope: Scope): Sym | null {
     if (!parts.length) return null;
+    // The injected class name: inside a class its own name, written without
+    // arguments, stands for the class itself rather than for its template.
+    if (!global && !parts[0].a.length) {
+      for (let c = scope.cls; c; c = c.scope.cls) {
+        if (this.declaredName(c) === parts[0].n) return { k: "class", cls: c };
+      }
+    }
     let sym: Sym | null;
     let idx = 0;
     if (global) {
@@ -1089,7 +1170,10 @@ export class Cx {
         return t;
       }
     }
-    const sym = this.resolveSym(tn.parts, tn.global, scope);
+    let sym = this.resolveSym(tn.parts, tn.global, scope);
+    // A synthesized declaration spells an instantiated class by its key, which
+    // reads as several names but denotes the one class the key names.
+    if (!sym && tn.parts.every(x => !x.a.length)) sym = this.symOfFq(tn.parts.map(x => x.n).join("::"));
     if (!sym) this.fail(`unknown type '${tn.parts.map(s => s.n).join("::")}'`, tn);
     const s = sym as Sym;
     let base: CppType;
@@ -1242,13 +1326,32 @@ export class Cx {
           exist.decl = decl;
           exist.scope = this.memberScope(cls);
         } else if (!exist) {
-          this.addMethod(cls, this.methodShort(decl), decl, cls.scope);
+          this.addMethod(cls, this.methodShort(decl), decl, this.memberScope(cls));
         }
       } else {
         const decl = substDecl(t.decl, env);
-        this.tmpls.set(newFq, { fq: newFq, kind: t.kind, tparams: rest, decl, scope: this.snapScope(cls.scope), specs: [] });
+        // registerTmpl, not tmpls.set: the declaration of this member that the
+        // class body carries is the same template, and the definition replaces it.
+        // The member's own scope: the class's typedefs are visible in an
+        // out-of-line definition.
+        this.registerTmpl({ fq: newFq, kind: t.kind, tparams: rest, decl, scope: this.memberScope(cls), specs: [] });
       }
     }
+  }
+
+  // The fq of the class or namespace a qualified name is written against.  The
+  // template arguments are dropped: reading them would instantiate the class.
+  ownerFq(parts: QSeg[], scope: Scope): string {
+    let owner: Sym | null = null;
+    try {
+      owner = this.resolveSym(parts.map(s => qseg(s.n)), false, scope);
+    } catch {
+      owner = null;
+    }
+    if (owner && owner.k === "class") return owner.cls.fq;
+    if (owner && owner.k === "tmpl") return owner.t.fq;
+    if (owner && owner.k === "ns") return owner.fq;
+    return parts.map(s => s.n).join("::");
   }
 
   methodShort(d: FuncDecl): string {

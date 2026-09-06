@@ -155,10 +155,10 @@ function annotateCtorInit(cx: Cx, fn: FuncInfo, c: CtorInit, scope: Scope): void
   const cls = cx.classes.get(fn.cls);
   if (!cls) cx.fail("constructor initializer outside class", c);
   const name = c.name.map(s => s.n).join("::");
-  const base = (cls as ClsInfo).bases.find(b => b.fq === name || last(b.fq.split("::")) === name);
+  const base = cx.ctorBase(cls as ClsInfo, c.name);
   const argTs = c.args.map(e => ({ t: typeOf(cx, e, scope), e }));
   if (base) {
-    const r = resolveCtor(cx, base.fq, argTs, scope, c);
+    const r = resolveCtor(cx, base, argTs, scope, c);
     cx.getAnn(c).call = r.fn;
     cx.getAnn(c).convs = r.convs;
     return;
@@ -575,7 +575,8 @@ function markBoxed(cx: Cx, e: Expr): void {
   while (cur.kind === "cast") cur = cur.arg;
   if (cur.kind === "id") {
     const s = cx.getAnn(cur).sym;
-    if (s && s.k === "var") {
+    // A field is stored in its object, so it has no boxing convention of its own.
+    if (s && s.k === "var" && !s.v.isField) {
       if (s.v.storage === "plain") s.v.storage = "boxed";
       else if (s.v.storage === "box" && !(s.v.typeCache && s.v.typeCache.ref)) s.v.storage = "bbox";
     }

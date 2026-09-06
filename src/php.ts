@@ -317,7 +317,7 @@ class PhpGen {
     for (const h of inherited) all.push({ fn: h.fn, inh: h.base });
     const baseArgs = (fn: FuncInfo, inh: string): string => {
       const bc = this.cx.classes.get(c.bases[0].fq) as ClsInfo;
-      const hit = !inh ? fn.decl.ctorInit.find(x => last(x.name).n === bc.short || last(x.name).n === c.bases[0].fq) : null;
+      const hit = !inh ? fn.decl.ctorInit.find(x => this.cx.ctorBase(c, x.name) === c.bases[0].fq) : null;
       if (inh && c.bases[0].fq === inh) {
         const ps = this.cx.funcParams(fn);
         const aa: string[] = [];
@@ -422,7 +422,7 @@ class PhpGen {
     for (let bi = 1; bi < c.bases.length; bi++) {
       const b = c.bases[bi];
       const bc = this.cx.classes.get(b.fq) as ClsInfo;
-      const hit = !inh ? fn.decl.ctorInit.find(x => last(x.name).n === bc.short || last(x.name).n === b.fq) : null;
+      const hit = !inh ? fn.decl.ctorInit.find(x => this.cx.ctorBase(c, x.name) === b.fq) : null;
       if (inh && b.fq === inh) {
         const bps = this.cx.funcParams(fn);
         this.alias.push(new Map());
@@ -1196,7 +1196,10 @@ class PhpGen {
         return `["a" => [${this.ex(e)}], "i" => 0]`;
       case "call": case "this":
         if (e.kind === "this") return `["a" => [$this], "i" => 0]`;
-        return this.ex(e);
+        // A call returning a reference already yields a box; any other rvalue
+        // needs a temporary one to be passed by reference.
+        if (et && et.ref) return this.ex(e);
+        return `["a" => [${this.ex(e)}], "i" => 0]`;
       case "lit":
         if (e.lkind === "string") return `["a" => ${this.lit(e)}, "i" => 0]`;
         return `["a" => [${this.ex(e)}], "i" => 0]`;
@@ -1302,6 +1305,15 @@ class PhpGen {
     if (e.kind === "call") return true;
     if (e.kind === "index" && this.cx.getAnn(e).call) return true;
     return false;
+  }
+
+  // A null pointer is null itself, so reading through one needs a guard.
+  pidx(x: string): string {
+    return `(${x} ? ${this.paren(x)}["i"] : 0)`;
+  }
+
+  parr(x: string): string {
+    return `(${x} ? ${this.paren(x)}["a"] : null)`;
   }
 
   pbox(s: string, e: Expr, t: CppType): string {
@@ -1665,7 +1677,8 @@ class PhpGen {
         const y = this.pbox(r, e.r, rt as CppType);
         const xp = this.paren(x);
         const yp = this.paren(y);
-        const eq = `${xp}["a"] === ${yp}["a"] && ${xp}["i"] === ${yp}["i"]`;
+        // A null pointer is null itself, so both sides are checked first.
+        const eq = `${xp} === ${yp} || (${xp} && ${yp} && ${xp}["a"] === ${yp}["a"] && ${xp}["i"] === ${yp}["i"])`;
         return e.op === "==" ? `(${eq})` : `(!(${eq}))`;
       }
       if (lp && (rt.name === "__null" || this.isZeroLit(e.r))) return `(${l} ${op} null)`;
@@ -1676,7 +1689,7 @@ class PhpGen {
       if (lp && rp) {
         const x = this.pbox(l, e.l, lt as CppType);
         const y = this.pbox(r, e.r, rt as CppType);
-        return `(${this.paren(x)}["i"] ${e.op} ${this.paren(y)}["i"])`;
+        return `(${this.pidx(x)} ${e.op} ${this.pidx(y)})`;
       }
       return `(${l} ${e.op} ${r})`;
     }
@@ -1685,7 +1698,7 @@ class PhpGen {
         if (e.op !== "-") this.cx.fail("bad pointer arithmetic", e);
         const x = this.pbox(l, e.l, lt as CppType);
         const y = this.pbox(r, e.r, rt as CppType);
-        return `(${this.paren(x)}["i"] - ${this.paren(y)}["i"])`;
+        return `(${this.pidx(x)} - ${this.pidx(y)})`;
       }
       if (lp) {
         const x = this.pbox(l, e.l, lt as CppType);

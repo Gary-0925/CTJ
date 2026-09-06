@@ -47,7 +47,7 @@ class Str_char_Traits_char {
   __dtor() {
   }
   set(s) {
-    this.rep.len = strlen(s);
+    this.rep.len = strlen((s ? {a: s.a, i: s.i} : null));
     for (let i = 0; (i < this.rep.len); i++) {
       this.buf[i] = s.a[s.i + (i)];
     }

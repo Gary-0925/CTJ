@@ -1326,9 +1326,9 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
         void
         _M_insert_aux(iterator __position, _Args&&... __args);
 
-      template<typename... _Args>
+      template<typename _Args>
         void
-        _M_emplace_back_aux(_Args&&... __args);
+        _M_emplace_back_aux(const _Args& __val);
 #endif
 
       // Called by the latter.

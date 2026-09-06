@@ -394,39 +394,25 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
 
 #if __cplusplus >= 201103L
   template<typename _Tp, typename _Alloc>
-    template<typename... _Args>
+    template<typename _Args>
       void
       vector<_Tp, _Alloc>::
-      _M_emplace_back_aux(_Args&&... __args)
+      _M_emplace_back_aux(const _Args& __val)
       {
 	const size_type __len =
 	  _M_check_len(size_type(1), "vector::_M_emplace_back_aux");
-	pointer __new_start(this->_M_allocate(__len));
-	pointer __new_finish(__new_start);
-	__try
+	pointer __new_start = this->_M_allocate(__len);
+	pointer __new_finish = __new_start;
+	// The old elements are carried over one by one; the target language
+	// reclaims the storage that is given up.
+	for (size_type __i = 0; __i < size(); ++__i)
 	  {
-	    _Alloc_traits::construct(this->_M_impl, __new_start + size(),
-				     std::forward<_Args>(__args)...);
-	    __new_finish = 0;
-
-	    __new_finish
-	      = std::__uninitialized_move_if_noexcept_a
-	      (this->_M_impl._M_start, this->_M_impl._M_finish,
-	       __new_start, _M_get_Tp_allocator());
-
+	    _Alloc_traits::construct(this->_M_impl, __new_finish,
+				     this->_M_impl._M_start[__i]);
 	    ++__new_finish;
 	  }
-	__catch(...)
-	  {
-	    if (!__new_finish)
-	      _Alloc_traits::destroy(this->_M_impl, __new_start + size());
-	    else
-	      std::_Destroy(__new_start, __new_finish, _M_get_Tp_allocator());
-	    _M_deallocate(__new_start, __len);
-	    __throw_exception_again;
-	  }
-	std::_Destroy(this->_M_impl._M_start, this->_M_impl._M_finish,
-		      _M_get_Tp_allocator());
+	_Alloc_traits::construct(this->_M_impl, __new_finish, __val);
+	++__new_finish;
 	_M_deallocate(this->_M_impl._M_start,
 		      this->_M_impl._M_end_of_storage
 		      - this->_M_impl._M_start);

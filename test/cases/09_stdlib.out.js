@@ -60,7 +60,7 @@ function strcpy(dst, src) {
     }
   }
   dst.a[dst.i + (i)] = 0;
-  return dst;
+  return (dst ? {a: dst.a, i: dst.i} : null);
 }
 function main() {
   let buf = new Array(16).fill(0);

@@ -307,7 +307,7 @@ class JsGen {
       const b = c.bases[bi];
       const bc = this.cx.classes.get(b.fq) as ClsInfo;
       const bn = bc.mangled as string;
-      const hit = !inh ? fn.decl.ctorInit.find(x => last(x.name).n === bc.short || last(x.name).n === b.fq) : null;
+      const hit = !inh ? fn.decl.ctorInit.find(x => this.cx.ctorBase(c, x.name) === b.fq) : null;
       if (inh && b.fq === inh) {
         const aa: string[] = [];
         ps.forEach((p, i) => { if (!p.variadic) aa.push(this.ctorArg(p, i)); });
@@ -1033,7 +1033,8 @@ class JsGen {
     switch (e.kind) {
       case "lit": case "id": case "this": return true;
       case "member": return this.isSimple(e.obj);
-      case "index": return this.isSimple(e.arr) && this.isSimple(e.idx);
+      // An index that resolves to a call runs code, so it is not simple.
+      case "index": return !this.cx.getAnn(e).call && this.isSimple(e.arr) && this.isSimple(e.idx);
       case "unary": return (e.op === "*" || e.op === "&") && this.isSimple(e.arg);
       case "cast": return !this.cx.getAnn(e).call && !this.cx.getAnn(e).conv && this.isSimple(e.arg);
       default: return false;
@@ -1048,8 +1049,16 @@ class JsGen {
         const s = this.cx.getAnn(e).sym;
         if (!s || s.k !== "var") return this.ex(e);
         const v = s.v;
-        const t = v.typeCache as CppType;
-        if (t.isFunc) return this.ex(e);
+        // A field's type lives on its class, not on this per-lookup record.
+        const t = (v.isField && v.scope.cls
+          ? this.cx.fieldType(v.scope.cls, v.short) : v.typeCache) as CppType;
+        if (!t || t.isFunc) return this.ex(e);
+        if (v.isField) {
+          const fname = safeJsName(v.short);
+          return v.isStatic
+            ? `{a: ${v.scope.cls!.mangled}, i: "${fname}"}`
+            : `{a: this, i: "${fname}"}`;
+        }
         const nm = this.varName(v, this.cx.getAnn(e).needsThis);
         if (v.storage === "box") return nm;
         if (v.storage === "bbox") return `${this.paren(nm)}.v`;
@@ -1088,7 +1097,10 @@ class JsGen {
         return `{a: [${this.ex(e)}], i: 0}`;
       case "call": case "this":
         if (e.kind === "this") return `{a: [this], i: 0}`;
-        return this.ex(e);
+        // A call returning a reference already yields a box; any other rvalue
+        // needs a temporary one to be passed by reference.
+        if (et && et.ref) return this.ex(e);
+        return `{a: [${this.ex(e)}], i: 0}`;
       case "lit":
         if (e.lkind === "string") return `{a: ${this.lit(e)}, i: 0}`;
         return `{a: [${this.ex(e)}], i: 0}`;
@@ -1175,9 +1187,12 @@ class JsGen {
   }
 
   deref(e: Expr): string {
-    const s = this.complex(this.ex(e), e);
-    const p = this.paren(s);
-    return `${p}.a[${p}.i]`;
+    if (this.isSimple(e)) {
+      const p = this.paren(this.ex(e));
+      return `${p}.a[${p}.i]`;
+    }
+    const t = this.tmp();
+    return `(${t} = ${this.ex(e)}, ${t}.a[${t}.i])`;
   }
 
   exAddr(e: Expr): string {
@@ -1195,6 +1210,29 @@ class JsGen {
     if (e.kind === "call") return true;
     if (e.kind === "index" && this.cx.getAnn(e).call) return true;
     return false;
+  }
+
+  // Binds complex pointer operands to temporaries: a fat pointer is read in two
+  // places, and evaluating the expression twice would repeat its side effects.
+  pbind(items: { s: string; e: Expr }[]): { pre: string; v: string[] } {
+    const pre: string[] = [];
+    const v: string[] = [];
+    for (const it of items) {
+      if (this.isSimple(it.e)) { v.push(this.paren(it.s)); continue; }
+      const t = this.tmp();
+      pre.push(`${t} = ${it.s}`);
+      v.push(t);
+    }
+    return { pre: pre.join(", "), v };
+  }
+
+  // A null pointer is null itself, so reading through one needs a guard.
+  pidx(x: string): string {
+    return `(${x} ? ${this.paren(x)}.i : 0)`;
+  }
+
+  parr(x: string): string {
+    return `(${x} ? ${this.paren(x)}.a : null)`;
   }
 
   pbox(s: string, e: Expr, t: CppType): string {
@@ -1221,6 +1259,14 @@ class JsGen {
     const at = this.cx.getAnn(x).t as CppType;
     const pB = isBoxLike(p);
     const aB = at ? isBoxLike(at) : false;
+    // A pointer is a value: the copy must not share its fat pointer with the
+    // original, or moving one of them would move the other.
+    if (p.ptr > 0 && !p.ref && !p.dims.length && !p.isFunc &&
+      at && at.ptr > 0 && !at.ref && !at.dims.length && !at.isFunc) {
+      const src = this.complex(this.ex(x), x);
+      const sp = this.paren(src);
+      return `(${src} ? {a: ${sp}.a, i: ${sp}.i} : null)`;
+    }
     if (p.dims.length && x.kind === "initlist") {
       return this.arrayInit(p, (x as InitListExpr).items, null as unknown as VarDecl);
     }
@@ -1566,12 +1612,16 @@ class JsGen {
     if (e.op === "==" || e.op === "!=") {
       const op = e.op === "==" ? "===" : "!==";
       if (lp && rp) {
-        const x = this.pbox(l, e.l, lt as CppType);
-        const y = this.pbox(r, e.r, rt as CppType);
-        const xp = this.paren(x);
-        const yp = this.paren(y);
-        const eq = `${xp}.a === ${yp}.a && ${xp}.i === ${yp}.i`;
-        return e.op === "==" ? `(${eq})` : `(!(${eq}))`;
+        const b = this.pbind([
+          { s: this.pbox(l, e.l, lt as CppType), e: e.l },
+          { s: this.pbox(r, e.r, rt as CppType), e: e.r },
+        ]);
+        const xp = b.v[0];
+        const yp = b.v[1];
+        // A null pointer is null itself, so both sides are checked first.
+        const eq = `${xp} === ${yp} || (${xp} && ${yp} && ${xp}.a === ${yp}.a && ${xp}.i === ${yp}.i)`;
+        const body = e.op === "==" ? `(${eq})` : `(!(${eq}))`;
+        return b.pre ? `(${b.pre}, ${body})` : body;
       }
       if (lp && (rt.name === "__null" || this.isZeroLit(e.r))) return `(${l} ${op} null)`;
       if (rp && (lt.name === "__null" || this.isZeroLit(e.l))) return `(null ${op} ${r})`;
@@ -1579,28 +1629,34 @@ class JsGen {
     }
     if (e.op === "<" || e.op === ">" || e.op === "<=" || e.op === ">=") {
       if (lp && rp) {
-        const x = this.pbox(l, e.l, lt as CppType);
-        const y = this.pbox(r, e.r, rt as CppType);
-        return `(${this.paren(x)}.i ${e.op} ${this.paren(y)}.i)`;
+        const b = this.pbind([
+          { s: this.pbox(l, e.l, lt as CppType), e: e.l },
+          { s: this.pbox(r, e.r, rt as CppType), e: e.r },
+        ]);
+        const body = `(${this.pidx(b.v[0])} ${e.op} ${this.pidx(b.v[1])})`;
+        return b.pre ? `(${b.pre}, ${body})` : body;
       }
       return `(${l} ${e.op} ${r})`;
     }
     if ((e.op === "+" || e.op === "-") && (lp || rp)) {
       if (lp && rp) {
         if (e.op !== "-") this.cx.fail("bad pointer arithmetic", e);
-        const x = this.pbox(l, e.l, lt as CppType);
-        const y = this.pbox(r, e.r, rt as CppType);
-        return `(${this.paren(x)}.i - ${this.paren(y)}.i)`;
+        const b = this.pbind([
+          { s: this.pbox(l, e.l, lt as CppType), e: e.l },
+          { s: this.pbox(r, e.r, rt as CppType), e: e.r },
+        ]);
+        const body = `(${this.pidx(b.v[0])} - ${this.pidx(b.v[1])})`;
+        return b.pre ? `(${b.pre}, ${body})` : body;
       }
       if (lp) {
-        const x = this.pbox(l, e.l, lt as CppType);
-        const xp = this.paren(x);
+        const b = this.pbind([{ s: this.pbox(l, e.l, lt as CppType), e: e.l }]);
         const sign = e.op === "+" ? "+" : "-";
-        return `({a: ${xp}.a, i: ${xp}.i ${sign} (${r})})`;
+        const body = `({a: ${this.parr(b.v[0])}, i: ${this.pidx(b.v[0])} ${sign} (${r})})`;
+        return b.pre ? `(${b.pre}, ${body})` : body;
       }
-      const y = this.pbox(r, e.r, rt as CppType);
-      const yp = this.paren(y);
-      return `({a: ${yp}.a, i: (${l}) + ${yp}.i})`;
+      const b = this.pbind([{ s: this.pbox(r, e.r, rt as CppType), e: e.r }]);
+      const body = `({a: ${this.parr(b.v[0])}, i: (${l}) + ${this.pidx(b.v[0])}})`;
+      return b.pre ? `(${b.pre}, ${body})` : body;
     }
     if (e.op === "<<" || e.op === ">>") {
       if (e.op === ">>" && lt && coreName(lt).startsWith("unsigned")) return `(${l} >>> ${r})`;
