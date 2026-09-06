@@ -511,6 +511,15 @@ export class Cx {
       this.addFunc(sub, short, d, scope);
       return;
     }
+    // "int G::operator()()": the qualified name keeps only the class and the
+    // operator itself is carried in d.op.
+    if (d.op && names.length === 1 && names[0] !== "operator") {
+      const owner = this.resolvePrefix(d.name, scope, d);
+      if (owner && owner.k === "class") {
+        this.addMethod(owner.cls, "operator" + d.op, d, scope);
+        return;
+      }
+    }
     const short = names[0] === "operator" ? "operator" : names[0];
     if (scope.cls) {
       this.addMethod(scope.cls, d.op ? "operator" + d.op : short, d, scope);
@@ -684,8 +693,10 @@ export class Cx {
       // it, so the prefix has to be resolved to the class's own fq for the
       // member to be attached to the instances of that class.
       const short = inner.op ? "operator" + inner.op : last(nm);
-      fq = nm.length > 1
-        ? this.ownerFq(inner.name.slice(0, -1), scope) + "::" + short
+      // An out-of-line operator spells only its owner in the qualified name.
+      const ownerParts = inner.op ? inner.name : inner.name.slice(0, -1);
+      fq = ownerParts.length
+        ? this.ownerFq(ownerParts, scope) + "::" + short
         : this.memberFq(scope, short);
     } else if (inner.kind === "typedef") {
       kind = "alias";

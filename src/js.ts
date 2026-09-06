@@ -1132,7 +1132,8 @@ class JsGen {
         return `{a: ${arr}, i: (${this.ex(e.idx)})}`;
       }
       case "unary":
-        if (e.op === "*") return this.ex(e.arg);
+        // "*it" on a class is a call to operator*, which already yields a box.
+        if (e.op === "*") return this.cx.getAnn(e).call ? this.ex(e) : this.ex(e.arg);
         if (e.op === "&") return this.exBox(e.arg);
         return `{a: [${this.ex(e)}], i: 0}`;
       case "call": case "this":
@@ -1427,7 +1428,12 @@ class JsGen {
         s = `${this.paren(o)}.${methodJsName(fn)}(${aa.join(", ")})`;
       }
     } else if (e.fn.kind === "id") {
-      s = `this.${methodJsName(fn)}(${aa.join(", ")})`;
+      // A name can denote an object whose operator() is called, not a member of
+      // the enclosing class.
+      const callee = this.cx.getAnn(e.fn).sym;
+      s = callee && callee.k === "var"
+        ? `${this.paren(this.objOf(e.fn))}.${methodJsName(fn)}(${aa.join(", ")})`
+        : `this.${methodJsName(fn)}(${aa.join(", ")})`;
     } else {
       s = `${this.paren(this.objOf(e.fn))}.${methodJsName(fn)}(${aa.join(", ")})`;
     }
@@ -1823,6 +1829,9 @@ class JsGen {
       return `Math.trunc(${this.ex(e.arg)})`;
     }
     if (t.ptr > 0 && (at.name === "__null" || this.isZeroLit(e.arg))) return "null";
+    // Casting to a reference yields the address of the value, as any other
+    // reference does ("static_cast<_Tp&&>(__t)" in std::forward).
+    if (t.ref) return this.exBox(e.arg);
     return this.ex(e.arg);
   }
 
