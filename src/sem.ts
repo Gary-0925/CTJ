@@ -80,6 +80,11 @@ export function isNumericName(n: string): boolean {
     "float", "double", "long double"].includes(n);
 }
 
+export function isUnsignedName(n: string): boolean {
+  return n === "unsigned char" || n === "unsigned short" || n === "unsigned int" ||
+    n === "unsigned long" || n === "unsigned long long";
+}
+
 export function isIntegerName(n: string): boolean {
   return ["bool", "char", "signed char", "unsigned char", "wchar_t", "char16_t",
     "char32_t", "short", "unsigned short", "int", "unsigned int", "long",
@@ -92,6 +97,28 @@ export interface Scope {
   locals: Map<string, VarInfo>[];
   fn: FuncInfo | null;
   returns: CppType[];
+}
+
+// A type spelled well enough to tell two resolutions of the same name apart,
+// including the ones whose argument is an expression rather than a type.
+function exKey(e: Expr): string {
+  switch (e.kind) {
+    case "id": return e.parts.map(s => s.n + (s.a.length ? "<" + s.a.map(tnKey).join(",") + ">" : "")).join("::");
+    case "call": return exKey(e.fn) + "(" + e.args.map(exKey).join(",") + ")";
+    case "member": return exKey(e.obj) + "." + e.field;
+    case "unary": return e.op + exKey(e.arg);
+    case "binary": return exKey(e.l) + e.op + exKey(e.r);
+    case "cast": return "(" + (e.type ? tnKey(e.type) : "?") + ")" + exKey(e.arg);
+    case "lit": return e.value;
+    default: return e.kind;
+  }
+}
+
+function tnKey(tn: TypeNode): string {
+  if (tn.valueArg) return "=" + exKey(tn.valueArg);
+  if (tn.decltypeOf) return "decltype(" + exKey(tn.decltypeOf) + ")";
+  return tn.parts.map(s => s.n + (s.a.length ? "<" + s.a.map(tnKey).join(",") + ">" : "")).join("::")
+    + "*".repeat(tn.ptr) + tn.ref + (tn.cnst ? " const" : "");
 }
 
 export function rootScope(): Scope {
@@ -200,6 +227,9 @@ export interface TmplInfo {
   scope: Scope;
   specs: { key: string; decl: Decl }[];
   partials?: { tparams: TParam[]; specArgs: TypeNode[]; decl: Decl }[];
+  // Position among the overloads of the same name, so that instances of two
+  // different templates do not share a cache entry or an emitted name.
+  ovl?: number;
 }
 
 export type Sym =
@@ -693,8 +723,11 @@ export class Cx {
       // it, so the prefix has to be resolved to the class's own fq for the
       // member to be attached to the instances of that class.
       const short = inner.op ? "operator" + inner.op : last(nm);
-      // An out-of-line operator spells only its owner in the qualified name.
-      const ownerParts = inner.op ? inner.name : inner.name.slice(0, -1);
+      // An out-of-line operator spells only its owner in the qualified name,
+      // and a free one spells no owner at all: the "operator" keyword belongs
+      // to the name rather than to a scope.
+      const ownerParts = (inner.op ? inner.name : inner.name.slice(0, -1))
+        .filter(s => s.n !== "operator");
       fq = ownerParts.length
         ? this.ownerFq(ownerParts, scope) + "::" + short
         : this.memberFq(scope, short);
@@ -747,8 +780,8 @@ export class Cx {
     const sig = this.tmplSig(t);
     const i = list.findIndex(x => this.tmplSig(x) === sig);
     // A definition following a declaration is the same template, not an overload.
-    if (i >= 0) list[i] = t;
-    else list.push(t);
+    if (i >= 0) { t.ovl = list[i].ovl; list[i] = t; }
+    else { t.ovl = list.length; list.push(t); }
     this.tmplOverloads.set(t.fq, list);
   }
 
@@ -761,6 +794,18 @@ export class Cx {
   }
 
   // Every template declared under this name, for overload resolution.
+  // Every template, overloads included: "tmpls" keeps one entry per name, so
+  // scanning it alone would see only the last "operator!=" of a namespace.
+  allTmpls(): TmplInfo[] {
+    const out: TmplInfo[] = [];
+    const seen = new Set<TmplInfo>();
+    for (const list of this.tmplOverloads.values()) {
+      for (const t of list) if (!seen.has(t)) { seen.add(t); out.push(t); }
+    }
+    for (const t of this.tmpls.values()) if (!seen.has(t)) { seen.add(t); out.push(t); }
+    return out;
+  }
+
   tmplsOf(fq: string): TmplInfo[] {
     const list = this.tmplOverloads.get(fq);
     if (list && list.length) return list;
@@ -1054,6 +1099,13 @@ export class Cx {
 
   applySegArgs(sym: Sym, seg: QSeg, scope: Scope): Sym | null {
     if (!seg.a.length) return sym;
+    // Instantiating a member function template also registers it as a plain
+    // method, so a later "f<A, B>(x)" finds the function before the template.
+    // A template-id always names the template.
+    if (sym.k === "func" && sym.fns.length) {
+      const t = this.tmpls.get(sym.fns[0].fromTmpl || sym.fns[0].fq);
+      if (t) sym = { k: "tmpl", t };
+    }
     if (sym.k !== "tmpl") return null;
     const args = seg.a.map(a => this.resolveTypeNode(a, scope));
     return this.instantiateTmplSeg(sym.t, args, scope);
@@ -1185,7 +1237,27 @@ export class Cx {
     return t;
   }
 
+  // Types currently being resolved, so a loop says which names are in it
+  // instead of exhausting the stack.
+  resolving: string[] = [];
+
   resolveTypeNode(tn: TypeNode, scope: Scope): CppType {
+    const key = tnKey(tn);
+    const at = this.resolving.indexOf(key);
+    this.resolving.push(key);
+    if (at >= 0) {
+      const loop = this.resolving.slice(at).join(" -> ");
+      this.resolving.length = 0;
+      this.fail("cyclic type resolution: " + loop, tn);
+    }
+    try {
+      return this.resolveTypeNodeInner(tn, scope);
+    } finally {
+      this.resolving.pop();
+    }
+  }
+
+  resolveTypeNodeInner(tn: TypeNode, scope: Scope): CppType {
     if (tn.decltypeOf) return typeOf(this, tn.decltypeOf, scope);
     if (tn.valueArg) {
       const v = constEval(this, tn.valueArg, scope);
@@ -1335,14 +1407,22 @@ export class Cx {
   // Match the argument list of a partial specialization against the arguments
   // of an instantiation; the result substitutes into the specialization.
   matchPartial(p: { tparams: TParam[]; specArgs: TypeNode[]; decl: Decl }, args: CppType[], tmpl: TmplInfo): SubstEnv | null {
-    if (p.specArgs.length > args.length) return null;
+    // Every argument has to be accounted for, so the arities must agree - a
+    // trailing pack being the one exception, it takes whatever is left over.
+    const last = p.specArgs.length ? p.specArgs[p.specArgs.length - 1] : null;
+    const packTn = last && last.packExpand ? last : null;
+    const fixed = p.specArgs.length - (packTn ? 1 : 0);
+    if (packTn ? fixed > args.length : p.specArgs.length !== args.length) return null;
     const env = blankSubstEnv();
     const names = new Set(p.tparams.map(x => x.name));
-    for (let i = 0; i < p.specArgs.length; i++) {
+    for (let i = 0; i < fixed; i++) {
       if (!this.matchTypeArg(p.specArgs[i], args[i], names, env, tmpl.scope)) return null;
     }
+    if (packTn && packTn.parts.length) env.packs.set(packTn.parts[0].n, args.slice(fixed));
     for (const tp of p.tparams) {
-      if (env.types.has(tp.name) || env.values.has(tp.name)) continue;
+      // A pack binds in env.packs, so it is never in env.types; unlike a plain
+      // parameter it needs no default of its own.
+      if (tp.isPack || env.types.has(tp.name) || env.values.has(tp.name)) continue;
       if (!tp.def) return null;
       if (tp.kind === "nontype") {
         const v = constEval(this, substExpr(tp.def as Expr, env), tmpl.scope);
@@ -1355,15 +1435,48 @@ export class Cx {
     return env;
   }
 
+  // Match a function-type pattern such as "_Res(_ArgTypes...)": the return
+  // type binds to _Res, the parameters to the leading patterns and whatever is
+  // left over to a trailing pack.
+  matchFuncArg(tn: TypeNode, t: CppType, names: Set<string>, env: SubstEnv, scope: Scope, ret: string): boolean {
+    if (!t.isFunc || !t.ret) return false;
+    const have = env.types.get(ret);
+    if (have) {
+      if (have.key() !== t.ret.key()) return false;
+    } else {
+      env.types.set(ret, t.ret);
+    }
+    const pat = tn.func ? tn.func.params : [];
+    const act = t.funcParams || [];
+    const lp = pat.length ? pat[pat.length - 1] : null;
+    const pack = lp && lp.packExpand && lp.parts.length === 1 && !lp.parts[0].a.length && names.has(lp.parts[0].n)
+      ? lp.parts[0].n : null;
+    const n = pat.length - (pack ? 1 : 0);
+    if (pack ? act.length < n : act.length !== n) return false;
+    if (pack) env.packs.set(pack, act.slice(n));
+    for (let i = 0; i < n; i++) {
+      if (!this.matchTypeArg(pat[i], act[i], names, env, scope)) return false;
+    }
+    return true;
+  }
+
   matchTypeArg(tn: TypeNode, t: CppType, names: Set<string>, env: SubstEnv, scope: Scope): boolean {
     if (tn.valueArg) {
-      const v = constEval(this, tn.valueArg, scope);
+      // The argument may be an expression over parameters matched earlier, as
+      // in "conditional<_B1::value, ...>", so it is substituted first.
+      const v = constEval(this, substExpr(tn.valueArg, env), scope);
       return typeof v === "number" && t.name === "__value" + Math.trunc(v);
     }
     if (!tn.parts.length) return false;
     const first = tn.parts[0].n;
     if (tn.parts.length === 1 && !tn.parts[0].a.length && names.has(first)) {
+      // "_Res(_Args...)" is a function type: only a function argument matches,
+      // and its parameter list has to line up with the pattern.
+      if (tn.func) return this.matchFuncArg(tn, t, names, env, scope, first);
       if (t.ptr < tn.ptr || (tn.ref && tn.ref !== t.ref)) return false;
+      // "_Tp[]" and "_Tp[_Size]" only match arrays; without this the array
+      // specialization of remove_all_extents is picked for a plain int.
+      if (tn.dims.length !== t.dims.length) return false;
       if (env.types.has(first)) return (env.types.get(first) as CppType).key() === t.key();
       const c = new CppType(t.name);
       c.segs = t.segs;
@@ -1410,7 +1523,7 @@ export class Cx {
   instantiateOutOfLineMembers(tmpl: TmplInfo, key: string, cls: ClsInfo, args: CppType[]): void {
     const prefix = tmpl.fq + "::";
     const outer = tmpl.tparams.length;
-    for (const t of this.tmpls.values()) {
+    for (const t of this.allTmpls()) {
       if (!t.fq.startsWith(prefix)) continue;
       const env = this.buildEnv(tmpl.tparams, args);
       const rest = t.tparams.slice(outer);
@@ -1476,7 +1589,11 @@ export class Cx {
   }
 
   instantiateFunc(tmpl: TmplInfo, args: CppType[], given: Map<string, CppType>): FuncInfo {
-    const key = tmpl.fq + "<" + args.map(a => a.key()).join(",") + ">";
+    // Overloads of one name are different functions: without the position of
+    // this one among them, "operator!=" for reverse_iterator would stand in
+    // for the one for move_iterator.
+    const tag = tmpl.ovl ? "#" + tmpl.ovl : "";
+    const key = tmpl.fq + tag + "<" + args.map(a => a.key()).join(",") + ">";
     const exist = this.funcInsts.get(key);
     if (exist) return exist;
     const env = this.buildEnv(tmpl.tparams, args);
@@ -1674,8 +1791,17 @@ export function isBoxedVar(t: CppType): boolean {
   return t.isBox() && !t.isFunc;
 }
 
+// Pointers and references keep a token of their own: folding every
+// punctuation into "_" made "T<int&>" and "T<int>" come out as one identifier,
+// which the target language rejects as a duplicate declaration.
 export function mangleType(fq: string): string {
-  return fq.replace(/[^A-Za-z0-9]/g, "_").replace(/_+/g, "_").replace(/^_|_$/g, "");
+  return fq
+    .replace(/&&/g, "_RR_")
+    .replace(/&/g, "_R_")
+    .replace(/\*/g, "_P_")
+    .replace(/[^A-Za-z0-9]/g, "_")
+    .replace(/_+/g, "_")
+    .replace(/^_|_$/g, "");
 }
 
 }

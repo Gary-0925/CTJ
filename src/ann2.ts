@@ -501,6 +501,9 @@ function typeOfCast(cx: Cx, e: CastExpr, scope: Scope): CppType {
   // Only the reference qualification differs, as in "static_cast<_Tp&&>(__t)":
   // the value denoted is the same one, so there is nothing to convert.
   if (st.ptr === target.ptr && noRef(st).key() === noRef(target).key()) return target;
+  // "reinterpret_cast<const volatile char&>(__r)" gives the same storage a
+  // different type. A reference is one box either way, so nothing is built.
+  if (st.ref !== "" && target.ref !== "" && (kind === "reinterpret_cast" || kind === "cstyle")) return target;
   cx.fail(`cannot cast`, e);
 }
 
@@ -644,6 +647,14 @@ function memberCall(cx: Cx, e: CallExpr, fn: MemberExpr, argTs: { t: CppType; e:
   if (fn.arrow && objT.ptr === 0 && !objT.isFunc && isClassVal(cx, objT)) {
     objT = applyArrow(cx, fn, objT, scope);
   }
+  // "p->~T()" on a scalar is a pseudo-destructor call, and a class with no
+  // destructor of its own has nothing to destroy either.
+  if (fn.field.charAt(0) === "~") {
+    const dcls = classOf(cx, objT);
+    if (!dcls || !(cx.lookupMember(dcls, "#dtor", new Set()).methods || []).length) {
+      return CppType.basic("void");
+    }
+  }
   const clsFq = classOf(cx, objT);
   if (!clsFq) cx.fail(`no method '${fn.field}'`, fn);
   let lookupFq = clsFq;
@@ -710,7 +721,12 @@ export function resolveOverload(cx: Cx, cands: FuncInfo[], tmpls: TmplInfo[], ar
   let bestScore = -1e18;
   let bestConvs: ({ kind: string; fn: FuncInfo } | null)[] = [];
   for (const f of all) {
-    const r = scoreFunc(cx, f, args, scope, objConst);
+    // A candidate whose parameters cannot even be resolved is not callable;
+    // one such template must not rule out the others.
+    let r: { viable: boolean; score: number; convs: ({ kind: string; fn: FuncInfo } | null)[] };
+    try {
+      r = scoreFunc(cx, f, args, scope, objConst);
+    } catch { continue; }
     if (!r.viable) continue;
     if (r.score > bestScore) {
       best = f;
@@ -1038,8 +1054,8 @@ export function findOperator(cx: Cx, op: string, l: { t: CppType; e: Expr } | nu
     for (const f of idx) {
       if (f.short === key) cands.push(f);
     }
-    for (const tm of cx.tmpls.values()) {
-      if (tm.kind === "func" && tm.fq === (ns ? ns + "::" + key : key)) tmpls.push(tm);
+    for (const tm of cx.tmplsOf(ns ? ns + "::" + key : key)) {
+      if (tm.kind === "func" && !tmpls.includes(tm)) tmpls.push(tm);
     }
   }
   consider(cands, tmpls, argsLR);

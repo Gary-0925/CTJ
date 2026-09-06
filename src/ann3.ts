@@ -195,6 +195,101 @@ function collectOuterIds(cx: Cx, s: Stmt, outer: Set<VarInfo>, used: Set<VarInfo
   walk(s);
 }
 
+// A class and everything it derives from.
+function eachCls(cx: Cx, fq: string, seen: Set<string>, fn: (c: ClsInfo) => boolean): boolean {
+  if (seen.has(fq)) return true;
+  seen.add(fq);
+  const c = cx.classes.get(fq);
+  if (!c) return true;
+  if (!fn(c)) return false;
+  for (const b of c.bases) if (!eachCls(cx, b.fq, seen, fn)) return false;
+  return true;
+}
+
+function hasVirtualMethod(cx: Cx, fq: string, pure: boolean): boolean {
+  let found = false;
+  eachCls(cx, fq, new Set(), c => {
+    for (const list of c.methods.values()) {
+      for (const f of list) {
+        if (f.isVirtual && (!pure || f.isPure)) { found = true; return false; }
+      }
+    }
+    return true;
+  });
+  return found;
+}
+
+// Scalars, enums and the classes built only out of them: what the layout
+// traits ask about, judged from the shape that was collected.
+function isPlainType(cx: Cx, t: CppType, seen: Set<string>): boolean {
+  const c = cx.classes.get(t.name);
+  if (!c) return true;
+  if (seen.has(t.name)) return true;
+  seen.add(t.name);
+  if (c.isUnion) return true;
+  if (hasVirtualMethod(cx, c.fq, false)) return false;
+  for (const n of c.fields.keys()) {
+    if (c.fieldStatic.has(n)) continue;
+    const ft = cx.fieldType(c, n);
+    if (ft.ptr === 0 && ft.ref === "" && !isPlainType(cx, ft, seen)) return false;
+  }
+  return true;
+}
+
+// <type_traits> is written with the compiler's __is_* builtins. The transpiler
+// collected every class it read, so it can answer them itself.
+function typeTrait(cx: Cx, nm: string, args: Expr[], scope: Scope): number | null {
+  const ts: CppType[] = [];
+  for (const a of args) {
+    if (a.kind !== "id") return null;
+    const tn: TypeNode = {
+      kind: "type", parts: a.parts, global: a.global, ptr: 0, ref: "", cnst: false,
+      dims: [], func: null, decltypeOf: null, packExpand: false, valueArg: null,
+      file: a.file, line: a.line,
+    };
+    try { ts.push(cx.resolveTypeNode(tn, scope)); } catch { return null; }
+  }
+  if (!ts.length) return null;
+  const cls = cx.classes.get(ts[0].name) || null;
+  switch (nm) {
+    case "__is_enum": return cx.enums.has(ts[0].name) ? 1 : 0;
+    case "__is_union": return cls && cls.isUnion ? 1 : 0;
+    case "__is_class": return cls && !cls.isUnion ? 1 : 0;
+    case "__is_polymorphic": return cls && hasVirtualMethod(cx, cls.fq, false) ? 1 : 0;
+    case "__is_abstract": return cls && hasVirtualMethod(cx, cls.fq, true) ? 1 : 0;
+    case "__is_empty": {
+      if (!cls || cls.isUnion || hasVirtualMethod(cx, cls.fq, false)) return 0;
+      let empty = true;
+      eachCls(cx, cls.fq, new Set(), c => {
+        for (const n of c.fields.keys()) {
+          if (!c.fieldStatic.has(n)) { empty = false; return false; }
+        }
+        return true;
+      });
+      return empty ? 1 : 0;
+    }
+    case "__is_pod":
+    case "__is_trivial":
+    case "__is_standard_layout":
+    case "__is_literal_type":
+      return ts[0].ptr === 0 && ts[0].dims.length === 0 && isPlainType(cx, ts[0], new Set()) ? 1 : 0;
+    case "__is_base_of": {
+      if (ts.length < 2) return null;
+      const base = cx.classes.get(ts[0].name);
+      const d = cx.classes.get(ts[1].name);
+      if (!base || !d) return 0;
+      if (base.fq === d.fq) return base.isUnion ? 0 : 1;
+      let hit = false;
+      eachCls(cx, d.fq, new Set(), c => {
+        if (c.fq !== d.fq && c.fq === base.fq) { hit = true; return false; }
+        return true;
+      });
+      return hit ? 1 : 0;
+    }
+    default: return null;
+  }
+}
+
 export function constEval(cx: Cx, e: Expr, scope: Scope): number | string | null {
   return constEvalInner(cx, e, scope, new Set());
 }
@@ -266,6 +361,12 @@ function constEvalInner(cx: Cx, e: Expr, scope: Scope, seen: Set<string>): numbe
         default: return null;
       }
     }
+    case "noexcept":
+      // The generated languages have no exception specification to violate and
+      // no destructive move, so no expression here can throw. The traits use
+      // this only to choose between moving and copying, which the output does
+      // not distinguish.
+      return 1;
     case "cond": {
       const c = constEvalInner(cx, e.c, scope, seen);
       if (typeof c !== "number") return null;
@@ -276,6 +377,11 @@ function constEvalInner(cx: Cx, e: Expr, scope: Scope, seen: Set<string>): numbe
       const t = cx.resolveTypeNode(e.type, scope);
       if (t.ptr > 0 || t.isFunc) return null;
       return constEvalInner(cx, e.arg, scope, seen);
+    }
+    case "call": {
+      const nm = e.fn.kind === "id" && e.fn.parts.length === 1 ? e.fn.parts[0].n : "";
+      if (!nm.startsWith("__is_")) return null;
+      return typeTrait(cx, nm, e.args, scope);
     }
     case "sizeof": {
       if (e.packName) return null;

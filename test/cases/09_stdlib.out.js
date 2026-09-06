@@ -49,7 +49,7 @@ function strcmp(a, b) {
   if ((a.a[a.i + (i)] === b.a[b.i + (i)])) {
     return 0;
   }
-  return ((a.a[a.i + (i)] < b.a[b.i + (i)]) ? (-(1)) : 1);
+  return (((a.a[a.i + (i)] >>> 0) < (b.a[b.i + (i)] >>> 0)) ? (-(1)) : 1);
 }
 function strcpy(dst, src) {
   let i = 0;

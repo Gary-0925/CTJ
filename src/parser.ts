@@ -3,6 +3,10 @@ namespace CTJ {
 export interface PendingBody {
   func: FuncDecl;
   toks: Token[];
+  // The type names in scope where the body was written. A member template
+  // parameter is out of scope by the time the body is parsed, and without it
+  // "_Up(args)" is not a construction.
+  types: Set<string>[];
 }
 
 export interface DeclSpec {
@@ -399,7 +403,7 @@ export class Parser {
     if (this.peek().t === "{" || this.isIdent("try")) {
       if (inClass) {
         const toks = this.collectBalancedTry();
-        this.pending.push({ func: fn, toks });
+        this.pending.push({ func: fn, toks, types: this.typeScopes.map(s => new Set(s)) });
       } else {
         // The members of the class are in scope in the body of an out-of-line
         // member definition, so its type names stay visible while parsing it.
@@ -473,6 +477,7 @@ export class Parser {
     this.pending = [];
     for (const p of list) {
       const sub = this.spawn(p.toks);
+      sub.typeScopes = p.types;
       p.func.body = sub.parseFuncBody();
       if (!sub.atEnd()) sub.warn("trailing tokens in function body");
     }

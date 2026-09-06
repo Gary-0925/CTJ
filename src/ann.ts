@@ -424,7 +424,7 @@ function annotateLocalVar(cx: Cx, vd: VarDecl, scope: Scope): void {
     t = deduceAuto(cx, t, it, vd);
   }
   if (t.name.startsWith("__value")) cx.fail(`'${name}' declared with non-type`, vd);
-  if (t.name === "void") cx.fail(`variable '${name}' has void type`, vd);
+  if (t.name === "void" && !t.ptr && !t.dims.length) cx.fail(`variable '${name}' has void type`, vd);
   const isStatic = vd.flags.includes("static") || vd.flags.includes("extern");
   let v: VarInfo;
   if (isStatic && scope.fn) {

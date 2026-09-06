@@ -217,7 +217,12 @@ export function parseIdExpr(p: Parser): IdExpr {
   const t = p.peek();
   let global = false;
   if (p.eat("::")) global = true;
-  const parts = p.parseQualifiedName(false, false);
+  const parts = p.parseQualifiedName(true, false);
+  // "::operator new(16)" calls a function whose name is the operator itself,
+  // spelled the same way a declaration spells it.
+  if (parts.length && last(parts).n === "operator") {
+    parts[parts.length - 1] = qseg("operator" + p.parseOperator().op);
+  }
   if (p.peek().t === "<") {
     const m = p.mark();
     try {
