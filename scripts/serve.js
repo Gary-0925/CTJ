@@ -50,7 +50,9 @@ http.createServer((req, res) => {
       const html = data.toString("utf8");
       if (html.includes(tag) && fs.existsSync(path.join(root, "dist", "ctj.js"))) {
         const bundle = fs.readFileSync(path.join(root, "dist", "ctj.js"), "utf8");
-        body = Buffer.from(html.replace(tag, "<script>\n" + bundle + "\n</script>"), "utf8");
+        // A function, not a string: the bundle contains $ patterns that a
+        // replacement string would interpret.
+        body = Buffer.from(html.replace(tag, () => "<script>\n" + bundle + "\n</script>"), "utf8");
       }
     }
     console.log(`${req.socket.remoteAddress} ${req.method} ${raw} 200 ${body.length}`);
