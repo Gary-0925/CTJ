@@ -399,7 +399,9 @@ function substCond(c: Expr | VarDecl, env: SubstEnv): Expr | VarDecl {
 }
 
 function substCtorInit(c: CtorInit, env: SubstEnv): CtorInit {
-  return { name: c.name.map(s => substQSeg(s, env)), args: substCallArgs(c.args, env), file: c.file, line: c.line };
+  // ": _Alloc(__a)" names a base class, and that base can be a template
+  // parameter, so the name is substituted like any other qualified name.
+  return { name: substQName(c.name, env), args: substCallArgs(c.args, env), file: c.file, line: c.line };
 }
 
 export function substDecl(d: Decl, env: SubstEnv): Decl {

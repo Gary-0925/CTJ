@@ -405,9 +405,16 @@ class PhpGen {
     return "";
   }
 
+  // A default argument is a value; a reference or pointer parameter takes a
+  // box, so the default has to be wrapped like any other temporary.
+  defArg(p: { type: CppType; def: Expr | null }): string {
+    const d = this.ex(p.def as Expr);
+    return p.type.isBox() ? `["a" => [${d}], "i" => 0]` : d;
+  }
+
   ctorArg(p: { type: CppType; def: Expr | null }, i: number): string {
     const v = `$a[${i}] ?? null`;
-    if (p.def) return `(array_key_exists(${i}, $a) ? $a[${i}] : (${this.ex(p.def)}))`;
+    if (p.def) return `(array_key_exists(${i}, $a) ? $a[${i}] : (${this.defArg(p)}))`;
     return v;
   }
 
@@ -452,7 +459,7 @@ class PhpGen {
           const bps = this.cx.funcParams(def);
           this.alias.push(new Map());
           bps.forEach((p) => {
-            if (!p.variadic && p.name && p.def) this.alias[this.alias.length - 1].set(p.name, `(${this.ex(p.def)})`);
+            if (!p.variadic && p.name && p.def) this.alias[this.alias.length - 1].set(p.name, `(${this.defArg(p)})`);
           });
           this.ctorBranch(bc, def, "mixin", true);
           this.alias.pop();
@@ -530,7 +537,7 @@ class PhpGen {
       return pt ? this.argFor(pt, x, convs[i] || null) : this.ex(x);
     });
     for (let i = args.length; i < ps.length && !ps[i].variadic; i++) {
-      aa.push(ps[i].def ? this.ex(ps[i].def as Expr) : "null");
+      aa.push(ps[i].def ? this.defArg(ps[i]) : "null");
     }
     return `new ${cn}(${aa.join(", ")})`;
   }
@@ -576,15 +583,15 @@ class PhpGen {
       const fn = use[0];
       const ps = this.cx.funcParams(fn);
       const decl: string[] = [];
-      const defs: { nm: string; i: number; def: Expr }[] = [];
+      const defs: { nm: string; i: number; def: string }[] = [];
       ps.forEach((p, i) => {
         const nm = p.name ? `$${safeJsName(p.name)}` : `$p${i}`;
         if (p.variadic) decl.push(`...${nm}_rest`);
-        else if (p.def) { decl.push(`${nm} = null`); defs.push({ nm, i, def: p.def }); }
+        else if (p.def) { decl.push(`${nm} = null`); defs.push({ nm, i, def: this.defArg(p) }); }
         else decl.push(nm);
       });
       const lines = this.withBody(() => {
-        for (const d of defs) this.line(`if (func_num_args() < ${d.i + 1}) ${d.nm} = ${this.ex(d.def)};`);
+        for (const d of defs) this.line(`if (func_num_args() < ${d.i + 1}) ${d.nm} = ${d.def};`);
         if (fn.decl.flags.includes("pure") && !(fn.decl.body || []).length) {
           this.line(`throw new Exception("pure virtual called");`);
         } else {
@@ -645,15 +652,15 @@ class PhpGen {
     }
     const ps = this.cx.funcParams(f);
     const decl: string[] = [];
-    const defs: { nm: string; i: number; def: Expr }[] = [];
+    const defs: { nm: string; i: number; def: string }[] = [];
     ps.forEach((p, i) => {
       const nm = p.name ? `$${safeJsName(p.name)}` : `$p${i}`;
       if (p.variadic) decl.push(`...${nm}_rest`);
-      else if (p.def) { decl.push(`${nm} = null`); defs.push({ nm, i, def: p.def }); }
+      else if (p.def) { decl.push(`${nm} = null`); defs.push({ nm, i, def: this.defArg(p) }); }
       else decl.push(nm);
     });
     const lines = this.withBody(() => {
-      for (const d of defs) this.line(`if (func_num_args() < ${d.i + 1}) ${d.nm} = ${this.ex(d.def)};`);
+      for (const d of defs) this.line(`if (func_num_args() < ${d.i + 1}) ${d.nm} = ${d.def};`);
       // A parameter whose address is taken is read through a wrapper, so the
       // value the caller passed has to be put in one first.
       ps.forEach((p, i) => {
@@ -1515,7 +1522,7 @@ class PhpGen {
       }
     });
     for (let i = e.args.length; i < ps.length && !ps[i].variadic; i++) {
-      aa.push(ps[i].def ? this.ex(ps[i].def as Expr) : "null");
+      aa.push(ps[i].def ? this.defArg(ps[i]) : "null");
     }
     let s: string;
     if (!fn.isMethod) {
@@ -1916,6 +1923,8 @@ class PhpGen {
       const inner = cps.length ? this.argFor(cps[0].type, e.arg, a.conv) : this.ex(e.arg);
       return `new ${cn}(${inner})`;
     }
+    // "size_type()" value-initialises: there is no argument to convert.
+    if (e.arg.kind === "initlist" && !(e.arg as InitListExpr).items.length) return this.zero(t);
     if (a.conv) {
       return `${this.paren(this.objOf(e.arg))}->${phpMethodName((a.conv as { kind: string; fn: FuncInfo }).fn)}()`;
     }

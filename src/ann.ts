@@ -2,6 +2,7 @@ namespace CTJ {
 
 export function analyzeAll(cx: Cx, tu: TranslationUnit): void {
   cx.collect(tu.decls, rootScope());
+  cx.flushOutOfLine();
   for (const e of cx.explicitInst) doExplicitInst(cx, e.decl, e.scope);
   for (const a of cx.asserts) {
     const v = constEval(cx, a.cond, a.scope);

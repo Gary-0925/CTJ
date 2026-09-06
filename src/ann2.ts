@@ -455,6 +455,17 @@ function typeOfCast(cx: Cx, e: CastExpr, scope: Scope): CppType {
   const sn = coreName(st);
   const tCls = !target.isBox() && !target.dims.length && cx.classes.has(cx.stripAll(target));
   const sCls = !st.isBox() && !st.dims.length && cx.classes.has(cx.stripAll(st));
+  // "size_type()" and "P()" have no argument to convert: they value- or
+  // default-construct the target.
+  if (e.arg.kind === "initlist" && !(e.arg as InitListExpr).items.length
+    && (kind === "cstyle" || kind === "static_cast" || kind === "functional")) {
+    if (tCls) {
+      const r = resolveInitCtor(cx, cx.stripAll(target), [], scope, e);
+      ann.call = r.fn;
+      ann.convs = r.convs;
+    }
+    return target;
+  }
   if (kind === "dynamic_cast") {
     if (tCls || (target.ptr > 0 && coreName(target) === "void")) return target;
     cx.fail("bad dynamic_cast", e);

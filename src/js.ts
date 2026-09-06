@@ -208,10 +208,22 @@ class JsGen {
     const all: { fn: FuncInfo; inh: string }[] = [];
     for (const f of ctors) all.push({ fn: f, inh: "" });
     for (const h of inherited) all.push({ fn: h.fn, inh: h.base });
+    // The base arguments are expressions written in the constructor's own
+    // scope, where its parameters are the incoming $a.
     const baseArgs = (bi: number, fn: FuncInfo, inh: string): string => {
+      this.alias.push(new Map());
+      this.cx.funcParams(fn).forEach((p, i) => {
+        if (!p.variadic && p.name) this.alias[this.alias.length - 1].set(p.name, this.ctorArg(p, i));
+      });
+      const r = baseArgsOf(bi, fn, inh);
+      this.alias.pop();
+      return r;
+    };
+    const baseArgsOf = (bi: number, fn: FuncInfo, inh: string): string => {
       const b = c.bases[bi];
       const bc = this.cx.classes.get(b.fq) as ClsInfo;
       const bn = bc.mangled as string;
+      void bn;
       const list = fn.decl.ctorInit;
       const hit = !inh ? list.find(x => last(x.name).n === bc.short || last(x.name).n === b.fq) : null;
       if (inh && b.fq === inh) {
@@ -330,9 +342,16 @@ class JsGen {
     return "";
   }
 
+  // A default argument is a value; a reference or pointer parameter takes a
+  // box, so the default has to be wrapped like any other temporary.
+  defArg(p: { type: CppType; def: Expr | null }): string {
+    const d = this.ex(p.def as Expr);
+    return p.type.isBox() ? `{a: [${d}], i: 0}` : d;
+  }
+
   ctorArg(p: { type: CppType; def: Expr | null }, i: number): string {
     const v = `$a[${i}]`;
-    if (p.def) return `(${v} === undefined ? (${this.ex(p.def)}) : ${v})`;
+    if (p.def) return `(${v} === undefined ? (${this.defArg(p)}) : ${v})`;
     return v;
   }
 
@@ -431,7 +450,7 @@ class JsGen {
       return pt ? this.argFor(pt, x, convs[i] || null) : this.ex(x);
     });
     for (let i = args.length; i < ps.length && !ps[i].variadic; i++) {
-      aa.push(ps[i].def ? this.ex(ps[i].def as Expr) : "undefined");
+      aa.push(ps[i].def ? this.defArg(ps[i]) : "undefined");
     }
     return `new ${cn}(${aa.join(", ")})`;
   }
@@ -481,7 +500,7 @@ class JsGen {
       ps.forEach((p, i) => {
         const nm = p.name ? safeJsName(p.name) : `$p${i}`;
         if (p.variadic) decl.push(`...${nm}_rest`);
-        else if (p.def) decl.push(`${nm} = ${this.ex(p.def)}`);
+        else if (p.def) decl.push(`${nm} = ${this.defArg(p)}`);
         else decl.push(nm);
       });
       const base = this.tmpN;
@@ -557,7 +576,7 @@ class JsGen {
     ps.forEach((p, i) => {
       const nm = p.name ? safeJsName(p.name) : `$p${i}`;
       if (p.variadic) decl.push(`...${nm}_rest`);
-      else if (p.def) decl.push(`${nm} = ${this.ex(p.def)}`);
+      else if (p.def) decl.push(`${nm} = ${this.defArg(p)}`);
       else decl.push(nm);
     });
     const base = this.tmpN;
@@ -1519,7 +1538,7 @@ class JsGen {
       }
     });
     for (let i = e.args.length; i < ps.length && !ps[i].variadic; i++) {
-      aa.push(ps[i].def ? this.ex(ps[i].def as Expr) : "undefined");
+      aa.push(ps[i].def ? this.defArg(ps[i]) : "undefined");
     }
     let s: string;
     if (!fn.isMethod) {
@@ -1944,6 +1963,8 @@ class JsGen {
       if (!cps.length || (e.arg.kind === "initlist" && !(e.arg as InitListExpr).items.length)) return `new ${cn}()`;
       return `new ${cn}(${this.argFor(cps[0].type, e.arg, a.conv)})`;
     }
+    // "size_type()" value-initialises: there is no argument to convert.
+    if (e.arg.kind === "initlist" && !(e.arg as InitListExpr).items.length) return this.zero(t);
     if (a.conv) {
       return `${this.paren(this.objOf(e.arg))}.${methodJsName((a.conv as { kind: string; fn: FuncInfo }).fn)}()`;
     }

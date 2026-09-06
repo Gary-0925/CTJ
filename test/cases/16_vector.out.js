@@ -223,6 +223,10 @@ class std_basic_string_char_std_char_traits_char_std_allocator_char {
   }
   static npos = ((-(1)) >>> 0);
 }
+class std_allocator_char_rebind_char {
+  __dtor() {
+  }
+}
 class std_hash_base_unsigned_long_long_std_basic_string_char_std_char_traits_char_std_allocator_char {
   __dtor() {
   }
@@ -281,6 +285,10 @@ class std_basic_string_wchar_t_std_char_traits_wchar_t_std_allocator_wchar_t {
   __dtor() {
   }
   static npos = ((-(1)) >>> 0);
+}
+class std_allocator_wchar_t_rebind_wchar_t {
+  __dtor() {
+  }
 }
 class std_hash_base_unsigned_long_long_std_basic_string_wchar_t_std_char_traits_wchar_t_std_allocator_wchar_t {
   __dtor() {
@@ -341,6 +349,10 @@ class std_basic_string_char16_t_std_char_traits_char16_t_std_allocator_char16_t 
   }
   static npos = ((-(1)) >>> 0);
 }
+class std_allocator_char16_t_rebind_char16_t {
+  __dtor() {
+  }
+}
 class std_hash_base_unsigned_long_long_std_basic_string_char16_t_std_char_traits_char16_t_std_allocator_char16_t {
   __dtor() {
   }
@@ -399,6 +411,10 @@ class std_basic_string_char32_t_std_char_traits_char32_t_std_allocator_char32_t 
   __dtor() {
   }
   static npos = ((-(1)) >>> 0);
+}
+class std_allocator_char32_t_rebind_char32_t {
+  __dtor() {
+  }
 }
 class std_hash_base_unsigned_long_long_std_basic_string_char32_t_std_char_traits_char32_t_std_allocator_char32_t {
   __dtor() {
@@ -742,7 +758,7 @@ class std_Placeholder_value29 {
 class gnu_cxx_new_allocator_int {
   __dtor() {
   }
-  allocate(__n, $p1 = 0) {
+  allocate(__n, $p1 = {a: [0], i: 0}) {
     let $t0;
     if ((__n > this.max_size__c())) {
       std_throw_bad_alloc();
@@ -806,7 +822,7 @@ class std_Vector_base_int_std_allocator_int {
   }
   _M_allocate(__n) {
     let $t2;
-    return (($t2 = ((__n !== 0) ? this._M_impl.allocate(__n, 0) : 0), $t2) ? {a: (($t2 = ((__n !== 0) ? this._M_impl.allocate(__n, 0) : 0), $t2)).a, i: (($t2 = ((__n !== 0) ? this._M_impl.allocate(__n, 0) : 0), $t2)).i} : null);
+    return (($t2 = ((__n !== 0) ? this._M_impl.allocate(__n, {a: [0], i: 0}) : 0), $t2) ? {a: (($t2 = ((__n !== 0) ? this._M_impl.allocate(__n, {a: [0], i: 0}) : 0), $t2)).a, i: (($t2 = ((__n !== 0) ? this._M_impl.allocate(__n, {a: [0], i: 0}) : 0), $t2)).i} : null);
   }
   _M_deallocate(__p, __n) {
     if (__p) {
@@ -2020,22 +2036,6 @@ class std_basic_string_int_P_std_char_traits_int_P_std_allocator_int_P {
   __dtor() {
   }
   static npos = ((-(1)) >>> 0);
-}
-class std_allocator_char_rebind_char {
-  __dtor() {
-  }
-}
-class std_allocator_wchar_t_rebind_wchar_t {
-  __dtor() {
-  }
-}
-class std_allocator_char16_t_rebind_char16_t {
-  __dtor() {
-  }
-}
-class std_allocator_char32_t_rebind_char32_t {
-  __dtor() {
-  }
 }
 class std_allocator_int_P_rebind_int_P {
   __dtor() {

@@ -279,6 +279,12 @@ export class Cx {
   nsAlias = new Map<string, string>();
   asserts: { cond: Expr; msg: string; scope: Scope }[] = [];
   explicitInst: { decl: Decl; scope: Scope }[] = [];
+  // A class can be instantiated before the file holding its out-of-line member
+  // definitions is read ("hash<string>" instantiates basic_string<char> while
+  // basic_string.h is still being collected, basic_string.tcc comes later), so
+  // attaching those definitions waits until the whole unit is collected.
+  collecting = true;
+  pendingOOL: { tmpl: TmplInfo; key: string; cls: ClsInfo; args: CppType[] }[] = [];
   warnings: string[] = [];
   worklist: FuncInfo[] = [];
   instStack: string[] = [];
@@ -1521,9 +1527,22 @@ export class Cx {
       cls.bases.push({ fq: this.resolveClassName(b.name, sub), access: b.access, isVirtual: b.isVirtual });
     }
     this.collect(decl.members, sub);
-    this.instantiateOutOfLineMembers(tmpl, key, cls, args);
+    // A constructor declaration keeps its default arguments; a call can need
+    // one of them before the function itself is ever analyzed.
+    for (const list of cls.methods.values()) {
+      for (const fn of list) this.annDefaults(fn.decl, this.memberScope(cls));
+    }
+    if (this.collecting) this.pendingOOL.push({ tmpl, key, cls, args });
+    else this.instantiateOutOfLineMembers(tmpl, key, cls, args);
     this.markCls(key);
     return cls;
+  }
+
+  flushOutOfLine(): void {
+    this.collecting = false;
+    const list = this.pendingOOL;
+    this.pendingOOL = [];
+    for (const p of list) this.instantiateOutOfLineMembers(p.tmpl, p.key, p.cls, p.args);
   }
 
   instantiateOutOfLineMembers(tmpl: TmplInfo, key: string, cls: ClsInfo, args: CppType[]): void {
@@ -1536,6 +1555,7 @@ export class Cx {
       const newFq = key + "::" + t.fq.slice(prefix.length);
       if (t.kind === "func" && !rest.length) {
         const decl = substDecl(t.decl, env) as FuncDecl;
+        this.annDefaults(decl, this.memberScope(cls));
         const exist = this.findMethod(cls, decl);
         if (exist && !exist.decl.body && decl.body) {
           exist.decl = decl;
@@ -1594,6 +1614,15 @@ export class Cx {
     return this.resolveTypeNode(tn, (tmpl as TmplInfo).scope);
   }
 
+  // Substitution produces fresh expression nodes. A default argument can be
+  // needed before the function that owns it is analyzed, so it is typed here.
+  annDefaults(decl: FuncDecl, scope: Scope): void {
+    for (const pd of decl.params) {
+      if (!pd.def) continue;
+      try { typeOf(this, pd.def, scope); } catch { /* the annotator retries */ }
+    }
+  }
+
   instantiateFunc(tmpl: TmplInfo, args: CppType[], given: Map<string, CppType>): FuncInfo {
     // Overloads of one name are different functions: without the position of
     // this one among them, "operator!=" for reverse_iterator would stand in
@@ -1607,6 +1636,7 @@ export class Cx {
       if (!env.types.has(k)) env.types.set(k, v);
     }
     const decl = substDecl(tmpl.decl, env) as FuncDecl;
+    this.annDefaults(decl, this.snapScope(tmpl.scope));
     const fn: FuncInfo = {
       fq: key, short: last(tmpl.fq.split("::")), mangled: mangleType(key),
       decl, scope: this.snapScope(tmpl.scope), paramCache: null, retCache: null,
