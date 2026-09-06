@@ -4,6 +4,7 @@
   "description": "CTJ: C++ transpiler to JavaScript/PHP written in TypeScript",
   "scripts": {
     "build": "node scripts/build.js",
+    "serve": "node scripts/serve.js",
     "test": "node test/run.js",
     "demo": "node test/demo.js"
   },

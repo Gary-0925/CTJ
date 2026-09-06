@@ -261,6 +261,13 @@ function fmtValue(v) {
 }
 
 function transpile() {
+  if (typeof CTJ === "undefined") {
+    $("code").textContent = "";
+    $("out").className = "err";
+    $("out").textContent = "dist/ctj.js 没有加载：请先运行 npm run build（或 npm run serve），再强制刷新页面（Ctrl+Shift+R）。";
+    setStatus("转译器未加载");
+    return;
+  }
   const target = $("target").value;
   const source = $("source").value;
   $("warnings").style.display = "none";
@@ -329,7 +336,17 @@ Object.keys(EXAMPLES).forEach(name => {
   o.textContent = name;
   exampleSelect.appendChild(o);
 });
-exampleSelect.addEventListener("change", () => { $("source").value = EXAMPLES[exampleSelect.value]; });
+exampleSelect.addEventListener("change", () => { $("source").value = EXAMPLES[exampleSelect.value];
+// A browser that cached an earlier failure of dist/ctj.js will not ask for it
+// again, so fetch it once more with a cache-busting query.
+if (typeof CTJ === "undefined") {
+  setStatus("dist/ctj.js 未加载，正在重新获取…");
+  const retry = document.createElement("script");
+  retry.src = "dist/ctj.js?v=" + Date.now();
+  retry.onload = () => setStatus(typeof CTJ === "undefined" ? "dist/ctj.js 已加载但没有定义 CTJ" : "就绪");
+  retry.onerror = () => setStatus("dist/ctj.js 获取失败：请运行 npm run build（或 npm run serve）后刷新");
+  document.head.appendChild(retry);
+} });
 exampleSelect.value = "基础语法";
 $("source").value = EXAMPLES[exampleSelect.value];
 
