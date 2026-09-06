@@ -38,15 +38,13 @@ export function builtinCall(cx: Cx, e: CallExpr, name: string, argTs: { t: CppTy
     return CppType.basic("void");
   }
   if (name === "__builtin_memcpy" || name === "__builtin_memmove" || name === "__builtin_memset") {
-    cx.warn(`${name} has no definition, stubbed`, e);
     return voidPtr();
   }
+  if (name === "__builtin_memcmp") return CppType.basic("int");
   if (name === "__builtin_strlen" || name === "__builtin_strcmp" || name === "__builtin_strncmp") {
-    cx.warn(`${name} has no definition, stubbed`, e);
     return CppType.basic(name === "__builtin_strlen" ? "unsigned long" : "int");
   }
   if (name === "__builtin_strcpy" || name === "__builtin_strncpy" || name === "__builtin_strcat" || name === "__builtin_strchr") {
-    cx.warn(`${name} has no definition, stubbed`, e);
     const t = CppType.basic("char");
     t.ptr = 1;
     return t;

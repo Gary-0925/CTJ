@@ -1072,6 +1072,40 @@ class JsGen {
     return `[${codes.join(", ")}]`;
   }
 
+
+  // The string and memory builtins work on the same boxes every other pointer
+  // uses: an array of bytes and an offset into it.
+  exMemBuiltin(name: string, e: CallExpr): string | null {
+    const a = e.args.map(x => this.ex(x));
+    // A string literal is a bare array of bytes; every other pointer is a box.
+    const p = (i: number) => `(($q) => ($q && $q.a !== undefined ? $q : { a: $q, i: 0 }))(${a[i]})`;
+    switch (name) {
+      case "__builtin_strlen":
+        return `(($s) => { let $i = $s.i; while ($s.a[$i]) $i++; return $i - $s.i; })(${p(0)})`;
+      case "__builtin_strcmp":
+        return `(($x, $y) => { let $i = $x.i, $j = $y.i; while ($x.a[$i] && $x.a[$i] === $y.a[$j]) { $i++; $j++; } return ($x.a[$i] || 0) - ($y.a[$j] || 0); })(${p(0)}, ${p(1)})`;
+      case "__builtin_strncmp":
+        return `(($x, $y, $n) => { let $i = $x.i, $j = $y.i, $k = 0; while ($k < $n && $x.a[$i] && $x.a[$i] === $y.a[$j]) { $i++; $j++; $k++; } return $k >= $n ? 0 : ($x.a[$i] || 0) - ($y.a[$j] || 0); })(${p(0)}, ${p(1)}, ${a[2]})`;
+      case "__builtin_strcpy":
+        return `(($d, $s) => { let $i = $d.i, $j = $s.i; while (($d.a[$i] = $s.a[$j])) { $i++; $j++; } return $d; })(${p(0)}, ${p(1)})`;
+      case "__builtin_strncpy":
+        return `(($d, $s, $n) => { let $i = $d.i, $j = $s.i, $k = 0; for (; $k < $n && $s.a[$j]; $k++) { $d.a[$i] = $s.a[$j]; $i++; $j++; } for (; $k < $n; $k++) { $d.a[$i] = 0; $i++; } return $d; })(${p(0)}, ${p(1)}, ${a[2]})`;
+      case "__builtin_strcat":
+        return `(($d, $s) => { let $i = $d.i; while ($d.a[$i]) $i++; let $j = $s.i; while (($d.a[$i] = $s.a[$j])) { $i++; $j++; } return $d; })(${p(0)}, ${p(1)})`;
+      case "__builtin_strchr":
+        return `(($s, $c) => { let $i = $s.i; while ($s.a[$i] && $s.a[$i] !== ($c & 255)) $i++; return ($s.a[$i] || 0) === ($c & 255) ? { a: $s.a, i: $i } : null; })(${p(0)}, ${a[1]})`;
+      case "__builtin_memset":
+        return `(($d, $c, $n) => { for (let $k = 0; $k < $n; $k++) $d.a[$d.i + $k] = $c & 255; return $d; })(${p(0)}, ${a[1]}, ${a[2]})`;
+      case "__builtin_memcpy":
+        return `(($d, $s, $n) => { for (let $k = 0; $k < $n; $k++) $d.a[$d.i + $k] = $s.a[$s.i + $k]; return $d; })(${p(0)}, ${p(1)}, ${a[2]})`;
+      case "__builtin_memmove":
+        return `(($d, $s, $n) => { const $t = $s.a.slice($s.i, $s.i + $n); for (let $k = 0; $k < $n; $k++) $d.a[$d.i + $k] = $t[$k]; return $d; })(${p(0)}, ${p(1)}, ${a[2]})`;
+      case "__builtin_memcmp":
+        return `(($x, $y, $n) => { for (let $k = 0; $k < $n; $k++) { const $d = ($x.a[$x.i + $k] || 0) - ($y.a[$y.i + $k] || 0); if ($d) return $d; } return 0; })(${p(0)}, ${p(1)}, ${a[2]})`;
+      default:
+        return null;
+    }
+  }
   exId(e: IdExpr): string {
     const a = this.cx.getAnn(e);
     const s = a.sym;
@@ -1601,6 +1635,8 @@ class JsGen {
     if (name === "__builtin_frame_address" || name === "__builtin_return_address" || name === "__builtin_extract_return_addr") return "null";
     if (name === "__builtin_FILE" || name === "__builtin_FUNCTION") return this.strLit(`"${e.file}"`);
     if (name === "__builtin_LINE") return String(e.line);
+    const mem = this.exMemBuiltin(name, e);
+    if (mem !== null) return mem;
     return `(() => { throw new Error("unresolved ${name}"); })()`;
   }
 

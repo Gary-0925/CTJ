@@ -1384,11 +1384,17 @@ export class Cx {
       this.markCls(key);
       return exist;
     }
+    // The specialization can be declared in one header and defined in another
+    // ("charfwd.h" declares char_traits<char>, "char_traits.h" defines it);
+    // a declaration that carries members is the one to instantiate.
+    const want = full.map(a => a.key()).join(",");
+    let spec: TmplInfo["specs"][number] | null = null;
     for (const s of (tmpl as TmplInfo).specs) {
-      if (s.key === full.map(a => a.key()).join(",")) {
-        return this.instantiateClassDecl(key, tmpl as TmplInfo, s.decl as ClassDecl, full, blankSubstEnv(), t);
-      }
+      if (s.key !== want) continue;
+      spec = s;
+      if ((s.decl as ClassDecl).members.length) break;
     }
+    if (spec) return this.instantiateClassDecl(key, tmpl as TmplInfo, spec.decl as ClassDecl, full, blankSubstEnv(), t);
     if (this.instStack.includes(key)) this.fail(`recursive instantiation of '${key}'`, t || undefined);
     this.instStack.push(key);
     try {
