@@ -87,7 +87,7 @@ export function parseStmt(p: Parser): Stmt {
     const d = ds[0];
     if (!d || d.kind === "empty") return { kind: "null", ...at(t) };
     if (ds.length > 1) {
-      return { kind: "compound", stmts: ds.map(x => ({ kind: "decl", decl: x, ...at(t) }) as Stmt), ...at(t) };
+      return { kind: "compound", sameScope: true, stmts: ds.map(x => ({ kind: "decl", decl: x, ...at(t) }) as Stmt), ...at(t) };
     }
     return { kind: "decl", decl: d, ...at(t) };
   }

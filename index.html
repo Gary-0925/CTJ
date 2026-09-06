@@ -141,6 +141,58 @@ int main() {
   return 0;
 }
 `,
+  "类模板与成员": `#include <cstring>
+
+template <typename T> struct Traits {
+  typedef T value_type;
+  typedef long size_type;
+};
+
+template <typename C, typename Tr = Traits<C> > class Str {
+public:
+  typedef typename Tr::value_type value_type;
+  typedef typename Tr::size_type size_type;
+  static const size_type npos = (size_type)-1;
+
+  // 嵌套类可以直接把模板参数当基类
+  struct Rep : Tr {
+    size_type len;
+    Rep() : len(0) {}
+  };
+
+  Str() {}
+
+  void assign(const value_type* s) {
+    rep.len = (size_type)std::strlen(s);
+    for (size_type i = 0; i < rep.len; i++) buf[i] = s[i];
+  }
+
+  size_type size() const { return rep.len; }
+  value_type at(size_type i) const { return buf[i]; }
+
+  static size_type compare(const value_type* a, const value_type* b);
+
+private:
+  value_type buf[32];
+  Rep rep;
+};
+
+// 类外定义的静态成员模板：返回类型和参数里都能用类内的 typedef
+template <typename C, typename Tr>
+typename Str<C, Tr>::size_type Str<C, Tr>::compare(const value_type* a, const value_type* b) {
+  while (*a && *a == *b) { a++; b++; }
+  return (size_type)(*a - *b);
+}
+
+int main() {
+  Str<char> s;
+  s.assign("hello");
+  int d = (int)Str<char>::compare("abc", "abd");
+  __ctj_js("console.log($1, $2, $3, $4)", (int)s.size(), (int)s.at(1), d < 0, (int)Str<char>::npos == -1);
+  __ctj_php("print($1 . ' ' . $2 . ' ' . $3 . ' ' . $4 . PHP_EOL)", (int)s.size(), (int)s.at(1), d < 0, (int)Str<char>::npos == -1);
+  return 0;
+}
+`,
   "标准库头文件": `#include <cstring>
 #include <limits>
 

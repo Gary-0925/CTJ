@@ -15,5 +15,11 @@ int main() {
   __ctj_js("console.log($1)", (u >> 1));
   __ctj_js("console.log($1)", !0);
   __ctj_js("console.log($1)", ~0);
+  int p = 7, q = 8;
+  __ctj_js("console.log($1)", p + q);
+  int r, s;
+  r = 1;
+  s = 2;
+  __ctj_js("console.log($1)", r + s);
   return 0;
 }

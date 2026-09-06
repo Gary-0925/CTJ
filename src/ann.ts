@@ -191,6 +191,10 @@ function annotateFieldInit(cx: Cx, cls: ClsInfo, short: string, ft: CppType, arg
 export function annotateStmt(cx: Cx, s: Stmt, scope: Scope): void {
   switch (s.kind) {
     case "compound": {
+      if (s.sameScope) {
+        for (const x of s.stmts) annotateStmt(cx, x, scope);
+        return;
+      }
       scope.locals.push(new Map());
       try {
         for (const x of s.stmts) annotateStmt(cx, x, scope);

@@ -677,8 +677,19 @@ export class Parser {
     for (;;) {
       this.skipGnu();
       const am = this.mark();
+      // "!is_convertible<_A, _B>::value" negates a member of a template-id;
+      // read as an expression the '<' after the type name is a comparison, so
+      // the negation is rebuilt around the type instead.
+      let neg = 0;
+      while (this.peek().t === "!") { this.pos++; neg++; }
       let ta = this.parseAbstractType();
-      if (!ta.parts.length && !ta.decltypeOf && !ta.ptr && !ta.ref && !ta.func && !ta.dims.length) {
+      if (neg && ta.parts.length) {
+        let ex: Expr = { kind: "id", parts: ta.parts, global: ta.global, file: ta.file, line: ta.line };
+        for (let i = 0; i < neg; i++) ex = { kind: "unary", op: "!", arg: ex, postfix: false, file: ta.file, line: ta.line };
+        ta = typeNode([], ta);
+        ta.valueArg = ex;
+      } else if (!ta.parts.length && !ta.decltypeOf && !ta.ptr && !ta.ref && !ta.func && !ta.dims.length) {
+        if (neg) this.reset(am);
         const ex = this.parseTArgValue(am);
         ta = typeNode([], ex);
         ta.valueArg = ex;

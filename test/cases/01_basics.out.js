@@ -18,6 +18,14 @@ function main() {
   (console.log(((u >>> 1))));
   (console.log(((!(0)))));
   (console.log(((~(0)))));
+  let p = 7;
+  let q = 8;
+  (console.log(((p + q))));
+  let r = 0;
+  let s = 0;
+  r = 1;
+  s = 2;
+  (console.log(((r + s))));
   return 0;
 }
 main();

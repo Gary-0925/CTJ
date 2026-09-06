@@ -695,6 +695,10 @@ class PhpGen {
   stmt(s: Stmt): void {
     switch (s.kind) {
       case "compound":
+        if (s.sameScope) {
+          for (const x of s.stmts) this.stmt(x);
+          return;
+        }
         this.block("", () => { for (const x of s.stmts) this.stmt(x); });
         return;
       case "expr": {

@@ -183,6 +183,9 @@ export type Decl =
 export interface Compound extends At {
   kind: "compound";
   stmts: Stmt[];
+  // Set when the block only groups the declarators of one declaration
+  // statement, which do not open a scope of their own.
+  sameScope?: boolean;
 }
 
 export interface ExprStmt extends At {
