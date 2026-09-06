@@ -1857,7 +1857,7 @@ class JsGen {
     if (fcls && this.cx.classes.has(fcls)) {
       const cn = (this.cx.classes.get(fcls) as ClsInfo).mangled as string;
       const obj = a.call
-        ? this.ctorExpr(cn, a.call as FuncInfo, e.args, a.convs)
+        ? this.ctorExpr(cn, a.call as FuncInfo, e.args, a.convs, t)
         : `new ${cn}()`;
       return `(${slot} = ${obj})`;
     }
