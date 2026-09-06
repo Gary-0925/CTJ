@@ -297,6 +297,30 @@ export class Cx {
     if (fn.decl.body || fn.isDefault) this.pushWork(fn);
   }
 
+  // A member that overrides a virtual member of a base is virtual itself, even
+  // without the keyword, so it has to be emitted for dispatch through the base.
+  inheritVirtual(c: ClsInfo): void {
+    const virt = new Set<string>();
+    const walk = (fq: string, seen: Set<string>) => {
+      if (seen.has(fq)) return;
+      seen.add(fq);
+      const b = this.classes.get(fq);
+      if (!b) return;
+      for (const [name, fns] of b.methods) {
+        for (const f of fns) if (f.isVirtual) virt.add(name);
+      }
+      for (const bb of b.bases) walk(bb.fq, seen);
+    };
+    for (const b of c.bases) walk(b.fq, new Set());
+    if (!virt.size) return;
+    for (const [name, fns] of c.methods) {
+      if (!virt.has(name)) continue;
+      for (const f of fns) {
+        if (!f.isCtor && !f.isDtor && !f.isStatic) f.isVirtual = true;
+      }
+    }
+  }
+
   markVar(v: VarInfo): void {
     v.referenced = true;
     if (!v.isGlobal) return;
@@ -308,6 +332,7 @@ export class Cx {
     if (!c.referenced) {
       c.referenced = true;
       this.synthMembers(c);
+      this.inheritVirtual(c);
       for (const b of c.bases) this.markCls(b.fq);
       for (const fns of c.methods.values()) {
         for (const f of fns) {
@@ -969,7 +994,9 @@ export class Cx {
   funcParams(fn: FuncInfo): FuncParam[] {
     if (!fn.paramCache) {
       fn.paramCache = fn.decl.params.map(p => ({
-        name: p.name, type: this.resolveTypeNode(p.type, fn.scope),
+        name: p.name,
+        // The trailing "..." of a variadic function has no type of its own.
+        type: p.variadic && !p.name ? CppType.basic("void") : this.resolveTypeNode(p.type, fn.scope),
         def: p.def, variadic: p.variadic, isPack: p.isPack,
       }));
     }
@@ -1045,7 +1072,7 @@ export class Cx {
       if (s.t.kind === "class") {
         const cls = this.instantiateClass(s.t.fq, [], scope, tn);
         base = new CppType(cls.fq);
-        base.segs = [{ n: cls.fq, a: cls.instArgs.slice() }];
+        base.segs = [{ n: cls.fromTmpl || cls.fq, a: cls.instArgs.slice() }];
         this.markCls(cls.fq);
       } else if (s.t.kind === "alias") {
         base = this.instantiateAlias(s.t.fq, [], scope);
@@ -1324,8 +1351,10 @@ export class Cx {
     return ps.length === 1 && !ps[0].variadic && this.stripAll(ps[0].type) === cls.fq;
   }
 
+  // The class name a type denotes, template arguments included, in the same
+  // spelling instantiateClass uses for its key.
   stripAll(t: CppType): string {
-    return t.segs.map(g => g.n).join("::");
+    return t.segs.map(g => g.a.length ? g.n + "<" + g.a.map(a => a.key()).join(",") + ">" : g.n).join("::");
   }
 
   synthCtor(cls: ClsInfo, copy: boolean, o: null): FuncDecl {

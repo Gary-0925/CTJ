@@ -122,10 +122,16 @@ function maybeFunctional(p: Parser, e: Expr, args: Expr[], t: Token): Expr {
 
 export function parseUnary(p: Parser): Expr {
   const t = p.peek();
+  // "typename" only qualifies a dependent type, it carries no meaning here.
+  if (t.t === "ident" && t.v === "typename") {
+    p.pos++;
+    return parseUnary(p);
+  }
   if (t.t === "++" || t.t === "--" || t.t === "+" || t.t === "-" ||
     t.t === "!" || t.t === "~" || t.t === "*" || t.t === "&") {
     p.pos++;
-    const arg = parseUnary(p);
+    // Postfix binds tighter than a prefix operator: *p++ is *(p++).
+    const arg = parsePostfix(p, parseUnary(p));
     return { kind: "unary", op: t.t, arg, postfix: false, ...at(t) };
   }
   if (t.t === "(") {
@@ -144,7 +150,7 @@ export function parseUnary(p: Parser): Expr {
       p.pos++;
       const type = p.parseAbstractType();
       p.expect(")");
-      const arg = parseUnary(p);
+      const arg = parsePostfix(p, parseUnary(p));
       return { kind: "cast", ckind: "cstyle", type, fn: null, arg, ...at(t) };
     }
     p.pos++;
@@ -212,7 +218,15 @@ export function parseIdExpr(p: Parser): IdExpr {
   return { kind: "id", parts, global, ...at(t) };
 }
 
-function looksLikeCast(p: Parser): boolean {
+// Tokens that cannot start the operand of a cast, so "(T)" before one of them
+// is a parenthesized expression rather than a cast.
+const NOT_OPERAND_START = new Set([
+  "eof", ")", ",", ";", "}", "]", ">", ">>", "==", "!=", "<=", ">=", "&&", "||",
+  "=", "+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", "<<",
+  "?", ":", ".", "->", "->*", ".*",
+]);
+
+function parensHoldType(p: Parser): boolean {
   const m = p.mark();
   try {
     p.pos++;
@@ -234,6 +248,17 @@ function looksLikeCast(p: Parser): boolean {
     p.reset(m);
     return false;
   }
+}
+
+function looksLikeCast(p: Parser): boolean {
+  if (!parensHoldType(p)) return false;
+  const m = p.mark();
+  p.pos++;
+  p.skipGnu();
+  p.parseAbstractType();
+  const ok = !NOT_OPERAND_START.has(p.peek(1).t);
+  p.reset(m);
+  return ok;
 }
 
 function parseNewDelete(p: Parser): Expr {
@@ -290,7 +315,7 @@ function parseSizeof(p: Parser, isAlign: boolean): SizeofExpr {
     return base;
   }
   if (p.peek().t === "(" && !isAlign) {
-    if (looksLikeCast(p)) {
+    if (parensHoldType(p)) {
       p.pos++;
       base.type = p.parseAbstractType();
       p.expect(")");

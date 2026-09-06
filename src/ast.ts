@@ -95,6 +95,7 @@ export interface ClassDecl extends At {
   members: Decl[];
   isDeclOnly: boolean;
   specArgs: TypeNode[];
+  isPartialSpec: boolean;
 }
 
 export interface EnumItem extends At {
@@ -332,6 +333,17 @@ export interface UnaryExpr extends At {
   op: string;
   arg: Expr;
   postfix: boolean;
+}
+
+export function incKind(u: UnaryExpr): "++" | "--" | null {
+  if (u.op === "++" || u.op === "++post") return "++";
+  if (u.op === "--" || u.op === "--post") return "--";
+  return null;
+}
+
+// The parser spells both forms "++"/"--" and tells them apart with `postfix`.
+export function isPostfix(u: UnaryExpr): boolean {
+  return u.postfix || u.op === "++post" || u.op === "--post";
 }
 
 export interface BinaryExpr extends At {

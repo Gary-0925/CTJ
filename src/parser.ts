@@ -447,7 +447,6 @@ export class Parser {
       const sub = this.spawn(p.toks);
       p.func.body = sub.parseFuncBody();
       if (!sub.atEnd()) sub.warn("trailing tokens in function body");
-      for (const w of sub.warnings) this.warnings.push(w);
     }
   }
 
@@ -533,6 +532,9 @@ export class Parser {
       if (v === "operator" || v === "template" || v === "~") break;
       if (!this.isTypeName(v) && this.peek(1).t !== "::" && this.peek(1).t !== "<") break;
       if (this.peek(1).t === "(" && !type && !prefix.length) break;
+      // "unsigned long size_t": with base keywords already seen, the type name
+      // that follows is the declarator being declared, not part of the type.
+      if (prefix.length && !type) break;
       const m = this.mark();
       try {
         const q = this.parseQualifiedType();
@@ -579,6 +581,7 @@ export class Parser {
 
   parseQualifiedName(allowOp: boolean, inType = true): QSeg[] {
     const parts: QSeg[] = [];
+    if (this.peek().t === "::") this.pos++;
     for (;;) {
       this.skipGnu();
       if (this.isIdent("template")) this.pos++;
@@ -620,6 +623,18 @@ export class Parser {
     if (this.peek().t !== "ident") fail(`expected type name, got '${this.peek().v}'`, t.file, t.line, t.col);
     tn.parts = this.parseQualifiedName(false);
     return tn;
+  }
+
+  skipBalancedAngles(): void {
+    const t = this.expect("<");
+    let depth = 1;
+    while (depth > 0) {
+      const u = this.next();
+      if (u.t === "eof") fail("unterminated '<'", t.file, t.line, t.col);
+      if (u.t === "<") depth++;
+      else if (u.t === ">>") depth -= 2;
+      else if (u.t === ">") depth--;
+    }
   }
 
   parseTArgList(): TypeNode[] {
@@ -708,7 +723,9 @@ export class Parser {
         this.pos++;
         this.skipGnu();
         const n = this.peek();
-        if (n.t === "*" || n.t === "&" || n.t === "&&" || n.t === ")") {
+        // Only a parenthesized declarator such as (*) continues the type;
+        // a bare () is the parameter list of the surrounding declaration.
+        if (n.t === "*" || n.t === "&" || n.t === "&&") {
           this.parseAbstractDeclarator(tn);
           this.expect(")");
         } else {

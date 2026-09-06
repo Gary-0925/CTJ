@@ -95,7 +95,7 @@ export function analyzeLambda(cx: Cx, e: LambdaExpr, scope: Scope): CppType {
   const fq = "$lambda_" + (lambdaCount++);
   const emptyCls: ClassDecl = {
     kind: "class", name: fq, cls: "struct", bases: [], members: [],
-    isDeclOnly: false, specArgs: [], file: e.file, line: e.line,
+    isDeclOnly: false, specArgs: [], isPartialSpec: false, file: e.file, line: e.line,
   };
   const cls = cx.blankCls(fq, fq, emptyCls, scope);
   cls.complete = true;

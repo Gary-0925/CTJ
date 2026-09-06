@@ -464,7 +464,8 @@ function typeOfCast(cx: Cx, e: CastExpr, scope: Scope): CppType {
     return target;
   }
   if (tCls && !sCls) {
-    const r = resolveCtor(cx, cx.stripAll(target), [{ t: st, e: e.arg }], scope, e, kind !== "static_cast");
+    // A functional cast with no argument, such as "P()", is default construction.
+    const r = resolveInitCtor(cx, cx.stripAll(target), [{ t: st, e: e.arg }], scope, e);
     ann.call = r.fn;
     ann.convs = r.convs;
     return target;
@@ -545,10 +546,22 @@ function resolveCallExpr(cx: Cx, e: CallExpr, scope: Scope): CppType {
       cx.fail(`unknown function '${nm}'`, fn);
     }
     const s = sym as Sym;
+    if (s.k === "class" || (s.k === "tmpl" && s.t.decl.kind === "class")) {
+      // A call that names a class builds a temporary of that class.
+      const ct = cx.resolveTypeNode(typeNode((fn as IdExpr).parts, e), scope);
+      const fq = cx.stripAll(ct);
+      const r = resolveInitCtor(cx, fq, argTs, scope, e);
+      ann.call = r.fn;
+      ann.convs = r.convs;
+      applyArgBoxing(cx, e, r.fn, argTs, scope);
+      return CppType.basic(fq);
+    }
     if (s.k === "func" || s.k === "tmpl") {
       let cands: FuncInfo[] = [];
       const tmpls: TmplInfo[] = [];
-      const fq = s.k === "func" ? s.fns[0].fq : s.t.fq;
+      // An instantiation is filed under the name of its template, and so is the
+      // template itself, so both have to be looked up under that name.
+      const fq = s.k === "func" ? (s.fns[0].fromTmpl || s.fns[0].fq) : s.t.fq;
       if (cx.funcs.has(fq)) cands = cands.concat(cx.funcs.get(fq) as FuncInfo[]);
       if (s.k === "func") {
         for (const f of s.fns) {
@@ -684,20 +697,23 @@ export function resolveOverload(cx: Cx, cands: FuncInfo[], tmpls: TmplInfo[], ar
   let bestConvs: ({ kind: string; fn: FuncInfo } | null)[] = [];
   for (const f of all) {
     const r = scoreFunc(cx, f, args, scope, objConst);
+    if (!r.viable) continue;
     if (r.score > bestScore) {
       best = f;
       bestScore = r.score;
       bestConvs = r.convs;
     }
   }
-  if (!best || bestScore < 0) cx.fail("no matching function for call", t);
+  if (!best) cx.fail("no matching function for call", t);
   if ((best as FuncInfo).isDelete) cx.fail("call to deleted function", t);
   cx.markFunc(best as FuncInfo);
   return { fn: best as FuncInfo, convs: bestConvs };
 }
 
-function scoreFunc(cx: Cx, f: FuncInfo, args: { t: CppType; e: Expr }[], scope: Scope, objConst = false): { score: number; convs: ({ kind: string; fn: FuncInfo } | null)[] } {
-  const fail = { score: -1e18, convs: [] as ({ kind: string; fn: FuncInfo } | null)[] };
+// Viability and preference are separate: penalties only rank the candidates
+// that could be called at all, they never rule one out on their own.
+function scoreFunc(cx: Cx, f: FuncInfo, args: { t: CppType; e: Expr }[], scope: Scope, objConst = false): { viable: boolean; score: number; convs: ({ kind: string; fn: FuncInfo } | null)[] } {
+  const fail = { viable: false, score: 0, convs: [] as ({ kind: string; fn: FuncInfo } | null)[] };
   if (f.isMethod && !f.isStatic && !f.isCtor && !f.isDtor) {
     if (objConst && !f.isConst) return fail;
   }
@@ -725,7 +741,7 @@ function scoreFunc(cx: Cx, f: FuncInfo, args: { t: CppType; e: Expr }[], scope: 
   }
   score -= Math.max(0, fixed - args.length) * 5;
   if (f.fromTmpl) score -= 1;
-  return { score, convs };
+  return { viable: true, score, convs };
 }
 
 function tryInstantiateCall(cx: Cx, tm: TmplInfo, args: { t: CppType; e: Expr }[], scope: Scope, explicit: CppType[] | undefined, t: At): FuncInfo | null {

@@ -354,7 +354,8 @@ export function substDecl(d: Decl, env: SubstEnv): Decl {
         kind: "class", name: d.name, cls: d.cls,
         bases: d.bases.map(b => ({ name: b.name.map(s => substQSeg(s, env)), access: b.access, isVirtual: b.isVirtual, file: b.file, line: b.line })),
         members: d.members.map(m => substDecl(m, env)),
-        isDeclOnly: d.isDeclOnly, specArgs: substTArgs(d.specArgs, env), file: f, line: l,
+        isDeclOnly: d.isDeclOnly, specArgs: substTArgs(d.specArgs, env),
+        isPartialSpec: d.isPartialSpec, file: f, line: l,
       };
     case "enum":
       return {

@@ -9,7 +9,7 @@ function main() {
   let a = [1, 2, 3, 4];
   let q = {a: a, i: 0};
   (console.log((q.a[q.i])));
-  ++q.i;
+  q.i++;
   (console.log((q.a[q.i])));
   q.i += (2);
   (console.log((q.a[q.i])));

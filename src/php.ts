@@ -1578,11 +1578,10 @@ class PhpGen {
     if (e.op === "*") {
       const at = this.cx.getAnn(e.arg).t as CppType;
       if (at.isFunc) return this.ex(e.arg);
-      if (e.arg.kind === "unary" && (e.arg.op === "++post" || e.arg.op === "--post")) {
+      if (e.arg.kind === "unary" && incKind(e.arg) && isPostfix(e.arg)) {
         const p = this.complex(this.ex(e.arg.arg), e.arg.arg);
         const pp = this.paren(p);
-        const op = e.arg.op === "++post" ? "++" : "--";
-        return `${pp}["a"][${pp}["i"]${op}]`;
+        return `${pp}["a"][${pp}["i"]${incKind(e.arg)}]`;
       }
       if (e.arg.kind === "unary" && (e.arg.op === "++" || e.arg.op === "--")) {
         const p = this.complex(this.ex(e.arg.arg), e.arg.arg);
@@ -1593,29 +1592,21 @@ class PhpGen {
       return this.deref(e.arg);
     }
     if (e.op === "&") return this.exAddr(e.arg);
-    if (e.op === "++" || e.op === "--" || e.op === "++post" || e.op === "--post") {
+    const inc = incKind(e);
+    if (inc) {
+      const post = isPostfix(e);
       const at = this.cx.getAnn(e.arg).t as CppType;
       if (this.splitLhs(e.arg)) {
         const t = this.tmp();
         const inner = at.ptr > 0 && !at.isFunc ? `${t}["i"]` : `${t}["a"][${t}["i"]]`;
-        if (e.op === "++") return `(${t} = ${this.ex(e.arg)}, ++${inner})`;
-        if (e.op === "--") return `(${t} = ${this.ex(e.arg)}, --${inner})`;
-        if (e.op === "++post") return `(${t} = ${this.ex(e.arg)}, ${inner}++)`;
-        return `(${t} = ${this.ex(e.arg)}, ${inner}--)`;
+        return `(${t} = ${this.ex(e.arg)}, ${post ? inner + inc : inc + inner})`;
       }
       if (at.ptr > 0 && !at.isFunc) {
-        const l = this.lvalue(e.arg);
-        const p = this.paren(l);
-        if (e.op === "++") return `++${p}["i"]`;
-        if (e.op === "--") return `--${p}["i"]`;
-        if (e.op === "++post") return `${p}["i"]++`;
-        return `${p}["i"]--`;
+        const p = this.paren(this.lvalue(e.arg));
+        return post ? `${p}["i"]${inc}` : `${inc}${p}["i"]`;
       }
       const l = this.lvalue(e.arg);
-      if (e.op === "++") return `++${l}`;
-      if (e.op === "--") return `--${l}`;
-      if (e.op === "++post") return `${l}++`;
-      return `${l}--`;
+      return post ? `${l}${inc}` : `${inc}${l}`;
     }
     if (e.op === "!") return `(!${this.paren(this.ex(e.arg))})`;
     if (e.op === "+") return `(+${this.paren(this.ex(e.arg))})`;

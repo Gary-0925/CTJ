@@ -96,6 +96,24 @@ export function parseStmt(p: Parser): Stmt {
   return { kind: "expr", expr: e, ...at(t) };
 }
 
+// Index just past a balanced <...> starting at j, or -1 when it is not one.
+function endOfTArgs(p: Parser, j: number): number {
+  const from = j;
+  let depth = 0;
+  let q = j;
+  for (;;) {
+    const u = p.peek(q);
+    if (u.t === "eof") return -1;
+    if (u.t === "<") depth++;
+    if (u.t === ">") depth--;
+    if (u.t === ">>") depth -= 2;
+    if (depth <= 0) return q + 1;
+    if (u.t === ";" || u.t === "{") return -1;
+    q++;
+    if (q - from > 200) return -1;
+  }
+}
+
 function isDeclStart(p: Parser): boolean {
   const t = p.peek();
   if (t.t !== "ident") return false;
@@ -104,45 +122,28 @@ function isDeclStart(p: Parser): boolean {
   let k = 0;
   if (p.peek(k).t === "::") k++;
   if (p.peek(k).t !== "ident") return false;
-  const first = p.peek(k).v;
-  if (!p.isTypeName(first)) {
-    if (p.peek(k + 1).t !== "::") return false;
-    let j = k;
-    while (p.peek(j).t === "ident" && p.peek(j + 1).t === "::") j += 2;
-    if (p.peek(j).t !== "ident") return false;
-    const term = p.peek(j + 1).t;
-    if (term === "(") return false;
-    return term === "*" || term === "&" || term === "&&" ||
-      p.peek(j + 1).t === "ident" || term === "[" || term === "...";
-  }
-  let j = k + 1;
+  // A qualified name may start with a namespace, which is not a type name.
+  if (!p.isTypeName(p.peek(k).v) && p.peek(k + 1).t !== "::") return false;
+  let j = k;
+  while (p.peek(j).t === "ident" && p.peek(j + 1).t === "::") j += 2;
+  if (p.peek(j).t !== "ident") return false;
+  j++;
   if (p.peek(j).t === "<") {
-    let depth = 0;
-    let q = j;
-    for (;;) {
-      const u = p.peek(q);
-      if (u.t === "eof") return false;
-      if (u.t === "<") depth++;
-      if (u.t === ">") depth--;
-      if (u.t === ">>") depth -= 2;
-      if (depth <= 0) { q++; break; }
-      if ((u.t === ";" || u.t === "{") && depth > 0) return false;
-      q++;
-      if (q - j > 200) return false;
-    }
-    j = q;
+    const e = endOfTArgs(p, j);
+    if (e < 0) return false;
+    j = e;
   }
   while (p.peek(j).t === "::") {
     j++;
     if (p.peek(j).t !== "ident") return false;
     j++;
   }
-  const term = p.peek(j).t;
   if (p.peek(j).t === "ident" && p.peek(j).v === "operator") return true;
+  const term = p.peek(j).t;
   if (term === "(") return false;
   if (term === "::") return true;
   return term === "*" || term === "&" || term === "&&" ||
-    p.peek(j).t === "ident" || term === "[" || term === "...";
+    term === "ident" || term === "[" || term === "...";
 }
 
 export function parseCompound(p: Parser): Compound {
@@ -189,7 +190,7 @@ function parseCondDecl(p: Parser): Expr | VarDecl {
   try {
     p.skipGnu();
     const t = p.peek();
-    if ((t.t === "ident" && (DECL_START.has(t.v) || p.isTypeName(t.v))) || t.t === "::") {
+    if (t.t === "::" || isDeclStart(p)) {
       const spec = p.parseDeclSpec();
       if (spec.type) {
         const d = p.parseDeclarator();
