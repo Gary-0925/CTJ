@@ -1926,7 +1926,9 @@ class JsGen {
       const obj = a.call
         ? this.ctorExpr(cn, a.call as FuncInfo, e.args, a.convs, t)
         : `new ${cn}()`;
-      return `(${slot} = ${obj})`;
+      // The object goes into the storage it was given, and what the expression
+      // yields is a pointer to that storage.
+      return `(${slot} = ${obj}, {a: ${pp}.a, i: ${pp}.i})`;
     }
     const v = e.args.length ? this.ex(e.args[0]) : this.zero(t);
     return `(${slot} = ${v})`;
