@@ -387,8 +387,7 @@ export function parseTemplate(p: Parser, inClass: boolean): TemplateDecl {
   const isPartial = !!d && d.kind === "class" && d.isPartialSpec;
   let td: TemplateDecl;
   if (tparams.length && (specArgs.length || isPartial)) {
-    p.warn("partial template specialization is not supported, skipped", t);
-    td = { kind: "template", tparams: [], decl: null, isSpec: false, specArgs: [], isExplicit: false, ...at(t) };
+    td = { kind: "template", tparams, decl: d, isSpec: true, specArgs, isExplicit: false, ...at(t) };
   } else if (!tparams.length && specArgs.length) {
     td = { kind: "template", tparams: [], decl: d, isSpec: true, specArgs, isExplicit: false, ...at(t) };
   } else {

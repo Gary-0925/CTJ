@@ -98,9 +98,11 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
         construct(_Up* __p, const _Vp& __val)
 	{ *__p = __val; }
 
+      // Transpiled objects are garbage collected, so there is nothing to
+      // release when an element goes away.
       template<typename _Up>
         void
-        destroy(_Up* __p) { __p->~_Up(); }
+        destroy(_Up*) { }
     };
 
   template<typename _Tp>

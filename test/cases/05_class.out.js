@@ -6,17 +6,17 @@ class Point {
     this.__init_Point(...$a);
   }
   __init_Point(...$a) {
-    if ($a.length >= 0 && $a.length <= 0) {
+    if ($a.length >= 1 && $a.length <= 1 && ($a[0] !== null && typeof $a[0] === "object" && $a[0].a[$a[0].i] instanceof Point)) {
+      this.x = ((($a[0]).a[($a[0]).i]).x * 10);
+      this.y = ((($a[0]).a[($a[0]).i]).y * 10);
+    }
+    else if ($a.length >= 0 && $a.length <= 0) {
       this.x = 0;
       this.y = 0;
     }
     else if ($a.length >= 2 && $a.length <= 2 && (typeof $a[0] === "number" || typeof $a[0] === "boolean") && (typeof $a[1] === "number" || typeof $a[1] === "boolean")) {
       this.x = $a[0];
       this.y = $a[1];
-    }
-    else if ($a.length >= 1 && $a.length <= 1 && ($a[0] === null || typeof $a[0] === "object")) {
-      this.x = ((($a[0]).a[($a[0]).i]).x * 10);
-      this.y = ((($a[0]).a[($a[0]).i]).y * 10);
     }
     else { throw new Error("no matching constructor"); }
   }

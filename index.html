@@ -193,6 +193,22 @@ int main() {
   return 0;
 }
 `,
+  "标准库容器": `#include <vector>
+
+int main() {
+  std::vector<int> v;
+  for (int i = 1; i <= 5; i++) v.push_back(i * i);
+  int sum = 0;
+  for (unsigned i = 0; i < v.size(); i++) sum += v[i];
+  v[2] = 100;
+  int third = v[2];
+  int n = (int)v.size();
+  v.clear();
+  __ctj_js("console.log($1, $2, $3, $4)", sum, third, n, (int)v.size());
+  __ctj_php("print($1 . ' ' . $2 . ' ' . $3 . ' ' . $4 . PHP_EOL)", sum, third, n, (int)v.size());
+  return 0;
+}
+`,
   "标准库头文件": `#include <cstring>
 #include <limits>
 

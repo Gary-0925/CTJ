@@ -1766,7 +1766,7 @@ class PhpGen {
 
   exNew(e: NewExpr): string {
     const a = this.cx.getAnn(e);
-    if (e.placement) this.cx.warn("placement new is approximated", e);
+    if (e.placement.length) this.cx.warn("placement new is approximated", e);
     const t = this.cx.resolveTypeNode(e.type, rootScope());
     if (e.isArray) {
       const n = e.type.dims.length ? this.ex(e.type.dims[0]) : "0";

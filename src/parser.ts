@@ -688,8 +688,9 @@ export class Parser {
       while (this.peek().t === "!") { this.pos++; neg++; }
       let ta = this.parseAbstractType();
       // "function<_Res(_ArgTypes...)>": inside an argument list a "(" after a
-      // type starts a function type instead of ending the type.
-      if (this.peek().t === "(") {
+      // type starts a function type instead of ending the type.  With no type
+      // read yet the "(" opens a parenthesised non-type argument.
+      if (this.peek().t === "(" && ta.parts.length) {
         const fm = this.mark();
         let fn: { params: TypeNode[]; variadic: boolean } | null = null;
         try {

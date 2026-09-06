@@ -121,6 +121,7 @@ export interface ClsInfo {
   fieldStatic: Set<string>;
   methods: Map<string, FuncInfo[]>;
   nested: Map<string, string>;
+  consts?: Map<string, { e: EnumInfo; item: string }> | null;
   usingBase: Map<string, string>;
   isUnion: boolean;
   complete: boolean;
@@ -198,6 +199,7 @@ export interface TmplInfo {
   decl: Decl;
   scope: Scope;
   specs: { key: string; decl: Decl }[];
+  partials?: { tparams: TParam[]; specArgs: TypeNode[]; decl: Decl }[];
 }
 
 export type Sym =
@@ -376,13 +378,23 @@ export class Cx {
         return;
       }
       case "enum": {
-        const fq = this.memberFq(scope, d.name);
+        // The parser names an unnamed enum "$enum_N"; inside a class its
+        // enumerators are members of that class, e.g. __are_same<_Tp,_Tp>::__value.
+        const anon = !!scope.cls && d.name.startsWith("$enum_");
+        const fq = anon ? this.memberFq(scope, "") + "@anon" + d.line : this.memberFq(scope, d.name);
         if (!this.enums.has(fq)) {
           this.enums.set(fq, { fq, short: d.name, decl: d, scope: this.snapScope(scope), values: null, scoped: d.scoped, referenced: false });
         } else if (!d.isDeclOnly) {
           (this.enums.get(fq) as EnumInfo).decl = d;
         }
-        if (scope.cls) scope.cls.nested.set(d.name, fq);
+        if (anon) {
+          // "enum { __value = 1 };" inside a class: the enumerators are read as
+          // members of that class, e.g. __are_same<_Tp, _Tp>::__value.
+          const ei = this.enums.get(fq) as EnumInfo;
+          const cs = scope.cls!.consts || (scope.cls!.consts = new Map());
+          for (const item of this.enumValues(ei).keys()) if (!cs.has(item)) cs.set(item, { e: ei, item });
+        }
+        if (scope.cls && !anon) scope.cls.nested.set(d.name, fq);
         return;
       }
       case "func": {
@@ -681,6 +693,14 @@ export class Cx {
     } else return;
     if (d.isSpec) {
       const t = this.tmpls.get(fq);
+      // A partial specialization keeps its own parameters; only a full one can
+      // have its arguments resolved at this point.
+      if (d.tparams.length) {
+        const part = { tparams: d.tparams, specArgs: d.specArgs, decl: inner };
+        if (t) (t.partials || (t.partials = [])).push(part);
+        else this.tmpls.set(fq, { fq, kind, tparams: [], decl: inner, scope: this.snapScope(scope), specs: [], partials: [part] });
+        return;
+      }
       const args = d.specArgs.map(a => this.resolveTypeNode(a, scope));
       const key = args.map(a => a.key()).join(",");
       if (t) {
@@ -706,7 +726,7 @@ export class Cx {
         if (!tp.def && old && old.def) tp.def = old.def;
       });
     }
-    this.registerTmpl({ fq, kind, tparams, decl: inner, scope: this.snapScope(scope), specs: prev ? prev.specs : [] });
+    this.registerTmpl({ fq, kind, tparams, decl: inner, scope: this.snapScope(scope), specs: prev ? prev.specs : [], partials: prev ? prev.partials : [] });
   }
 
   registerTmpl(t: TmplInfo): void {
@@ -915,8 +935,8 @@ export class Cx {
     };
   }
 
-  lookupMember(clsFq: string, name: string, seen: Set<string>): { field: boolean; methods: FuncInfo[] | null; nested: string | null; typedef: string | null; owner: string } {
-    const r = { field: false, methods: null as FuncInfo[] | null, nested: null as string | null, typedef: null as string | null, owner: clsFq };
+  lookupMember(clsFq: string, name: string, seen: Set<string>): { field: boolean; methods: FuncInfo[] | null; nested: string | null; typedef: string | null; constItem: { e: EnumInfo; item: string } | null; owner: string } {
+    const r = { field: false, methods: null as FuncInfo[] | null, nested: null as string | null, typedef: null as string | null, constItem: null as { e: EnumInfo; item: string } | null, owner: clsFq };
     const cls = this.classes.get(clsFq);
     if (!cls || seen.has(clsFq)) return r;
     seen.add(clsFq);
@@ -950,6 +970,11 @@ export class Cx {
     }
     if (cls.nested.has(name)) {
       r.nested = cls.nested.get(name) as string;
+      r.owner = clsFq;
+      return r;
+    }
+    if (cls.consts && cls.consts.has(name)) {
+      r.constItem = cls.consts.get(name) as { e: EnumInfo; item: string };
       r.owner = clsFq;
       return r;
     }
@@ -1058,6 +1083,7 @@ export class Cx {
         next = { k: "var", v: this.fieldVar(cls, name, cls.fields.get(name) as VarDecl) };
       } else if (m.methods) next = { k: "func", fns: m.methods };
       else if (m.nested) next = this.symOfNested(m.nested);
+      else if (m.constItem) next = { k: "enumval", e: m.constItem.e, item: m.constItem.item };
     } else if (sym.k === "enum") {
       this.enumValues(sym.e);
       if ((sym.e.values as Map<string, number>).has(name)) next = { k: "enumval", e: sym.e, item: name };
@@ -1283,12 +1309,71 @@ export class Cx {
     if (this.instStack.includes(key)) this.fail(`recursive instantiation of '${key}'`, t || undefined);
     this.instStack.push(key);
     try {
+      for (const p of (tmpl as TmplInfo).partials || []) {
+        const env = this.matchPartial(p, full, tmpl as TmplInfo);
+        if (env) return this.instantiateClassDecl(key, tmpl as TmplInfo, substDecl(p.decl, env) as ClassDecl, full, env, t);
+      }
       const env = this.buildEnv((tmpl as TmplInfo).tparams, full);
       const decl = substDecl((tmpl as TmplInfo).decl, env) as ClassDecl;
       return this.instantiateClassDecl(key, tmpl as TmplInfo, decl, full, env, t);
     } finally {
       this.instStack.pop();
     }
+  }
+
+  // Match the argument list of a partial specialization against the arguments
+  // of an instantiation; the result substitutes into the specialization.
+  matchPartial(p: { tparams: TParam[]; specArgs: TypeNode[]; decl: Decl }, args: CppType[], tmpl: TmplInfo): SubstEnv | null {
+    if (p.specArgs.length > args.length) return null;
+    const env = blankSubstEnv();
+    const names = new Set(p.tparams.map(x => x.name));
+    for (let i = 0; i < p.specArgs.length; i++) {
+      if (!this.matchTypeArg(p.specArgs[i], args[i], names, env, tmpl.scope)) return null;
+    }
+    for (const tp of p.tparams) {
+      if (env.types.has(tp.name) || env.values.has(tp.name)) continue;
+      if (!tp.def) return null;
+      if (tp.kind === "nontype") {
+        const v = constEval(this, substExpr(tp.def as Expr, env), tmpl.scope);
+        if (typeof v !== "number") return null;
+        env.values.set(tp.name, Math.trunc(v));
+      } else {
+        env.types.set(tp.name, this.resolveTypeNode(substTypeNode(tp.def as TypeNode, env), tmpl.scope));
+      }
+    }
+    return env;
+  }
+
+  matchTypeArg(tn: TypeNode, t: CppType, names: Set<string>, env: SubstEnv, scope: Scope): boolean {
+    if (tn.valueArg) {
+      const v = constEval(this, tn.valueArg, scope);
+      return typeof v === "number" && t.name === "__value" + Math.trunc(v);
+    }
+    if (!tn.parts.length) return false;
+    const first = tn.parts[0].n;
+    if (tn.parts.length === 1 && !tn.parts[0].a.length && names.has(first)) {
+      if (t.ptr < tn.ptr || (tn.ref && tn.ref !== t.ref)) return false;
+      if (env.types.has(first)) return (env.types.get(first) as CppType).key() === t.key();
+      const c = new CppType(t.name);
+      c.segs = t.segs;
+      c.ptr = t.ptr - tn.ptr;
+      c.dims = t.dims.slice();
+      c.isFunc = t.isFunc;
+      c.ret = t.ret;
+      c.funcParams = t.funcParams;
+      c.funcVariadic = t.funcVariadic;
+      env.types.set(first, c);
+      return true;
+    }
+    if (tn.parts[0].a.length && t.segs.length) {
+      const ta = t.segs[0].a;
+      if (ta.length !== tn.parts[0].a.length) return false;
+      for (let i = 0; i < ta.length; i++) {
+        if (!this.matchTypeArg(tn.parts[0].a[i], ta[i], names, env, scope)) return false;
+      }
+      return true;
+    }
+    return this.resolveTypeNode(tn, scope).key() === t.key();
   }
 
   instantiateClassDecl(key: string, tmpl: TmplInfo, decl: ClassDecl, args: CppType[], env: SubstEnv, t: At | null): ClsInfo {

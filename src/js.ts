@@ -234,8 +234,9 @@ class JsGen {
       if (all.length <= 1) {
         this.line(`super(${all.length ? baseArgs(0, all[0].fn, all[0].inh) : ""});`);
       } else {
+        const sib = this.siblingClasses(all.map(x => x.fn));
         const parts = all.map((x, i) => {
-          const cond = this.matchCond(x.fn, i);
+          const cond = this.matchCond(x.fn, i, sib[i]);
           return `${cond} ? [${baseArgs(0, x.fn, x.inh).replace(/^\.\.\./, "")}] : `;
         });
         this.line(`super(...(${parts.join("")}[]));`);
@@ -250,8 +251,15 @@ class JsGen {
       if (all.length) this.ctorBranch(c, all[0].fn, all[0].inh);
       else this.ctorDefault(c);
     } else {
-      all.forEach((x, i) => {
-        this.line(`${i === 0 ? "if" : "else if"} (${this.matchCond(x.fn, i)}) {`);
+      // An "instanceof" guard is exact while the one for a pointer or reference
+      // only tells an object from a number, so a branch that names a class has
+      // to be tried before one that takes a box.
+      const exact = (fn: FuncInfo): boolean =>
+        this.cx.funcParams(fn).some(p => this.typeCheck("$", p.type).indexOf("instanceof") >= 0);
+      const ordered = all.filter(x => exact(x.fn)).concat(all.filter(x => !exact(x.fn)));
+      const sib = this.siblingClasses(all.map(x => x.fn));
+      ordered.forEach((x, i) => {
+        this.line(`${i === 0 ? "if" : "else if"} (${this.matchCond(x.fn, i, sib[all.indexOf(x)])}) {`);
         this.ind += "  ";
         this.ctorBranch(c, x.fn, x.inh);
         this.ind = this.ind.slice(0, -2);
@@ -263,22 +271,53 @@ class JsGen {
     this.line(`}`);
   }
 
-  matchCond(fn: FuncInfo, _i: number): string {
+  matchCond(fn: FuncInfo, _i: number, sib?: Map<string, string[]>): string {
     const ps = this.cx.funcParams(fn);
     const named = ps.filter(p => !p.variadic);
     const min = named.filter(p => !p.def).length;
     const parts = [`$a.length >= ${min}`, `$a.length <= ${named.length}`];
     named.forEach((p, i) => {
-      const chk = this.typeCheck(`$a[${i}]`, p.type);
+      const v = `$a[${i}]`;
+      const chk = this.typeCheck(v, p.type);
       if (chk) parts.push(chk);
+      // A pointer or reference arrives as an {a, i} pair, which "typeof" cannot
+      // tell apart from the object of a sibling overload.
+      if (sib && (p.type.ptr > 0 || p.type.ref) && !p.type.isFunc) {
+        for (const c of sib.get(v) || []) parts.push(`!(${v} instanceof ${c})`);
+      }
     });
     return parts.join(" && ");
+  }
+
+  // For every overload, the classes its siblings name at each argument index.
+  siblingClasses(all: FuncInfo[]): Map<string, string[]>[] {
+    return all.map((fn, k) => {
+      const m = new Map<string, string[]>();
+      all.forEach((other, j) => {
+        if (j === k) return;
+        this.cx.funcParams(other).filter(p => !p.variadic).forEach((p, i) => {
+          const t = p.type;
+          if (t.isBox() || t.dims.length || t.isFunc) return;
+          const c = this.cx.classes.get(this.cx.stripAll(t));
+          if (!c) return;
+          const v = `$a[${i}]`;
+          const list = m.get(v) || [];
+          if (!list.includes(c.mangled as string)) list.push(c.mangled as string);
+          m.set(v, list);
+        });
+      });
+      return m;
+    });
   }
 
   typeCheck(v: string, t: CppType): string {
     if (t.name === "__any") return "";
     if (t.isFunc) return `typeof ${v} === "function"`;
     if (t.isBox()) {
+      if (t.ref && !t.ptr && !t.dims.length && !t.isFunc) {
+        const c = this.cx.classes.get(this.cx.stripAll(t));
+        if (c) return `(${v} !== null && typeof ${v} === "object" && ${v}.a[${v}.i] instanceof ${c.mangled})`;
+      }
       if (t.ptr > 0 || t.ref) return `(${v} === null || typeof ${v} === "object")`;
       return "";
     }
@@ -473,8 +512,9 @@ class JsGen {
     }
     this.line(`${pre}${m}(...$a) {`);
     this.ind += "  ";
+    const sib = this.siblingClasses(use);
     use.forEach((fn, i) => {
-      this.line(`${i === 0 ? "if" : "else if"} (${this.matchCond(fn, i)}) {`);
+      this.line(`${i === 0 ? "if" : "else if"} (${this.matchCond(fn, i, sib[i])}) {`);
       this.ind += "  ";
       const ps = this.cx.funcParams(fn);
       this.alias.push(new Map());
@@ -1293,6 +1333,10 @@ class JsGen {
     if (p.ptr > 0 && at && at.dims.length && !at.isBox()) return this.exBox(x);
     if (pB && aB) {
       if (at && at.ref) return this.exBox(x);
+      // A reference parameter reads through an address, so a class value has to
+      // be given one.
+      if (p.ref && at && !at.ref && !at.ptr && !at.dims.length && !at.isFunc &&
+        this.cx.classes.has(this.cx.stripAll(at))) return this.exBox(x);
       return this.ex(x);
     }
     if (at && at.name === "__null" && isNumericName(coreName(p))) return "0";
@@ -1352,7 +1396,8 @@ class JsGen {
     const ps = this.cx.funcParams(fn);
     const aa: string[] = [];
     e.args.forEach((x, i) => {
-      const pt = i < ps.length && !ps[i].variadic ? ps[i].type : null;
+      // A parameter pack keeps the type it was deduced to for this call.
+      const pt = i < ps.length ? ps[i].type : null;
       if (pt && this.isInitListParam(pt) && x.kind === "initlist") {
         aa.push(`[${(x as InitListExpr).items.map(y => this.ex(y)).join(", ")}]`);
       } else {
@@ -1389,7 +1434,7 @@ class JsGen {
     if (a.copyCtor) {
       const ret = this.cx.funcRet(fn);
       const cn = (this.cx.classes.get(this.cx.stripAll(ret)) as ClsInfo).mangled as string;
-      s = `new ${cn}(${s})`;
+      s = `new ${cn}({a: ${s}, i: "v"})`;
     }
     return s;
   }
@@ -1489,7 +1534,7 @@ class JsGen {
       if (a.copyCtor) {
         const ret = this.cx.funcRet(fn);
         const cn = (this.cx.classes.get(this.cx.stripAll(ret)) as ClsInfo).mangled as string;
-        s = `new ${cn}(${s})`;
+        s = `new ${cn}({a: ${s}, i: "v"})`;
       }
       return s;
     }
@@ -1588,7 +1633,7 @@ class JsGen {
         if (a.copyCtor) {
           const ret = this.cx.funcRet(fn);
           const cn = (this.cx.classes.get(this.cx.stripAll(ret)) as ClsInfo).mangled as string;
-          s = `new ${cn}(${s})`;
+          s = `new ${cn}({a: ${s}, i: "v"})`;
         }
         return s;
       }
@@ -1597,7 +1642,7 @@ class JsGen {
       if (a.copyCtor) {
         const ret = this.cx.funcRet(fn);
         const cn = (this.cx.classes.get(this.cx.stripAll(ret)) as ClsInfo).mangled as string;
-        s = `new ${cn}(${s})`;
+        s = `new ${cn}({a: ${s}, i: "v"})`;
       }
       return s;
     }
@@ -1703,22 +1748,23 @@ class JsGen {
       const op = e.op === "+=" ? "+=" : "-=";
       return `${this.paren(l)}.i ${op} (${this.ex(e.r)})`;
     }
+    const target = new CppType(lt.name);
+    target.segs = lt.segs;
+    target.ptr = lt.ptr;
+    target.dims = lt.dims;
     let rhs: string;
     if (e.op === "=") {
-      const target = new CppType(lt.name);
-      target.segs = lt.segs;
-      target.ptr = lt.ptr;
-      target.dims = lt.dims;
       rhs = this.argFor(target, e.r, null);
     } else {
-      rhs = this.ex(e.r);
+      const rt = this.cx.getAnn(e.r).t as CppType | null;
+      rhs = rt && rt.isBox() && !target.isBox() ? this.argFor(target, e.r, null) : this.ex(e.r);
     }
     return `${l} ${e.op} ${rhs}`;
   }
 
   exNew(e: NewExpr): string {
     const a = this.cx.getAnn(e);
-    if (e.placement) this.cx.warn("placement new is approximated", e);
+    if (e.placement.length) this.cx.warn("placement new is approximated", e);
     const t = this.cx.resolveTypeNode(e.type, this.blankScope());
     if (e.isArray) {
       const n = e.type.dims.length ? this.ex(e.type.dims[0]) : "0";
@@ -1754,8 +1800,10 @@ class JsGen {
       const fq = this.cx.stripAll(t);
       const cn = (this.cx.classes.get(fq) as ClsInfo).mangled as string;
       const cps = this.cx.funcParams(a.call as FuncInfo);
-      const inner = cps.length ? this.argFor(cps[0].type, e.arg, a.conv) : this.ex(e.arg);
-      return `new ${cn}(${inner})`;
+      // "T()" and "T{}" value initialise: the empty list is not an argument of
+      // the constructor the cast resolved to.
+      if (!cps.length || (e.arg.kind === "initlist" && !(e.arg as InitListExpr).items.length)) return `new ${cn}()`;
+      return `new ${cn}(${this.argFor(cps[0].type, e.arg, a.conv)})`;
     }
     if (a.conv) {
       return `${this.paren(this.objOf(e.arg))}.${methodJsName((a.conv as { kind: string; fn: FuncInfo }).fn)}()`;

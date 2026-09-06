@@ -169,7 +169,7 @@ function funcSig(cx: Cx, f: FuncInfo): CppType {
 }
 
 function typeOfIndex(cx: Cx, e: IndexExpr, scope: Scope): CppType {
-  const at = typeOf(cx, e.arr, scope);
+  const at = noRef(typeOf(cx, e.arr, scope));
   const it = typeOf(cx, e.idx, scope);
   void it;
   if (isClassVal(cx, at)) {
@@ -790,7 +790,7 @@ function deduce(cx: Cx, tm: TmplInfo, args: { t: CppType; e: Expr }[], scope: Sc
     if (p.isPack) {
       const nm = packNameOf(p.type);
       if (!nm) return null;
-      packs.set(nm, args.slice(ai).map(a => stripForDeduce(a.t)));
+      packs.set(nm, args.slice(ai).map(a => noRef(a.t)));
       ai = args.length;
       break;
     }
@@ -833,7 +833,7 @@ function deduce(cx: Cx, tm: TmplInfo, args: { t: CppType; e: Expr }[], scope: Sc
   return full;
 }
 
-function stripForDeduce(t: CppType): CppType {
+function noRef(t: CppType): CppType {
   const c = new CppType(t.name);
   c.segs = t.segs;
   c.ptr = t.ptr;
@@ -859,7 +859,7 @@ function deduceOne(cx: Cx, tn: TypeNode, t: CppType, env: Map<string, CppType>, 
   const first = tn.parts[0].n;
   if (tn.parts.length === 1 && !tn.parts[0].a.length) {
     if (!env.has(first)) {
-      const c = stripForDeduce(t);
+      const c = noRef(t);
       if (tn.ptr > 0) c.ptr = Math.max(0, t.ptr - tn.ptr);
       env.set(first, c);
     }
@@ -1129,6 +1129,8 @@ function promoteUnary(cx: Cx, t: CppType): CppType {
 }
 
 export function promote(cx: Cx, a: CppType, b: CppType): CppType | null {
+  a = noRef(a);
+  b = noRef(b);
   const an = coreName(a);
   const bn = coreName(b);
   const ae = cx.enums.has(cx.stripAll(a));
