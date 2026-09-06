@@ -39,9 +39,10 @@ function use(b) {
   return (b.a[b.i]).get();
 }
 function main() {
+  let $t0;
   let d = {v: new Derived()};
   (console.log((d.v.get())));
-  let p = {a: [new Derived()], i: 0};
+  let p = (($t0 = {a: [new Derived()], i: 0}, $t0) ? {a: (($t0 = {a: [new Derived()], i: 0}, $t0)).a, i: (($t0 = {a: [new Derived()], i: 0}, $t0)).i} : null);
   (console.log((((p.a[p.i])).get())));
   (console.log((use({a: d, i: "v"}))));
   let b = {v: new Base()};

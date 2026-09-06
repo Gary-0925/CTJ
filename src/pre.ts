@@ -14,8 +14,14 @@ export interface PreResult {
 
 const MAX_DEPTH = 64;
 
+// libstdc++ writes its pedantic asserts as function-like macros that its
+// configuration header defines away unless a program asks for them. They carry
+// no behaviour, so the defaults come from here; "defines" can still override.
+export const DEFAULT_EMPTY_FN_MACROS = ["_GLIBCXX_DEBUG_PEDASSERT"];
+
 export const DEFAULT_PREDEFINED: Record<string, string> = {
   "__cplusplus": "201103L",
+  "__STRICT_ANSI__": "1",
   "__STDC__": "1",
   "__STDC_HOSTED__": "1",
   "__STDC_VERSION__": "199901L",
@@ -30,6 +36,18 @@ export const DEFAULT_PREDEFINED: Record<string, string> = {
   "__CHAR32_TYPE__": "unsigned int",
   "__INTMAX_TYPE__": "long int",
   "__UINTMAX_TYPE__": "unsigned long int",
+  "__CHAR_BIT__": "8",
+  "__SCHAR_MAX__": "127",
+  "__SHRT_MAX__": "32767",
+  "__INT_MAX__": "2147483647",
+  "__LONG_MAX__": "9223372036854775807L",
+  "__LONG_LONG_MAX__": "9223372036854775807LL",
+  "__INTMAX_MAX__": "9223372036854775807L",
+  "__UINTMAX_MAX__": "18446744073709551615UL",
+  "__SIZE_MAX__": "18446744073709551615UL",
+  "__PTRDIFF_MAX__": "9223372036854775807L",
+  "__WCHAR_MAX__": "2147483647",
+  "__WINT_MAX__": "4294967295U",
   "__POINTER_WIDTH__": "64",
   "__LP64__": "1",
   "_LP64": "1",
@@ -77,6 +95,9 @@ export class Preprocessor {
       const toks = lexFile(DEFAULT_PREDEFINED[k], "<predefined>");
       toks.pop();
       this.macros.set(k, { params: null, variadic: false, body: toks });
+    }
+    for (const name of DEFAULT_EMPTY_FN_MACROS) {
+      this.macros.set(name, { params: [], variadic: true, body: [] });
     }
   }
 
@@ -142,8 +163,17 @@ export class Preprocessor {
     const cond: Frame[] = [];
     const active = () => cond.every(f => f.active);
     let lineBuf: Token[] = [];
-    const flushLine = () => {
+    // A function-like macro call can run over several lines, and its arguments
+    // have to be complete before it can be expanded, so an open parenthesis
+    // keeps the line in the buffer.
+    const flushLine = (force = false) => {
       if (lineBuf.length) {
+        let depth = 0;
+        for (const t of lineBuf) {
+          if (t.t === "(") depth++;
+          else if (t.t === ")") depth--;
+        }
+        if (!force && depth > 0) return;
         const exp = this.expandTokens(lineBuf, new Set(), file, lineBuf[0].line);
         for (const s of exp) {
           if (s.t !== "directive") out.push(s);
@@ -153,13 +183,13 @@ export class Preprocessor {
     };
     for (const t of lexed) {
       if (t.t !== "directive") {
-        if (t.t === "eof") { flushLine(); continue; }
+        if (t.t === "eof") { flushLine(true); continue; }
         if (lineBuf.length && lineBuf[0].line !== t.line) flushLine();
         if (!active()) continue;
         lineBuf.push(t);
         continue;
       }
-      flushLine();
+      flushLine(true);
       const m = t.v.match(/^#\s*([A-Za-z_]\w*)([\s\S]*)$/);
       if (!m) continue;
       const dir = m[1];

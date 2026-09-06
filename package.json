@@ -3,7 +3,8 @@
   "version": "0.1.0",
   "description": "CTJ: C++ transpiler to JavaScript/PHP written in TypeScript",
   "scripts": {
-    "build": "tsc -p .",
+    "build": "node scripts/build.js",
+    "serve": "node scripts/serve.js",
     "test": "node test/run.js",
     "demo": "node test/demo.js"
   },

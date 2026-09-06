@@ -1,1 +1,452 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>CTJ Playground — C++ → JavaScript / PHP</title>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; height: 100vh; display: flex; flex-direction: column;
+    font: 14px/1.5 system-ui, "Segoe UI", "Microsoft YaHei", sans-serif;
+    background: #16181d; color: #e6e6e6;
+  }
+  header {
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    padding: 8px 12px; background: #1e2128; border-bottom: 1px solid #2c303a;
+  }
+  header h1 { font-size: 15px; margin: 0 12px 0 0; font-weight: 600; }
+  header .sub { color: #8a90a0; font-size: 12px; margin-right: auto; }
+  select, button {
+    font: inherit; color: #e6e6e6; background: #262a33;
+    border: 1px solid #3a3f4b; border-radius: 6px; padding: 4px 10px; cursor: pointer;
+  }
+  button:hover { background: #303541; }
+  button.primary { background: #2f6feb; border-color: #2f6feb; color: #fff; }
+  button.primary:hover { background: #3d7bf0; }
+  button:disabled { opacity: .45; cursor: default; }
+  main { flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: #2c303a; min-height: 0; }
+  section { background: #16181d; display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+  section > h2 {
+    margin: 0; padding: 5px 12px; font-size: 12px; font-weight: 600; letter-spacing: .04em;
+    color: #9aa1b1; text-transform: uppercase; background: #1e2128;
+  }
+  textarea, pre {
+    flex: 1; margin: 0; padding: 10px 12px; overflow: auto; min-height: 0;
+    font: 13px/1.55 ui-monospace, "Cascadia Code", Consolas, monospace;
+    background: #16181d; color: #e6e6e6; border: 0; resize: none; white-space: pre; tab-size: 2;
+  }
+  textarea:focus { outline: 1px solid #2f6feb; }
+  #warnings {
+    max-height: 26%; overflow: auto; padding: 6px 12px; font-size: 12px;
+    color: #e0b341; background: #1c1a14; border-top: 1px solid #3a3220; display: none;
+  }
+  #warnings div { white-space: pre-wrap; }
+  #output { border-top: 1px solid #2c303a; max-height: 34%; }
+  #output pre { padding: 8px 12px; }
+  #output .err { color: #f0717a; }
+  footer { padding: 4px 12px; font-size: 12px; color: #6f7686; background: #1e2128; }
+</style>
+</head>
+<body>
+<header>
+  <h1>CTJ Playground</h1>
+  <span class="sub">C++ → JavaScript / PHP</span>
+  <select id="example" title="示例"></select>
+  <select id="target" title="目标语言">
+    <option value="js">JavaScript</option>
+    <option value="php">PHP</option>
+  </select>
+  <button id="transpile" class="primary">转译 (Ctrl+Enter)</button>
+  <button id="run">运行</button>
+  <button id="copy">复制结果</button>
+</header>
+<main>
+  <section>
+    <h2>C++ 源码</h2>
+    <textarea id="source" spellcheck="false"></textarea>
+  </section>
+  <section>
+    <h2 id="codeTitle">转译结果</h2>
+    <pre id="code"></pre>
+    <div id="warnings"></div>
+    <div id="output"><pre id="out"></pre></div>
+  </section>
+</main>
+<footer><span id="status">就绪</span></footer>
 
+<script src="dist/ctj.js"></script>
+<script>
+"use strict";
+
+const EXAMPLES = {
+  "基础语法": `int fib(int n) {
+  return n < 2 ? n : fib(n - 1) + fib(n - 2);
+}
+
+int main() {
+  for (int i = 0; i < 10; i++) {
+    int v = fib(i);
+    __ctj_js("console.log($1)", v);
+    __ctj_php("print($1 . PHP_EOL)", v);
+  }
+  return 0;
+}
+`,
+  "指针与数组": `int main() {
+  int a[5] = {1, 2, 3, 4, 5};
+  int* p = a + 2;
+  *p = 99;
+  __ctj_js("console.log($1)", a[2]);
+  __ctj_js("console.log($1)", *(a + 4));
+  return 0;
+}
+`,
+  "类与继承": `struct Shape {
+  virtual int area() { return 0; }
+  virtual ~Shape() {}
+};
+
+struct Rect : Shape {
+  int w, h;
+  Rect(int w, int h) : w(w), h(h) {}
+  int area() override { return w * h; }
+};
+
+int main() {
+  Rect r(3, 4);
+  Shape* s = &r;
+  __ctj_js("console.log($1)", s->area());
+  return 0;
+}
+`,
+  "模板": `template <typename T>
+T maxOf(T a, T b) { return a > b ? a : b; }
+
+template <typename T, int N>
+struct Stack {
+  T data[N];
+  int top;
+  Stack() : top(0) {}
+  void push(T v) { data[top++] = v; }
+  T pop() { return data[--top]; }
+};
+
+int main() {
+  __ctj_js("console.log($1)", maxOf(3, 7));
+  Stack<int, 8> s;
+  s.push(1);
+  s.push(2);
+  __ctj_js("console.log($1)", s.pop());
+  return 0;
+}
+`,
+  "类模板与成员": `#include <cstring>
+
+template <typename T> struct Traits {
+  typedef T value_type;
+  typedef long size_type;
+};
+
+template <typename C, typename Tr = Traits<C> > class Str {
+public:
+  typedef typename Tr::value_type value_type;
+  typedef typename Tr::size_type size_type;
+  static const size_type npos = (size_type)-1;
+
+  // 嵌套类可以直接把模板参数当基类
+  struct Rep : Tr {
+    size_type len;
+    Rep() : len(0) {}
+  };
+
+  Str() {}
+
+  void assign(const value_type* s) {
+    rep.len = (size_type)std::strlen(s);
+    for (size_type i = 0; i < rep.len; i++) buf[i] = s[i];
+  }
+
+  size_type size() const { return rep.len; }
+  value_type at(size_type i) const { return buf[i]; }
+
+  static size_type compare(const value_type* a, const value_type* b);
+
+private:
+  value_type buf[32];
+  Rep rep;
+};
+
+// 类外定义的静态成员模板：返回类型和参数里都能用类内的 typedef
+template <typename C, typename Tr>
+typename Str<C, Tr>::size_type Str<C, Tr>::compare(const value_type* a, const value_type* b) {
+  while (*a && *a == *b) { a++; b++; }
+  return (size_type)(*a - *b);
+}
+
+int main() {
+  Str<char> s;
+  s.assign("hello");
+  int d = (int)Str<char>::compare("abc", "abd");
+  __ctj_js("console.log($1, $2, $3, $4)", (int)s.size(), (int)s.at(1), d < 0, (int)Str<char>::npos == -1);
+  __ctj_php("print($1 . ' ' . $2 . ' ' . $3 . ' ' . $4 . PHP_EOL)", (int)s.size(), (int)s.at(1), d < 0, (int)Str<char>::npos == -1);
+  return 0;
+}
+`,
+  "标准库容器": `#include <vector>
+
+int main() {
+  std::vector<int> v;
+  for (int i = 1; i <= 5; i++) v.push_back(i * i);
+  int sum = 0;
+  for (unsigned i = 0; i < v.size(); i++) sum += v[i];
+  v[2] = 100;
+  int third = v[2];
+  int n = (int)v.size();
+  v.clear();
+  __ctj_js("console.log($1, $2, $3, $4)", sum, third, n, (int)v.size());
+  __ctj_php("print($1 . ' ' . $2 . ' ' . $3 . ' ' . $4 . PHP_EOL)", sum, third, n, (int)v.size());
+  return 0;
+}
+`,
+  "标准库头文件": `#include <cstring>
+#include <limits>
+
+int main() {
+  char buf[16];
+  std::strcpy(buf, "hello");
+  __ctj_js("console.log($1)", (int)std::strlen(buf));
+  __ctj_js("console.log($1)", std::numeric_limits<int>::max());
+  return 0;
+}
+`,
+  "PHP 后端": `int main() {
+  int sum = 0;
+  for (int i = 1; i <= 100; i++) sum += i;
+  __ctj_php("print($1 . PHP_EOL)", sum);
+  return 0;
+}
+`,
+};
+
+const $ = id => document.getElementById(id);
+let headers = null;
+let headersPromise = null;
+let lastCode = "";
+
+function loadHeaders() {
+  if (!headersPromise) {
+    headersPromise = fetch("include.json")
+      .then(r => { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+      .then(j => { headers = j; return j; })
+      .catch(err => {
+        headers = {};
+        setStatus("include.json 不可用（" + err.message + "），请先运行 npm run build；本次仅转译不含标准库的代码");
+        return headers;
+      });
+  }
+  return headersPromise;
+}
+
+function setStatus(text) { $("status").textContent = text; }
+
+function fmtValue(v) {
+  if (typeof v === "string") return v;
+  if (v && typeof v === "object") {
+    if (Array.isArray(v)) return "[" + v.map(fmtValue).join(",") + "]";
+    if (Array.isArray(v.a)) return "[" + v.a.slice(v.i | 0).map(fmtValue).join(",") + "]";
+    return JSON.stringify(v);
+  }
+  return String(v);
+}
+
+// Two ways to get the transpiler, because a preview frame may allow one and
+// not the other: a <script src> needs script-src, a fetch needs connect-src.
+// Both bypass the cache, and both say what went wrong.
+let loadNote = "正在加载 dist/ctj.js …";
+
+function transpilerFailed(msg) {
+  loadNote = "加载失败：" + msg;
+  setStatus("dist/ctj.js " + loadNote);
+  $("out").className = "err";
+  $("out").textContent = "dist/ctj.js 加载失败：" + msg +
+    "\n\n请在项目目录运行 npm run build（或 npm run serve）后刷新页面。";
+}
+
+function transpilerReady() {
+  loadNote = "就绪" + (CTJ.version ? " · " + CTJ.version : "");
+  setStatus(loadNote);
+  selfCheck();
+}
+
+// A page that runs an older bundle is the failure that is hardest to see, so
+// the page checks its own transpiler on the case that used to break.
+let selfChecked = false;
+function selfCheck() {
+  if (selfChecked || typeof CTJ === "undefined" || !headers) return;
+  selfChecked = true;
+  const src = [
+    "#include <vector>",
+    "int main() {",
+    "  std::vector<int> v;",
+    "  for (int i = 1; i <= 5; i++) v.push_back(i * i);",
+    "  int sum = 0;",
+    "  for (unsigned i = 0; i < v.size(); i++) sum += v[i];",
+    '  __ctj_js("console.log($1)", sum);',
+    "  return 0;",
+    "}",
+  ].join("\n");
+  let note;
+  try {
+    const res = CTJ.transpile(src, { target: "js", headers });
+    let got = "(没有输出)";
+    new Function("console", res.code)({ log: (...a) => { got = a.map(fmtValue).join(" "); } });
+    note = got === "55" ? "自检通过" : "自检失败：vector 示例得到 " + got;
+  } catch (err) {
+    note = "自检失败：" + err.message;
+  }
+  setStatus(loadNote + " · " + note);
+  if (note !== "自检通过") {
+    $("out").className = "err";
+    $("out").textContent = note + "\n\n页面里的转译器不是当前构建的，请重新加载页面。";
+  }
+}
+
+function fetchTranspiler(url) {
+  loadNote = "script 标签方式没有定义 CTJ，改用 fetch";
+  fetch(url, { cache: "no-store" })
+    .then(r => {
+      if (!r.ok) throw new Error("HTTP " + r.status + " " + r.statusText);
+      const type = r.headers.get("content-type") || "(none)";
+      return r.text().then(text => {
+        if (!text.trim()) throw new Error("返回内容为空（content-type: " + type + "）");
+        if (text.indexOf("CTJ") < 0) throw new Error("返回的不是转译器（content-type: " + type + "，" + text.length + " 字节）");
+        const el = document.createElement("script");
+        el.textContent = text;
+        document.head.appendChild(el);
+        if (typeof CTJ === "undefined") throw new Error("已执行 " + text.length + " 字节但没有定义 CTJ");
+        transpilerReady();
+      });
+    })
+    .catch(err => transpilerFailed(err.message + "（script 标签方式也未成功）"));
+}
+
+function loadTranspiler() {
+  if (typeof CTJ !== "undefined") { transpilerReady(); return; }
+  setStatus("正在加载 dist/ctj.js …");
+  const stamp = Date.now();
+  const url = "dist/ctj.js?v=" + stamp + "&via=tag";
+  const el = document.createElement("script");
+  el.src = url;
+  el.onload = () => {
+    if (typeof CTJ !== "undefined") transpilerReady();
+    else fetchTranspiler("dist/ctj.js?v=" + stamp + "&via=fetch");
+  };
+  el.onerror = () => fetchTranspiler(url);
+  document.head.appendChild(el);
+}
+loadTranspiler();
+
+function transpile() {
+  if (typeof CTJ === "undefined") {
+    $("code").textContent = "";
+    $("out").className = "err";
+    $("out").textContent = "转译器还没就绪 —— " + loadNote +
+      "\n\n若为加载失败，请在项目目录运行 npm run build（或 npm run serve）后刷新页面。";
+    setStatus("转译器未加载：" + loadNote);
+    return;
+  }
+  const target = $("target").value;
+  const source = $("source").value;
+  $("warnings").style.display = "none";
+  $("out").textContent = "";
+  $("out").className = "";
+  const t0 = performance.now();
+  loadHeaders().then(hdrs => {
+    let res;
+    try {
+      res = CTJ.transpile(source, { target: target, headers: hdrs });
+    } catch (err) {
+      lastCode = "";
+      $("code").textContent = "";
+      $("out").className = "err";
+      $("out").textContent = (err.file ? err.file + ":" + (err.line || 0) + ": " : "") + err.message;
+      setStatus("转译失败");
+      return;
+    }
+    lastCode = res.code;
+    $("code").textContent = res.code;
+    $("codeTitle").textContent = "转译结果 — " + (target === "php" ? "PHP" : "JavaScript") + " · " + res.code.length + " 字符";
+    const warns = res.warnings || [];
+    if (warns.length) {
+      $("warnings").innerHTML = "";
+      warns.slice(0, 50).forEach(w => {
+        const d = document.createElement("div");
+        d.textContent = w;
+        $("warnings").appendChild(d);
+      });
+      if (warns.length > 50) {
+        const d = document.createElement("div");
+        d.textContent = "… 另有 " + (warns.length - 50) + " 条警告";
+        $("warnings").appendChild(d);
+      }
+      $("warnings").style.display = "block";
+    }
+    setStatus("转译完成，用时 " + (performance.now() - t0).toFixed(0) + " ms" +
+      (headers ? "，标准库头文件 " + Object.keys(headers).length + " 个" : ""));
+  });
+}
+
+function run() {
+  if (!lastCode) { setStatus("请先转译"); return; }
+  if ($("target").value !== "js") { setStatus("浏览器只能运行 JavaScript，PHP 结果请复制到服务端执行"); return; }
+  const lines = [];
+  const shim = {
+    log: (...a) => lines.push(a.map(fmtValue).join(" ")),
+    error: (...a) => lines.push(a.map(fmtValue).join(" ")),
+  };
+  try {
+    new Function("console", lastCode)(shim);
+    $("out").className = "";
+    $("out").textContent = lines.join("\n");
+    setStatus("运行完成");
+  } catch (err) {
+    $("out").className = "err";
+    $("out").textContent = lines.join("\n") + (lines.length ? "\n" : "") + "运行时错误: " + err.message;
+    setStatus("运行出错");
+  }
+}
+
+const exampleSelect = $("example");
+Object.keys(EXAMPLES).forEach(name => {
+  const o = document.createElement("option");
+  o.value = name;
+  o.textContent = name;
+  exampleSelect.appendChild(o);
+});
+exampleSelect.addEventListener("change", () => { $("source").value = EXAMPLES[exampleSelect.value]; });
+exampleSelect.value = "基础语法";
+$("source").value = EXAMPLES[exampleSelect.value];
+
+$("transpile").addEventListener("click", transpile);
+$("run").addEventListener("click", run);
+$("copy").addEventListener("click", () => {
+  if (!lastCode) return;
+  navigator.clipboard.writeText(lastCode).then(() => setStatus("已复制到剪贴板"), () => setStatus("复制失败"));
+});
+$("source").addEventListener("keydown", e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === "Enter") { e.preventDefault(); transpile(); }
+  if (e.key === "Tab") {
+    e.preventDefault();
+    const s = e.target, p = s.selectionStart;
+    s.value = s.value.slice(0, p) + "  " + s.value.slice(s.selectionEnd);
+    s.selectionStart = s.selectionEnd = p + 2;
+  }
+});
+
+// Headers finishing must not report "ready" while the transpiler is still
+// missing, or a failed load would be hidden behind a green status.
+loadHeaders().then(() => { if (typeof CTJ !== "undefined") { setStatus(loadNote); selfCheck(); } });
+</script>
+</body>
+</html>

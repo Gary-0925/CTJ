@@ -2,7 +2,7 @@
 function main() {
   let a = [1, 2, 3];
   let sum = 0;
-  for (let i = 0; (i < 3); ++i) {
+  for (let i = 0; (i < 3); i++) {
     sum += a[i];
   }
   (console.log((sum)));

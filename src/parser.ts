@@ -3,6 +3,10 @@ namespace CTJ {
 export interface PendingBody {
   func: FuncDecl;
   toks: Token[];
+  // The type names in scope where the body was written. A member template
+  // parameter is out of scope by the time the body is parsed, and without it
+  // "_Up(args)" is not a construction.
+  types: Set<string>[];
 }
 
 export interface DeclSpec {
@@ -27,13 +31,14 @@ export interface Declarator {
   trailing: TypeNode | null;
   isMemPtr: boolean;
   special: string;
+  isPack: boolean;
 }
 
 export function blankDeclarator(): Declarator {
   return {
     name: [], global: false, op: "", convType: null, ptr: 0, ref: "",
     dims: [], isFunc: false, params: [], funcCnst: false,
-    trailing: null, isMemPtr: false, special: "",
+    trailing: null, isMemPtr: false, special: "", isPack: false,
   };
 }
 
@@ -64,6 +69,8 @@ export class Parser {
   warnings: string[] = [];
   inClass: ClassDecl[] = [];
   typeScopes: Set<string>[] = [new Set()];
+  nsNames: Set<string> = new Set();
+  classTypes: Map<string, Set<string>> = new Map();
   pending: PendingBody[] = [];
   anon: { n: number } = { n: 0 };
 
@@ -175,6 +182,33 @@ export class Parser {
     last(this.typeScopes).add(name);
   }
 
+  registerNamespace(name: string): void {
+    this.nsNames.add(name);
+  }
+
+  // The type names declared inside a class, kept so that they can be made
+  // visible again when a member of that class is defined outside of it.
+  recordClassTypes(name: string): void {
+    this.classTypes.set(name, new Set(last(this.typeScopes)));
+  }
+
+  // The type names declared by the classes a qualified name is written against:
+  // "Cls::N::method" sees the typedefs of Cls and of N alike.
+  ownerTypeScope(name: QSeg[]): Set<string> | undefined {
+    let all: Set<string> | undefined;
+    for (let i = 0; i + 1 < name.length; i++) {
+      const s = this.classTypes.get(name[i].n);
+      if (!s) continue;
+      if (!all) all = new Set();
+      for (const n of s) all.add(n);
+    }
+    return all;
+  }
+
+  pushTypeScope(names: Set<string>): void {
+    this.typeScopes.push(names);
+  }
+
   isTypeName(name: string): boolean {
     if (BASIC_TYPES.has(name) || name === "auto") return true;
     for (let i = this.typeScopes.length - 1; i >= 0; i--) {
@@ -187,6 +221,8 @@ export class Parser {
     const p = new Parser(toks);
     p.warnings = this.warnings;
     p.typeScopes = this.typeScopes;
+    p.nsNames = this.nsNames;
+    p.classTypes = this.classTypes;
     p.anon = this.anon;
     return p;
   }
@@ -238,7 +274,8 @@ export class Parser {
       this.pos++;
       return [{ kind: "empty", ...at(t) }];
     }
-    if (t.t !== "ident") fail(`expected declaration, got '${t.v}'`, t.file, t.line, t.col);
+    // "~Cls()" starts a destructor, which has no return type of its own.
+    if (t.t !== "ident" && t.t !== "~") fail(`expected declaration, got '${t.v}'`, t.file, t.line, t.col);
     if (t.v === "inline" && this.peek(1).t === "ident" && this.peek(1).v === "namespace") {
       this.pos++;
       return [parseNamespace(this, true)];
@@ -379,9 +416,17 @@ export class Parser {
     if (this.peek().t === "{" || this.isIdent("try")) {
       if (inClass) {
         const toks = this.collectBalancedTry();
-        this.pending.push({ func: fn, toks });
+        this.pending.push({ func: fn, toks, types: this.typeScopes.map(s => new Set(s)) });
       } else {
-        fn.body = this.parseFuncBody();
+        // The members of the class are in scope in the body of an out-of-line
+        // member definition, so its type names stay visible while parsing it.
+        const owner = this.ownerTypeScope(d.name);
+        if (owner) this.pushTypeScope(owner);
+        try {
+          fn.body = this.parseFuncBody();
+        } finally {
+          if (owner) this.popScope();
+        }
       }
     } else {
       this.expect(";");
@@ -445,9 +490,9 @@ export class Parser {
     this.pending = [];
     for (const p of list) {
       const sub = this.spawn(p.toks);
+      sub.typeScopes = p.types;
       p.func.body = sub.parseFuncBody();
       if (!sub.atEnd()) sub.warn("trailing tokens in function body");
-      for (const w of sub.warnings) this.warnings.push(w);
     }
   }
 
@@ -455,7 +500,13 @@ export class Parser {
     if (!q.parts.length) return true;
     const b = q.parts[q.parts.length - 1].n;
     if (b.startsWith("~")) return false;
-    return this.isTypeName(b);
+    if (this.isTypeName(b)) return true;
+    if (q.parts.length < 2) return false;
+    // "Outer::Inner x" / "std::streampos x": the head of a qualified name is a
+    // class or a namespace, and only the whole name denotes the type.  When a
+    // "(" follows, the name is the function being defined instead.
+    if (!this.isTypeName(q.parts[0].n) && !this.nsNames.has(q.parts[0].n)) return false;
+    return this.peek().t !== "(";
   }
 
   isCtorDefName(q: TypeNode): boolean {
@@ -533,10 +584,26 @@ export class Parser {
       if (v === "operator" || v === "template" || v === "~") break;
       if (!this.isTypeName(v) && this.peek(1).t !== "::" && this.peek(1).t !== "<") break;
       if (this.peek(1).t === "(" && !type && !prefix.length) break;
+      // "typedef typename R::iterator iterator;": once a type is complete, an
+      // identifier that is itself a type name is the declarator being declared
+      // rather than another piece of the type.
+      if (type && this.isTypeName(v) && this.peek(1).t !== "::" && this.peek(1).t !== "<"
+        && (this.peek(1).t === ";" || this.peek(1).t === "," || this.peek(1).t === "="
+          || this.peek(1).t === "(" || this.peek(1).t === "[")) break;
+      // "unsigned long size_t": with base keywords already seen, the type name
+      // that follows is the declarator being declared, not part of the type.
+      if (prefix.length && !type) break;
       const m = this.mark();
       try {
         const q = this.parseQualifiedType();
         if (this.isCtorDefName(q)) { this.reset(m); break; }
+        // With a type already in hand, a qualified name that an "=" or a ";"
+        // follows is the declarator being declared rather than more of the type:
+        // "typename W<T>::size_type W<T>::npos = 100;".
+        if (type && (this.peek().t === "=" || this.peek().t === ";" || this.peek().t === ",")) {
+          this.reset(m);
+          break;
+        }
         if (!this.typeTailIsType(q)) { this.reset(m); break; }
         type = this.mergeBase(type, q, prefix, t);
       } catch {
@@ -579,11 +646,15 @@ export class Parser {
 
   parseQualifiedName(allowOp: boolean, inType = true): QSeg[] {
     const parts: QSeg[] = [];
+    if (this.peek().t === "::") this.pos++;
     for (;;) {
       this.skipGnu();
       if (this.isIdent("template")) this.pos++;
       const t = this.peek();
+      // The caller reads the operator itself, but the keyword belongs to the
+      // name: leaving it behind makes "Cls::operator+" look like a conversion.
       if (allowOp && t.t === "ident" && t.v === "operator") {
+        this.pos++;
         parts.push(qseg("operator"));
         break;
       }
@@ -622,6 +693,18 @@ export class Parser {
     return tn;
   }
 
+  skipBalancedAngles(): void {
+    const t = this.expect("<");
+    let depth = 1;
+    while (depth > 0) {
+      const u = this.next();
+      if (u.t === "eof") fail("unterminated '<'", t.file, t.line, t.col);
+      if (u.t === "<") depth++;
+      else if (u.t === ">>") depth -= 2;
+      else if (u.t === ">") depth--;
+    }
+  }
+
   parseTArgList(): TypeNode[] {
     this.expect("<");
     const out: TypeNode[] = [];
@@ -629,8 +712,35 @@ export class Parser {
     for (;;) {
       this.skipGnu();
       const am = this.mark();
+      // "!is_convertible<_A, _B>::value" negates a member of a template-id;
+      // read as an expression the '<' after the type name is a comparison, so
+      // the negation is rebuilt around the type instead.
+      let neg = 0;
+      while (this.peek().t === "!") { this.pos++; neg++; }
       let ta = this.parseAbstractType();
-      if (!ta.parts.length && !ta.decltypeOf && !ta.ptr && !ta.ref && !ta.func && !ta.dims.length) {
+      // "function<_Res(_ArgTypes...)>": inside an argument list a "(" after a
+      // type starts a function type instead of ending the type.  With no type
+      // read yet the "(" opens a parenthesised non-type argument.
+      if (this.peek().t === "(" && ta.parts.length) {
+        const fm = this.mark();
+        let fn: { params: TypeNode[]; variadic: boolean } | null = null;
+        try {
+          const ps = this.parseParamList();
+          const nx = this.peek().t;
+          if (nx === "," || nx === ">" || nx === ">>" || nx === "...") {
+            fn = { params: ps.map(x => x.type), variadic: ps.some(x => x.variadic) };
+          }
+        } catch { fn = null; }
+        if (fn) ta.func = fn;
+        else this.reset(fm);
+      }
+      if (neg && ta.parts.length) {
+        let ex: Expr = { kind: "id", parts: ta.parts, global: ta.global, file: ta.file, line: ta.line };
+        for (let i = 0; i < neg; i++) ex = { kind: "unary", op: "!", arg: ex, postfix: false, file: ta.file, line: ta.line };
+        ta = typeNode([], ta);
+        ta.valueArg = ex;
+      } else if (!ta.parts.length && !ta.decltypeOf && !ta.ptr && !ta.ref && !ta.func && !ta.dims.length) {
+        if (neg) this.reset(am);
         const ex = this.parseTArgValue(am);
         ta = typeNode([], ex);
         ta.valueArg = ex;
@@ -708,7 +818,9 @@ export class Parser {
         this.pos++;
         this.skipGnu();
         const n = this.peek();
-        if (n.t === "*" || n.t === "&" || n.t === "&&" || n.t === ")") {
+        // Only a parenthesized declarator such as (*) continues the type;
+        // a bare () is the parameter list of the surrounding declaration.
+        if (n.t === "*" || n.t === "&" || n.t === "&&") {
           this.parseAbstractDeclarator(tn);
           this.expect(")");
         } else {
@@ -759,7 +871,15 @@ export class Parser {
       break;
     }
     this.parseDeclaratorCore(d);
-    this.parseDeclaratorSuffix(d);
+    // In "Cls::method(const value_type& v)" the members of Cls are in scope in
+    // the parameter list, so its type names have to be visible while parsing it.
+    const owner = this.ownerTypeScope(d.name);
+    if (owner) this.pushTypeScope(owner);
+    try {
+      this.parseDeclaratorSuffix(d);
+    } finally {
+      if (owner) this.popScope();
+    }
     return d;
   }
 
@@ -804,6 +924,11 @@ export class Parser {
     if (t.t === "::") {
       d.global = true;
       this.pos++;
+    }
+    // "U&&... u": the ellipsis of a parameter pack stands before the name.
+    if (this.peek().t === "...") {
+      this.pos++;
+      d.isPack = true;
     }
     if (this.peek().t === "ident") {
       d.name = this.parseQualifiedName(true);
@@ -950,6 +1075,7 @@ export class Parser {
       let isPack = false;
       if (this.peek().t === "...") { isPack = true; this.pos++; }
       const d = this.parseDeclarator();
+      if (d.isPack) isPack = true;
       const type = this.applyDeclarator(spec.type, d, t);
       let name = d.name.length ? last(d.name).n : "";
       if (d.op) name = "";

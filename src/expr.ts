@@ -64,6 +64,13 @@ export function parsePostfix(p: Parser, e: Expr): Expr {
     if (t.t === "." || t.t === "->") {
       p.pos++;
       if (p.isIdent("template")) p.pos++;
+      // "p->~T()" is a pseudo-destructor call on a dependent type.
+      if (p.peek().t === "~") {
+        p.pos++;
+        const f = p.expect("ident");
+        e = { kind: "member", obj: e, field: "~" + f.v, arrow: t.t === "->", targs: [], qual: [], ...at(t) };
+        continue;
+      }
       let f = p.expect("ident");
       const qual: QSeg[] = [];
       while (p.peek().t === "::") {
@@ -122,10 +129,16 @@ function maybeFunctional(p: Parser, e: Expr, args: Expr[], t: Token): Expr {
 
 export function parseUnary(p: Parser): Expr {
   const t = p.peek();
+  // "typename" only qualifies a dependent type, it carries no meaning here.
+  if (t.t === "ident" && t.v === "typename") {
+    p.pos++;
+    return parseUnary(p);
+  }
   if (t.t === "++" || t.t === "--" || t.t === "+" || t.t === "-" ||
     t.t === "!" || t.t === "~" || t.t === "*" || t.t === "&") {
     p.pos++;
-    const arg = parseUnary(p);
+    // Postfix binds tighter than a prefix operator: *p++ is *(p++).
+    const arg = parsePostfix(p, parseUnary(p));
     return { kind: "unary", op: t.t, arg, postfix: false, ...at(t) };
   }
   if (t.t === "(") {
@@ -144,7 +157,7 @@ export function parseUnary(p: Parser): Expr {
       p.pos++;
       const type = p.parseAbstractType();
       p.expect(")");
-      const arg = parseUnary(p);
+      const arg = parsePostfix(p, parseUnary(p));
       return { kind: "cast", ckind: "cstyle", type, fn: null, arg, ...at(t) };
     }
     p.pos++;
@@ -181,7 +194,12 @@ export function parseUnary(p: Parser): Expr {
     if (t.v === "typeid") return parseTypeid(p);
     if (t.v === "noexcept") return parseNoexcept(p);
     if (t.v === "throw") fail("throw is only supported as a statement", t.file, t.line, t.col);
-    if (t.v === "operator") fail("unexpected 'operator' in expression", t.file, t.line, t.col);
+    if (t.v === "operator") {
+      // "operator[](0)" calls the member operator of the current object.
+      p.pos++;
+      const r = p.parseOperator();
+      return { kind: "id", parts: [qseg(r.convType ? "#conv" : "operator" + r.op)], global: false, ...at(t) };
+    }
     if (t.v === "decltype") fail("unexpected 'decltype' in expression", t.file, t.line, t.col);
     return parseIdExpr(p);
   }
@@ -199,7 +217,12 @@ export function parseIdExpr(p: Parser): IdExpr {
   const t = p.peek();
   let global = false;
   if (p.eat("::")) global = true;
-  const parts = p.parseQualifiedName(false, false);
+  const parts = p.parseQualifiedName(true, false);
+  // "::operator new(16)" calls a function whose name is the operator itself,
+  // spelled the same way a declaration spells it.
+  if (parts.length && last(parts).n === "operator") {
+    parts[parts.length - 1] = qseg("operator" + p.parseOperator().op);
+  }
   if (p.peek().t === "<") {
     const m = p.mark();
     try {
@@ -212,7 +235,15 @@ export function parseIdExpr(p: Parser): IdExpr {
   return { kind: "id", parts, global, ...at(t) };
 }
 
-function looksLikeCast(p: Parser): boolean {
+// Tokens that cannot start the operand of a cast, so "(T)" before one of them
+// is a parenthesized expression rather than a cast.
+const NOT_OPERAND_START = new Set([
+  "eof", ")", ",", ";", "}", "]", ">", ">>", "==", "!=", "<=", ">=", "&&", "||",
+  "=", "+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", "<<",
+  "?", ":", ".", "->", "->*", ".*",
+]);
+
+function parensHoldType(p: Parser): boolean {
   const m = p.mark();
   try {
     p.pos++;
@@ -234,6 +265,17 @@ function looksLikeCast(p: Parser): boolean {
     p.reset(m);
     return false;
   }
+}
+
+function looksLikeCast(p: Parser): boolean {
+  if (!parensHoldType(p)) return false;
+  const m = p.mark();
+  p.pos++;
+  p.skipGnu();
+  p.parseAbstractType();
+  const ok = !NOT_OPERAND_START.has(p.peek(1).t);
+  p.reset(m);
+  return ok;
 }
 
 function parseNewDelete(p: Parser): Expr {
@@ -281,7 +323,8 @@ function parseNewDelete(p: Parser): Expr {
 function parseSizeof(p: Parser, isAlign: boolean): SizeofExpr {
   const t = p.expect("ident");
   const base = { kind: "sizeof" as const, isType: false, type: null as TypeNode | null, expr: null as Expr | null, packName: "", isAlignof: isAlign, ...at(t) };
-  if (p.isIdent("...")) {
+  // "sizeof...(_Pack)" counts the elements of a parameter pack.
+  if (p.peek().t === "...") {
     p.pos++;
     p.expect("(");
     const nm = p.expect("ident").v;
@@ -290,7 +333,7 @@ function parseSizeof(p: Parser, isAlign: boolean): SizeofExpr {
     return base;
   }
   if (p.peek().t === "(" && !isAlign) {
-    if (looksLikeCast(p)) {
+    if (parensHoldType(p)) {
       p.pos++;
       base.type = p.parseAbstractType();
       p.expect(")");

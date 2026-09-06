@@ -38,15 +38,13 @@ export function builtinCall(cx: Cx, e: CallExpr, name: string, argTs: { t: CppTy
     return CppType.basic("void");
   }
   if (name === "__builtin_memcpy" || name === "__builtin_memmove" || name === "__builtin_memset") {
-    cx.warn(`${name} has no definition, stubbed`, e);
     return voidPtr();
   }
+  if (name === "__builtin_memcmp") return CppType.basic("int");
   if (name === "__builtin_strlen" || name === "__builtin_strcmp" || name === "__builtin_strncmp") {
-    cx.warn(`${name} has no definition, stubbed`, e);
     return CppType.basic(name === "__builtin_strlen" ? "unsigned long" : "int");
   }
   if (name === "__builtin_strcpy" || name === "__builtin_strncpy" || name === "__builtin_strcat" || name === "__builtin_strchr") {
-    cx.warn(`${name} has no definition, stubbed`, e);
     const t = CppType.basic("char");
     t.ptr = 1;
     return t;
@@ -95,7 +93,7 @@ export function analyzeLambda(cx: Cx, e: LambdaExpr, scope: Scope): CppType {
   const fq = "$lambda_" + (lambdaCount++);
   const emptyCls: ClassDecl = {
     kind: "class", name: fq, cls: "struct", bases: [], members: [],
-    isDeclOnly: false, specArgs: [], file: e.file, line: e.line,
+    isDeclOnly: false, specArgs: [], isPartialSpec: false, file: e.file, line: e.line,
   };
   const cls = cx.blankCls(fq, fq, emptyCls, scope);
   cls.complete = true;
@@ -195,6 +193,113 @@ function collectOuterIds(cx: Cx, s: Stmt, outer: Set<VarInfo>, used: Set<VarInfo
   walk(s);
 }
 
+// A class and everything it derives from.
+function eachCls(cx: Cx, fq: string, seen: Set<string>, fn: (c: ClsInfo) => boolean): boolean {
+  if (seen.has(fq)) return true;
+  seen.add(fq);
+  const c = cx.classes.get(fq);
+  if (!c) return true;
+  if (!fn(c)) return false;
+  for (const b of c.bases) if (!eachCls(cx, b.fq, seen, fn)) return false;
+  return true;
+}
+
+function hasVirtualMethod(cx: Cx, fq: string, pure: boolean): boolean {
+  let found = false;
+  eachCls(cx, fq, new Set(), c => {
+    for (const list of c.methods.values()) {
+      for (const f of list) {
+        if (f.isVirtual && (!pure || f.isPure)) { found = true; return false; }
+      }
+    }
+    return true;
+  });
+  return found;
+}
+
+// Scalars, enums and the classes built only out of them: what the layout
+// traits ask about, judged from the shape that was collected.
+function isPlainType(cx: Cx, t: CppType, seen: Set<string>): boolean {
+  const c = cx.classes.get(t.name);
+  if (!c) return true;
+  if (seen.has(t.name)) return true;
+  seen.add(t.name);
+  if (c.isUnion) return true;
+  if (hasVirtualMethod(cx, c.fq, false)) return false;
+  for (const n of c.fields.keys()) {
+    if (c.fieldStatic.has(n)) continue;
+    const ft = cx.fieldType(c, n);
+    if (ft.ptr === 0 && ft.ref === "" && !isPlainType(cx, ft, seen)) return false;
+  }
+  return true;
+}
+
+// <type_traits> is written with the compiler's __is_* builtins. The transpiler
+// collected every class it read, so it can answer them itself.
+function typeTrait(cx: Cx, nm: string, args: Expr[], scope: Scope): number | null {
+  const ts: CppType[] = [];
+  for (const a of args) {
+    if (a.kind !== "id") return null;
+    const tn: TypeNode = {
+      kind: "type", parts: a.parts, global: a.global, ptr: 0, ref: "", cnst: false,
+      dims: [], func: null, decltypeOf: null, packExpand: false, valueArg: null,
+      file: a.file, line: a.line,
+    };
+    try { ts.push(cx.resolveTypeNode(tn, scope)); } catch { return null; }
+  }
+  if (!ts.length) return null;
+  const cls = cx.classes.get(ts[0].name) || null;
+  switch (nm) {
+    case "__is_enum": return cx.enums.has(ts[0].name) ? 1 : 0;
+    case "__is_union": return cls && cls.isUnion ? 1 : 0;
+    case "__is_class": return cls && !cls.isUnion ? 1 : 0;
+    case "__is_polymorphic": return cls && hasVirtualMethod(cx, cls.fq, false) ? 1 : 0;
+    case "__is_abstract": return cls && hasVirtualMethod(cx, cls.fq, true) ? 1 : 0;
+    case "__is_empty": {
+      if (!cls || cls.isUnion || hasVirtualMethod(cx, cls.fq, false)) return 0;
+      let empty = true;
+      eachCls(cx, cls.fq, new Set(), c => {
+        for (const n of c.fields.keys()) {
+          if (!c.fieldStatic.has(n)) { empty = false; return false; }
+        }
+        return true;
+      });
+      return empty ? 1 : 0;
+    }
+    case "__is_pod":
+    case "__is_trivial":
+    case "__is_standard_layout":
+    case "__is_literal_type":
+      return ts[0].ptr === 0 && ts[0].dims.length === 0 && isPlainType(cx, ts[0], new Set()) ? 1 : 0;
+    case "__is_base_of": {
+      if (ts.length < 2) return null;
+      const base = cx.classes.get(ts[0].name);
+      const d = cx.classes.get(ts[1].name);
+      if (!base || !d) return 0;
+      if (base.fq === d.fq) return base.isUnion ? 0 : 1;
+      let hit = false;
+      eachCls(cx, d.fq, new Set(), c => {
+        if (c.fq !== d.fq && c.fq === base.fq) { hit = true; return false; }
+        return true;
+      });
+      return hit ? 1 : 0;
+    }
+    default: return null;
+  }
+}
+
+// "static const size_type npos" carries its constness in the type rather than
+// among the flags of the declaration.
+function isConstVar(cx: Cx, v: VarInfo): boolean {
+  if (v.decl.flags.includes("const") || v.decl.flags.includes("constexpr")) return true;
+  try {
+    const t = v.typeCache || cx.resolveTypeNode(v.decl.type, v.scope);
+    return !!t && t.cnst;
+  } catch {
+    return false;
+  }
+}
+
 export function constEval(cx: Cx, e: Expr, scope: Scope): number | string | null {
   return constEvalInner(cx, e, scope, new Set());
 }
@@ -218,7 +323,7 @@ function constEvalInner(cx: Cx, e: Expr, scope: Scope, seen: Set<string>): numbe
       if (s.k === "var") {
         const v = s.v;
         if (v.fq && seen.has(v.fq)) return null;
-        if (v.decl.flags.includes("const") || v.decl.flags.includes("constexpr")) {
+        if (isConstVar(cx, v)) {
           const init = v.decl.init || (v.decl.directInit && v.decl.directInit[0]);
           if (!init || (init as Expr).kind === "initlist") return null;
           if (v.fq) seen.add(v.fq);
@@ -266,6 +371,12 @@ function constEvalInner(cx: Cx, e: Expr, scope: Scope, seen: Set<string>): numbe
         default: return null;
       }
     }
+    case "noexcept":
+      // The generated languages have no exception specification to violate and
+      // no destructive move, so no expression here can throw. The traits use
+      // this only to choose between moving and copying, which the output does
+      // not distinguish.
+      return 1;
     case "cond": {
       const c = constEvalInner(cx, e.c, scope, seen);
       if (typeof c !== "number") return null;
@@ -275,7 +386,18 @@ function constEvalInner(cx: Cx, e: Expr, scope: Scope, seen: Set<string>): numbe
       if (!e.type) return null;
       const t = cx.resolveTypeNode(e.type, scope);
       if (t.ptr > 0 || t.isFunc) return null;
-      return constEvalInner(cx, e.arg, scope, seen);
+      // "_CharT()" value-initialises: the empty list stands for zero.
+      if (e.arg.kind === "initlist" && !(e.arg as InitListExpr).items.length) return 0;
+      const a = constEvalInner(cx, e.arg, scope, seen);
+      if (typeof a !== "number") return a;
+      // An unsigned value wraps, and the width is the 32-bit one: a JS number
+      // cannot hold a 64-bit unsigned range.
+      return isUnsignedName(coreName(t)) ? a >>> 0 : a;
+    }
+    case "call": {
+      const nm = e.fn.kind === "id" && e.fn.parts.length === 1 ? e.fn.parts[0].n : "";
+      if (!nm.startsWith("__is_")) return null;
+      return typeTrait(cx, nm, e.args, scope);
     }
     case "sizeof": {
       if (e.packName) return null;

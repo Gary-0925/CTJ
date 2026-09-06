@@ -1,6 +1,6 @@
 "use strict";
 function inc(r) {
-  ++r.a[r.i];
+  r.a[r.i]++;
 }
 function pick(b, a, c) {
   return (b ? a : c);

@@ -7,6 +7,7 @@ export interface ClassHead {
   specArgs: TypeNode[];
   scoped: boolean;
   enumBase: TypeNode | null;
+  isPartialSpec: boolean;
 }
 
 export function refType(name: string, a: At): TypeNode {
@@ -42,9 +43,18 @@ export function parseClassHead(p: Parser): { head: ClassHead; t: Token } {
   }
   if (!isEnum && p.isIdent("final") && (p.peek(1).t === ":" || p.peek(1).t === "{")) p.pos++;
   let specArgs: TypeNode[] = [];
+  let isPartialSpec = false;
   if (name && p.peek().t === "<") {
     const m = p.mark();
-    try { specArgs = p.parseTArgList(); } catch { p.reset(m); }
+    try {
+      specArgs = p.parseTArgList();
+    } catch {
+      // Only a partial specialization can put a pattern here instead of
+      // arguments; skip it so that the rest of the declaration still parses.
+      p.reset(m);
+      p.skipBalancedAngles();
+      isPartialSpec = true;
+    }
     p.skipGnu();
   }
   const bases: BaseSpec[] = [];
@@ -68,7 +78,7 @@ export function parseClassHead(p: Parser): { head: ClassHead; t: Token } {
       } while (p.eat(","));
     }
   }
-  return { head: { kind: t.v, name, bases, specArgs, scoped, enumBase }, t };
+  return { head: { kind: t.v, name, bases, specArgs, scoped, enumBase, isPartialSpec }, t };
 }
 
 export function parseClassOrEnumSpec(p: Parser): { decl: ClassDecl | EnumDecl | null; type: TypeNode } {
@@ -117,7 +127,8 @@ export function parseClassOrEnumDecl(p: Parser, inClass: boolean): Decl[] {
       } else {
         out.push({
           kind: "class", name: head.name, cls: head.kind, bases: head.bases,
-          members: [], isDeclOnly: true, specArgs: head.specArgs, ...a,
+          members: [], isDeclOnly: true, specArgs: head.specArgs,
+          isPartialSpec: head.isPartialSpec, ...a,
         });
       }
     }
@@ -146,7 +157,8 @@ export function parseClassBody(p: Parser, head: ClassHead, a: At): ClassDecl {
   const name = head.name || p.anonName("class");
   const cls: ClassDecl = {
     kind: "class", name, cls: head.kind, bases: head.bases,
-    members: [], isDeclOnly: false, specArgs: [], ...a,
+    members: [], isDeclOnly: false, specArgs: head.specArgs,
+    isPartialSpec: head.isPartialSpec, ...a,
   };
   if (head.name) p.registerType(head.name);
   p.inClass.push(cls);
@@ -154,11 +166,18 @@ export function parseClassBody(p: Parser, head: ClassHead, a: At): ClassDecl {
   p.expect("{");
   while (!p.eat("}")) {
     if (p.atEnd()) {
-      const t = p.peek();
-      fail("unterminated class body", t.file, t.line, t.col);
+      // Keep the members collected so far: losing the rest of the translation
+      // unit over one unbalanced brace hides every error that follows.
+      p.warn(`unterminated body of ${head.kind} ${name} opened at ${a.file}:${a.line}, `
+        + "keeping the members parsed so far", p.peek());
+      break;
     }
     try {
-      for (const d of p.parseDecls(true)) cls.members.push(d);
+      for (const d of p.parseDecls(true)) {
+        cls.members.push(d);
+        // A typedef is visible to the members that follow it.
+        if (d.kind === "typedef" && d.name) p.registerType(d.name);
+      }
     } catch (e) {
       if (e instanceof CtxError) {
         p.warn(`parse error in class ${name}: ${e.message}, skipping member`, p.peek());
@@ -167,6 +186,7 @@ export function parseClassBody(p: Parser, head: ClassHead, a: At): ClassDecl {
     }
   }
   p.flushPending();
+  if (head.name) p.recordClassTypes(head.name);
   p.popScope();
   p.inClass.pop();
   return cls;
@@ -219,10 +239,11 @@ export function parseNamespace(p: Parser, isInline: boolean): NamespaceDecl {
   if (p.peek().t === "{") {
     const nm = p.anonName("ns");
     p.pos++;
-    const decls = parseNsBody(p);
+    const decls = parseNsBody(p, at(t));
     return { kind: "ns", name: nm, aliasOf: [], decls, isInline, ...at(t) };
   }
   const first = p.expect("ident").v;
+  p.registerNamespace(first);
   p.skipGnu();
   if (p.eat("=")) {
     const target = p.parseQualifiedName(false);
@@ -230,10 +251,14 @@ export function parseNamespace(p: Parser, isInline: boolean): NamespaceDecl {
     return { kind: "ns", name: first, aliasOf: target, decls: null, isInline, ...at(t) };
   }
   const parts = [first];
-  while (p.eat("::")) parts.push(p.expect("ident").v);
+  while (p.eat("::")) {
+    const nm = p.expect("ident").v;
+    p.registerNamespace(nm);
+    parts.push(nm);
+  }
   p.expect("{");
   let inner: Decl = {
-    kind: "ns", name: last(parts), aliasOf: [], decls: parseNsBody(p), isInline, ...at(t),
+    kind: "ns", name: last(parts), aliasOf: [], decls: parseNsBody(p, at(t)), isInline, ...at(t),
   };
   for (let i = parts.length - 2; i >= 0; i--) {
     inner = { kind: "ns", name: parts[i], aliasOf: [], decls: [inner], isInline, ...at(t) };
@@ -241,12 +266,13 @@ export function parseNamespace(p: Parser, isInline: boolean): NamespaceDecl {
   return inner as NamespaceDecl;
 }
 
-function parseNsBody(p: Parser): Decl[] {
+function parseNsBody(p: Parser, opened: At): Decl[] {
   const out: Decl[] = [];
   while (!p.eat("}")) {
     if (p.atEnd()) {
-      const t = p.peek();
-      fail("unterminated namespace body", t.file, t.line, t.col);
+      p.warn(`unterminated namespace body opened at ${opened.file}:${opened.line}, `
+        + "keeping the declarations parsed so far", p.peek());
+      return out;
     }
     try {
       for (const d of p.parseDecls(false)) out.push(d);
@@ -345,13 +371,11 @@ export function parseTemplate(p: Parser, inClass: boolean): TemplateDecl {
     return { kind: "template", tparams: [], decl: ds[0] || null, isSpec: false, specArgs: [], isExplicit: true, ...at(t) };
   }
   p.pos++;
-  const tparams = parseTParams(p);
   p.pushScope();
-  for (const tp of tparams) {
-    if (tp.name) p.registerType(tp.name);
-  }
+  let tparams: TParam[];
   let ds: Decl[];
   try {
+    tparams = parseTParams(p);
     ds = p.parseDecls(inClass);
   } finally {
     p.popScope();
@@ -360,14 +384,22 @@ export function parseTemplate(p: Parser, inClass: boolean): TemplateDecl {
   let specArgs: TypeNode[] = [];
   if (d && d.kind === "func" && d.name.length && last(d.name).a.length) specArgs = last(d.name).a;
   if (d && d.kind === "class") specArgs = d.specArgs;
-  if (tparams.length && specArgs.length) {
-    p.warn("partial template specialization is not supported, skipped", t);
-    return { kind: "template", tparams: [], decl: null, isSpec: false, specArgs: [], isExplicit: false, ...at(t) };
+  const isPartial = !!d && d.kind === "class" && d.isPartialSpec;
+  let td: TemplateDecl;
+  if (tparams.length && (specArgs.length || isPartial)) {
+    td = { kind: "template", tparams, decl: d, isSpec: true, specArgs, isExplicit: false, ...at(t) };
+  } else if (!tparams.length && specArgs.length) {
+    td = { kind: "template", tparams: [], decl: d, isSpec: true, specArgs, isExplicit: false, ...at(t) };
+  } else {
+    td = { kind: "template", tparams, decl: d, isSpec: false, specArgs: [], isExplicit: false, ...at(t) };
   }
-  if (!tparams.length && specArgs.length) {
-    return { kind: "template", tparams: [], decl: d, isSpec: true, specArgs, isExplicit: false, ...at(t) };
+  // The name introduced by the template belongs to the enclosing scope.
+  if (d && (d.kind === "class" || d.kind === "enum") && d.name) {
+    p.registerType(last(d.name.split("::")));
+  } else if (d && d.kind === "typedef" && d.name) {
+    p.registerType(d.name);
   }
-  return { kind: "template", tparams, decl: d, isSpec: false, specArgs: [], isExplicit: false, ...at(t) };
+  return td;
 }
 
 export function parseTParams(p: Parser): TParam[] {
@@ -399,18 +431,26 @@ export function parseTParams(p: Parser): TParam[] {
       let isPack = false;
       if (p.eat("...")) isPack = true;
       let nm = "";
-      if (p.peek().t === "ident") nm = p.next().v;
+      if (p.peek().t === "ident") {
+        nm = p.next().v;
+        p.registerType(nm);
+      }
+      if (p.eat("...")) isPack = true;
       let def: TypeNode | Expr | null = null;
       if (p.eat("=")) def = p.parseAbstractType();
       out.push({ kind: "type", name: nm || p.anonName("tp"), type: null, def, isPack, ...at(t) });
     } else {
       const spec = p.parseDeclSpec();
-      let nm = "";
-      if (p.peek().t === "ident") nm = p.next().v;
+      // The ellipsis may stand before or after the name: "bool... B", "int N...".
       let isPack = false;
       if (p.eat("...")) isPack = true;
+      let nm = "";
+      if (p.peek().t === "ident") nm = p.next().v;
+      if (p.eat("...")) isPack = true;
       let def: TypeNode | Expr | null = null;
-      if (p.eat("=")) def = parseExpr(p, 2);
+      // Stop below the relational precedence so the closing '>' of the
+      // parameter list is not taken for a comparison operator.
+      if (p.eat("=")) def = parseExpr(p, 10);
       out.push({ kind: "nontype", name: nm || p.anonName("np"), type: spec.type, def, isPack, ...at(t) });
     }
     p.skipGnu();

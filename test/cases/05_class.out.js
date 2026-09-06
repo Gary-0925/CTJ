@@ -6,17 +6,17 @@ class Point {
     this.__init_Point(...$a);
   }
   __init_Point(...$a) {
-    if ($a.length >= 0 && $a.length <= 0) {
+    if ($a.length >= 1 && $a.length <= 1 && ($a[0] !== null && typeof $a[0] === "object" && $a[0].a[$a[0].i] instanceof Point)) {
+      this.x = ((($a[0]).a[($a[0]).i]).x * 10);
+      this.y = ((($a[0]).a[($a[0]).i]).y * 10);
+    }
+    else if ($a.length >= 0 && $a.length <= 0) {
       this.x = 0;
       this.y = 0;
     }
     else if ($a.length >= 2 && $a.length <= 2 && (typeof $a[0] === "number" || typeof $a[0] === "boolean") && (typeof $a[1] === "number" || typeof $a[1] === "boolean")) {
       this.x = $a[0];
       this.y = $a[1];
-    }
-    else if ($a.length >= 1 && $a.length <= 1 && ($a[0] === null || typeof $a[0] === "object")) {
-      this.x = ((($a[0]).a[($a[0]).i]).x * 10);
-      this.y = ((($a[0]).a[($a[0]).i]).y * 10);
     }
     else { throw new Error("no matching constructor"); }
   }
@@ -41,6 +41,7 @@ function getSum(p) {
   return (p.a[p.i]).sum__c();
 }
 function main() {
+  let $t0;
   let p = new Point();
   (console.log((p.sum())));
   let q = {v: new Point(3, 4)};
@@ -51,7 +52,7 @@ function main() {
   (console.log((Point.getCount())));
   q.v.addx(10);
   (console.log((q.v.sum())));
-  let pp = {a: [new Point(1, 2)], i: 0};
+  let pp = (($t0 = {a: [new Point(1, 2)], i: 0}, $t0) ? {a: (($t0 = {a: [new Point(1, 2)], i: 0}, $t0)).a, i: (($t0 = {a: [new Point(1, 2)], i: 0}, $t0)).i} : null);
   (console.log((((pp.a[pp.i])).sum())));
   return 0;
 }

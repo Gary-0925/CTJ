@@ -80,6 +80,11 @@ export function isNumericName(n: string): boolean {
     "float", "double", "long double"].includes(n);
 }
 
+export function isUnsignedName(n: string): boolean {
+  return n === "unsigned char" || n === "unsigned short" || n === "unsigned int" ||
+    n === "unsigned long" || n === "unsigned long long";
+}
+
 export function isIntegerName(n: string): boolean {
   return ["bool", "char", "signed char", "unsigned char", "wchar_t", "char16_t",
     "char32_t", "short", "unsigned short", "int", "unsigned int", "long",
@@ -92,6 +97,28 @@ export interface Scope {
   locals: Map<string, VarInfo>[];
   fn: FuncInfo | null;
   returns: CppType[];
+}
+
+// A type spelled well enough to tell two resolutions of the same name apart,
+// including the ones whose argument is an expression rather than a type.
+function exKey(e: Expr): string {
+  switch (e.kind) {
+    case "id": return e.parts.map(s => s.n + (s.a.length ? "<" + s.a.map(tnKey).join(",") + ">" : "")).join("::");
+    case "call": return exKey(e.fn) + "(" + e.args.map(exKey).join(",") + ")";
+    case "member": return exKey(e.obj) + "." + e.field;
+    case "unary": return e.op + exKey(e.arg);
+    case "binary": return exKey(e.l) + e.op + exKey(e.r);
+    case "cast": return "(" + (e.type ? tnKey(e.type) : "?") + ")" + exKey(e.arg);
+    case "lit": return e.value;
+    default: return e.kind;
+  }
+}
+
+function tnKey(tn: TypeNode): string {
+  if (tn.valueArg) return "=" + exKey(tn.valueArg);
+  if (tn.decltypeOf) return "decltype(" + exKey(tn.decltypeOf) + ")";
+  return tn.parts.map(s => s.n + (s.a.length ? "<" + s.a.map(tnKey).join(",") + ">" : "")).join("::")
+    + "*".repeat(tn.ptr) + tn.ref + (tn.cnst ? " const" : "");
 }
 
 export function rootScope(): Scope {
@@ -121,6 +148,7 @@ export interface ClsInfo {
   fieldStatic: Set<string>;
   methods: Map<string, FuncInfo[]>;
   nested: Map<string, string>;
+  consts?: Map<string, { e: EnumInfo; item: string }> | null;
   usingBase: Map<string, string>;
   isUnion: boolean;
   complete: boolean;
@@ -198,6 +226,10 @@ export interface TmplInfo {
   decl: Decl;
   scope: Scope;
   specs: { key: string; decl: Decl }[];
+  partials?: { tparams: TParam[]; specArgs: TypeNode[]; decl: Decl }[];
+  // Position among the overloads of the same name, so that instances of two
+  // different templates do not share a cache entry or an emitted name.
+  ovl?: number;
 }
 
 export type Sym =
@@ -238,12 +270,21 @@ export class Cx {
   enums = new Map<string, EnumInfo>();
   typedefs = new Map<string, { target: TypeNode; scope: Scope }>();
   tmpls = new Map<string, TmplInfo>();
+  // Templates that share a name are overloads of each other, which the map
+  // above cannot hold: it keeps one template per name for type resolution.
+  tmplOverloads = new Map<string, TmplInfo[]>();
   funcInsts = new Map<string, FuncInfo>();
   nsFuncIndex = new Map<string, FuncInfo[]>();
   nss = new Map<string, NsInfo>();
   nsAlias = new Map<string, string>();
   asserts: { cond: Expr; msg: string; scope: Scope }[] = [];
   explicitInst: { decl: Decl; scope: Scope }[] = [];
+  // A class can be instantiated before the file holding its out-of-line member
+  // definitions is read ("hash<string>" instantiates basic_string<char> while
+  // basic_string.h is still being collected, basic_string.tcc comes later), so
+  // attaching those definitions waits until the whole unit is collected.
+  collecting = true;
+  pendingOOL: { tmpl: TmplInfo; key: string; cls: ClsInfo; args: CppType[] }[] = [];
   warnings: string[] = [];
   worklist: FuncInfo[] = [];
   instStack: string[] = [];
@@ -297,6 +338,30 @@ export class Cx {
     if (fn.decl.body || fn.isDefault) this.pushWork(fn);
   }
 
+  // A member that overrides a virtual member of a base is virtual itself, even
+  // without the keyword, so it has to be emitted for dispatch through the base.
+  inheritVirtual(c: ClsInfo): void {
+    const virt = new Set<string>();
+    const walk = (fq: string, seen: Set<string>) => {
+      if (seen.has(fq)) return;
+      seen.add(fq);
+      const b = this.classes.get(fq);
+      if (!b) return;
+      for (const [name, fns] of b.methods) {
+        for (const f of fns) if (f.isVirtual) virt.add(name);
+      }
+      for (const bb of b.bases) walk(bb.fq, seen);
+    };
+    for (const b of c.bases) walk(b.fq, new Set());
+    if (!virt.size) return;
+    for (const [name, fns] of c.methods) {
+      if (!virt.has(name)) continue;
+      for (const f of fns) {
+        if (!f.isCtor && !f.isDtor && !f.isStatic) f.isVirtual = true;
+      }
+    }
+  }
+
   markVar(v: VarInfo): void {
     v.referenced = true;
     if (!v.isGlobal) return;
@@ -308,6 +373,7 @@ export class Cx {
     if (!c.referenced) {
       c.referenced = true;
       this.synthMembers(c);
+      this.inheritVirtual(c);
       for (const b of c.bases) this.markCls(b.fq);
       for (const fns of c.methods.values()) {
         for (const f of fns) {
@@ -348,13 +414,23 @@ export class Cx {
         return;
       }
       case "enum": {
-        const fq = this.memberFq(scope, d.name);
+        // The parser names an unnamed enum "$enum_N"; inside a class its
+        // enumerators are members of that class, e.g. __are_same<_Tp,_Tp>::__value.
+        const anon = !!scope.cls && d.name.startsWith("$enum_");
+        const fq = anon ? this.memberFq(scope, "") + "@anon" + d.line : this.memberFq(scope, d.name);
         if (!this.enums.has(fq)) {
           this.enums.set(fq, { fq, short: d.name, decl: d, scope: this.snapScope(scope), values: null, scoped: d.scoped, referenced: false });
         } else if (!d.isDeclOnly) {
           (this.enums.get(fq) as EnumInfo).decl = d;
         }
-        if (scope.cls) scope.cls.nested.set(d.name, fq);
+        if (anon) {
+          // "enum { __value = 1 };" inside a class: the enumerators are read as
+          // members of that class, e.g. __are_same<_Tp, _Tp>::__value.
+          const ei = this.enums.get(fq) as EnumInfo;
+          const cs = scope.cls!.consts || (scope.cls!.consts = new Map());
+          for (const item of this.enumValues(ei).keys()) if (!cs.has(item)) cs.set(item, { e: ei, item });
+        }
+        if (scope.cls && !anon) scope.cls.nested.set(d.name, fq);
         return;
       }
       case "func": {
@@ -432,10 +508,17 @@ export class Cx {
     const sub: Scope = { ns: scope.ns.slice(), cls, locals: [], fn: null, returns: [] };
     cls.bases = [];
     for (const b of d.bases) {
-      const bfq = this.resolveClassName(b.name, scope);
+      // A base of a nested class can name a member of the enclosing one.
+      const bfq = this.resolveClassName(b.name, sub);
       cls.bases.push({ fq: bfq, access: b.access, isVirtual: b.isVirtual });
     }
     this.collect(d.members, sub);
+  }
+
+  // The name a class declares itself with: an instance of a template is called
+  // by the template's short name, the arguments belong to its key.
+  declaredName(c: ClsInfo): string {
+    return c.fromTmpl ? last(c.fromTmpl.split("::")) : c.short;
   }
 
   blankCls(fq: string, short: string, decl: ClassDecl, scope: Scope): ClsInfo {
@@ -463,6 +546,15 @@ export class Cx {
       const sub: Scope = { ns: nsFq ? nsFq.split("::") : [], cls: null, locals: [], fn: null, returns: [] };
       this.addFunc(sub, short, d, scope);
       return;
+    }
+    // "int G::operator()()": the qualified name keeps only the class and the
+    // operator itself is carried in d.op.
+    if (d.op && names.length === 1 && names[0] !== "operator") {
+      const owner = this.resolvePrefix(d.name, scope, d);
+      if (owner && owner.k === "class") {
+        this.addMethod(owner.cls, "operator" + d.op, d, scope);
+        return;
+      }
     }
     const short = names[0] === "operator" ? "operator" : names[0];
     if (scope.cls) {
@@ -633,14 +725,41 @@ export class Cx {
     } else if (inner.kind === "func") {
       kind = "func";
       const nm = inner.name.map(s => s.n);
-      fq = nm.length > 1 ? nm.slice(0, -1).join("::") + "::" + last(nm) : this.memberFq(scope, last(nm));
-      if (inner.op) fq = (nm.length > 1 ? nm.slice(0, -1).join("::") : scopeName(scope)) + "::operator" + inner.op;
+      // An out-of-line definition spells its class without the namespace around
+      // it, so the prefix has to be resolved to the class's own fq for the
+      // member to be attached to the instances of that class.
+      const short = inner.op ? "operator" + inner.op : last(nm);
+      // An out-of-line operator spells only its owner in the qualified name,
+      // and a free one spells no owner at all: the "operator" keyword belongs
+      // to the name rather than to a scope.
+      const ownerParts = (inner.op ? inner.name : inner.name.slice(0, -1))
+        .filter(s => s.n !== "operator");
+      fq = ownerParts.length
+        ? this.ownerFq(ownerParts, scope) + "::" + short
+        : this.memberFq(scope, short);
+    } else if (inner.kind === "var") {
+
+      // The definition of a static data member, written outside the class.
+      kind = "data";
+      const short = last(inner.name.map(s => s.n));
+      const ownerParts = inner.name.slice(0, -1);
+      fq = ownerParts.length
+        ? this.ownerFq(ownerParts, scope) + "::" + short
+        : this.memberFq(scope, short);
     } else if (inner.kind === "typedef") {
       kind = "alias";
       fq = this.memberFq(scope, inner.name);
     } else return;
     if (d.isSpec) {
       const t = this.tmpls.get(fq);
+      // A partial specialization keeps its own parameters; only a full one can
+      // have its arguments resolved at this point.
+      if (d.tparams.length) {
+        const part = { tparams: d.tparams, specArgs: d.specArgs, decl: inner };
+        if (t) (t.partials || (t.partials = [])).push(part);
+        else this.tmpls.set(fq, { fq, kind, tparams: [], decl: inner, scope: this.snapScope(scope), specs: [], partials: [part] });
+        return;
+      }
       const args = d.specArgs.map(a => this.resolveTypeNode(a, scope));
       const key = args.map(a => a.key()).join(",");
       if (t) {
@@ -653,7 +772,74 @@ export class Cx {
       }
       return;
     }
-    this.tmpls.set(fq, { fq, kind, tparams, decl: inner, scope: this.snapScope(scope), specs: [] });
+    if (scope.cls) {
+      const short = inner.kind === "func" ? last(inner.name.map(s => s.n)) : (inner as ClassDecl).name;
+      if (short) scope.cls.nested.set(short, fq);
+    }
+    // A template may be declared first with its default arguments and defined
+    // later without them, so the defaults of an earlier declaration are kept.
+    const prev = this.tmpls.get(fq);
+    if (prev) {
+      tparams.forEach((tp, i) => {
+        const old = prev.tparams[i];
+        if (!tp.def && old && old.def) tp.def = old.def;
+      });
+    }
+    this.registerTmpl({ fq, kind, tparams, decl: inner, scope: this.snapScope(scope), specs: prev ? prev.specs : [], partials: prev ? prev.partials : [] });
+  }
+
+  registerTmpl(t: TmplInfo): void {
+    this.tmpls.set(t.fq, t);
+    if (t.kind !== "func") return;
+    const list = this.tmplOverloads.get(t.fq) || [];
+    const sig = this.tmplSig(t);
+    const i = list.findIndex(x => this.tmplSig(x) === sig);
+    // A definition following a declaration is the same template, not an overload.
+    if (i >= 0) { t.ovl = list[i].ovl; list[i] = t; }
+    else { t.ovl = list.length; list.push(t); }
+    this.tmplOverloads.set(t.fq, list);
+  }
+
+  tmplSig(t: TmplInfo): string {
+    const d = t.decl as FuncDecl;
+    const ps = (d.params || []).map(p => JSON.stringify(p.type.parts.map(s => s.n + s.a.length))
+      + p.type.ptr + p.type.ref + (p.isPack ? "..." : "")).join(",");
+    const tps = t.tparams.map(x => x.kind + (x.isPack ? "..." : "")).join(",");
+    return [tps, ps, d.op || "", d.flags.includes("const") ? "c" : ""].join("|");
+  }
+
+  // Every template declared under this name, for overload resolution.
+  // Every template, overloads included: "tmpls" keeps one entry per name, so
+  // scanning it alone would see only the last "operator!=" of a namespace.
+  allTmpls(): TmplInfo[] {
+    const out: TmplInfo[] = [];
+    const seen = new Set<TmplInfo>();
+    for (const list of this.tmplOverloads.values()) {
+      for (const t of list) if (!seen.has(t)) { seen.add(t); out.push(t); }
+    }
+    for (const t of this.tmpls.values()) if (!seen.has(t)) { seen.add(t); out.push(t); }
+    return out;
+  }
+
+  // The namespace a class belongs to: the last "::" that is not inside a
+  // template argument list, since "a::b<c::d>" is a name of namespace "a".
+  nsOfFq(fq: string): string {
+    let depth = 0;
+    let cut = -1;
+    for (let i = 0; i < fq.length - 1; i++) {
+      const ch = fq[i];
+      if (ch === "<") depth++;
+      else if (ch === ">") depth--;
+      else if (ch === ":" && fq[i + 1] === ":" && depth === 0) { cut = i; i++; }
+    }
+    return cut < 0 ? "" : fq.slice(0, cut);
+  }
+
+  tmplsOf(fq: string): TmplInfo[] {
+    const list = this.tmplOverloads.get(fq);
+    if (list && list.length) return list;
+    const one = this.tmpls.get(fq);
+    return one ? [one] : [];
   }
 
   resolveNsName(parts: QSeg[], scope: Scope): string {
@@ -675,11 +861,45 @@ export class Cx {
     if (s.k === "typedef") return s.fq;
     if (s.k === "ns") return s.fq;
     if (s.k === "tmpl") return s.t.fq;
+    if (s.k === "enumval") return this.enumValFq(s.e, s.item);
     return "";
   }
 
+  // An enumerator has no entry of its own: it lives in the namespace that
+  // holds its enum, so that namespace plus the item name is its fq.
+  enumValFq(e: EnumInfo, item: string): string {
+    const i = e.fq.lastIndexOf("::");
+    return (i < 0 ? "" : e.fq.slice(0, i + 2)) + item;
+  }
+
+  enumValOfFq(fq: string): Sym | null {
+    const i = fq.lastIndexOf("::");
+    return this.findEnumVal(i < 0 ? "" : fq.slice(0, i), i < 0 ? fq : fq.slice(i + 2));
+  }
+
+  // The base a constructor initializer names, either directly or through a
+  // typedef of the class as in "vector() : _Base() { }".
+  ctorBase(cls: ClsInfo, name: QSeg[]): string | null {
+    const spelled = name.map(s => s.n).join("::");
+    const direct = cls.bases.find(x => x.fq === spelled || last(x.fq.split("::")) === spelled);
+    if (direct) return direct.fq;
+    let s: Sym | null = null;
+    try {
+      s = this.resolveSym(name, false, this.memberScope(cls));
+      if (s && s.k === "typedef") s = this.symOfType(this.expandTypedef(s.fq, new Set()));
+    } catch {
+      return null;
+    }
+    if (!s || s.k !== "class") return null;
+    const hit = cls.bases.find(x => x.fq === s!.cls!.fq);
+    return hit ? hit.fq : null;
+  }
+
   resolveClassName(parts: QSeg[], scope: Scope): string {
-    const s = this.resolveSym(parts, false, scope);
+    let s = this.resolveSym(parts, false, scope);
+    // A base may be named through a typedef, as in
+    // "struct _Vector_impl : public _Tp_alloc_type".
+    if (s && s.k === "typedef") s = this.symOfType(this.expandTypedef(s.fq, new Set()));
     if (s && s.k === "class") return s.cls.fq;
     this.fail(`unknown base class '${parts.map(x => x.n).join("::")}'`);
   }
@@ -698,8 +918,9 @@ export class Cx {
       const v = scope.locals[i].get(name);
       if (v) return { k: "var", v };
     }
-    if (scope.cls) {
-      const m = this.lookupMember(scope.cls.fq, name, new Set());
+    // The names of the enclosing classes are visible inside a nested class.
+    for (let c = scope.cls; c; c = c.scope.cls) {
+      const m = this.lookupMember(c.fq, name, new Set());
       if (m.field) {
         const cls = this.classes.get(m.owner) as ClsInfo;
         const fd = cls.fields.get(name) as VarDecl;
@@ -707,6 +928,7 @@ export class Cx {
       }
       if (m.methods) return { k: "func", fns: m.methods };
       if (m.nested) return this.symOfNested(m.nested);
+      if (m.typedef) return { k: "typedef", fq: m.typedef };
     }
     for (let i = scope.ns.length; i >= 0; i--) {
       const pre = scope.ns.slice(0, i).join("::");
@@ -775,6 +997,8 @@ export class Cx {
     if (this.typedefs.has(fq)) return { k: "typedef", fq };
     if (this.tmpls.has(fq)) return { k: "tmpl", t: this.tmpls.get(fq) as TmplInfo };
     if (this.nss.has(fq)) return { k: "ns", fq };
+    const ev = this.enumValOfFq(fq);
+    if (ev) return ev;
     return null;
   }
 
@@ -790,14 +1014,14 @@ export class Cx {
   fieldVar(cls: ClsInfo, name: string, fd: VarDecl): VarInfo {
     return {
       fq: cls.fq + "::" + name, short: name, mangled: name,
-      decl: fd, scope: cls.scope, typeCache: null, storage: "plain",
+      decl: fd, scope: this.memberScope(cls), typeCache: null, storage: "plain",
       isGlobal: false, isStatic: cls.fieldStatic.has(name),
       isParam: false, isField: true, lifted: false, referenced: false,
     };
   }
 
-  lookupMember(clsFq: string, name: string, seen: Set<string>): { field: boolean; methods: FuncInfo[] | null; nested: string | null; owner: string } {
-    const r = { field: false, methods: null as FuncInfo[] | null, nested: null as string | null, owner: clsFq };
+  lookupMember(clsFq: string, name: string, seen: Set<string>): { field: boolean; methods: FuncInfo[] | null; nested: string | null; typedef: string | null; constItem: { e: EnumInfo; item: string } | null; owner: string } {
+    const r = { field: false, methods: null as FuncInfo[] | null, nested: null as string | null, typedef: null as string | null, constItem: null as { e: EnumInfo; item: string } | null, owner: clsFq };
     const cls = this.classes.get(clsFq);
     if (!cls || seen.has(clsFq)) return r;
     seen.add(clsFq);
@@ -834,6 +1058,19 @@ export class Cx {
       r.owner = clsFq;
       return r;
     }
+    if (cls.consts && cls.consts.has(name)) {
+      r.constItem = cls.consts.get(name) as { e: EnumInfo; item: string };
+      r.owner = clsFq;
+      return r;
+    }
+    // "_Vector_impl : public _Tp_alloc_type": a typedef of the enclosing class
+    // names a base class of a nested one.
+    const tfq = clsFq + "::" + name;
+    if (this.typedefs.has(tfq)) {
+      r.typedef = tfq;
+      r.owner = clsFq;
+      return r;
+    }
     let methods = r.methods ? r.methods.slice() : null;
     for (const b of cls.bases) {
       const sub = this.lookupMember(b.fq, name, seen);
@@ -847,6 +1084,7 @@ export class Cx {
         }
       }
       if (sub.nested && !methods && !r.field) return sub;
+      if (sub.typedef && !methods && !r.field) return sub;
     }
     if (methods) {
       r.methods = methods;
@@ -857,6 +1095,13 @@ export class Cx {
 
   resolveSym(parts: QSeg[], global: boolean, scope: Scope): Sym | null {
     if (!parts.length) return null;
+    // The injected class name: inside a class its own name, written without
+    // arguments, stands for the class itself rather than for its template.
+    if (!global && !parts[0].a.length) {
+      for (let c = scope.cls; c; c = c.scope.cls) {
+        if (this.declaredName(c) === parts[0].n) return { k: "class", cls: c };
+      }
+    }
     let sym: Sym | null;
     let idx = 0;
     if (global) {
@@ -870,7 +1115,13 @@ export class Cx {
     idx = 1;
     for (; idx < parts.length; idx++) {
       sym = this.lookupNext(sym, parts[idx], scope);
-      if (!sym) return null;
+      if (!sym) break;
+    }
+    if (!sym && parts.length > 1 && scope.cls) {
+      // "basic_string<_CharT, ...>::_Rep" written inside the class: the plain
+      // head finds the constructor before the class template, so the whole path
+      // is looked up again where only the namespaces are in scope.
+      return this.resolveSym(parts, global, { ns: scope.ns.slice(), cls: null, locals: [], fn: null, returns: [] });
     }
     return sym;
   }
@@ -883,6 +1134,13 @@ export class Cx {
 
   applySegArgs(sym: Sym, seg: QSeg, scope: Scope): Sym | null {
     if (!seg.a.length) return sym;
+    // Instantiating a member function template also registers it as a plain
+    // method, so a later "f<A, B>(x)" finds the function before the template.
+    // A template-id always names the template.
+    if (sym.k === "func" && sym.fns.length) {
+      const t = this.tmpls.get(sym.fns[0].fromTmpl || sym.fns[0].fq);
+      if (t) sym = { k: "tmpl", t };
+    }
     if (sym.k !== "tmpl") return null;
     const args = seg.a.map(a => this.resolveTypeNode(a, scope));
     return this.instantiateTmplSeg(sym.t, args, scope);
@@ -923,6 +1181,7 @@ export class Cx {
         next = { k: "var", v: this.fieldVar(cls, name, cls.fields.get(name) as VarDecl) };
       } else if (m.methods) next = { k: "func", fns: m.methods };
       else if (m.nested) next = this.symOfNested(m.nested);
+      else if (m.constItem) next = { k: "enumval", e: m.constItem.e, item: m.constItem.item };
     } else if (sym.k === "enum") {
       this.enumValues(sym.e);
       if ((sym.e.values as Map<string, number>).has(name)) next = { k: "enumval", e: sym.e, item: name };
@@ -969,11 +1228,35 @@ export class Cx {
   funcParams(fn: FuncInfo): FuncParam[] {
     if (!fn.paramCache) {
       fn.paramCache = fn.decl.params.map(p => ({
-        name: p.name, type: this.resolveTypeNode(p.type, fn.scope),
+        name: p.name,
+        // The trailing "..." of a variadic function has no type of its own.
+        type: p.variadic && !p.name ? CppType.basic("void") : this.resolveTypeNode(p.type, fn.scope),
         def: p.def, variadic: p.variadic, isPack: p.isPack,
       }));
     }
     return fn.paramCache;
+  }
+
+  // A trailing return type is written in the scope of the parameters, so that
+  // "-> decltype(__lhs.base() - __rhs.base())" can name them.
+  paramScope(fn: FuncInfo): Scope {
+    const s = this.snapScope(fn.scope);
+    s.fn = fn;
+    const m = new Map<string, VarInfo>();
+    s.locals.push(m);
+    for (const p of this.funcParams(fn)) {
+      if (!p.name) continue;
+      m.set(p.name, {
+        fq: fn.fq + "::" + p.name, short: p.name, mangled: p.name, lifted: false,
+        decl: {
+          kind: "var", name: [qseg(p.name)], type: typeNode([]), init: null, directInit: null,
+          flags: [], bitfield: null, isParam: true, file: fn.decl.file, line: fn.decl.line,
+        },
+        scope: s, typeCache: p.type, storage: "plain",
+        isGlobal: false, isStatic: false, isParam: true, isField: false, referenced: false,
+      });
+    }
+    return s;
   }
 
   funcRet(fn: FuncInfo): CppType {
@@ -985,7 +1268,7 @@ export class Cx {
       }
       this.retStack.add(fn);
       try {
-        if (fn.decl.trailing) fn.retCache = this.resolveTypeNode(fn.decl.trailing, fn.scope);
+        if (fn.decl.trailing) fn.retCache = this.resolveTypeNode(fn.decl.trailing, this.paramScope(fn));
         else if (fn.decl.ret) fn.retCache = this.resolveTypeNode(fn.decl.ret, fn.scope);
         else fn.retCache = CppType.basic("void");
       } finally {
@@ -995,17 +1278,43 @@ export class Cx {
     return fn.retCache;
   }
 
+  // A member declaration is resolved in the scope of its own class, so that
+  // typedefs and nested names declared next to it are visible.
+  memberScope(cls: ClsInfo): Scope {
+    return { ns: cls.scope.ns.slice(), cls, locals: [], fn: null, returns: [] };
+  }
+
   fieldType(cls: ClsInfo, name: string): CppType {
     let t = cls.fieldTypes.get(name);
     if (!t) {
       const fd = cls.fields.get(name) as VarDecl;
-      t = this.resolveTypeNode(fd.type, cls.scope);
+      t = this.resolveTypeNode(fd.type, this.memberScope(cls));
       cls.fieldTypes.set(name, t);
     }
     return t;
   }
 
+  // Types currently being resolved, so a loop says which names are in it
+  // instead of exhausting the stack.
+  resolving: string[] = [];
+
   resolveTypeNode(tn: TypeNode, scope: Scope): CppType {
+    const key = tnKey(tn);
+    const at = this.resolving.indexOf(key);
+    this.resolving.push(key);
+    if (at >= 0) {
+      const loop = this.resolving.slice(at).join(" -> ");
+      this.resolving.length = 0;
+      this.fail("cyclic type resolution: " + loop, tn);
+    }
+    try {
+      return this.resolveTypeNodeInner(tn, scope);
+    } finally {
+      this.resolving.pop();
+    }
+  }
+
+  resolveTypeNodeInner(tn: TypeNode, scope: Scope): CppType {
     if (tn.decltypeOf) return typeOf(this, tn.decltypeOf, scope);
     if (tn.valueArg) {
       const v = constEval(this, tn.valueArg, scope);
@@ -1027,7 +1336,10 @@ export class Cx {
         return t;
       }
     }
-    const sym = this.resolveSym(tn.parts, tn.global, scope);
+    let sym = this.resolveSym(tn.parts, tn.global, scope);
+    // A synthesized declaration spells an instantiated class by its key, which
+    // reads as several names but denotes the one class the key names.
+    if (!sym && tn.parts.every(x => !x.a.length)) sym = this.symOfFq(tn.parts.map(x => x.n).join("::"));
     if (!sym) this.fail(`unknown type '${tn.parts.map(s => s.n).join("::")}'`, tn);
     const s = sym as Sym;
     let base: CppType;
@@ -1045,10 +1357,16 @@ export class Cx {
       if (s.t.kind === "class") {
         const cls = this.instantiateClass(s.t.fq, [], scope, tn);
         base = new CppType(cls.fq);
-        base.segs = [{ n: cls.fq, a: cls.instArgs.slice() }];
+        base.segs = [{ n: cls.fromTmpl || cls.fq, a: cls.instArgs.slice() }];
         this.markCls(cls.fq);
       } else if (s.t.kind === "alias") {
         base = this.instantiateAlias(s.t.fq, [], scope);
+      } else if (s.t.kind === "func" && (s.t.decl as FuncDecl).isCtor && s.t.scope.cls) {
+        // A constructor template named in a type position stands for its class.
+        const cls = s.t.scope.cls;
+        base = new CppType(cls.fq);
+        base.segs = [{ n: cls.fromTmpl || cls.fq, a: cls.instArgs.slice() }];
+        this.markCls(cls.fq);
       } else this.fail(`'${s.t.fq}' is not a type`, tn);
     } else if (s.k === "enumval") {
       const vals = this.enumValues(s.e);
@@ -1057,6 +1375,14 @@ export class Cx {
       const v = constEval(this, { kind: "id", parts: tn.parts, global: tn.global, file: tn.file, line: tn.line }, scope);
       if (typeof v !== "number") this.fail(`'${tn.parts.map(x => x.n).join("::")}' is not a type`, tn);
       base = CppType.basic("__value" + Math.trunc(v));
+    } else if (s.k === "func" && (s as Sym & { k: "func" }).fns.some(f => f.isCtor)) {
+      // "new_allocator<_Tp1>" names a constructor, which in a type position
+      // stands for the class it constructs.
+      const cls = this.classes.get((s as Sym & { k: "func" }).fns[0].cls);
+      if (!cls) this.fail(`'${tn.parts.map(x => x.n).join("::")}' is not a type`, tn);
+      base = new CppType(cls.fq);
+      base.segs = [{ n: cls.fromTmpl || cls.fq, a: cls.instArgs.slice() }];
+      this.markCls(cls.fq);
     } else this.fail(`'${tn.parts.map(x => x.n).join("::")}' is not a type`, tn);
     this.applyTypeSuffix(base, tn, scope);
     return base;
@@ -1115,20 +1441,126 @@ export class Cx {
       this.markCls(key);
       return exist;
     }
+    // The specialization can be declared in one header and defined in another
+    // ("charfwd.h" declares char_traits<char>, "char_traits.h" defines it);
+    // a declaration that carries members is the one to instantiate.
+    const want = full.map(a => a.key()).join(",");
+    let spec: TmplInfo["specs"][number] | null = null;
     for (const s of (tmpl as TmplInfo).specs) {
-      if (s.key === full.map(a => a.key()).join(",")) {
-        return this.instantiateClassDecl(key, tmpl as TmplInfo, s.decl as ClassDecl, full, blankSubstEnv(), t);
-      }
+      if (s.key !== want) continue;
+      spec = s;
+      if ((s.decl as ClassDecl).members.length) break;
     }
+    if (spec) return this.instantiateClassDecl(key, tmpl as TmplInfo, spec.decl as ClassDecl, full, blankSubstEnv(), t);
     if (this.instStack.includes(key)) this.fail(`recursive instantiation of '${key}'`, t || undefined);
     this.instStack.push(key);
     try {
+      for (const p of (tmpl as TmplInfo).partials || []) {
+        const env = this.matchPartial(p, full, tmpl as TmplInfo);
+        if (env) return this.instantiateClassDecl(key, tmpl as TmplInfo, substDecl(p.decl, env) as ClassDecl, full, env, t);
+      }
       const env = this.buildEnv((tmpl as TmplInfo).tparams, full);
       const decl = substDecl((tmpl as TmplInfo).decl, env) as ClassDecl;
       return this.instantiateClassDecl(key, tmpl as TmplInfo, decl, full, env, t);
     } finally {
       this.instStack.pop();
     }
+  }
+
+  // Match the argument list of a partial specialization against the arguments
+  // of an instantiation; the result substitutes into the specialization.
+  matchPartial(p: { tparams: TParam[]; specArgs: TypeNode[]; decl: Decl }, args: CppType[], tmpl: TmplInfo): SubstEnv | null {
+    // Every argument has to be accounted for, so the arities must agree - a
+    // trailing pack being the one exception, it takes whatever is left over.
+    const last = p.specArgs.length ? p.specArgs[p.specArgs.length - 1] : null;
+    const packTn = last && last.packExpand ? last : null;
+    const fixed = p.specArgs.length - (packTn ? 1 : 0);
+    if (packTn ? fixed > args.length : p.specArgs.length !== args.length) return null;
+    const env = blankSubstEnv();
+    const names = new Set(p.tparams.map(x => x.name));
+    for (let i = 0; i < fixed; i++) {
+      if (!this.matchTypeArg(p.specArgs[i], args[i], names, env, tmpl.scope)) return null;
+    }
+    if (packTn && packTn.parts.length) env.packs.set(packTn.parts[0].n, args.slice(fixed));
+    for (const tp of p.tparams) {
+      // A pack binds in env.packs, so it is never in env.types; unlike a plain
+      // parameter it needs no default of its own.
+      if (tp.isPack || env.types.has(tp.name) || env.values.has(tp.name)) continue;
+      if (!tp.def) return null;
+      if (tp.kind === "nontype") {
+        const v = constEval(this, substExpr(tp.def as Expr, env), tmpl.scope);
+        if (typeof v !== "number") return null;
+        env.values.set(tp.name, Math.trunc(v));
+      } else {
+        env.types.set(tp.name, this.resolveTypeNode(substTypeNode(tp.def as TypeNode, env), tmpl.scope));
+      }
+    }
+    return env;
+  }
+
+  // Match a function-type pattern such as "_Res(_ArgTypes...)": the return
+  // type binds to _Res, the parameters to the leading patterns and whatever is
+  // left over to a trailing pack.
+  matchFuncArg(tn: TypeNode, t: CppType, names: Set<string>, env: SubstEnv, scope: Scope, ret: string): boolean {
+    if (!t.isFunc || !t.ret) return false;
+    const have = env.types.get(ret);
+    if (have) {
+      if (have.key() !== t.ret.key()) return false;
+    } else {
+      env.types.set(ret, t.ret);
+    }
+    const pat = tn.func ? tn.func.params : [];
+    const act = t.funcParams || [];
+    const lp = pat.length ? pat[pat.length - 1] : null;
+    const pack = lp && lp.packExpand && lp.parts.length === 1 && !lp.parts[0].a.length && names.has(lp.parts[0].n)
+      ? lp.parts[0].n : null;
+    const n = pat.length - (pack ? 1 : 0);
+    if (pack ? act.length < n : act.length !== n) return false;
+    if (pack) env.packs.set(pack, act.slice(n));
+    for (let i = 0; i < n; i++) {
+      if (!this.matchTypeArg(pat[i], act[i], names, env, scope)) return false;
+    }
+    return true;
+  }
+
+  matchTypeArg(tn: TypeNode, t: CppType, names: Set<string>, env: SubstEnv, scope: Scope): boolean {
+    if (tn.valueArg) {
+      // The argument may be an expression over parameters matched earlier, as
+      // in "conditional<_B1::value, ...>", so it is substituted first.
+      const v = constEval(this, substExpr(tn.valueArg, env), scope);
+      return typeof v === "number" && t.name === "__value" + Math.trunc(v);
+    }
+    if (!tn.parts.length) return false;
+    const first = tn.parts[0].n;
+    if (tn.parts.length === 1 && !tn.parts[0].a.length && names.has(first)) {
+      // "_Res(_Args...)" is a function type: only a function argument matches,
+      // and its parameter list has to line up with the pattern.
+      if (tn.func) return this.matchFuncArg(tn, t, names, env, scope, first);
+      if (t.ptr < tn.ptr || (tn.ref && tn.ref !== t.ref)) return false;
+      // "_Tp[]" and "_Tp[_Size]" only match arrays; without this the array
+      // specialization of remove_all_extents is picked for a plain int.
+      if (tn.dims.length !== t.dims.length) return false;
+      if (env.types.has(first)) return (env.types.get(first) as CppType).key() === t.key();
+      const c = new CppType(t.name);
+      c.segs = t.segs;
+      c.ptr = t.ptr - tn.ptr;
+      c.dims = t.dims.slice();
+      c.isFunc = t.isFunc;
+      c.ret = t.ret;
+      c.funcParams = t.funcParams;
+      c.funcVariadic = t.funcVariadic;
+      env.types.set(first, c);
+      return true;
+    }
+    if (tn.parts[0].a.length && t.segs.length) {
+      const ta = t.segs[0].a;
+      if (ta.length !== tn.parts[0].a.length) return false;
+      for (let i = 0; i < ta.length; i++) {
+        if (!this.matchTypeArg(tn.parts[0].a[i], ta[i], names, env, scope)) return false;
+      }
+      return true;
+    }
+    return this.resolveTypeNode(tn, scope).key() === t.key();
   }
 
   instantiateClassDecl(key: string, tmpl: TmplInfo, decl: ClassDecl, args: CppType[], env: SubstEnv, t: At | null): ClsInfo {
@@ -1146,33 +1578,93 @@ export class Cx {
       cls.bases.push({ fq: this.resolveClassName(b.name, sub), access: b.access, isVirtual: b.isVirtual });
     }
     this.collect(decl.members, sub);
-    this.instantiateOutOfLineMembers(tmpl, key, cls, args);
+    // A constructor declaration keeps its default arguments; a call can need
+    // one of them before the function itself is ever analyzed.
+    for (const list of cls.methods.values()) {
+      for (const fn of list) this.annDefaults(fn.decl, this.memberScope(cls));
+    }
+    if (this.collecting) this.pendingOOL.push({ tmpl, key, cls, args });
+    else this.instantiateOutOfLineMembers(tmpl, key, cls, args);
     this.markCls(key);
     return cls;
+  }
+
+  flushOutOfLine(): void {
+    this.collecting = false;
+    const list = this.pendingOOL;
+    this.pendingOOL = [];
+    for (const p of list) this.instantiateOutOfLineMembers(p.tmpl, p.key, p.cls, p.args);
   }
 
   instantiateOutOfLineMembers(tmpl: TmplInfo, key: string, cls: ClsInfo, args: CppType[]): void {
     const prefix = tmpl.fq + "::";
     const outer = tmpl.tparams.length;
-    for (const t of this.tmpls.values()) {
+    for (const t of this.allTmpls()) {
       if (!t.fq.startsWith(prefix)) continue;
       const env = this.buildEnv(tmpl.tparams, args);
       const rest = t.tparams.slice(outer);
       const newFq = key + "::" + t.fq.slice(prefix.length);
-      if (t.kind === "func" && !rest.length) {
+      // The member can belong to a nested class of the instantiated one:
+      // "W2<int>::N::get" is a method of W2<int>::N, not of W2<int>.
+      const owner = this.classes.get(this.nsOfFq(newFq)) || cls;
+      if (t.kind === "data" && !rest.length) {
+        const decl = substDecl(t.decl, env) as VarDecl;
+        const short = last(decl.name).n;
+        const fd = owner.fields.get(short);
+        // The declaration inside the class carries no value; the definition
+        // does, and it is what the emitted static field is initialized from.
+        if (fd && !fd.init && !fd.directInit && decl.init) {
+          owner.fields.set(short, decl);
+          try {
+            typeOf(this, decl.init, this.memberScope(owner));
+          } catch {
+            /* the emitter reports a value it cannot evaluate */
+          }
+        }
+      } else if (t.kind === "func" && !rest.length) {
         const decl = substDecl(t.decl, env) as FuncDecl;
-        const exist = this.findMethod(cls, decl);
+        this.annDefaults(decl, this.memberScope(owner));
+        const exist = this.findMethod(owner, decl);
         if (exist && !exist.decl.body && decl.body) {
           exist.decl = decl;
-          exist.scope = this.snapScope(cls.scope);
+          exist.scope = this.memberScope(owner);
         } else if (!exist) {
-          this.addMethod(cls, this.methodShort(decl), decl, cls.scope);
+          this.addMethod(owner, this.methodShort(decl), decl, this.memberScope(owner));
         }
       } else {
         const decl = substDecl(t.decl, env);
-        this.tmpls.set(newFq, { fq: newFq, kind: t.kind, tparams: rest, decl, scope: this.snapScope(cls.scope), specs: [] });
+        // registerTmpl, not tmpls.set: the declaration of this member that the
+        // class body carries is the same template, and the definition replaces it.
+        // The member's own scope: the class's typedefs are visible in an
+        // out-of-line definition.
+        this.registerTmpl({ fq: newFq, kind: t.kind, tparams: rest, decl, scope: this.memberScope(owner), specs: [] });
       }
     }
+  }
+
+  // The fq of the class or namespace a qualified name is written against.  The
+  // template arguments are dropped: reading them would instantiate the class.
+  ownerFq(parts: QSeg[], scope: Scope): string {
+    const whole = this.resolveOwnerPath(parts, scope);
+    if (whole) return whole;
+    // What is left names members of a class that is still a template, which
+    // cannot be resolved from here: they are kept as written behind whatever
+    // the first name turns out to be.
+    const head = this.resolveOwnerPath([parts[0]], scope) || parts[0].n;
+    return parts.length > 1 ? head + "::" + parts.slice(1).map(s => s.n).join("::") : head;
+  }
+
+  resolveOwnerPath(parts: QSeg[], scope: Scope): string | null {
+    let owner: Sym | null = null;
+    try {
+      owner = this.resolveSym(parts.map(s => qseg(s.n)), false, scope);
+    } catch {
+      owner = null;
+    }
+    if (owner && owner.k === "class") return owner.cls.fq;
+    if (owner && owner.k === "tmpl") return owner.t.fq;
+    if (owner && owner.k === "ns") return owner.fq;
+    return null;
   }
 
   methodShort(d: FuncDecl): string {
@@ -1200,8 +1692,21 @@ export class Cx {
     return this.resolveTypeNode(tn, (tmpl as TmplInfo).scope);
   }
 
+  // Substitution produces fresh expression nodes. A default argument can be
+  // needed before the function that owns it is analyzed, so it is typed here.
+  annDefaults(decl: FuncDecl, scope: Scope): void {
+    for (const pd of decl.params) {
+      if (!pd.def) continue;
+      try { typeOf(this, pd.def, scope); } catch { /* the annotator retries */ }
+    }
+  }
+
   instantiateFunc(tmpl: TmplInfo, args: CppType[], given: Map<string, CppType>): FuncInfo {
-    const key = tmpl.fq + "<" + args.map(a => a.key()).join(",") + ">";
+    // Overloads of one name are different functions: without the position of
+    // this one among them, "operator!=" for reverse_iterator would stand in
+    // for the one for move_iterator.
+    const tag = tmpl.ovl ? "#" + tmpl.ovl : "";
+    const key = tmpl.fq + tag + "<" + args.map(a => a.key()).join(",") + ">";
     const exist = this.funcInsts.get(key);
     if (exist) return exist;
     const env = this.buildEnv(tmpl.tparams, args);
@@ -1209,6 +1714,7 @@ export class Cx {
       if (!env.types.has(k)) env.types.set(k, v);
     }
     const decl = substDecl(tmpl.decl, env) as FuncDecl;
+    this.annDefaults(decl, this.snapScope(tmpl.scope));
     const fn: FuncInfo = {
       fq: key, short: last(tmpl.fq.split("::")), mangled: mangleType(key),
       decl, scope: this.snapScope(tmpl.scope), paramCache: null, retCache: null,
@@ -1260,7 +1766,7 @@ export class Cx {
   }
 
   buildEnv(tparams: TParam[], args: CppType[]): SubstEnv {
-    const env: SubstEnv = { types: new Map(), packs: new Map(), values: new Map(), valuePacks: new Map(), packNames: new Map() };
+    const env: SubstEnv = { types: new Map(), packs: new Map(), values: new Map(), valuePacks: new Map(), packNames: new Map(), packOf: new Map() };
     let ai = 0;
     for (const tp of tparams) {
       if (tp.isPack) {
@@ -1324,8 +1830,10 @@ export class Cx {
     return ps.length === 1 && !ps[0].variadic && this.stripAll(ps[0].type) === cls.fq;
   }
 
+  // The class name a type denotes, template arguments included, in the same
+  // spelling instantiateClass uses for its key.
   stripAll(t: CppType): string {
-    return t.segs.map(g => g.n).join("::");
+    return t.segs.map(g => g.a.length ? g.n + "<" + g.a.map(a => a.key()).join(",") + ">" : g.n).join("::");
   }
 
   synthCtor(cls: ClsInfo, copy: boolean, o: null): FuncDecl {
@@ -1397,8 +1905,17 @@ export function isBoxedVar(t: CppType): boolean {
   return t.isBox() && !t.isFunc;
 }
 
+// Pointers and references keep a token of their own: folding every
+// punctuation into "_" made "T<int&>" and "T<int>" come out as one identifier,
+// which the target language rejects as a duplicate declaration.
 export function mangleType(fq: string): string {
-  return fq.replace(/[^A-Za-z0-9]/g, "_").replace(/_+/g, "_").replace(/^_|_$/g, "");
+  return fq
+    .replace(/&&/g, "_RR_")
+    .replace(/&/g, "_R_")
+    .replace(/\*/g, "_P_")
+    .replace(/[^A-Za-z0-9]/g, "_")
+    .replace(/_+/g, "_")
+    .replace(/^_|_$/g, "");
 }
 
 }

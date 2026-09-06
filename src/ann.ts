@@ -2,6 +2,7 @@ namespace CTJ {
 
 export function analyzeAll(cx: Cx, tu: TranslationUnit): void {
   cx.collect(tu.decls, rootScope());
+  cx.flushOutOfLine();
   for (const e of cx.explicitInst) doExplicitInst(cx, e.decl, e.scope);
   for (const a of cx.asserts) {
     const v = constEval(cx, a.cond, a.scope);
@@ -29,16 +30,15 @@ function finalizeFields(cx: Cx): void {
       if (fd.init || fd.directInit) {
         const v: VarInfo = {
           fq: cls.fq + "::" + name, short: name, mangled: name,
-          decl: fd, scope: cls.scope, typeCache: ft,
+          decl: fd, scope: cx.memberScope(cls), typeCache: ft,
           storage: isBoxedVar(ft) ? "box" : "plain",
           isGlobal: false, isStatic: cls.fieldStatic.has(name),
           isParam: false, isField: true, lifted: false, referenced: true,
         };
-        const sub = cx.snapScope(cls.scope);
-        sub.fn = null;
+        const sub = cx.memberScope(cls);
         annotateVarInit(cx, v, sub);
       } else if (fcls && cx.classes.has(fcls)) {
-        const r = tryResolveCtor(cx, fcls, [], cls.scope);
+        const r = tryResolveCtor(cx, fcls, [], cx.memberScope(cls));
         if (r) cx.getAnn(fd).call = r.fn;
       }
     }
@@ -156,10 +156,10 @@ function annotateCtorInit(cx: Cx, fn: FuncInfo, c: CtorInit, scope: Scope): void
   const cls = cx.classes.get(fn.cls);
   if (!cls) cx.fail("constructor initializer outside class", c);
   const name = c.name.map(s => s.n).join("::");
-  const base = (cls as ClsInfo).bases.find(b => b.fq === name || last(b.fq.split("::")) === name);
+  const base = cx.ctorBase(cls as ClsInfo, c.name);
   const argTs = c.args.map(e => ({ t: typeOf(cx, e, scope), e }));
   if (base) {
-    const r = resolveCtor(cx, base.fq, argTs, scope, c);
+    const r = resolveCtor(cx, base, argTs, scope, c);
     cx.getAnn(c).call = r.fn;
     cx.getAnn(c).convs = r.convs;
     return;
@@ -192,6 +192,10 @@ function annotateFieldInit(cx: Cx, cls: ClsInfo, short: string, ft: CppType, arg
 export function annotateStmt(cx: Cx, s: Stmt, scope: Scope): void {
   switch (s.kind) {
     case "compound": {
+      if (s.sameScope) {
+        for (const x of s.stmts) annotateStmt(cx, x, scope);
+        return;
+      }
       scope.locals.push(new Map());
       try {
         for (const x of s.stmts) annotateStmt(cx, x, scope);
@@ -421,7 +425,7 @@ function annotateLocalVar(cx: Cx, vd: VarDecl, scope: Scope): void {
     t = deduceAuto(cx, t, it, vd);
   }
   if (t.name.startsWith("__value")) cx.fail(`'${name}' declared with non-type`, vd);
-  if (t.name === "void") cx.fail(`variable '${name}' has void type`, vd);
+  if (t.name === "void" && !t.ptr && !t.dims.length) cx.fail(`variable '${name}' has void type`, vd);
   const isStatic = vd.flags.includes("static") || vd.flags.includes("extern");
   let v: VarInfo;
   if (isStatic && scope.fn) {
@@ -572,7 +576,8 @@ function markBoxed(cx: Cx, e: Expr): void {
   while (cur.kind === "cast") cur = cur.arg;
   if (cur.kind === "id") {
     const s = cx.getAnn(cur).sym;
-    if (s && s.k === "var") {
+    // A field is stored in its object, so it has no boxing convention of its own.
+    if (s && s.k === "var" && !s.v.isField) {
       if (s.v.storage === "plain") s.v.storage = "boxed";
       else if (s.v.storage === "box" && !(s.v.typeCache && s.v.typeCache.ref)) s.v.storage = "bbox";
     }

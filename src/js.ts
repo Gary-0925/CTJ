@@ -130,6 +130,25 @@ class JsGen {
     return `$t${this.tmpN++}`;
   }
 
+  // The temporaries a body needs are only known once it has been emitted, so
+  // the body goes into a buffer and the declarations follow the signature.
+  withTmpDecl(signature: string, body: () => void): void {
+    const base = this.tmpN;
+    const save = this.out;
+    const lines: string[] = [];
+    this.out = lines;
+    this.ind += "  ";
+    body();
+    this.ind = this.ind.slice(0, -2);
+    this.out = save;
+    this.line(signature);
+    this.ind += "  ";
+    if (this.tmpN > base) this.line(this.tmpDecl(base, this.tmpN));
+    for (const l of lines) this.out.push(l);
+    this.ind = this.ind.slice(0, -2);
+    this.line(`}`);
+  }
+
   tmpDecl(a: number, b: number): string {
     const ns: string[] = [];
     for (let i = a; i < b; i++) ns.push(`$t${i}`);
@@ -157,7 +176,8 @@ class JsGen {
         const ft = this.cx.fieldType(c, name);
         const init = fd.init || (fd.directInit ? null : null);
         if (init) {
-          this.line(`static ${safeJsName(name)} = ${this.argFor(ft, init as Expr, null)};`);
+          const folded = this.foldStaticConst(c, ft, fd, init as Expr);
+          this.line(`static ${safeJsName(name)} = ${folded !== null ? folded : this.argFor(ft, init as Expr, null)};`);
         } else if (fd.directInit && fd.directInit.length) {
           const a = this.cx.getAnn(fd);
           if (a.call) {
@@ -208,10 +228,22 @@ class JsGen {
     const all: { fn: FuncInfo; inh: string }[] = [];
     for (const f of ctors) all.push({ fn: f, inh: "" });
     for (const h of inherited) all.push({ fn: h.fn, inh: h.base });
+    // The base arguments are expressions written in the constructor's own
+    // scope, where its parameters are the incoming $a.
     const baseArgs = (bi: number, fn: FuncInfo, inh: string): string => {
+      this.alias.push(new Map());
+      this.cx.funcParams(fn).forEach((p, i) => {
+        if (!p.variadic && p.name) this.alias[this.alias.length - 1].set(p.name, this.ctorArg(p, i));
+      });
+      const r = baseArgsOf(bi, fn, inh);
+      this.alias.pop();
+      return r;
+    };
+    const baseArgsOf = (bi: number, fn: FuncInfo, inh: string): string => {
       const b = c.bases[bi];
       const bc = this.cx.classes.get(b.fq) as ClsInfo;
       const bn = bc.mangled as string;
+      void bn;
       const list = fn.decl.ctorInit;
       const hit = !inh ? list.find(x => last(x.name).n === bc.short || last(x.name).n === b.fq) : null;
       if (inh && b.fq === inh) {
@@ -234,8 +266,9 @@ class JsGen {
       if (all.length <= 1) {
         this.line(`super(${all.length ? baseArgs(0, all[0].fn, all[0].inh) : ""});`);
       } else {
+        const sib = this.siblingClasses(all.map(x => x.fn));
         const parts = all.map((x, i) => {
-          const cond = this.matchCond(x.fn, i);
+          const cond = this.matchCond(x.fn, i, sib[i]);
           return `${cond} ? [${baseArgs(0, x.fn, x.inh).replace(/^\.\.\./, "")}] : `;
         });
         this.line(`super(...(${parts.join("")}[]));`);
@@ -244,41 +277,77 @@ class JsGen {
     this.line(`this.__init_${cn}(...$a);`);
     this.ind = this.ind.slice(0, -2);
     this.line(`}`);
-    this.line(`__init_${cn}(...$a) {`);
-    this.ind += "  ";
-    if (all.length <= 1) {
-      if (all.length) this.ctorBranch(c, all[0].fn, all[0].inh);
-      else this.ctorDefault(c);
-    } else {
-      all.forEach((x, i) => {
-        this.line(`${i === 0 ? "if" : "else if"} (${this.matchCond(x.fn, i)}) {`);
+    this.withTmpDecl(`__init_${cn}(...$a) {`, () => {
+      if (all.length <= 1) {
+        if (all.length) this.ctorBranch(c, all[0].fn, all[0].inh);
+        else this.ctorDefault(c);
+        return;
+      }
+      // An "instanceof" guard is exact while the one for a pointer or reference
+      // only tells an object from a number, so a branch that names a class has
+      // to be tried before one that takes a box.
+      const exact = (fn: FuncInfo): boolean =>
+        this.cx.funcParams(fn).some(p => this.typeCheck("$", p.type).indexOf("instanceof") >= 0);
+      const ordered = all.filter(x => exact(x.fn)).concat(all.filter(x => !exact(x.fn)));
+      const sib = this.siblingClasses(all.map(x => x.fn));
+      ordered.forEach((x, i) => {
+        this.line(`${i === 0 ? "if" : "else if"} (${this.matchCond(x.fn, i, sib[all.indexOf(x)])}) {`);
         this.ind += "  ";
         this.ctorBranch(c, x.fn, x.inh);
         this.ind = this.ind.slice(0, -2);
         this.line(`}`);
       });
       this.line(`else { throw new Error("no matching constructor"); }`);
-    }
-    this.ind = this.ind.slice(0, -2);
-    this.line(`}`);
+    });
   }
 
-  matchCond(fn: FuncInfo, _i: number): string {
+  matchCond(fn: FuncInfo, _i: number, sib?: Map<string, string[]>): string {
     const ps = this.cx.funcParams(fn);
     const named = ps.filter(p => !p.variadic);
     const min = named.filter(p => !p.def).length;
     const parts = [`$a.length >= ${min}`, `$a.length <= ${named.length}`];
     named.forEach((p, i) => {
-      const chk = this.typeCheck(`$a[${i}]`, p.type);
+      const v = `$a[${i}]`;
+      const chk = this.typeCheck(v, p.type);
       if (chk) parts.push(chk);
+      // A pointer or reference arrives as an {a, i} pair, which "typeof" cannot
+      // tell apart from the object of a sibling overload.
+      if (sib && (p.type.ptr > 0 || p.type.ref) && !p.type.isFunc) {
+        for (const c of sib.get(v) || []) parts.push(`!(${v} instanceof ${c})`);
+      }
     });
     return parts.join(" && ");
+  }
+
+  // For every overload, the classes its siblings name at each argument index.
+  siblingClasses(all: FuncInfo[]): Map<string, string[]>[] {
+    return all.map((fn, k) => {
+      const m = new Map<string, string[]>();
+      all.forEach((other, j) => {
+        if (j === k) return;
+        this.cx.funcParams(other).filter(p => !p.variadic).forEach((p, i) => {
+          const t = p.type;
+          if (t.isBox() || t.dims.length || t.isFunc) return;
+          const c = this.cx.classes.get(this.cx.stripAll(t));
+          if (!c) return;
+          const v = `$a[${i}]`;
+          const list = m.get(v) || [];
+          if (!list.includes(c.mangled as string)) list.push(c.mangled as string);
+          m.set(v, list);
+        });
+      });
+      return m;
+    });
   }
 
   typeCheck(v: string, t: CppType): string {
     if (t.name === "__any") return "";
     if (t.isFunc) return `typeof ${v} === "function"`;
     if (t.isBox()) {
+      if (t.ref && !t.ptr && !t.dims.length && !t.isFunc) {
+        const c = this.cx.classes.get(this.cx.stripAll(t));
+        if (c) return `(${v} !== null && typeof ${v} === "object" && ${v}.a[${v}.i] instanceof ${c.mangled})`;
+      }
       if (t.ptr > 0 || t.ref) return `(${v} === null || typeof ${v} === "object")`;
       return "";
     }
@@ -291,9 +360,16 @@ class JsGen {
     return "";
   }
 
+  // A default argument is a value; a reference or pointer parameter takes a
+  // box, so the default has to be wrapped like any other temporary.
+  defArg(p: { type: CppType; def: Expr | null }): string {
+    const d = this.ex(p.def as Expr);
+    return p.type.isBox() ? `{a: [${d}], i: 0}` : d;
+  }
+
   ctorArg(p: { type: CppType; def: Expr | null }, i: number): string {
     const v = `$a[${i}]`;
-    if (p.def) return `(${v} === undefined ? (${this.ex(p.def)}) : ${v})`;
+    if (p.def) return `(${v} === undefined ? (${this.defArg(p)}) : ${v})`;
     return v;
   }
 
@@ -307,7 +383,7 @@ class JsGen {
       const b = c.bases[bi];
       const bc = this.cx.classes.get(b.fq) as ClsInfo;
       const bn = bc.mangled as string;
-      const hit = !inh ? fn.decl.ctorInit.find(x => last(x.name).n === bc.short || last(x.name).n === b.fq) : null;
+      const hit = !inh ? fn.decl.ctorInit.find(x => this.cx.ctorBase(c, x.name) === b.fq) : null;
       if (inh && b.fq === inh) {
         const aa: string[] = [];
         ps.forEach((p, i) => { if (!p.variadic) aa.push(this.ctorArg(p, i)); });
@@ -392,7 +468,7 @@ class JsGen {
       return pt ? this.argFor(pt, x, convs[i] || null) : this.ex(x);
     });
     for (let i = args.length; i < ps.length && !ps[i].variadic; i++) {
-      aa.push(ps[i].def ? this.ex(ps[i].def as Expr) : "undefined");
+      aa.push(ps[i].def ? this.defArg(ps[i]) : "undefined");
     }
     return `new ${cn}(${aa.join(", ")})`;
   }
@@ -442,7 +518,7 @@ class JsGen {
       ps.forEach((p, i) => {
         const nm = p.name ? safeJsName(p.name) : `$p${i}`;
         if (p.variadic) decl.push(`...${nm}_rest`);
-        else if (p.def) decl.push(`${nm} = ${this.ex(p.def)}`);
+        else if (p.def) decl.push(`${nm} = ${this.defArg(p)}`);
         else decl.push(nm);
       });
       const base = this.tmpN;
@@ -466,36 +542,49 @@ class JsGen {
       this.line(`${pre}${m}(${decl.join(", ")}) {`);
       this.ind += "  ";
       if (this.tmpN > base) this.line(this.tmpDecl(base, this.tmpN));
+      this.boxParams(fn, ps);
       for (const l of lines) this.out.push(l);
       this.ind = this.ind.slice(0, -2);
       this.line(`}`);
       return;
     }
-    this.line(`${pre}${m}(...$a) {`);
-    this.ind += "  ";
-    use.forEach((fn, i) => {
-      this.line(`${i === 0 ? "if" : "else if"} (${this.matchCond(fn, i)}) {`);
-      this.ind += "  ";
-      const ps = this.cx.funcParams(fn);
-      this.alias.push(new Map());
-      ps.forEach((p, j) => {
-        if (!p.variadic && p.name) this.alias[this.alias.length - 1].set(p.name, this.ctorArg(p, j));
+    this.withTmpDecl(`${pre}${m}(...$a) {`, () => {
+      const sib = this.siblingClasses(use);
+      use.forEach((fn, i) => {
+        this.line(`${i === 0 ? "if" : "else if"} (${this.matchCond(fn, i, sib[i])}) {`);
+        this.ind += "  ";
+        const ps = this.cx.funcParams(fn);
+        this.alias.push(new Map());
+        ps.forEach((p, j) => {
+          if (!p.variadic && p.name) this.alias[this.alias.length - 1].set(p.name, this.ctorArg(p, j));
+        });
+        this.fnStack.push(fn);
+        this.bodyStmts(fn.decl.body || []);
+        this.fnStack.pop();
+        this.alias.pop();
+        this.ind = this.ind.slice(0, -2);
+        this.line(`}`);
       });
-      this.fnStack.push(fn);
-      this.bodyStmts(fn.decl.body || []);
-      this.fnStack.pop();
-      this.alias.pop();
-      this.ind = this.ind.slice(0, -2);
-      this.line(`}`);
+      this.line(`else { throw new Error("no matching overload"); }`);
     });
-    this.line(`else { throw new Error("no matching overload"); }`);
-    this.ind = this.ind.slice(0, -2);
-    this.line(`}`);
+  }
+
+  // The allocation operators are declared by <new> with no body; storage comes
+  // from the target language, and freeing is its business too. A placement
+  // version hands back the pointer it was given.
+  allocStub(f: FuncInfo): string | null {
+    if (f.fq === "operatornew" || f.fq === "operatornew[]") {
+      return this.cx.funcParams(f).length > 1 ? "return $a[1];" : "return {a: new Array($a[0]).fill(0), i: 0};";
+    }
+    if (f.fq === "operatordelete" || f.fq === "operatordelete[]") return "";
+    return null;
   }
 
   emitFunc(f: FuncInfo): void {
     if (!(f.decl.body || []).length) {
-      this.line(`function ${f.mangled}(...$a) { throw new Error("unresolved external: ${f.fq}"); }`);
+      const alloc = this.allocStub(f);
+      if (alloc !== null) this.line(`function ${f.mangled}(...$a) { ${alloc} }`);
+      else this.line(`function ${f.mangled}(...$a) { throw new Error("unresolved external: ${f.fq}"); }`);
       return;
     }
     const ps = this.cx.funcParams(f);
@@ -503,7 +592,7 @@ class JsGen {
     ps.forEach((p, i) => {
       const nm = p.name ? safeJsName(p.name) : `$p${i}`;
       if (p.variadic) decl.push(`...${nm}_rest`);
-      else if (p.def) decl.push(`${nm} = ${this.ex(p.def)}`);
+      else if (p.def) decl.push(`${nm} = ${this.defArg(p)}`);
       else decl.push(nm);
     });
     const base = this.tmpN;
@@ -519,9 +608,39 @@ class JsGen {
     this.line(`function ${f.mangled}(${decl.join(", ")}) {`);
     this.ind += "  ";
     if (this.tmpN > base) this.line(this.tmpDecl(base, this.tmpN));
+    // A parameter whose address is taken is read through a wrapper, so the
+    // value the caller passed has to be put in one first.
+    this.boxParams(f, ps);
     for (const l of lines) this.out.push(l);
     this.ind = this.ind.slice(0, -2);
     this.line(`}`);
+  }
+
+  // The copy constructor takes a reference to the value it copies. A call
+  // returning one already produced a box; a temporary has to be put in one.
+  copyArg(s: string, ret: CppType): string {
+    return ret.ref !== "" ? s : `{a: [${s}], i: 0}`;
+  }
+
+  // A parameter whose address is taken is read through a wrapper, so the value
+  // the caller passed has to be put in one before the body runs.
+  boxParams(f: FuncInfo, ps: FuncParam[]): void {
+    ps.forEach((p, i) => {
+      if (!p.name || p.variadic) return;
+      const node = f.decl.params[i];
+      const v = (node ? this.cx.getAnn(node).var : null) as VarInfo | null;
+      if (v && (v.storage === "boxed" || v.storage === "bbox")) {
+        const nm = safeJsName(p.name);
+        this.line(`${nm} = {v: ${nm}};`);
+      }
+    });
+  }
+
+  // The VarInfo of a parameter hangs off its declaration node; the scope the
+  // analysis built it in is a copy that no longer exists.
+  paramVar(f: FuncInfo, i: number): VarInfo | null {
+    const node = f.decl.params[i];
+    return (node ? this.cx.getAnn(node).var : null) as VarInfo | null;
   }
 
   emitGlobal(v: VarInfo): void {
@@ -573,6 +692,10 @@ class JsGen {
   stmt(s: Stmt): void {
     switch (s.kind) {
       case "compound":
+        if (s.sameScope) {
+          for (const x of s.stmts) this.stmt(x);
+          return;
+        }
         this.block("", () => { for (const x of s.stmts) this.stmt(x); });
         return;
       case "expr": {
@@ -905,7 +1028,7 @@ class JsGen {
       case "lit": return this.lit(e);
       case "id": return this.exId(e);
       case "this": return "this";
-      case "call": return this.exCall(e);
+      case "call": return this.exCallValue(e);
       case "index": return this.exIndex(e);
       case "member": return this.exMember(e);
       case "unary": return this.exUnary(e);
@@ -984,6 +1107,40 @@ class JsGen {
     return `[${codes.join(", ")}]`;
   }
 
+
+  // The string and memory builtins work on the same boxes every other pointer
+  // uses: an array of bytes and an offset into it.
+  exMemBuiltin(name: string, e: CallExpr): string | null {
+    const a = e.args.map(x => this.ex(x));
+    // A string literal is a bare array of bytes; every other pointer is a box.
+    const p = (i: number) => `(($q) => ($q && $q.a !== undefined ? $q : { a: $q, i: 0 }))(${a[i]})`;
+    switch (name) {
+      case "__builtin_strlen":
+        return `(($s) => { let $i = $s.i; while ($s.a[$i]) $i++; return $i - $s.i; })(${p(0)})`;
+      case "__builtin_strcmp":
+        return `(($x, $y) => { let $i = $x.i, $j = $y.i; while ($x.a[$i] && $x.a[$i] === $y.a[$j]) { $i++; $j++; } return ($x.a[$i] || 0) - ($y.a[$j] || 0); })(${p(0)}, ${p(1)})`;
+      case "__builtin_strncmp":
+        return `(($x, $y, $n) => { let $i = $x.i, $j = $y.i, $k = 0; while ($k < $n && $x.a[$i] && $x.a[$i] === $y.a[$j]) { $i++; $j++; $k++; } return $k >= $n ? 0 : ($x.a[$i] || 0) - ($y.a[$j] || 0); })(${p(0)}, ${p(1)}, ${a[2]})`;
+      case "__builtin_strcpy":
+        return `(($d, $s) => { let $i = $d.i, $j = $s.i; while (($d.a[$i] = $s.a[$j])) { $i++; $j++; } return $d; })(${p(0)}, ${p(1)})`;
+      case "__builtin_strncpy":
+        return `(($d, $s, $n) => { let $i = $d.i, $j = $s.i, $k = 0; for (; $k < $n && $s.a[$j]; $k++) { $d.a[$i] = $s.a[$j]; $i++; $j++; } for (; $k < $n; $k++) { $d.a[$i] = 0; $i++; } return $d; })(${p(0)}, ${p(1)}, ${a[2]})`;
+      case "__builtin_strcat":
+        return `(($d, $s) => { let $i = $d.i; while ($d.a[$i]) $i++; let $j = $s.i; while (($d.a[$i] = $s.a[$j])) { $i++; $j++; } return $d; })(${p(0)}, ${p(1)})`;
+      case "__builtin_strchr":
+        return `(($s, $c) => { let $i = $s.i; while ($s.a[$i] && $s.a[$i] !== ($c & 255)) $i++; return ($s.a[$i] || 0) === ($c & 255) ? { a: $s.a, i: $i } : null; })(${p(0)}, ${a[1]})`;
+      case "__builtin_memset":
+        return `(($d, $c, $n) => { for (let $k = 0; $k < $n; $k++) $d.a[$d.i + $k] = $c & 255; return $d; })(${p(0)}, ${a[1]}, ${a[2]})`;
+      case "__builtin_memcpy":
+        return `(($d, $s, $n) => { for (let $k = 0; $k < $n; $k++) $d.a[$d.i + $k] = $s.a[$s.i + $k]; return $d; })(${p(0)}, ${p(1)}, ${a[2]})`;
+      case "__builtin_memmove":
+        return `(($d, $s, $n) => { const $t = $s.a.slice($s.i, $s.i + $n); for (let $k = 0; $k < $n; $k++) $d.a[$d.i + $k] = $t[$k]; return $d; })(${p(0)}, ${p(1)}, ${a[2]})`;
+      case "__builtin_memcmp":
+        return `(($x, $y, $n) => { for (let $k = 0; $k < $n; $k++) { const $d = ($x.a[$x.i + $k] || 0) - ($y.a[$y.i + $k] || 0); if ($d) return $d; } return 0; })(${p(0)}, ${p(1)}, ${a[2]})`;
+      default:
+        return null;
+    }
+  }
   exId(e: IdExpr): string {
     const a = this.cx.getAnn(e);
     const s = a.sym;
@@ -1029,7 +1186,8 @@ class JsGen {
     switch (e.kind) {
       case "lit": case "id": case "this": return true;
       case "member": return this.isSimple(e.obj);
-      case "index": return this.isSimple(e.arr) && this.isSimple(e.idx);
+      // An index that resolves to a call runs code, so it is not simple.
+      case "index": return !this.cx.getAnn(e).call && this.isSimple(e.arr) && this.isSimple(e.idx);
       case "unary": return (e.op === "*" || e.op === "&") && this.isSimple(e.arg);
       case "cast": return !this.cx.getAnn(e).call && !this.cx.getAnn(e).conv && this.isSimple(e.arg);
       default: return false;
@@ -1044,8 +1202,16 @@ class JsGen {
         const s = this.cx.getAnn(e).sym;
         if (!s || s.k !== "var") return this.ex(e);
         const v = s.v;
-        const t = v.typeCache as CppType;
-        if (t.isFunc) return this.ex(e);
+        // A field's type lives on its class, not on this per-lookup record.
+        const t = (v.isField && v.scope.cls
+          ? this.cx.fieldType(v.scope.cls, v.short) : v.typeCache) as CppType;
+        if (!t || t.isFunc) return this.ex(e);
+        if (v.isField) {
+          const fname = safeJsName(v.short);
+          return v.isStatic
+            ? `{a: ${v.scope.cls!.mangled}, i: "${fname}"}`
+            : `{a: this, i: "${fname}"}`;
+        }
         const nm = this.varName(v, this.cx.getAnn(e).needsThis);
         if (v.storage === "box") return nm;
         if (v.storage === "bbox") return `${this.paren(nm)}.v`;
@@ -1079,12 +1245,16 @@ class JsGen {
         return `{a: ${arr}, i: (${this.ex(e.idx)})}`;
       }
       case "unary":
-        if (e.op === "*") return this.ex(e.arg);
+        // "*it" on a class is a call to operator*, which already yields a box.
+        if (e.op === "*") return this.cx.getAnn(e).call ? this.ex(e) : this.ex(e.arg);
         if (e.op === "&") return this.exBox(e.arg);
         return `{a: [${this.ex(e)}], i: 0}`;
       case "call": case "this":
         if (e.kind === "this") return `{a: [this], i: 0}`;
-        return this.ex(e);
+        // A call returning a reference already yields a box; any other rvalue
+        // needs a temporary one to be passed by reference.
+        if (et && et.ref) return this.exCall(e);
+        return `{a: [${this.ex(e)}], i: 0}`;
       case "lit":
         if (e.lkind === "string") return `{a: ${this.lit(e)}, i: 0}`;
         return `{a: [${this.ex(e)}], i: 0}`;
@@ -1093,6 +1263,13 @@ class JsGen {
       case "binary":
         if (e.op === ",") return `(${this.ex(e.l)}, ${this.exBox(e.r)})`;
         return `{a: [${this.ex(e)}], i: 0}`;
+      case "cast": {
+        // A cast to a pointer or a reference yields the box of its operand;
+        // wrapping it again would point at the box instead of the value.
+        const ct = this.cx.getAnn(e).t as CppType;
+        if (ct && ct.isBox()) return this.ex(e);
+        return `{a: [${this.ex(e)}], i: 0}`;
+      }
       default:
         return `{a: [${this.ex(e)}], i: 0}`;
     }
@@ -1151,7 +1328,9 @@ class JsGen {
       }
       case "call": {
         const t = this.tmp();
-        return `(${t} = ${this.ex(e)}, ${t}.a[${t}.i])`;
+        // A call returning a scalar reference already yields the box.
+        const c = this.returnsScalarRef(e) ? this.exCall(e) : this.ex(e);
+        return `(${t} = ${c}, ${t}.a[${t}.i])`;
       }
       default:
         this.cx.fail("not assignable", e);
@@ -1171,9 +1350,12 @@ class JsGen {
   }
 
   deref(e: Expr): string {
-    const s = this.complex(this.ex(e), e);
-    const p = this.paren(s);
-    return `${p}.a[${p}.i]`;
+    if (this.isSimple(e)) {
+      const p = this.paren(this.ex(e));
+      return `${p}.a[${p}.i]`;
+    }
+    const t = this.tmp();
+    return `(${t} = ${this.ex(e)}, ${t}.a[${t}.i])`;
   }
 
   exAddr(e: Expr): string {
@@ -1193,8 +1375,37 @@ class JsGen {
     return false;
   }
 
+  // Binds complex pointer operands to temporaries: a fat pointer is read in two
+  // places, and evaluating the expression twice would repeat its side effects.
+  pbind(items: { s: string; e: Expr }[]): { pre: string; v: string[] } {
+    const pre: string[] = [];
+    const v: string[] = [];
+    for (const it of items) {
+      // The box an addressed "this" yields is built in place, so it earns a
+      // name of its own even though "this" itself would not need one.
+      if (this.isSimple(it.e) && it.e.kind !== "this") { v.push(this.paren(it.s)); continue; }
+      const t = this.tmp();
+      pre.push(`${t} = ${it.s}`);
+      v.push(t);
+    }
+    return { pre: pre.join(", "), v };
+  }
+
+  // A null pointer is null itself, so reading through one needs a guard.
+  pidx(x: string): string {
+    return `(${x} ? ${this.paren(x)}.i : 0)`;
+  }
+
+  parr(x: string): string {
+    return `(${x} ? ${this.paren(x)}.a : null)`;
+  }
+
   pbox(s: string, e: Expr, t: CppType): string {
     const x = this.complex(s, e);
+    // "this + 1" addresses the storage that follows the object, as
+    // "reinterpret_cast<_CharT*>(this + 1)" does in a header that keeps its
+    // data behind the object: the instance gets an array to be addressed in.
+    if (e.kind === "this") return `{a: (this.ctj_a || (this.ctj_a = [])), i: (this.ctj_i || 0)}`;
     if (t.dims.length && !t.isBox()) return `{a: ${x}, i: 0}`;
     return x;
   }
@@ -1217,6 +1428,14 @@ class JsGen {
     const at = this.cx.getAnn(x).t as CppType;
     const pB = isBoxLike(p);
     const aB = at ? isBoxLike(at) : false;
+    // A pointer is a value: the copy must not share its fat pointer with the
+    // original, or moving one of them would move the other.
+    if (p.ptr > 0 && !p.ref && !p.dims.length && !p.isFunc &&
+      at && at.ptr > 0 && !at.ref && !at.dims.length && !at.isFunc) {
+      const src = this.complex(this.ex(x), x);
+      const sp = this.paren(src);
+      return `(${src} ? {a: ${sp}.a, i: ${sp}.i} : null)`;
+    }
     if (p.dims.length && x.kind === "initlist") {
       return this.arrayInit(p, (x as InitListExpr).items, null as unknown as VarDecl);
     }
@@ -1228,6 +1447,12 @@ class JsGen {
     }
     if (!pB && aB) {
       if (at && at.name === "__null" && coreName(p) === "bool") return "false";
+      // Reading a reference variable already yields the value it refers to;
+      // only an expression that produces a fat pointer needs one more step.
+      if (x.kind === "id") {
+        const sym = this.cx.getAnn(x).sym;
+        if (sym && sym.k === "var" && sym.v.typeCache && sym.v.typeCache.ref) return this.ex(x);
+      }
       return this.deref(x);
     }
     if (coreName(p) === "bool" && at && at.isBox() && !at.isFunc) return `(${this.ex(x)} != null)`;
@@ -1237,6 +1462,15 @@ class JsGen {
     if (p.ptr > 0 && at && at.dims.length && !at.isBox()) return this.exBox(x);
     if (pB && aB) {
       if (at && at.ref) return this.exBox(x);
+      // A reference parameter reads through an address, so a value has to be
+      // given one: a class object, and a pointer too, since a pointer is
+      // already a box and "const _Iterator&" is a box around it.
+      if (p.ref && at && !at.ref && !at.isFunc && !at.dims.length) {
+        if (at.ptr > 0) {
+          return `{a: [${this.ex(x)}], i: 0}`;
+        }
+        if (this.cx.classes.has(this.cx.stripAll(at))) return this.exBox(x);
+      }
       return this.ex(x);
     }
     if (at && at.name === "__null" && isNumericName(coreName(p))) return "0";
@@ -1275,8 +1509,34 @@ class JsGen {
     }
   }
 
+  // A call that returns a reference to a scalar hands back a box; where a
+  // value is wanted it stands for the element the box points at, exactly as a
+  // reference variable does.
+  // The left side of an assignment reached through a box. A call returning a
+  // scalar reference is one already, so it must not be read through twice.
+  lhsBox(e: Expr): string {
+    return e.kind === "call" && this.returnsScalarRef(e) ? this.exCall(e) : this.ex(e);
+  }
+
+  returnsScalarRef(e: CallExpr): boolean {
+    const t = this.cx.getAnn(e).t as CppType;
+    return !!t && t.ref !== "" && !t.dims.length && !t.isFunc &&
+      !this.cx.classes.has(this.cx.stripAll(t));
+  }
+
+  exCallValue(e: CallExpr): string {
+    if (this.returnsScalarRef(e)) {
+      const v = this.tmp();
+      return `(${v} = ${this.exCall(e)}, ${v}.a[${v}.i])`;
+    }
+    return this.exCall(e);
+  }
+
   exCall(e: CallExpr): string {
     const a = this.cx.getAnn(e);
+    // A destructor call that resolved to no destructor has nothing to do; the
+    // target language reclaims the storage itself.
+    if (!a.call && e.fn.kind === "member" && (e.fn as MemberExpr).field.charAt(0) === "~") return "void 0";
     if (typeof a.call === "object" && a.call !== null && "builtin" in (a.call as object)) {
       return this.exBuiltin((a.call as { builtin: string }).builtin, e);
     }
@@ -1296,7 +1556,8 @@ class JsGen {
     const ps = this.cx.funcParams(fn);
     const aa: string[] = [];
     e.args.forEach((x, i) => {
-      const pt = i < ps.length && !ps[i].variadic ? ps[i].type : null;
+      // A parameter pack keeps the type it was deduced to for this call.
+      const pt = i < ps.length ? ps[i].type : null;
       if (pt && this.isInitListParam(pt) && x.kind === "initlist") {
         aa.push(`[${(x as InitListExpr).items.map(y => this.ex(y)).join(", ")}]`);
       } else {
@@ -1304,7 +1565,7 @@ class JsGen {
       }
     });
     for (let i = e.args.length; i < ps.length && !ps[i].variadic; i++) {
-      aa.push(ps[i].def ? this.ex(ps[i].def as Expr) : "undefined");
+      aa.push(ps[i].def ? this.defArg(ps[i]) : "undefined");
     }
     let s: string;
     if (!fn.isMethod) {
@@ -1326,14 +1587,19 @@ class JsGen {
         s = `${this.paren(o)}.${methodJsName(fn)}(${aa.join(", ")})`;
       }
     } else if (e.fn.kind === "id") {
-      s = `this.${methodJsName(fn)}(${aa.join(", ")})`;
+      // A name can denote an object whose operator() is called, not a member of
+      // the enclosing class.
+      const callee = this.cx.getAnn(e.fn).sym;
+      s = callee && callee.k === "var"
+        ? `${this.paren(this.objOf(e.fn))}.${methodJsName(fn)}(${aa.join(", ")})`
+        : `this.${methodJsName(fn)}(${aa.join(", ")})`;
     } else {
       s = `${this.paren(this.objOf(e.fn))}.${methodJsName(fn)}(${aa.join(", ")})`;
     }
     if (a.copyCtor) {
       const ret = this.cx.funcRet(fn);
       const cn = (this.cx.classes.get(this.cx.stripAll(ret)) as ClsInfo).mangled as string;
-      s = `new ${cn}(${s})`;
+      s = `new ${cn}(${this.copyArg(s, ret)})`;
     }
     return s;
   }
@@ -1366,6 +1632,12 @@ class JsGen {
       let m = name.slice("__builtin_".length);
       if (m === "nan" || m === "nanf" || m === "nans") return "NaN";
       if (m === "inf" || m === "inff" || m === "huge_val") return "Infinity";
+      // JavaScript spells the absolute-value functions "abs".
+      if (m === "fabs" || m === "fabsf" || m === "fabsl") m = "abs";
+      // JavaScript has no Math.fmod; the % operator computes the same value.
+      if (m === "fmod" || m === "fmodf" || m === "fmodl") {
+        return `((${this.ex(e.args[0])}) % (${this.ex(e.args[1])}))`;
+      }
       if (m.endsWith("f") && (Math as unknown as Record<string, unknown>)[m.slice(0, -1)] !== undefined) m = m.slice(0, -1);
       return `Math.${m}(${e.args.map(x => this.ex(x)).join(", ")})`;
     }
@@ -1409,11 +1681,35 @@ class JsGen {
     if (name === "__builtin_frame_address" || name === "__builtin_return_address" || name === "__builtin_extract_return_addr") return "null";
     if (name === "__builtin_FILE" || name === "__builtin_FUNCTION") return this.strLit(`"${e.file}"`);
     if (name === "__builtin_LINE") return String(e.line);
+    const mem = this.exMemBuiltin(name, e);
+    if (mem !== null) return mem;
     return `(() => { throw new Error("unresolved ${name}"); })()`;
+  }
+
+  // A "static const" integral member is a constant expression in C++, and
+  // folding it keeps the emitted initializer from reading a class that the
+  // target language has not finished defining yet.
+  foldStaticConst(c: ClsInfo, ft: CppType, fd: VarDecl, init: Expr): string | null {
+    const cnst = ft.cnst || fd.flags.includes("const") || fd.flags.includes("constexpr");
+    if (!cnst || ft.ptr || ft.ref || ft.dims.length || ft.isBox()) return null;
+    if (!isIntegerName(coreName(ft))) return null;
+    try {
+      const v = constEval(this.cx, init, this.cx.memberScope(c));
+      return typeof v === "number" ? String(v) : null;
+    } catch {
+      return null;
+    }
   }
 
   blankScope(): Scope {
     return rootScope();
+  }
+
+  // The scope a type name written in an expression is resolved in: that of the
+  // function being emitted, so "sizeof(_Rep)" sees the members of _Rep.
+  curScope(): Scope {
+    const fn = this.fnStack.length ? this.fnStack[this.fnStack.length - 1] : null;
+    return fn ? fn.scope : rootScope();
   }
 
   exIndex(e: IndexExpr): string {
@@ -1427,7 +1723,7 @@ class JsGen {
       if (a.copyCtor) {
         const ret = this.cx.funcRet(fn);
         const cn = (this.cx.classes.get(this.cx.stripAll(ret)) as ClsInfo).mangled as string;
-        s = `new ${cn}(${s})`;
+        s = `new ${cn}(${this.copyArg(s, ret)})`;
       }
       return s;
     }
@@ -1474,17 +1770,15 @@ class JsGen {
     if (e.op === "*") {
       const at = this.cx.getAnn(e.arg).t as CppType;
       if (at.isFunc) return this.ex(e.arg);
-      if (e.arg.kind === "unary" && (e.arg.op === "++post" || e.arg.op === "--post")) {
+      if (e.arg.kind === "unary" && incKind(e.arg) && isPostfix(e.arg)) {
         const p = this.complex(this.ex(e.arg.arg), e.arg.arg);
         const pp = this.paren(p);
-        const op = e.arg.op === "++post" ? "++" : "--";
-        return `${pp}.a[${pp}.i${op}]`;
+        return `${pp}.a[${pp}.i${incKind(e.arg)}]`;
       }
-      if (e.arg.kind === "unary" && (e.arg.op === "++" || e.arg.op === "--")) {
+      if (e.arg.kind === "unary" && incKind(e.arg)) {
         const p = this.complex(this.ex(e.arg.arg), e.arg.arg);
         const pp = this.paren(p);
-        const op = e.arg.op === "++" ? "++" : "--";
-        return `${pp}.a[${op}${pp}.i]`;
+        return `${pp}.a[${incKind(e.arg)}${pp}.i]`;
       }
       return this.deref(e.arg);
     }
@@ -1493,29 +1787,21 @@ class JsGen {
       if (at.isFunc) return this.ex(e.arg);
       return this.exAddr(e.arg);
     }
-    if (e.op === "++" || e.op === "--" || e.op === "++post" || e.op === "--post") {
+    const inc = incKind(e);
+    if (inc) {
+      const post = isPostfix(e);
       const at = this.cx.getAnn(e.arg).t as CppType;
       if (this.splitLhs(e.arg)) {
         const t = this.tmp();
         const inner = at.ptr > 0 && !at.isFunc ? `${t}.i` : `${t}.a[${t}.i]`;
-        if (e.op === "++") return `(${t} = ${this.ex(e.arg)}, ++${inner})`;
-        if (e.op === "--") return `(${t} = ${this.ex(e.arg)}, --${inner})`;
-        if (e.op === "++post") return `(${t} = ${this.ex(e.arg)}, ${inner}++)`;
-        return `(${t} = ${this.ex(e.arg)}, ${inner}--)`;
+        return `(${t} = ${this.ex(e.arg)}, ${post ? inner + inc : inc + inner})`;
       }
       if (at.ptr > 0 && !at.isFunc) {
-        const l = this.lvalue(e.arg);
-        const p = this.paren(l);
-        if (e.op === "++") return `++${p}.i`;
-        if (e.op === "--") return `--${p}.i`;
-        if (e.op === "++post") return `${p}.i++`;
-        return `${p}.i--`;
+        const p = this.paren(this.lvalue(e.arg));
+        return post ? `${p}.i${inc}` : `${inc}${p}.i`;
       }
       const l = this.lvalue(e.arg);
-      if (e.op === "++") return `++${l}`;
-      if (e.op === "--") return `--${l}`;
-      if (e.op === "++post") return `${l}++`;
-      return `${l}--`;
+      return post ? `${l}${inc}` : `${inc}${l}`;
     }
     if (e.op === "!") return `(!${this.paren(this.ex(e.arg))})`;
     if (e.op === "+") return `(+${this.paren(this.ex(e.arg))})`;
@@ -1536,7 +1822,7 @@ class JsGen {
         if (a.copyCtor) {
           const ret = this.cx.funcRet(fn);
           const cn = (this.cx.classes.get(this.cx.stripAll(ret)) as ClsInfo).mangled as string;
-          s = `new ${cn}(${s})`;
+          s = `new ${cn}(${this.copyArg(s, ret)})`;
         }
         return s;
       }
@@ -1545,7 +1831,7 @@ class JsGen {
       if (a.copyCtor) {
         const ret = this.cx.funcRet(fn);
         const cn = (this.cx.classes.get(this.cx.stripAll(ret)) as ClsInfo).mangled as string;
-        s = `new ${cn}(${s})`;
+        s = `new ${cn}(${this.copyArg(s, ret)})`;
       }
       return s;
     }
@@ -1560,12 +1846,16 @@ class JsGen {
     if (e.op === "==" || e.op === "!=") {
       const op = e.op === "==" ? "===" : "!==";
       if (lp && rp) {
-        const x = this.pbox(l, e.l, lt as CppType);
-        const y = this.pbox(r, e.r, rt as CppType);
-        const xp = this.paren(x);
-        const yp = this.paren(y);
-        const eq = `${xp}.a === ${yp}.a && ${xp}.i === ${yp}.i`;
-        return e.op === "==" ? `(${eq})` : `(!(${eq}))`;
+        const b = this.pbind([
+          { s: this.pbox(l, e.l, lt as CppType), e: e.l },
+          { s: this.pbox(r, e.r, rt as CppType), e: e.r },
+        ]);
+        const xp = b.v[0];
+        const yp = b.v[1];
+        // A null pointer is null itself, so both sides are checked first.
+        const eq = `${xp} === ${yp} || (${xp} && ${yp} && ${xp}.a === ${yp}.a && ${xp}.i === ${yp}.i)`;
+        const body = e.op === "==" ? `(${eq})` : `(!(${eq}))`;
+        return b.pre ? `(${b.pre}, ${body})` : body;
       }
       if (lp && (rt.name === "__null" || this.isZeroLit(e.r))) return `(${l} ${op} null)`;
       if (rp && (lt.name === "__null" || this.isZeroLit(e.l))) return `(null ${op} ${r})`;
@@ -1573,28 +1863,34 @@ class JsGen {
     }
     if (e.op === "<" || e.op === ">" || e.op === "<=" || e.op === ">=") {
       if (lp && rp) {
-        const x = this.pbox(l, e.l, lt as CppType);
-        const y = this.pbox(r, e.r, rt as CppType);
-        return `(${this.paren(x)}.i ${e.op} ${this.paren(y)}.i)`;
+        const b = this.pbind([
+          { s: this.pbox(l, e.l, lt as CppType), e: e.l },
+          { s: this.pbox(r, e.r, rt as CppType), e: e.r },
+        ]);
+        const body = `(${this.pidx(b.v[0])} ${e.op} ${this.pidx(b.v[1])})`;
+        return b.pre ? `(${b.pre}, ${body})` : body;
       }
       return `(${l} ${e.op} ${r})`;
     }
     if ((e.op === "+" || e.op === "-") && (lp || rp)) {
       if (lp && rp) {
         if (e.op !== "-") this.cx.fail("bad pointer arithmetic", e);
-        const x = this.pbox(l, e.l, lt as CppType);
-        const y = this.pbox(r, e.r, rt as CppType);
-        return `(${this.paren(x)}.i - ${this.paren(y)}.i)`;
+        const b = this.pbind([
+          { s: this.pbox(l, e.l, lt as CppType), e: e.l },
+          { s: this.pbox(r, e.r, rt as CppType), e: e.r },
+        ]);
+        const body = `(${this.pidx(b.v[0])} - ${this.pidx(b.v[1])})`;
+        return b.pre ? `(${b.pre}, ${body})` : body;
       }
       if (lp) {
-        const x = this.pbox(l, e.l, lt as CppType);
-        const xp = this.paren(x);
+        const b = this.pbind([{ s: this.pbox(l, e.l, lt as CppType), e: e.l }]);
         const sign = e.op === "+" ? "+" : "-";
-        return `({a: ${xp}.a, i: ${xp}.i ${sign} (${r})})`;
+        const body = `({a: ${this.parr(b.v[0])}, i: ${this.pidx(b.v[0])} ${sign} (${r})})`;
+        return b.pre ? `(${b.pre}, ${body})` : body;
       }
-      const y = this.pbox(r, e.r, rt as CppType);
-      const yp = this.paren(y);
-      return `({a: ${yp}.a, i: (${l}) + ${yp}.i})`;
+      const b = this.pbind([{ s: this.pbox(r, e.r, rt as CppType), e: e.r }]);
+      const body = `({a: ${this.parr(b.v[0])}, i: (${l}) + ${this.pidx(b.v[0])}})`;
+      return b.pre ? `(${b.pre}, ${body})` : body;
     }
     if (e.op === "<<" || e.op === ">>") {
       if (e.op === ">>" && lt && coreName(lt).startsWith("unsigned")) return `(${l} >>> ${r})`;
@@ -1634,30 +1930,52 @@ class JsGen {
       target.ptr = lt.ptr;
       target.dims = lt.dims;
       const rhs = e.op === "=" ? this.argFor(target, e.r, null) : this.ex(e.r);
-      return `(${t} = ${this.ex(e.l)}, ${t}.a[${t}.i] ${e.op} ${rhs})`;
+      return `(${t} = ${this.lhsBox(e.l)}, ${t}.a[${t}.i] ${e.op} ${rhs})`;
     }
     const l = this.lvalue(e.l);
     if ((e.op === "+=" || e.op === "-=") && lt.ptr > 0 && !lt.isFunc) {
       const op = e.op === "+=" ? "+=" : "-=";
       return `${this.paren(l)}.i ${op} (${this.ex(e.r)})`;
     }
+    const target = new CppType(lt.name);
+    target.segs = lt.segs;
+    target.ptr = lt.ptr;
+    target.dims = lt.dims;
     let rhs: string;
     if (e.op === "=") {
-      const target = new CppType(lt.name);
-      target.segs = lt.segs;
-      target.ptr = lt.ptr;
-      target.dims = lt.dims;
       rhs = this.argFor(target, e.r, null);
     } else {
-      rhs = this.ex(e.r);
+      const rt = this.cx.getAnn(e.r).t as CppType | null;
+      rhs = rt && rt.isBox() && !target.isBox() ? this.argFor(target, e.r, null) : this.ex(e.r);
     }
     return `${l} ${e.op} ${rhs}`;
   }
 
+  // "::new((void *)__p) _Up(args)" builds the object in the storage __p points
+  // at, which is the slot of the fat pointer the target language holds.
+  exPlacementNew(e: NewExpr, t: CppType): string {
+    const a = this.cx.getAnn(e);
+    const pp = this.paren(this.ex(e.placement[0]));
+    const slot = `${pp}.a[${pp}.i]`;
+    const fcls = !t.isBox() && !t.isFunc ? this.cx.stripAll(t) : "";
+    if (fcls && this.cx.classes.has(fcls)) {
+      const cn = (this.cx.classes.get(fcls) as ClsInfo).mangled as string;
+      const obj = a.call
+        ? this.ctorExpr(cn, a.call as FuncInfo, e.args, a.convs, t)
+        : `new ${cn}()`;
+      // The object goes into the storage it was given and keeps its address, so
+      // that "this + 1" can find the storage again; what the expression yields
+      // is the pointer to that storage.
+      return `(${slot} = ${obj}, ${slot}.ctj_a = ${pp}.a, ${slot}.ctj_i = ${pp}.i, {a: ${pp}.a, i: ${pp}.i})`;
+    }
+    const v = e.args.length ? this.ex(e.args[0]) : this.zero(t);
+    return `(${slot} = ${v})`;
+  }
+
   exNew(e: NewExpr): string {
     const a = this.cx.getAnn(e);
-    if (e.placement) this.cx.warn("placement new is approximated", e);
-    const t = this.cx.resolveTypeNode(e.type, this.blankScope());
+    const t = this.cx.resolveTypeNode(e.type, this.curScope());
+    if (e.placement.length) return this.exPlacementNew(e, t);
     if (e.isArray) {
       const n = e.type.dims.length ? this.ex(e.type.dims[0]) : "0";
       const et = new CppType(t.name);
@@ -1692,9 +2010,13 @@ class JsGen {
       const fq = this.cx.stripAll(t);
       const cn = (this.cx.classes.get(fq) as ClsInfo).mangled as string;
       const cps = this.cx.funcParams(a.call as FuncInfo);
-      const inner = cps.length ? this.argFor(cps[0].type, e.arg, a.conv) : this.ex(e.arg);
-      return `new ${cn}(${inner})`;
+      // "T()" and "T{}" value initialise: the empty list is not an argument of
+      // the constructor the cast resolved to.
+      if (!cps.length || (e.arg.kind === "initlist" && !(e.arg as InitListExpr).items.length)) return `new ${cn}()`;
+      return `new ${cn}(${this.argFor(cps[0].type, e.arg, a.conv)})`;
     }
+    // "size_type()" value-initialises: there is no argument to convert.
+    if (e.arg.kind === "initlist" && !(e.arg as InitListExpr).items.length) return this.zero(t);
     if (a.conv) {
       return `${this.paren(this.objOf(e.arg))}.${methodJsName((a.conv as { kind: string; fn: FuncInfo }).fn)}()`;
     }
@@ -1705,7 +2027,7 @@ class JsGen {
       if (t.ptr > 0) return `(${x} instanceof ${cn} ? ${x} : null)`;
       return `(${x} instanceof ${cn} ? ${x} : (() => { throw new Error("bad cast"); })())`;
     }
-    if (coreName(t) === "void") return `(void (${this.ex(e.arg)}))`;
+    if (coreName(t) === "void" && !t.ptr) return `(void (${this.ex(e.arg)}))`;
     const at = this.cx.getAnn(e.arg).t as CppType;
     if (coreName(t) === "bool" && at.isBox() && !at.isFunc) return `(${this.ex(e.arg)} != null)`;
     if (coreName(t) === "bool" && isNumericName(coreName(at))) return `(${this.ex(e.arg)} !== 0)`;
@@ -1713,13 +2035,20 @@ class JsGen {
       return `Math.trunc(${this.ex(e.arg)})`;
     }
     if (t.ptr > 0 && (at.name === "__null" || this.isZeroLit(e.arg))) return "null";
+    // Casting to a reference yields the address of the value, as any other
+    // reference does ("static_cast<_Tp&&>(__t)" in std::forward).
+    if (t.ref) return this.exBox(e.arg);
+    // An unsigned value wraps, so "size_t(-1)" is the largest size rather than
+    // a negative one. The width is the 32-bit one: a JS number cannot hold a
+    // 64-bit unsigned range.
+    if (isUnsignedName(coreName(t))) return `(${this.ex(e.arg)} >>> 0)`;
     return this.ex(e.arg);
   }
 
   exTypeid(e: TypeidExpr): string {
     let key: string;
     if (e.isType && e.type) {
-      key = this.cx.resolveTypeNode(e.type, this.blankScope()).key();
+      key = this.cx.resolveTypeNode(e.type, this.curScope()).key();
     } else if (e.expr) {
       key = (this.cx.getAnn(e.expr).t as CppType).key();
     } else {
@@ -1763,7 +2092,7 @@ class JsGen {
   }
 
   sizeofType(e: SizeofExpr): CppType {
-    if (e.isType && e.type) return this.cx.resolveTypeNode(e.type, this.blankScope());
+    if (e.isType && e.type) return this.cx.resolveTypeNode(e.type, this.curScope());
     if (e.expr) return this.cx.getAnn(e.expr).t as CppType;
     this.cx.fail("bad sizeof", e);
     return CppType.basic("int");

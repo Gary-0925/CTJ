@@ -33,6 +33,6 @@ export function transpile(source: string, options: TranspileOptions): TranspileR
 }
 
 (function (): void {
-  const g = Function("return this")() as Record<string, unknown>;
+  const g = globalThis as unknown as Record<string, unknown>;
   g["CTJ"] = CTJ;
 })();

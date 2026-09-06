@@ -198,6 +198,13 @@ class PhpGen {
     return this.fnStack.length ? this.fnStack[this.fnStack.length - 1] : null;
   }
 
+  // The scope a type name written in an expression is resolved in: that of the
+  // function being emitted, so "sizeof(_Rep)" sees the members of _Rep.
+  curScope(): Scope {
+    const fn = this.curFn();
+    return fn ? fn.scope : rootScope();
+  }
+
   bodyStmts(list: Stmt[]): void {
     if (list.length === 1 && list[0].kind === "compound") {
       for (const x of (list[0] as Compound).stmts) this.stmt(x);
@@ -317,7 +324,7 @@ class PhpGen {
     for (const h of inherited) all.push({ fn: h.fn, inh: h.base });
     const baseArgs = (fn: FuncInfo, inh: string): string => {
       const bc = this.cx.classes.get(c.bases[0].fq) as ClsInfo;
-      const hit = !inh ? fn.decl.ctorInit.find(x => last(x.name).n === bc.short || last(x.name).n === c.bases[0].fq) : null;
+      const hit = !inh ? fn.decl.ctorInit.find(x => this.cx.ctorBase(c, x.name) === c.bases[0].fq) : null;
       if (inh && c.bases[0].fq === inh) {
         const ps = this.cx.funcParams(fn);
         const aa: string[] = [];
@@ -405,9 +412,16 @@ class PhpGen {
     return "";
   }
 
+  // A default argument is a value; a reference or pointer parameter takes a
+  // box, so the default has to be wrapped like any other temporary.
+  defArg(p: { type: CppType; def: Expr | null }): string {
+    const d = this.ex(p.def as Expr);
+    return p.type.isBox() ? `["a" => [${d}], "i" => 0]` : d;
+  }
+
   ctorArg(p: { type: CppType; def: Expr | null }, i: number): string {
     const v = `$a[${i}] ?? null`;
-    if (p.def) return `(array_key_exists(${i}, $a) ? $a[${i}] : (${this.ex(p.def)}))`;
+    if (p.def) return `(array_key_exists(${i}, $a) ? $a[${i}] : (${this.defArg(p)}))`;
     return v;
   }
 
@@ -422,7 +436,7 @@ class PhpGen {
     for (let bi = 1; bi < c.bases.length; bi++) {
       const b = c.bases[bi];
       const bc = this.cx.classes.get(b.fq) as ClsInfo;
-      const hit = !inh ? fn.decl.ctorInit.find(x => last(x.name).n === bc.short || last(x.name).n === b.fq) : null;
+      const hit = !inh ? fn.decl.ctorInit.find(x => this.cx.ctorBase(c, x.name) === b.fq) : null;
       if (inh && b.fq === inh) {
         const bps = this.cx.funcParams(fn);
         this.alias.push(new Map());
@@ -452,7 +466,7 @@ class PhpGen {
           const bps = this.cx.funcParams(def);
           this.alias.push(new Map());
           bps.forEach((p) => {
-            if (!p.variadic && p.name && p.def) this.alias[this.alias.length - 1].set(p.name, `(${this.ex(p.def)})`);
+            if (!p.variadic && p.name && p.def) this.alias[this.alias.length - 1].set(p.name, `(${this.defArg(p)})`);
           });
           this.ctorBranch(bc, def, "mixin", true);
           this.alias.pop();
@@ -530,7 +544,7 @@ class PhpGen {
       return pt ? this.argFor(pt, x, convs[i] || null) : this.ex(x);
     });
     for (let i = args.length; i < ps.length && !ps[i].variadic; i++) {
-      aa.push(ps[i].def ? this.ex(ps[i].def as Expr) : "null");
+      aa.push(ps[i].def ? this.defArg(ps[i]) : "null");
     }
     return `new ${cn}(${aa.join(", ")})`;
   }
@@ -576,15 +590,15 @@ class PhpGen {
       const fn = use[0];
       const ps = this.cx.funcParams(fn);
       const decl: string[] = [];
-      const defs: { nm: string; i: number; def: Expr }[] = [];
+      const defs: { nm: string; i: number; def: string }[] = [];
       ps.forEach((p, i) => {
         const nm = p.name ? `$${safeJsName(p.name)}` : `$p${i}`;
         if (p.variadic) decl.push(`...${nm}_rest`);
-        else if (p.def) { decl.push(`${nm} = null`); defs.push({ nm, i, def: p.def }); }
+        else if (p.def) { decl.push(`${nm} = null`); defs.push({ nm, i, def: this.defArg(p) }); }
         else decl.push(nm);
       });
       const lines = this.withBody(() => {
-        for (const d of defs) this.line(`if (func_num_args() < ${d.i + 1}) ${d.nm} = ${this.ex(d.def)};`);
+        for (const d of defs) this.line(`if (func_num_args() < ${d.i + 1}) ${d.nm} = ${d.def};`);
         if (fn.decl.flags.includes("pure") && !(fn.decl.body || []).length) {
           this.line(`throw new Exception("pure virtual called");`);
         } else {
@@ -625,22 +639,46 @@ class PhpGen {
     this.line(`}`);
   }
 
+  // The allocation operators are declared by <new> with no body; storage comes
+  // from the target language, and freeing is its business too. A placement
+  // version hands back the pointer it was given.
+  allocStub(f: FuncInfo): string | null {
+    if (f.fq === "operatornew" || f.fq === "operatornew[]") {
+      return this.cx.funcParams(f).length > 1 ? "return $a[1];" : `return ["a" => array_fill(0, $a[0], 0), "i" => 0];`;
+    }
+    if (f.fq === "operatordelete" || f.fq === "operatordelete[]") return "";
+    return null;
+  }
+
   emitFunc(f: FuncInfo): void {
     if (!(f.decl.body || []).length) {
-      this.line(`function ${phpFuncName(f)}(...$a) { throw new Exception("unresolved external: ${f.fq}"); }`);
+      const alloc = this.allocStub(f);
+      if (alloc !== null) this.line(`function ${phpFuncName(f)}(...$a) { ${alloc} }`);
+      else this.line(`function ${phpFuncName(f)}(...$a) { throw new Exception("unresolved external: ${f.fq}"); }`);
       return;
     }
     const ps = this.cx.funcParams(f);
     const decl: string[] = [];
-    const defs: { nm: string; i: number; def: Expr }[] = [];
+    const defs: { nm: string; i: number; def: string }[] = [];
     ps.forEach((p, i) => {
       const nm = p.name ? `$${safeJsName(p.name)}` : `$p${i}`;
       if (p.variadic) decl.push(`...${nm}_rest`);
-      else if (p.def) { decl.push(`${nm} = null`); defs.push({ nm, i, def: p.def }); }
+      else if (p.def) { decl.push(`${nm} = null`); defs.push({ nm, i, def: this.defArg(p) }); }
       else decl.push(nm);
     });
     const lines = this.withBody(() => {
-      for (const d of defs) this.line(`if (func_num_args() < ${d.i + 1}) ${d.nm} = ${this.ex(d.def)};`);
+      for (const d of defs) this.line(`if (func_num_args() < ${d.i + 1}) ${d.nm} = ${d.def};`);
+      // A parameter whose address is taken is read through a wrapper, so the
+      // value the caller passed has to be put in one first.
+      ps.forEach((p, i) => {
+        if (!p.name || p.variadic) return;
+        const node = f.decl.params[i];
+        const v = (node ? this.cx.getAnn(node).var : null) as VarInfo | null;
+        if (v && (v.storage === "boxed" || v.storage === "bbox")) {
+          const nm = `$${safeJsName(p.name)}`;
+          this.line(`${nm} = ["v" => ${nm}];`);
+        }
+      });
       this.fnStack.push(f);
       this.bodyStmts(f.decl.body || []);
       this.fnStack.pop();
@@ -695,6 +733,10 @@ class PhpGen {
   stmt(s: Stmt): void {
     switch (s.kind) {
       case "compound":
+        if (s.sameScope) {
+          for (const x of s.stmts) this.stmt(x);
+          return;
+        }
         this.block("", () => { for (const x of s.stmts) this.stmt(x); });
         return;
       case "expr": {
@@ -1014,7 +1056,7 @@ class PhpGen {
       case "lit": return this.lit(e);
       case "id": return this.exId(e);
       case "this": return "$this";
-      case "call": return this.exCall(e);
+      case "call": return this.exCallValue(e);
       case "index": return this.exIndex(e);
       case "member": return this.exMember(e);
       case "unary": return this.exUnary(e);
@@ -1093,6 +1135,40 @@ class PhpGen {
     return `[${codes.join(", ")}]`;
   }
 
+
+  // The string and memory builtins work on the same boxes every other pointer
+  // uses: an array of bytes and an offset into it.
+  exMemBuiltin(name: string, e: CallExpr): string | null {
+    const a = e.args.map(x => this.ex(x));
+    // A string literal is a bare array of bytes; every other pointer is a box.
+    const p = (i: number) => `(function ($q) { return isset($q["i"]) ? $q : ["a" => $q, "i" => 0]; })(${a[i]})`;
+    switch (name) {
+      case "__builtin_strlen":
+        return `(function ($s) { $i = $s["i"]; while (($s["a"][$i] ?? 0)) $i++; return $i - $s["i"]; })(${p(0)})`;
+      case "__builtin_strcmp":
+        return `(function ($x, $y) { $i = $x["i"]; $j = $y["i"]; while (($x["a"][$i] ?? 0) && ($x["a"][$i] ?? 0) === ($y["a"][$j] ?? 0)) { $i++; $j++; } return ($x["a"][$i] ?? 0) - ($y["a"][$j] ?? 0); })(${p(0)}, ${p(1)})`;
+      case "__builtin_strncmp":
+        return `(function ($x, $y, $n) { $i = $x["i"]; $j = $y["i"]; $k = 0; while ($k < $n && ($x["a"][$i] ?? 0) && ($x["a"][$i] ?? 0) === ($y["a"][$j] ?? 0)) { $i++; $j++; $k++; } return $k >= $n ? 0 : ($x["a"][$i] ?? 0) - ($y["a"][$j] ?? 0); })(${p(0)}, ${p(1)}, ${a[2]})`;
+      case "__builtin_strcpy":
+        return `(function ($d, $s) { $i = $d["i"]; $j = $s["i"]; while (($d["a"][$i] = ($s["a"][$j] ?? 0))) { $i++; $j++; } return $d; })(${p(0)}, ${p(1)})`;
+      case "__builtin_strncpy":
+        return `(function ($d, $s, $n) { $i = $d["i"]; $j = $s["i"]; $k = 0; for (; $k < $n && ($s["a"][$j] ?? 0); $k++) { $d["a"][$i] = $s["a"][$j]; $i++; $j++; } for (; $k < $n; $k++) { $d["a"][$i] = 0; $i++; } return $d; })(${p(0)}, ${p(1)}, ${a[2]})`;
+      case "__builtin_strcat":
+        return `(function ($d, $s) { $i = $d["i"]; while (($d["a"][$i] ?? 0)) $i++; $j = $s["i"]; while (($d["a"][$i] = ($s["a"][$j] ?? 0))) { $i++; $j++; } return $d; })(${p(0)}, ${p(1)})`;
+      case "__builtin_strchr":
+        return `(function ($s, $c) { $i = $s["i"]; while (($s["a"][$i] ?? 0) && ($s["a"][$i] ?? 0) !== ($c & 255)) $i++; return ($s["a"][$i] ?? 0) === ($c & 255) ? ["a" => $s["a"], "i" => $i] : null; })(${p(0)}, ${a[1]})`;
+      case "__builtin_memset":
+        return `(function ($d, $c, $n) { for ($k = 0; $k < $n; $k++) $d["a"][$d["i"] + $k] = $c & 255; return $d; })(${p(0)}, ${a[1]}, ${a[2]})`;
+      case "__builtin_memcpy":
+        return `(function ($d, $s, $n) { for ($k = 0; $k < $n; $k++) $d["a"][$d["i"] + $k] = $s["a"][$s["i"] + $k]; return $d; })(${p(0)}, ${p(1)}, ${a[2]})`;
+      case "__builtin_memmove":
+        return `(function ($d, $s, $n) { $t = array_slice($s["a"], $s["i"], $n); for ($k = 0; $k < $n; $k++) $d["a"][$d["i"] + $k] = $t[$k]; return $d; })(${p(0)}, ${p(1)}, ${a[2]})`;
+      case "__builtin_memcmp":
+        return `(function ($x, $y, $n) { for ($k = 0; $k < $n; $k++) { $d = ($x["a"][$x["i"] + $k] ?? 0) - ($y["a"][$y["i"] + $k] ?? 0); if ($d) return $d; } return 0; })(${p(0)}, ${p(1)}, ${a[2]})`;
+      default:
+        return null;
+    }
+  }
   exId(e: IdExpr): string {
     const a = this.cx.getAnn(e);
     const s = a.sym;
@@ -1192,7 +1268,10 @@ class PhpGen {
         return `["a" => [${this.ex(e)}], "i" => 0]`;
       case "call": case "this":
         if (e.kind === "this") return `["a" => [$this], "i" => 0]`;
-        return this.ex(e);
+        // A call returning a reference already yields a box; any other rvalue
+        // needs a temporary one to be passed by reference.
+        if (et && et.ref) return this.exCall(e);
+        return `["a" => [${this.ex(e)}], "i" => 0]`;
       case "lit":
         if (e.lkind === "string") return `["a" => ${this.lit(e)}, "i" => 0]`;
         return `["a" => [${this.ex(e)}], "i" => 0]`;
@@ -1201,6 +1280,13 @@ class PhpGen {
       case "binary":
         if (e.op === ",") return `(${this.ex(e.l)}, ${this.exBox(e.r)})`;
         return `["a" => [${this.ex(e)}], "i" => 0]`;
+      case "cast": {
+        // A cast to a pointer or a reference yields the box of its operand;
+        // wrapping it again would point at the box instead of the value.
+        const ct = this.cx.getAnn(e).t as CppType;
+        if (ct && ct.isBox()) return this.ex(e);
+        return `["a" => [${this.ex(e)}], "i" => 0]`;
+      }
       default:
         return `["a" => [${this.ex(e)}], "i" => 0]`;
     }
@@ -1258,7 +1344,9 @@ class PhpGen {
       }
       case "call": {
         const t = this.tmp();
-        return `(${t} = ${this.ex(e)}, ${t}["a"][${t}["i"]])`;
+        // A call returning a scalar reference already yields the box.
+        const c = this.returnsScalarRef(e) ? this.exCall(e) : this.ex(e);
+        return `(${t} = ${c}, ${t}["a"][${t}["i"]])`;
       }
       default:
         this.cx.fail("not assignable", e);
@@ -1300,8 +1388,21 @@ class PhpGen {
     return false;
   }
 
+  // A null pointer is null itself, so reading through one needs a guard.
+  pidx(x: string): string {
+    return `(${x} ? ${this.paren(x)}["i"] : 0)`;
+  }
+
+  parr(x: string): string {
+    return `(${x} ? ${this.paren(x)}["a"] : null)`;
+  }
+
   pbox(s: string, e: Expr, t: CppType): string {
     const x = this.complex(s, e);
+    // "this + 1" addresses the storage that follows the object, as
+    // "reinterpret_cast<_CharT*>(this + 1)" does in a header that keeps its
+    // data behind the object: the instance gets an array to be addressed in.
+    if (e.kind === "this") return `["a" => (isset($this->ctj_a) ? $this->ctj_a : ($this->ctj_a = [])), "i" => (isset($this->ctj_i) ? $this->ctj_i : 0)]`;
     if (t.dims.length && !t.isBox()) return `["a" => ${x}, "i" => 0]`;
     return x;
   }
@@ -1335,6 +1436,12 @@ class PhpGen {
     }
     if (!pB && aB) {
       if (at && at.name === "__null" && coreName(p) === "bool") return "false";
+      // Reading a reference variable already yields the value it refers to;
+      // only an expression that produces a fat pointer needs one more step.
+      if (x.kind === "id") {
+        const sym = this.cx.getAnn(x).sym;
+        if (sym && sym.k === "var" && sym.v.typeCache && sym.v.typeCache.ref) return this.ex(x);
+      }
       return this.deref(x);
     }
     if (coreName(p) === "bool" && at && !isNumericName(coreName(at)) && !this.cx.enums.has(this.cx.stripAll(at)) && at.name !== "__null" && !at.isBox()) {
@@ -1343,6 +1450,11 @@ class PhpGen {
     if (p.ptr > 0 && at && at.dims.length && !at.isBox()) return this.exBox(x);
     if (pB && aB) {
       if (at && at.ref) return this.exBox(x);
+      // A reference parameter reads through an address, so a pointer value has
+      // to be given one: a pointer is already a box.
+      if (p.ref && at && !at.ref && !at.isFunc && !at.dims.length && at.ptr > 0) {
+        return `["a" => [${this.ex(x)}], "i" => 0]`;
+      }
       return this.ex(x);
     }
     if (at && at.name === "__null" && isNumericName(coreName(p))) return "0";
@@ -1370,8 +1482,34 @@ class PhpGen {
     return this.argFor(ret, x, null);
   }
 
+  // A call that returns a reference to a scalar hands back a box; where a
+  // value is wanted it stands for the element the box points at, exactly as a
+  // reference variable does.
+  // The left side of an assignment reached through a box. A call returning a
+  // scalar reference is one already, so it must not be read through twice.
+  lhsBox(e: Expr): string {
+    return e.kind === "call" && this.returnsScalarRef(e) ? this.exCall(e) : this.ex(e);
+  }
+
+  returnsScalarRef(e: CallExpr): boolean {
+    const t = this.cx.getAnn(e).t as CppType;
+    return !!t && t.ref !== "" && !t.dims.length && !t.isFunc &&
+      !this.cx.classes.has(this.cx.stripAll(t));
+  }
+
+  exCallValue(e: CallExpr): string {
+    if (this.returnsScalarRef(e)) {
+      const v = this.tmp();
+      return `(${v} = ${this.exCall(e)}, ${v}["a"][${v}["i"]])`;
+    }
+    return this.exCall(e);
+  }
+
   exCall(e: CallExpr): string {
     const a = this.cx.getAnn(e);
+    // A destructor call that resolved to no destructor has nothing to do; the
+    // target language reclaims the storage itself.
+    if (!a.call && e.fn.kind === "member" && (e.fn as MemberExpr).field.charAt(0) === "~") return "null";
     if (typeof a.call === "object" && a.call !== null && "builtin" in (a.call as object)) {
       return this.exBuiltin((a.call as { builtin: string }).builtin, e);
     }
@@ -1400,7 +1538,7 @@ class PhpGen {
       }
     });
     for (let i = e.args.length; i < ps.length && !ps[i].variadic; i++) {
-      aa.push(ps[i].def ? this.ex(ps[i].def as Expr) : "null");
+      aa.push(ps[i].def ? this.defArg(ps[i]) : "null");
     }
     let s: string;
     if (!fn.isMethod) {
@@ -1517,6 +1655,8 @@ class PhpGen {
     if (name === "__builtin_frame_address" || name === "__builtin_return_address" || name === "__builtin_extract_return_addr") return "null";
     if (name === "__builtin_FILE" || name === "__builtin_FUNCTION") return this.strLit(`"${e.file}"`);
     if (name === "__builtin_LINE") return String(e.line);
+    const mem = this.exMemBuiltin(name, e);
+    if (mem !== null) return mem;
     return `(function () { throw new Exception("unresolved ${name}"); })()`;
   }
 
@@ -1578,11 +1718,10 @@ class PhpGen {
     if (e.op === "*") {
       const at = this.cx.getAnn(e.arg).t as CppType;
       if (at.isFunc) return this.ex(e.arg);
-      if (e.arg.kind === "unary" && (e.arg.op === "++post" || e.arg.op === "--post")) {
+      if (e.arg.kind === "unary" && incKind(e.arg) && isPostfix(e.arg)) {
         const p = this.complex(this.ex(e.arg.arg), e.arg.arg);
         const pp = this.paren(p);
-        const op = e.arg.op === "++post" ? "++" : "--";
-        return `${pp}["a"][${pp}["i"]${op}]`;
+        return `${pp}["a"][${pp}["i"]${incKind(e.arg)}]`;
       }
       if (e.arg.kind === "unary" && (e.arg.op === "++" || e.arg.op === "--")) {
         const p = this.complex(this.ex(e.arg.arg), e.arg.arg);
@@ -1593,29 +1732,21 @@ class PhpGen {
       return this.deref(e.arg);
     }
     if (e.op === "&") return this.exAddr(e.arg);
-    if (e.op === "++" || e.op === "--" || e.op === "++post" || e.op === "--post") {
+    const inc = incKind(e);
+    if (inc) {
+      const post = isPostfix(e);
       const at = this.cx.getAnn(e.arg).t as CppType;
       if (this.splitLhs(e.arg)) {
         const t = this.tmp();
         const inner = at.ptr > 0 && !at.isFunc ? `${t}["i"]` : `${t}["a"][${t}["i"]]`;
-        if (e.op === "++") return `(${t} = ${this.ex(e.arg)}, ++${inner})`;
-        if (e.op === "--") return `(${t} = ${this.ex(e.arg)}, --${inner})`;
-        if (e.op === "++post") return `(${t} = ${this.ex(e.arg)}, ${inner}++)`;
-        return `(${t} = ${this.ex(e.arg)}, ${inner}--)`;
+        return `(${t} = ${this.ex(e.arg)}, ${post ? inner + inc : inc + inner})`;
       }
       if (at.ptr > 0 && !at.isFunc) {
-        const l = this.lvalue(e.arg);
-        const p = this.paren(l);
-        if (e.op === "++") return `++${p}["i"]`;
-        if (e.op === "--") return `--${p}["i"]`;
-        if (e.op === "++post") return `${p}["i"]++`;
-        return `${p}["i"]--`;
+        const p = this.paren(this.lvalue(e.arg));
+        return post ? `${p}["i"]${inc}` : `${inc}${p}["i"]`;
       }
       const l = this.lvalue(e.arg);
-      if (e.op === "++") return `++${l}`;
-      if (e.op === "--") return `--${l}`;
-      if (e.op === "++post") return `${l}++`;
-      return `${l}--`;
+      return post ? `${l}${inc}` : `${inc}${l}`;
     }
     if (e.op === "!") return `(!${this.paren(this.ex(e.arg))})`;
     if (e.op === "+") return `(+${this.paren(this.ex(e.arg))})`;
@@ -1664,7 +1795,8 @@ class PhpGen {
         const y = this.pbox(r, e.r, rt as CppType);
         const xp = this.paren(x);
         const yp = this.paren(y);
-        const eq = `${xp}["a"] === ${yp}["a"] && ${xp}["i"] === ${yp}["i"]`;
+        // A null pointer is null itself, so both sides are checked first.
+        const eq = `${xp} === ${yp} || (${xp} && ${yp} && ${xp}["a"] === ${yp}["a"] && ${xp}["i"] === ${yp}["i"])`;
         return e.op === "==" ? `(${eq})` : `(!(${eq}))`;
       }
       if (lp && (rt.name === "__null" || this.isZeroLit(e.r))) return `(${l} ${op} null)`;
@@ -1675,7 +1807,7 @@ class PhpGen {
       if (lp && rp) {
         const x = this.pbox(l, e.l, lt as CppType);
         const y = this.pbox(r, e.r, rt as CppType);
-        return `(${this.paren(x)}["i"] ${e.op} ${this.paren(y)}["i"])`;
+        return `(${this.pidx(x)} ${e.op} ${this.pidx(y)})`;
       }
       return `(${l} ${e.op} ${r})`;
     }
@@ -1684,7 +1816,7 @@ class PhpGen {
         if (e.op !== "-") this.cx.fail("bad pointer arithmetic", e);
         const x = this.pbox(l, e.l, lt as CppType);
         const y = this.pbox(r, e.r, rt as CppType);
-        return `(${this.paren(x)}["i"] - ${this.paren(y)}["i"])`;
+        return `(${this.pidx(x)} - ${this.pidx(y)})`;
       }
       if (lp) {
         const x = this.pbox(l, e.l, lt as CppType);
@@ -1730,7 +1862,7 @@ class PhpGen {
       target.ptr = lt.ptr;
       target.dims = lt.dims;
       const rhs = e.op === "=" ? this.argFor(target, e.r, null) : this.ex(e.r);
-      return `(${t} = ${this.ex(e.l)}, ${t}["a"][${t}["i"]] ${e.op} ${rhs})`;
+      return `(${t} = ${this.lhsBox(e.l)}, ${t}["a"][${t}["i"]] ${e.op} ${rhs})`;
     }
     const l = this.lvalue(e.l);
     if ((e.op === "+=" || e.op === "-=") && lt.ptr > 0 && !lt.isFunc) {
@@ -1750,10 +1882,29 @@ class PhpGen {
     return `${l} ${e.op} ${rhs}`;
   }
 
+  // "::new((void *)__p) _Up(args)" builds the object in the storage __p points
+  // at, which is the slot of the fat pointer the target language holds.
+  exPlacementNew(e: NewExpr, t: CppType): string {
+    const a = this.cx.getAnn(e);
+    const pp = this.paren(this.ex(e.placement[0]));
+    const slot = `${pp}["a"][${pp}["i"]]`;
+    const fcls = !t.isBox() && !t.isFunc ? this.cx.stripAll(t) : "";
+    if (fcls && this.cx.classes.has(fcls)) {
+      const cn = phpClsName(this.cx.classes.get(fcls) as ClsInfo);
+      const obj = a.call ? this.ctorExpr(cn, a.call as FuncInfo, e.args, a.convs) : `new ${cn}()`;
+      // The object goes into the storage it was given and keeps its address, so
+      // that "this + 1" can find the storage again; what the expression yields
+      // is the pointer to that storage.
+      return `((${slot} = ${obj}) && ((${slot}->ctj_a = ${pp}["a"]) || true) && ((${slot}->ctj_i = ${pp}["i"]) || true) ? ["a" => ${pp}["a"], "i" => ${pp}["i"]] : null)`;
+    }
+    const v = e.args.length ? this.ex(e.args[0]) : this.zero(t);
+    return `(${slot} = ${v})`;
+  }
+
   exNew(e: NewExpr): string {
     const a = this.cx.getAnn(e);
-    if (e.placement) this.cx.warn("placement new is approximated", e);
-    const t = this.cx.resolveTypeNode(e.type, rootScope());
+    const t = this.cx.resolveTypeNode(e.type, this.curScope());
+    if (e.placement.length) return this.exPlacementNew(e, t);
     if (e.isArray) {
       const n = e.type.dims.length ? this.ex(e.type.dims[0]) : "0";
       const et = new CppType(t.name);
@@ -1791,6 +1942,8 @@ class PhpGen {
       const inner = cps.length ? this.argFor(cps[0].type, e.arg, a.conv) : this.ex(e.arg);
       return `new ${cn}(${inner})`;
     }
+    // "size_type()" value-initialises: there is no argument to convert.
+    if (e.arg.kind === "initlist" && !(e.arg as InitListExpr).items.length) return this.zero(t);
     if (a.conv) {
       return `${this.paren(this.objOf(e.arg))}->${phpMethodName((a.conv as { kind: string; fn: FuncInfo }).fn)}()`;
     }
@@ -1801,7 +1954,7 @@ class PhpGen {
       if (t.ptr > 0) return `(${x} instanceof ${cn} ? ${x} : null)`;
       return `(${x} instanceof ${cn} ? ${x} : (function () { throw new Exception("bad cast"); })())`;
     }
-    if (coreName(t) === "void") return `(${this.ex(e.arg)})`;
+    if (coreName(t) === "void" && !t.ptr) return `(${this.ex(e.arg)})`;
     const at = this.cx.getAnn(e.arg).t as CppType;
     if (coreName(t) === "bool" && at.isBox() && !at.isFunc) return `(${this.ex(e.arg)} !== null)`;
     if (coreName(t) === "bool" && isNumericName(coreName(at))) return `(${this.ex(e.arg)} !== 0)`;
@@ -1809,13 +1962,16 @@ class PhpGen {
       return `(int)(${this.ex(e.arg)})`;
     }
     if (t.ptr > 0 && (at.name === "__null" || this.isZeroLit(e.arg))) return "null";
+    // An unsigned value wraps, so "size_t(-1)" is the largest size rather than
+    // a negative one. The width is the 32-bit one, matching the JS emitter.
+    if (isUnsignedName(coreName(t))) return `((${this.ex(e.arg)}) & 0xFFFFFFFF)`;
     return this.ex(e.arg);
   }
 
   exTypeid(e: TypeidExpr): string {
     let key: string;
     if (e.isType && e.type) {
-      key = this.cx.resolveTypeNode(e.type, rootScope()).key();
+      key = this.cx.resolveTypeNode(e.type, this.curScope()).key();
     } else if (e.expr) {
       key = (this.cx.getAnn(e.expr).t as CppType).key();
     } else {
@@ -1864,7 +2020,7 @@ class PhpGen {
   }
 
   sizeofType(e: SizeofExpr): CppType {
-    if (e.isType && e.type) return this.cx.resolveTypeNode(e.type, rootScope());
+    if (e.isType && e.type) return this.cx.resolveTypeNode(e.type, this.curScope());
     if (e.expr) return this.cx.getAnn(e.expr).t as CppType;
     this.cx.fail("bad sizeof", e);
     return CppType.basic("int");
