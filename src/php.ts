@@ -198,6 +198,13 @@ class PhpGen {
     return this.fnStack.length ? this.fnStack[this.fnStack.length - 1] : null;
   }
 
+  // The scope a type name written in an expression is resolved in: that of the
+  // function being emitted, so "sizeof(_Rep)" sees the members of _Rep.
+  curScope(): Scope {
+    const fn = this.curFn();
+    return fn ? fn.scope : rootScope();
+  }
+
   bodyStmts(list: Stmt[]): void {
     if (list.length === 1 && list[0].kind === "compound") {
       for (const x of (list[0] as Compound).stmts) this.stmt(x);
@@ -1439,6 +1446,11 @@ class PhpGen {
     if (p.ptr > 0 && at && at.dims.length && !at.isBox()) return this.exBox(x);
     if (pB && aB) {
       if (at && at.ref) return this.exBox(x);
+      // A reference parameter reads through an address, so a pointer value has
+      // to be given one: a pointer is already a box.
+      if (p.ref && at && !at.ref && !at.isFunc && !at.dims.length && at.ptr > 0) {
+        return `["a" => [${this.ex(x)}], "i" => 0]`;
+      }
       return this.ex(x);
     }
     if (at && at.name === "__null" && isNumericName(coreName(p))) return "0";
@@ -1477,7 +1489,7 @@ class PhpGen {
 
   returnsScalarRef(e: CallExpr): boolean {
     const t = this.cx.getAnn(e).t as CppType;
-    return !!t && t.ref !== "" && !t.ptr && !t.dims.length && !t.isFunc &&
+    return !!t && t.ref !== "" && !t.dims.length && !t.isFunc &&
       !this.cx.classes.has(this.cx.stripAll(t));
   }
 
@@ -1884,7 +1896,7 @@ class PhpGen {
 
   exNew(e: NewExpr): string {
     const a = this.cx.getAnn(e);
-    const t = this.cx.resolveTypeNode(e.type, rootScope());
+    const t = this.cx.resolveTypeNode(e.type, this.curScope());
     if (e.placement.length) return this.exPlacementNew(e, t);
     if (e.isArray) {
       const n = e.type.dims.length ? this.ex(e.type.dims[0]) : "0";
@@ -1952,7 +1964,7 @@ class PhpGen {
   exTypeid(e: TypeidExpr): string {
     let key: string;
     if (e.isType && e.type) {
-      key = this.cx.resolveTypeNode(e.type, rootScope()).key();
+      key = this.cx.resolveTypeNode(e.type, this.curScope()).key();
     } else if (e.expr) {
       key = (this.cx.getAnn(e.expr).t as CppType).key();
     } else {
@@ -2001,7 +2013,7 @@ class PhpGen {
   }
 
   sizeofType(e: SizeofExpr): CppType {
-    if (e.isType && e.type) return this.cx.resolveTypeNode(e.type, rootScope());
+    if (e.isType && e.type) return this.cx.resolveTypeNode(e.type, this.curScope());
     if (e.expr) return this.cx.getAnn(e.expr).t as CppType;
     this.cx.fail("bad sizeof", e);
     return CppType.basic("int");

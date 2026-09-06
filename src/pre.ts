@@ -14,6 +14,11 @@ export interface PreResult {
 
 const MAX_DEPTH = 64;
 
+// libstdc++ writes its pedantic asserts as function-like macros that its
+// configuration header defines away unless a program asks for them. They carry
+// no behaviour, so the defaults come from here; "defines" can still override.
+export const DEFAULT_EMPTY_FN_MACROS = ["_GLIBCXX_DEBUG_PEDASSERT"];
+
 export const DEFAULT_PREDEFINED: Record<string, string> = {
   "__cplusplus": "201103L",
   "__STRICT_ANSI__": "1",
@@ -91,6 +96,9 @@ export class Preprocessor {
       toks.pop();
       this.macros.set(k, { params: null, variadic: false, body: toks });
     }
+    for (const name of DEFAULT_EMPTY_FN_MACROS) {
+      this.macros.set(name, { params: [], variadic: true, body: [] });
+    }
   }
 
   run(mainSrc: string, mainFile: string): PreResult {
@@ -155,8 +163,17 @@ export class Preprocessor {
     const cond: Frame[] = [];
     const active = () => cond.every(f => f.active);
     let lineBuf: Token[] = [];
-    const flushLine = () => {
+    // A function-like macro call can run over several lines, and its arguments
+    // have to be complete before it can be expanded, so an open parenthesis
+    // keeps the line in the buffer.
+    const flushLine = (force = false) => {
       if (lineBuf.length) {
+        let depth = 0;
+        for (const t of lineBuf) {
+          if (t.t === "(") depth++;
+          else if (t.t === ")") depth--;
+        }
+        if (!force && depth > 0) return;
         const exp = this.expandTokens(lineBuf, new Set(), file, lineBuf[0].line);
         for (const s of exp) {
           if (s.t !== "directive") out.push(s);
@@ -166,13 +183,13 @@ export class Preprocessor {
     };
     for (const t of lexed) {
       if (t.t !== "directive") {
-        if (t.t === "eof") { flushLine(); continue; }
+        if (t.t === "eof") { flushLine(true); continue; }
         if (lineBuf.length && lineBuf[0].line !== t.line) flushLine();
         if (!active()) continue;
         lineBuf.push(t);
         continue;
       }
-      flushLine();
+      flushLine(true);
       const m = t.v.match(/^#\s*([A-Za-z_]\w*)([\s\S]*)$/);
       if (!m) continue;
       const dir = m[1];

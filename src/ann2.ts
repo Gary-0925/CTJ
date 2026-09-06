@@ -354,6 +354,8 @@ function typeOfBinary(cx: Cx, e: BinaryExpr, scope: Scope): CppType {
   const rDec = rt.dims.length && !rt.isBox() ? decayed(rt) : rt;
   if (lDec.ptr > 0 && isIntegerish(cx, rt) && (e.op === "+" || e.op === "-")) return lDec;
   if (rDec.ptr > 0 && isIntegerish(cx, lt) && e.op === "+") return rDec;
+  // Two pointers into the same array differ by a number of elements.
+  if (lDec.ptr > 0 && rDec.ptr > 0 && e.op === "-") return CppType.basic("long");
   if (lDec.ptr > 0 && rDec.ptr > 0 && e.op === "-") return CppType.basic("long");
   const p = promote(cx, lt, rt);
   if (p) return p;
@@ -1049,7 +1051,8 @@ export function findOperator(cx: Cx, op: string, l: { t: CppType; e: Expr } | nu
         if (i < ps.length) sc += matchScore(cx, ps[i].type, a.t, a.e, scope, true).s;
       });
       if (!best || sc > best.score) best = { fn: rr.fn, convs: rr.convs, score: sc };
-    } catch { /* no match */ }
+    } catch (er) {
+    }
   };
   if (l && isClassVal(cx, l.t)) {
     const fq = cx.stripAll(l.t);
@@ -1091,8 +1094,7 @@ function assocNs(cx: Cx, l: CppType | null, r: CppType | null, scope: Scope): st
     if (!t) continue;
     const fq = cx.stripAll(t);
     if (cx.classes.has(fq) || cx.enums.has(fq)) {
-      const idx = fq.lastIndexOf("::");
-      push(idx >= 0 ? fq.slice(0, idx) : "");
+      push(cx.nsOfFq(fq));
     }
   }
   for (let i = scope.ns.length; i >= 0; i--) push(scope.ns.slice(0, i).join("::"));

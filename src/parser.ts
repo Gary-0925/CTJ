@@ -192,6 +192,19 @@ export class Parser {
     this.classTypes.set(name, new Set(last(this.typeScopes)));
   }
 
+  // The type names declared by the classes a qualified name is written against:
+  // "Cls::N::method" sees the typedefs of Cls and of N alike.
+  ownerTypeScope(name: QSeg[]): Set<string> | undefined {
+    let all: Set<string> | undefined;
+    for (let i = 0; i + 1 < name.length; i++) {
+      const s = this.classTypes.get(name[i].n);
+      if (!s) continue;
+      if (!all) all = new Set();
+      for (const n of s) all.add(n);
+    }
+    return all;
+  }
+
   pushTypeScope(names: Set<string>): void {
     this.typeScopes.push(names);
   }
@@ -407,7 +420,7 @@ export class Parser {
       } else {
         // The members of the class are in scope in the body of an out-of-line
         // member definition, so its type names stay visible while parsing it.
-        const owner = d.name.length >= 2 ? this.classTypes.get(d.name[0].n) : undefined;
+        const owner = this.ownerTypeScope(d.name);
         if (owner) this.pushTypeScope(owner);
         try {
           fn.body = this.parseFuncBody();
@@ -853,7 +866,7 @@ export class Parser {
     this.parseDeclaratorCore(d);
     // In "Cls::method(const value_type& v)" the members of Cls are in scope in
     // the parameter list, so its type names have to be visible while parsing it.
-    const owner = d.name.length >= 2 ? this.classTypes.get(d.name[0].n) : undefined;
+    const owner = this.ownerTypeScope(d.name);
     if (owner) this.pushTypeScope(owner);
     try {
       this.parseDeclaratorSuffix(d);

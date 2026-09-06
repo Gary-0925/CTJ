@@ -812,6 +812,20 @@ export class Cx {
     return out;
   }
 
+  // The namespace a class belongs to: the last "::" that is not inside a
+  // template argument list, since "a::b<c::d>" is a name of namespace "a".
+  nsOfFq(fq: string): string {
+    let depth = 0;
+    let cut = -1;
+    for (let i = 0; i < fq.length - 1; i++) {
+      const ch = fq[i];
+      if (ch === "<") depth++;
+      else if (ch === ">") depth--;
+      else if (ch === ":" && fq[i + 1] === ":" && depth === 0) { cut = i; i++; }
+    }
+    return cut < 0 ? "" : fq.slice(0, cut);
+  }
+
   tmplsOf(fq: string): TmplInfo[] {
     const list = this.tmplOverloads.get(fq);
     if (list && list.length) return list;
@@ -1092,7 +1106,13 @@ export class Cx {
     idx = 1;
     for (; idx < parts.length; idx++) {
       sym = this.lookupNext(sym, parts[idx], scope);
-      if (!sym) return null;
+      if (!sym) break;
+    }
+    if (!sym && parts.length > 1 && scope.cls) {
+      // "basic_string<_CharT, ...>::_Rep" written inside the class: the plain
+      // head finds the constructor before the class template, so the whole path
+      // is looked up again where only the namespaces are in scope.
+      return this.resolveSym(parts, global, { ns: scope.ns.slice(), cls: null, locals: [], fn: null, returns: [] });
     }
     return sym;
   }
@@ -1208,6 +1228,28 @@ export class Cx {
     return fn.paramCache;
   }
 
+  // A trailing return type is written in the scope of the parameters, so that
+  // "-> decltype(__lhs.base() - __rhs.base())" can name them.
+  paramScope(fn: FuncInfo): Scope {
+    const s = this.snapScope(fn.scope);
+    s.fn = fn;
+    const m = new Map<string, VarInfo>();
+    s.locals.push(m);
+    for (const p of this.funcParams(fn)) {
+      if (!p.name) continue;
+      m.set(p.name, {
+        fq: fn.fq + "::" + p.name, short: p.name, mangled: p.name, lifted: false,
+        decl: {
+          kind: "var", name: [qseg(p.name)], type: typeNode([]), init: null, directInit: null,
+          flags: [], bitfield: null, isParam: true, file: fn.decl.file, line: fn.decl.line,
+        },
+        scope: s, typeCache: p.type, storage: "plain",
+        isGlobal: false, isStatic: false, isParam: true, isField: false, referenced: false,
+      });
+    }
+    return s;
+  }
+
   funcRet(fn: FuncInfo): CppType {
     if (!fn.retCache) {
       if (this.retStack.has(fn)) {
@@ -1217,7 +1259,7 @@ export class Cx {
       }
       this.retStack.add(fn);
       try {
-        if (fn.decl.trailing) fn.retCache = this.resolveTypeNode(fn.decl.trailing, fn.scope);
+        if (fn.decl.trailing) fn.retCache = this.resolveTypeNode(fn.decl.trailing, this.paramScope(fn));
         else if (fn.decl.ret) fn.retCache = this.resolveTypeNode(fn.decl.ret, fn.scope);
         else fn.retCache = CppType.basic("void");
       } finally {
@@ -1553,15 +1595,18 @@ export class Cx {
       const env = this.buildEnv(tmpl.tparams, args);
       const rest = t.tparams.slice(outer);
       const newFq = key + "::" + t.fq.slice(prefix.length);
+      // The member can belong to a nested class of the instantiated one:
+      // "W2<int>::N::get" is a method of W2<int>::N, not of W2<int>.
+      const owner = this.classes.get(this.nsOfFq(newFq)) || cls;
       if (t.kind === "func" && !rest.length) {
         const decl = substDecl(t.decl, env) as FuncDecl;
-        this.annDefaults(decl, this.memberScope(cls));
-        const exist = this.findMethod(cls, decl);
+        this.annDefaults(decl, this.memberScope(owner));
+        const exist = this.findMethod(owner, decl);
         if (exist && !exist.decl.body && decl.body) {
           exist.decl = decl;
-          exist.scope = this.memberScope(cls);
+          exist.scope = this.memberScope(owner);
         } else if (!exist) {
-          this.addMethod(cls, this.methodShort(decl), decl, this.memberScope(cls));
+          this.addMethod(owner, this.methodShort(decl), decl, this.memberScope(owner));
         }
       } else {
         const decl = substDecl(t.decl, env);
@@ -1569,7 +1614,7 @@ export class Cx {
         // class body carries is the same template, and the definition replaces it.
         // The member's own scope: the class's typedefs are visible in an
         // out-of-line definition.
-        this.registerTmpl({ fq: newFq, kind: t.kind, tparams: rest, decl, scope: this.memberScope(cls), specs: [] });
+        this.registerTmpl({ fq: newFq, kind: t.kind, tparams: rest, decl, scope: this.memberScope(owner), specs: [] });
       }
     }
   }
@@ -1577,6 +1622,16 @@ export class Cx {
   // The fq of the class or namespace a qualified name is written against.  The
   // template arguments are dropped: reading them would instantiate the class.
   ownerFq(parts: QSeg[], scope: Scope): string {
+    const whole = this.resolveOwnerPath(parts, scope);
+    if (whole) return whole;
+    // What is left names members of a class that is still a template, which
+    // cannot be resolved from here: they are kept as written behind whatever
+    // the first name turns out to be.
+    const head = this.resolveOwnerPath([parts[0]], scope) || parts[0].n;
+    return parts.length > 1 ? head + "::" + parts.slice(1).map(s => s.n).join("::") : head;
+  }
+
+  resolveOwnerPath(parts: QSeg[], scope: Scope): string | null {
     let owner: Sym | null = null;
     try {
       owner = this.resolveSym(parts.map(s => qseg(s.n)), false, scope);
@@ -1586,7 +1641,7 @@ export class Cx {
     if (owner && owner.k === "class") return owner.cls.fq;
     if (owner && owner.k === "tmpl") return owner.t.fq;
     if (owner && owner.k === "ns") return owner.fq;
-    return parts.map(s => s.n).join("::");
+    return null;
   }
 
   methodShort(d: FuncDecl): string {

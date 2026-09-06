@@ -1440,10 +1440,15 @@ class JsGen {
     if (p.ptr > 0 && at && at.dims.length && !at.isBox()) return this.exBox(x);
     if (pB && aB) {
       if (at && at.ref) return this.exBox(x);
-      // A reference parameter reads through an address, so a class value has to
-      // be given one.
-      if (p.ref && at && !at.ref && !at.ptr && !at.dims.length && !at.isFunc &&
-        this.cx.classes.has(this.cx.stripAll(at))) return this.exBox(x);
+      // A reference parameter reads through an address, so a value has to be
+      // given one: a class object, and a pointer too, since a pointer is
+      // already a box and "const _Iterator&" is a box around it.
+      if (p.ref && at && !at.ref && !at.isFunc && !at.dims.length) {
+        if (at.ptr > 0) {
+          return `{a: [${this.ex(x)}], i: 0}`;
+        }
+        if (this.cx.classes.has(this.cx.stripAll(at))) return this.exBox(x);
+      }
       return this.ex(x);
     }
     if (at && at.name === "__null" && isNumericName(coreName(p))) return "0";
@@ -1493,7 +1498,7 @@ class JsGen {
 
   returnsScalarRef(e: CallExpr): boolean {
     const t = this.cx.getAnn(e).t as CppType;
-    return !!t && t.ref !== "" && !t.ptr && !t.dims.length && !t.isFunc &&
+    return !!t && t.ref !== "" && !t.dims.length && !t.isFunc &&
       !this.cx.classes.has(this.cx.stripAll(t));
   }
 
@@ -1661,6 +1666,13 @@ class JsGen {
 
   blankScope(): Scope {
     return rootScope();
+  }
+
+  // The scope a type name written in an expression is resolved in: that of the
+  // function being emitted, so "sizeof(_Rep)" sees the members of _Rep.
+  curScope(): Scope {
+    const fn = this.fnStack.length ? this.fnStack[this.fnStack.length - 1] : null;
+    return fn ? fn.scope : rootScope();
   }
 
   exIndex(e: IndexExpr): string {
@@ -1922,7 +1934,7 @@ class JsGen {
 
   exNew(e: NewExpr): string {
     const a = this.cx.getAnn(e);
-    const t = this.cx.resolveTypeNode(e.type, this.blankScope());
+    const t = this.cx.resolveTypeNode(e.type, this.curScope());
     if (e.placement.length) return this.exPlacementNew(e, t);
     if (e.isArray) {
       const n = e.type.dims.length ? this.ex(e.type.dims[0]) : "0";
@@ -1996,7 +2008,7 @@ class JsGen {
   exTypeid(e: TypeidExpr): string {
     let key: string;
     if (e.isType && e.type) {
-      key = this.cx.resolveTypeNode(e.type, this.blankScope()).key();
+      key = this.cx.resolveTypeNode(e.type, this.curScope()).key();
     } else if (e.expr) {
       key = (this.cx.getAnn(e.expr).t as CppType).key();
     } else {
@@ -2040,7 +2052,7 @@ class JsGen {
   }
 
   sizeofType(e: SizeofExpr): CppType {
-    if (e.isType && e.type) return this.cx.resolveTypeNode(e.type, this.blankScope());
+    if (e.isType && e.type) return this.cx.resolveTypeNode(e.type, this.curScope());
     if (e.expr) return this.cx.getAnn(e.expr).t as CppType;
     this.cx.fail("bad sizeof", e);
     return CppType.basic("int");
