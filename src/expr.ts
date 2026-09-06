@@ -64,6 +64,13 @@ export function parsePostfix(p: Parser, e: Expr): Expr {
     if (t.t === "." || t.t === "->") {
       p.pos++;
       if (p.isIdent("template")) p.pos++;
+      // "p->~T()" is a pseudo-destructor call on a dependent type.
+      if (p.peek().t === "~") {
+        p.pos++;
+        const f = p.expect("ident");
+        e = { kind: "member", obj: e, field: "~" + f.v, arrow: t.t === "->", targs: [], qual: [], ...at(t) };
+        continue;
+      }
       let f = p.expect("ident");
       const qual: QSeg[] = [];
       while (p.peek().t === "::") {

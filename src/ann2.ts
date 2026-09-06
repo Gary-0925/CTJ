@@ -646,7 +646,9 @@ function memberCall(cx: Cx, e: CallExpr, fn: MemberExpr, argTs: { t: CppType; e:
     if (!qs || qs.k !== "class") cx.fail(`unknown class '${fn.qual.map(s => s.n).join("::")}'`, fn);
     lookupFq = (qs as Sym & { k: "class" }).cls.fq;
   }
-  const m = cx.lookupMember(lookupFq, fn.field, new Set());
+  // "p->~T()" names the destructor of the class the object belongs to.
+  const mname = fn.field.charAt(0) === "~" ? "#dtor" : fn.field;
+  const m = cx.lookupMember(lookupFq, mname, new Set());
   if (m.field) {
     const cls = cx.classes.get(m.owner) as ClsInfo;
     const ft = cx.fieldType(cls, fn.field);
