@@ -27,13 +27,14 @@ export interface Declarator {
   trailing: TypeNode | null;
   isMemPtr: boolean;
   special: string;
+  isPack: boolean;
 }
 
 export function blankDeclarator(): Declarator {
   return {
     name: [], global: false, op: "", convType: null, ptr: 0, ref: "",
     dims: [], isFunc: false, params: [], funcCnst: false,
-    trailing: null, isMemPtr: false, special: "",
+    trailing: null, isMemPtr: false, special: "", isPack: false,
   };
 }
 
@@ -874,6 +875,11 @@ export class Parser {
       d.global = true;
       this.pos++;
     }
+    // "U&&... u": the ellipsis of a parameter pack stands before the name.
+    if (this.peek().t === "...") {
+      this.pos++;
+      d.isPack = true;
+    }
     if (this.peek().t === "ident") {
       d.name = this.parseQualifiedName(true);
       if (last(d.name).n === "operator") {
@@ -1019,6 +1025,7 @@ export class Parser {
       let isPack = false;
       if (this.peek().t === "...") { isPack = true; this.pos++; }
       const d = this.parseDeclarator();
+      if (d.isPack) isPack = true;
       const type = this.applyDeclarator(spec.type, d, t);
       let name = d.name.length ? last(d.name).n : "";
       if (d.op) name = "";

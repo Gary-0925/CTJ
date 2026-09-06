@@ -311,7 +311,8 @@ function parseNewDelete(p: Parser): Expr {
 function parseSizeof(p: Parser, isAlign: boolean): SizeofExpr {
   const t = p.expect("ident");
   const base = { kind: "sizeof" as const, isType: false, type: null as TypeNode | null, expr: null as Expr | null, packName: "", isAlignof: isAlign, ...at(t) };
-  if (p.isIdent("...")) {
+  // "sizeof...(_Pack)" counts the elements of a parameter pack.
+  if (p.peek().t === "...") {
     p.pos++;
     p.expect("(");
     const nm = p.expect("ident").v;

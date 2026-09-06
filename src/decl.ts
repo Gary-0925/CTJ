@@ -432,14 +432,17 @@ export function parseTParams(p: Parser): TParam[] {
         nm = p.next().v;
         p.registerType(nm);
       }
+      if (p.eat("...")) isPack = true;
       let def: TypeNode | Expr | null = null;
       if (p.eat("=")) def = p.parseAbstractType();
       out.push({ kind: "type", name: nm || p.anonName("tp"), type: null, def, isPack, ...at(t) });
     } else {
       const spec = p.parseDeclSpec();
+      // The ellipsis may stand before or after the name: "bool... B", "int N...".
+      let isPack = false;
+      if (p.eat("...")) isPack = true;
       let nm = "";
       if (p.peek().t === "ident") nm = p.next().v;
-      let isPack = false;
       if (p.eat("...")) isPack = true;
       let def: TypeNode | Expr | null = null;
       // Stop below the relational precedence so the closing '>' of the
