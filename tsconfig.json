@@ -1,0 +1,31 @@
+{
+  "compilerOptions": {
+    "target": "es2019",
+    "module": "none",
+    "outFile": "dist/ctj.js",
+    "declaration": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "removeComments": false,
+    "sourceMap": false
+  },
+  "files": [
+    "src/util.ts",
+    "src/token.ts",
+    "src/lexer.ts",
+    "src/pre.ts",
+    "src/ast.ts",
+    "src/parser.ts",
+    "src/decl.ts",
+    "src/expr.ts",
+    "src/stmt.ts",
+    "src/sem.ts",
+    "src/subst.ts",
+    "src/ann.ts",
+    "src/ann2.ts",
+    "src/ann3.ts",
+    "src/js.ts",
+    "src/php.ts",
+    "src/api.ts"
+  ]
+}

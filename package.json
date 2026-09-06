@@ -1,0 +1,13 @@
+{
+  "name": "ctj",
+  "version": "0.1.0",
+  "description": "CTJ: C++ transpiler to JavaScript/PHP written in TypeScript",
+  "scripts": {
+    "build": "tsc -p .",
+    "test": "node test/run.js",
+    "demo": "node test/demo.js"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0"
+  }
+}

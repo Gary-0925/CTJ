@@ -1,0 +1,33 @@
+int main() {
+  int x = 10;
+  int* p = &x;
+  *p = 20;
+  __ctj_js("console.log($1)", x);
+  __ctj_js("console.log($1)", *p);
+  int a[4] = {1, 2, 3, 4};
+  int* q = a;
+  __ctj_js("console.log($1)", *q);
+  q++;
+  __ctj_js("console.log($1)", *q);
+  q += 2;
+  __ctj_js("console.log($1)", *q);
+  __ctj_js("console.log($1)", q - a);
+  __ctj_js("console.log($1)", *(a + 2));
+  __ctj_js("console.log($1)", q > a ? 1 : 0);
+  __ctj_js("console.log($1)", (q == a + 3) ? 1 : 0);
+  int* n = 0;
+  __ctj_js("console.log($1)", (n == 0) ? 1 : 0);
+  __ctj_js("console.log($1)", (p == 0) ? 1 : 0);
+  int* h = new int(99);
+  __ctj_js("console.log($1)", *h);
+  delete h;
+  int* arr = new int[3];
+  arr[0] = 7;
+  arr[2] = 9;
+  __ctj_js("console.log($1)", arr[0] + arr[1] + arr[2]);
+  delete[] arr;
+  int** pp = &p;
+  **pp = 30;
+  __ctj_js("console.log($1)", x);
+  return 0;
+}

@@ -1,0 +1,34 @@
+"use strict";
+function main() {
+  let $t0, $t1;
+  let x = {v: 10};
+  let p = {v: {a: x, i: "v"}};
+  p.v.a[p.v.i] = 20;
+  (console.log((x.v)));
+  (console.log((p.v.a[p.v.i])));
+  let a = [1, 2, 3, 4];
+  let q = {a: a, i: 0};
+  (console.log((q.a[q.i])));
+  ++q.i;
+  (console.log((q.a[q.i])));
+  q.i += (2);
+  (console.log((q.a[q.i])));
+  (console.log(((q.i - ({a: a, i: 0}).i))));
+  (console.log(((($t0 = ({a: ({a: a, i: 0}).a, i: ({a: a, i: 0}).i + (2)}), $t0)).a[(($t0 = ({a: ({a: a, i: 0}).a, i: ({a: a, i: 0}).i + (2)}), $t0)).i])));
+  (console.log((((q.i > ({a: a, i: 0}).i) ? 1 : 0))));
+  (console.log((((q.a === (($t1 = ({a: ({a: a, i: 0}).a, i: ({a: a, i: 0}).i + (3)}), $t1)).a && q.i === (($t1 = ({a: ({a: a, i: 0}).a, i: ({a: a, i: 0}).i + (3)}), $t1)).i) ? 1 : 0))));
+  let n = null;
+  (console.log((((n === null) ? 1 : 0))));
+  (console.log((((p.v === null) ? 1 : 0))));
+  let h = {a: [99], i: 0};
+  (console.log((h.a[h.i])));
+  let arr = {a: new Array(3).fill(0), i: 0};
+  arr.a[arr.i] = 7;
+  arr.a[arr.i + (2)] = 9;
+  (console.log((((arr.a[arr.i] + arr.a[arr.i + (1)]) + arr.a[arr.i + (2)]))));
+  let pp = {a: p, i: "v"};
+  (pp.a[pp.i]).a[(pp.a[pp.i]).i] = 30;
+  (console.log((x.v)));
+  return 0;
+}
+main();
