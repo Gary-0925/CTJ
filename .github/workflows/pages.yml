@@ -1,0 +1,52 @@
+name: 部署 Playground
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: pages
+  cancel-in-progress: false
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: 安装依赖
+        run: npm ci
+      - name: 构建 CTJ
+        run: npm run build
+      - name: 测试用例
+        run: npm test
+        with:
+          enablement: true
+      - name: 组装站点
+        run: |
+          rm -rf _site
+          mkdir -p _site/dist
+          cp index.html _site/
+          cp dist/ctj.js _site/dist/
+          cp include.json _site/
+          touch _site/.nojekyll
+          ls -lR _site
+      - name: 上传站点
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: 发布
+        id: deployment
+        uses: actions/deploy-pages@v4
