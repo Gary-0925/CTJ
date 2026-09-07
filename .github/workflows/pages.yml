@@ -21,7 +21,7 @@ jobs:
           cache: npm
       - name: 安装依赖
         run: npm ci
-      - name: 构建 CTJ
+      - name: 构建项目
         run: npm run build
       - name: 测试用例
         run: npm test
@@ -45,6 +45,6 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: 发布
+      - name: 发布站点
         id: deployment
         uses: actions/deploy-pages@v4
