@@ -25,8 +25,6 @@ jobs:
         run: npm run build
       - name: 测试用例
         run: npm test
-        with:
-          enablement: true
       - name: 组装站点
         run: |
           rm -rf _site
