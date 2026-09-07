@@ -75,7 +75,7 @@
 </main>
 <footer><span id="status">就绪</span></footer>
 
-<script src="dist/ctj.js"></script>
+<script src="CTJ/dist/ctj.js"></script>
 <script>
 "use strict";
 
@@ -236,7 +236,7 @@ let lastCode = "";
 
 function loadHeaders() {
   if (!headersPromise) {
-    headersPromise = fetch("include.json")
+    headersPromise = fetch("CTJ/include.json")
       .then(r => { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
       .then(j => { headers = j; return j; })
       .catch(err => {
