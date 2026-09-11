@@ -724,7 +724,24 @@ function applyArgBoxing(cx: Cx, e: CallExpr, fn: FuncInfo, argTs: { t: CppType; 
 }
 
 export function resolveOverload(cx: Cx, cands: FuncInfo[], tmpls: TmplInfo[], args: { t: CppType; e: Expr }[], scope: Scope, t: At, explicit?: CppType[], objConst = false): { fn: FuncInfo; convs: ({ kind: string; fn: FuncInfo } | null)[] } {
-  const all = cands.slice();
+  let useCands = cands;
+  if (explicit && explicit.length) {
+    const expKey = explicit.map(a => a.key()).join(",");
+    const filtered = cands.filter(f => {
+      if (!f.fromTmpl) return true;
+      const i = f.fq.indexOf("<");
+      const j = f.fq.lastIndexOf(">");
+      if (i < 0 || j < 0) return false;
+      const inner = f.fq.slice(i + 1, j);
+      return inner === expKey || inner.includes(expKey) || expKey.includes(inner);
+    });
+    if (filtered.length) useCands = filtered;
+    else {
+      const nonTmpl = cands.filter(f => !f.fromTmpl);
+      if (nonTmpl.length) useCands = nonTmpl;
+    }
+  }
+  const all = useCands.slice();
   for (const tm of tmpls) {
     const inst = tryInstantiateCall(cx, tm, args, scope, explicit, t);
     if (inst) all.push(inst);
@@ -1141,12 +1158,14 @@ export function classOf(cx: Cx, t: CppType): string {
 
 function isIntegerish(cx: Cx, t: CppType): boolean {
   void cx;
-  return !t.isBox() && !t.dims.length && !t.isFunc && isIntegerName(coreName(t));
+  const c = t.ref ? noRef(t) : t;
+  return !c.isBox() && !c.dims.length && !c.isFunc && isIntegerName(coreName(c));
 }
 
 function isNumericish(cx: Cx, t: CppType): boolean {
-  if (t.isBox() || t.dims.length || t.isFunc) return false;
-  return isNumericName(coreName(t)) || cx.enums.has(cx.stripAll(t));
+  const c = t.ref ? noRef(t) : t;
+  if (c.isBox() || c.dims.length || c.isFunc) return false;
+  return isNumericName(coreName(c)) || cx.enums.has(cx.stripAll(c));
 }
 
 function promoteUnary(cx: Cx, t: CppType): CppType {
