@@ -70,6 +70,7 @@ export function canonBasic(words: string[]): string | null {
   if (s === "long double") return "long double";
   if (s === "signed char") return "signed char";
   if (s === "unsigned char") return "unsigned char";
+  if (s === "__builtin_va_list" || s === "__gnuc_va_list" || s === "va_list") return "__builtin_va_list";
   return null;
 }
 
@@ -117,8 +118,11 @@ function exKey(e: Expr): string {
 function tnKey(tn: TypeNode): string {
   if (tn.valueArg) return "=" + exKey(tn.valueArg);
   if (tn.decltypeOf) return "decltype(" + exKey(tn.decltypeOf) + ")";
-  return tn.parts.map(s => s.n + (s.a.length ? "<" + s.a.map(tnKey).join(",") + ">" : "")).join("::")
+  let s = tn.parts.map(s => s.n + (s.a.length ? "<" + s.a.map(tnKey).join(",") + ">" : "")).join("::")
     + "*".repeat(tn.ptr) + tn.ref + (tn.cnst ? " const" : "");
+  if (tn.func) s += "(" + tn.func.params.map(tnKey).join(",") + (tn.func.variadic ? "..." : "") + ")";
+  if (tn.dims.length) s += tn.dims.map(d => "[" + exKey(d) + "]").join("");
+  return s;
 }
 
 export function rootScope(): Scope {
@@ -479,14 +483,7 @@ export class Cx {
 
   collectClass(d: ClassDecl, scope: Scope): void {
     if (d.name.startsWith("$") && d.isDeclOnly) return;
-    let fq: string;
-    if (d.name.includes("::")) {
-      fq = d.name;
-    } else if (scope.cls) {
-      fq = scope.cls.fq + "::" + d.name;
-    } else {
-      fq = [...scope.ns, d.name].join("::");
-    }
+    const fq = this.memberFq(scope, d.name);
     let cls = this.classes.get(fq);
     if (d.isDeclOnly && !d.specArgs.length) {
       if (!cls) {
@@ -494,7 +491,7 @@ export class Cx {
         cls.complete = false;
         this.classes.set(fq, cls);
       }
-      if (scope.cls) scope.cls.nested.set(d.name, fq);
+      this.registerNested(scope, d.name, fq);
       return;
     }
     if (!cls) {
@@ -504,15 +501,29 @@ export class Cx {
     cls.decl = d;
     cls.complete = true;
     cls.isUnion = d.cls === "union";
-    if (scope.cls) scope.cls.nested.set(d.name, fq);
+    this.registerNested(scope, d.name, fq);
     const sub: Scope = { ns: scope.ns.slice(), cls, locals: [], fn: null, returns: [] };
     cls.bases = [];
     for (const b of d.bases) {
-      // A base of a nested class can name a member of the enclosing one.
       const bfq = this.resolveClassName(b.name, sub);
       cls.bases.push({ fq: bfq, access: b.access, isVirtual: b.isVirtual });
     }
     this.collect(d.members, sub);
+  }
+
+  registerNested(scope: Scope, name: string, fq: string): void {
+    const short = last(name.split("::"));
+    if (scope.cls) {
+      scope.cls.nested.set(short, fq);
+      if (name.includes("::")) scope.cls.nested.set(name, fq);
+    }
+    if (name.includes("::")) {
+      const parts = name.split("::");
+      const ownerName = parts.slice(0, -1).join("::");
+      const ownerFq = this.memberFq(scope, ownerName);
+      const owner = this.classes.get(ownerFq);
+      if (owner) owner.nested.set(short, fq);
+    }
   }
 
   // The name a class declares itself with: an instance of a template is called
@@ -578,7 +589,7 @@ export class Cx {
     sc.cls = cls;
     const list = cls.methods.get(key) || [];
     for (const f of list) {
-      if (!f.decl.body && d.body) {
+      if (!f.decl.body && d.body && f.decl.params.length === d.params.length) {
         f.decl = d;
         f.scope = sc;
         return f;
@@ -1301,6 +1312,13 @@ export class Cx {
   resolveTypeNode(tn: TypeNode, scope: Scope): CppType {
     const key = tnKey(tn);
     const at = this.resolving.indexOf(key);
+    if (at >= 0 && (tn.ptr > 0 || tn.ref !== "" || tn.dims.length > 0 || !!tn.func)) {
+      const baseName = tn.parts.map(s => s.n).join("::") || "void";
+      const t = CppType.basic(baseName);
+      if (tn.parts.length) t.segs = tn.parts.map(s => ({ n: s.n, a: [] }));
+      this.applyTypeSuffix(t, tn, scope);
+      return t;
+    }
     this.resolving.push(key);
     if (at >= 0) {
       const loop = this.resolving.slice(at).join(" -> ");

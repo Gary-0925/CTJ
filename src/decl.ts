@@ -37,20 +37,27 @@ export function parseClassHead(p: Parser): { head: ClassHead; t: Token } {
     p.skipGnu();
   }
   let name = "";
+  let qname: QSeg[] = [];
   if (p.peek().t === "ident") {
-    name = p.next().v;
+    qname = p.parseQualifiedName(false);
+    name = qname.map(s => s.n).join("::");
     p.skipGnu();
   }
   if (!isEnum && p.isIdent("final") && (p.peek(1).t === ":" || p.peek(1).t === "{")) p.pos++;
   let specArgs: TypeNode[] = [];
   let isPartialSpec = false;
+  if (qname.length && qname[qname.length - 1].a.length) {
+    specArgs = qname[qname.length - 1].a;
+    qname[qname.length - 1] = qseg(qname[qname.length - 1].n);
+    name = qname.map(s => s.n).join("::");
+  }
   if (name && p.peek().t === "<") {
     const m = p.mark();
     try {
-      specArgs = p.parseTArgList();
+      const extra = p.parseTArgList();
+      if (specArgs.length) specArgs = specArgs.concat(extra);
+      else specArgs = extra;
     } catch {
-      // Only a partial specialization can put a pattern here instead of
-      // arguments; skip it so that the rest of the declaration still parses.
       p.reset(m);
       p.skipBalancedAngles();
       isPartialSpec = true;

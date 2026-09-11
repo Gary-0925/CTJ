@@ -1686,13 +1686,12 @@ class JsGen {
     return `(() => { throw new Error("unresolved ${name}"); })()`;
   }
 
-  // A "static const" integral member is a constant expression in C++, and
-  // folding it keeps the emitted initializer from reading a class that the
-  // target language has not finished defining yet.
   foldStaticConst(c: ClsInfo, ft: CppType, fd: VarDecl, init: Expr): string | null {
     const cnst = ft.cnst || fd.flags.includes("const") || fd.flags.includes("constexpr");
     if (!cnst || ft.ptr || ft.ref || ft.dims.length || ft.isBox()) return null;
-    if (!isIntegerName(coreName(ft))) return null;
+    const cn = coreName(ft);
+    const isInt = isIntegerName(cn) || this.cx.enums.has(this.cx.stripAll(ft)) || this.cx.enums.has(cn);
+    if (!isInt) return null;
     try {
       const v = constEval(this.cx, init, this.cx.memberScope(c));
       return typeof v === "number" ? String(v) : null;
