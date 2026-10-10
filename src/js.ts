@@ -89,7 +89,11 @@ class JsGen {
       const d = new Set<string>();
       for (const b of c.bases) if (idx.has(b.fq)) d.add(b.fq);
       for (const [name] of c.fields) {
-        const fq = this.cx.stripAll(this.cx.fieldType(c, name));
+        const ft = this.cx.fieldType(c, name);
+        // Pointer and reference fields don't require the pointee class to be
+        // emitted first — only value (non-pointer, non-reference) fields do.
+        if (ft.ptr > 0 || ft.ref) continue;
+        const fq = this.cx.stripAll(ft);
         if (idx.has(fq) && fq !== c.fq) d.add(fq);
       }
       deps.set(c.fq, d);

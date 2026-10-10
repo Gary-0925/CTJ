@@ -683,6 +683,18 @@ function memberCall(cx: Cx, e: CallExpr, fn: MemberExpr, argTs: { t: CppType; e:
     const cls = cx.classes.get(m.owner) as ClsInfo;
     const ft = cx.fieldType(cls, fn.field);
     if (ft.isFunc) return ft.ret as CppType;
+    // A class instance with operator() is callable (e.g. std::less<int>).
+    const fieldClsFq = cx.stripAll(ft);
+    const fieldCls = cx.classes.get(fieldClsFq);
+    if (fieldCls) {
+      const ops = fieldCls.methods.get("operator()") || [];
+      if (ops.length) {
+        const r = resolveOverload(cx, ops, [], argTs, scope, e);
+        ann.call = r.fn;
+        ann.convs = r.convs;
+        return cx.funcRet(r.fn);
+      }
+    }
     cx.fail(`'${fn.field}' is not callable`, fn);
   }
   const cands = m.methods ? m.methods.slice() : [];
