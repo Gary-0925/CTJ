@@ -855,7 +855,7 @@ class std_Vector_base_int_std_allocator_int_Vector_impl extends std_allocator_in
   _M_finish;
   _M_end_of_storage;
   constructor(...$a) {
-    super();
+    super(...[]);
     this.__init_std_Vector_base_int_std_allocator_int_Vector_impl(...$a);
   }
   __init_std_Vector_base_int_std_allocator_int_Vector_impl(...$a) {
@@ -892,7 +892,7 @@ class std_Vector_base_int_std_allocator_int {
 }
 class std_vector_int_std_allocator_int extends std_Vector_base_int_std_allocator_int {
   constructor(...$a) {
-    super();
+    super(...[]);
     this.__init_std_vector_int_std_allocator_int(...$a);
   }
   __init_std_vector_int_std_allocator_int(...$a) {

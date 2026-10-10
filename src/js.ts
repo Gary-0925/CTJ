@@ -245,7 +245,13 @@ class JsGen {
       const bn = bc.mangled as string;
       void bn;
       const list = fn.decl.ctorInit;
-      const hit = !inh ? list.find(x => last(x.name).n === bc.short || last(x.name).n === b.fq) : null;
+      let hit = !inh ? list.find(x => last(x.name).n === bc.short || last(x.name).n === b.fq) : null;
+      // When the base is written through a typedef or template alias (e.g.
+      // "_Tp_alloc_type(__a)"), the init name won't match the resolved class
+      // short name.  Fall back to ctorBase which resolves the alias.
+      if (!hit && !inh) {
+        hit = list.find(x => this.cx.ctorBase(c, x.name) === b.fq) || null;
+      }
       if (inh && b.fq === inh) {
         const ps = this.cx.funcParams(fn);
         const aa: string[] = [];
@@ -269,7 +275,22 @@ class JsGen {
         const sib = this.siblingClasses(all.map(x => x.fn));
         const parts = all.map((x, i) => {
           const cond = this.matchCond(x.fn, i, sib[i]);
-          return `${cond} ? [${baseArgs(0, x.fn, x.inh).replace(/^\.\.\./, "")}] : `;
+          const raw = baseArgs(0, x.fn, x.inh);
+          // baseArgs returns a spread expression: "...[expr1, expr2]" or
+          // "...(function(){...})()"  or "".  We need the raw arg expressions
+          // inside a plain [...] for the ternary branches.
+          let inner: string;
+          if (raw.startsWith("...[")) {
+            // Strip outer ...[...] to get the raw comma-separated expressions.
+            inner = raw.slice(4, -1);
+          } else if (raw.startsWith("...")) {
+            // Inherited ctor: ...(function () { return [args]; })()
+            // Keep the spread inside the array literal: [...(function(){...})()]
+            return `${cond} ? [${raw}] : `;
+          } else {
+            inner = raw;
+          }
+          return `${cond} ? [${inner}] : `;
         });
         this.line(`super(...(${parts.join("")}[]));`);
       }
