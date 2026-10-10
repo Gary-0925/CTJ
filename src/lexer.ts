@@ -52,6 +52,7 @@ export function lexFile(src: string, file: string): Token[] {
       let text = "";
       while (j < n) {
         if (src[j] === "\\" && src[j + 1] === "\n") { text += "\n"; j += 2; continue; }
+        if (src[j] === "\\" && src[j + 1] === "\r" && src[j + 2] === "\n") { text += "\n"; j += 3; continue; }
         if (src[j] === "\n") break;
         text += src[j];
         j++;
