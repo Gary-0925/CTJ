@@ -197,6 +197,33 @@ function typeOfIndex(cx: Cx, e: IndexExpr, scope: Scope): CppType {
   cx.fail("subscript on non-array", e);
 }
 
+// obj.Base::member — Base is looked up in the object's class (typedefs and
+// injected base names of the enclosing class), then in the current scope.
+function resolveQualClass(cx: Cx, qual: QSeg[], objClsFq: string, scope: Scope, t: At): string {
+  const objCls = cx.classes.get(objClsFq);
+  const trySym = (sc: Scope): string | null => {
+    const qs = cx.resolveSym(qual, false, sc);
+    if (!qs) return null;
+    if (qs.k === "class") return qs.cls.fq;
+    if (qs.k === "typedef") {
+      try {
+        const ty = cx.expandTypedef(qs.fq, new Set());
+        const fq = cx.stripAll(ty);
+        if (fq) {
+          cx.markCls(fq);
+          if (cx.classes.has(fq)) return fq;
+          return fq;
+        }
+      } catch { /* not a class typedef */ }
+    }
+    return null;
+  };
+  let fq = objCls ? trySym(cx.memberScope(objCls)) : null;
+  if (!fq) fq = trySym(scope);
+  if (!fq) cx.fail(`unknown class '${qual.map(s => s.n).join("::")}'`, t);
+  return fq as string;
+}
+
 function typeOfMember(cx: Cx, e: MemberExpr, scope: Scope): CppType {
   const ot = typeOf(cx, e.obj, scope);
   const ann = cx.getAnn(e);
@@ -207,11 +234,7 @@ function typeOfMember(cx: Cx, e: MemberExpr, scope: Scope): CppType {
   const clsFq = classOf(cx, objT);
   if (!clsFq) cx.fail(`no member '${e.field}'`, e);
   let lookupFq = clsFq;
-  if (e.qual.length) {
-    const qs = cx.resolveSym(e.qual, false, scope);
-    if (!qs || qs.k !== "class") cx.fail(`unknown class '${e.qual.map(s => s.n).join("::")}'`, e);
-    lookupFq = (qs as Sym & { k: "class" }).cls.fq;
-  }
+  if (e.qual.length) lookupFq = resolveQualClass(cx, e.qual, clsFq, scope, e);
   const m = cx.lookupMember(lookupFq, e.field, new Set());
   if (m.field) {
     const cls = cx.classes.get(m.owner) as ClsInfo;
@@ -455,8 +478,9 @@ function typeOfCast(cx: Cx, e: CastExpr, scope: Scope): CppType {
   if (target.name === "void" && !target.ptr) return target;
   const tn = coreName(target);
   const sn = coreName(st);
-  const tCls = !target.isBox() && !target.dims.length && cx.classes.has(cx.stripAll(target));
-  const sCls = !st.isBox() && !st.dims.length && cx.classes.has(cx.stripAll(st));
+  // References to classes still denote that class (static_cast<Facet&>(x)).
+  const tCls = target.ptr === 0 && !target.dims.length && !target.isFunc && cx.classes.has(cx.stripAll(target));
+  const sCls = st.ptr === 0 && !st.dims.length && !st.isFunc && cx.classes.has(cx.stripAll(st));
   // "size_type()" and "P()" have no argument to convert: they value- or
   // default-construct the target.
   if (e.arg.kind === "initlist" && !(e.arg as InitListExpr).items.length
@@ -469,7 +493,9 @@ function typeOfCast(cx: Cx, e: CastExpr, scope: Scope): CppType {
     return target;
   }
   if (kind === "dynamic_cast") {
-    if (tCls || (target.ptr > 0 && coreName(target) === "void")) return target;
+    // dynamic_cast is a runtime check on a pointer or reference.  The target
+    // class may not have been instantiated yet (e.g. use_facet<num_put>).
+    if (target.ptr > 0 || target.ref || tCls) return target;
     cx.fail("bad dynamic_cast", e);
   }
   if (kind === "const_cast") {
@@ -671,11 +697,7 @@ function memberCall(cx: Cx, e: CallExpr, fn: MemberExpr, argTs: { t: CppType; e:
   const clsFq = classOf(cx, objT);
   if (!clsFq) cx.fail(`no method '${fn.field}'`, fn);
   let lookupFq = clsFq;
-  if (fn.qual.length) {
-    const qs = cx.resolveSym(fn.qual, false, scope);
-    if (!qs || qs.k !== "class") cx.fail(`unknown class '${fn.qual.map(s => s.n).join("::")}'`, fn);
-    lookupFq = (qs as Sym & { k: "class" }).cls.fq;
-  }
+  if (fn.qual.length) lookupFq = resolveQualClass(cx, fn.qual, clsFq, scope, fn);
   // "p->~T()" names the destructor of the class the object belongs to.
   const mname = fn.field.charAt(0) === "~" ? "#dtor" : fn.field;
   const m = cx.lookupMember(lookupFq, mname, new Set());
@@ -749,20 +771,16 @@ function applyArgBoxing(cx: Cx, e: CallExpr, fn: FuncInfo, argTs: { t: CppType; 
 export function resolveOverload(cx: Cx, cands: FuncInfo[], tmpls: TmplInfo[], args: { t: CppType; e: Expr }[], scope: Scope, t: At, explicit?: CppType[], objConst = false): { fn: FuncInfo; convs: ({ kind: string; fn: FuncInfo } | null)[] } {
   let useCands = cands;
   if (explicit && explicit.length) {
+    // Explicit template arguments name one instantiation.  A previous
+    // use_facet<ctype> must not be chosen for use_facet<num_put>, even though
+    // both take the same locale argument.
     const expKey = explicit.map(a => a.key()).join(",");
-    const filtered = cands.filter(f => {
+    useCands = cands.filter(f => {
       if (!f.fromTmpl) return true;
-      const i = f.fq.indexOf("<");
-      const j = f.fq.lastIndexOf(">");
-      if (i < 0 || j < 0) return false;
-      const inner = f.fq.slice(i + 1, j);
-      return inner === expKey || inner.includes(expKey) || expKey.includes(inner);
+      const prefix = f.fromTmpl + "<";
+      if (!f.fq.startsWith(prefix) || !f.fq.endsWith(">")) return false;
+      return f.fq.slice(prefix.length, -1) === expKey;
     });
-    if (filtered.length) useCands = filtered;
-    else {
-      const nonTmpl = cands.filter(f => !f.fromTmpl);
-      if (nonTmpl.length) useCands = nonTmpl;
-    }
   }
   const all = useCands.slice();
   for (const tm of tmpls) {
@@ -833,7 +851,12 @@ function tryInstantiateCall(cx: Cx, tm: TmplInfo, args: { t: CppType; e: Expr }[
   try {
     const full = deduce(cx, tm, args, scope, explicit || [], t);
     if (!full) return null;
-    return cx.instantiateFunc(tm, full, new Map());
+    const fn = cx.instantiateFunc(tm, full, new Map());
+    // Substitution failure in the return type or parameters is SFINAE, not
+    // a hard error (e.g. decltype(__test_aux<_To>(declval<_From>()))).
+    cx.funcParams(fn);
+    cx.funcRet(fn);
+    return fn;
   } catch {
     return null;
   }

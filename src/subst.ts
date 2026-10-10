@@ -404,6 +404,19 @@ function substCtorInit(c: CtorInit, env: SubstEnv): CtorInit {
   return { name: substQName(c.name, env), args: substCallArgs(c.args, env), file: c.file, line: c.line };
 }
 
+export function substTParam(tp: TParam, env: SubstEnv): TParam {
+  let def: TypeNode | Expr | null = tp.def;
+  if (def) {
+    if (tp.kind === "nontype") def = substExpr(def as Expr, env);
+    else def = substTypeNode(def as TypeNode, env);
+  }
+  return {
+    kind: tp.kind, name: tp.name,
+    type: tp.type ? substTypeNode(tp.type, env) : null,
+    def, isPack: tp.isPack, file: tp.file, line: tp.line,
+  };
+}
+
 export function substDecl(d: Decl, env: SubstEnv): Decl {
   const f = d.file;
   const l = d.line;
@@ -470,7 +483,7 @@ export function substDecl(d: Decl, env: SubstEnv): Decl {
         e2.packNames.delete(tp.name);
       }
       return {
-        kind: "template", tparams: d.tparams,
+        kind: "template", tparams: d.tparams.map(tp => substTParam(tp, e2)),
         decl: d.decl ? substDecl(d.decl, e2) : null,
         isSpec: d.isSpec, specArgs: substTArgs(d.specArgs, e2), isExplicit: d.isExplicit, file: f, line: l,
       };

@@ -2112,31 +2112,12 @@ class std_allocator_int_P_rebind_int_P {
   __dtor() {
   }
 }
-class std_Mutex_base_value0 {
+class std_is_char_int_P {
   __dtor() {
   }
 }
-class std_Sp_counted_base_value0 extends std_Mutex_base_value0 {
-  _M_use_count;
-  _M_weak_count;
-  constructor(...$a) {
-    super();
-    this.__init_std_Sp_counted_base_value0(...$a);
-  }
-  __init_std_Sp_counted_base_value0(...$a) {
-    this._M_use_count = 0;
-    this._M_weak_count = 0;
-  }
+class gnu_cxx_enable_if_value0_bool {
   __dtor() {
-    std_Mutex_base_value0.prototype.__dtor.call(this);
-  }
-  _M_dispose() {
-    throw new Error("pure virtual called");
-  }
-  _M_destroy() {
-  }
-  _M_get_deleter($p0) {
-    throw new Error("pure virtual called");
   }
 }
 class std_shared_count_value0 {
@@ -2172,6 +2153,33 @@ class std_shared_ptr_int_P extends std_shared_ptr_int_P_value0 {
   }
   __dtor() {
     std_shared_ptr_int_P_value0.prototype.__dtor.call(this);
+  }
+}
+class std_Mutex_base_value0 {
+  __dtor() {
+  }
+}
+class std_Sp_counted_base_value0 extends std_Mutex_base_value0 {
+  _M_use_count;
+  _M_weak_count;
+  constructor(...$a) {
+    super();
+    this.__init_std_Sp_counted_base_value0(...$a);
+  }
+  __init_std_Sp_counted_base_value0(...$a) {
+    this._M_use_count = 0;
+    this._M_weak_count = 0;
+  }
+  __dtor() {
+    std_Mutex_base_value0.prototype.__dtor.call(this);
+  }
+  _M_dispose() {
+    throw new Error("pure virtual called");
+  }
+  _M_destroy() {
+  }
+  _M_get_deleter($p0) {
+    throw new Error("pure virtual called");
   }
 }
 function std_throw_bad_alloc(...$a) { throw new Error("unresolved external: std::__throw_bad_alloc"); }

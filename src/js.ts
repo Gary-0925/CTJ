@@ -52,6 +52,7 @@ class JsGen {
 
   run(): string {
     this.line(`"use strict";`);
+    if (this.needsRbTreeHelpers()) this.emitPtrHelpers();
     for (const c of this.sortClasses()) {
       if (!c.referenced || c.isLambda) continue;
       this.emitClass(c);
@@ -421,11 +422,22 @@ class JsGen {
         this.line(`${bn}.prototype.__init_${bn}.call(this);`);
       }
     }
+    const copySrc = this.cx.isCopyCtor(fn) && ps.length
+      ? (ps[0].type.ref || ps[0].type.ptr > 0
+        ? `($a[0] && $a[0].a ? $a[0].a[$a[0].i] : $a[0])`
+        : `$a[0]`)
+      : null;
+    const copyDefault = !!(copySrc && (fn.isDefault || !fn.decl.body || !fn.decl.body.length));
     for (const [name, fd] of c.fields) {
       if (c.fieldStatic.has(name)) continue;
       const ft = this.cx.fieldType(c, name);
       const hit = !inh ? fn.decl.ctorInit.find(x => last(x.name).n === name) : null;
-      this.line(`this.${safeJsName(name)} = ${this.fieldInit(c, ft, fd, hit || null)};`);
+      const fname = safeJsName(name);
+      if (!hit && copyDefault) {
+        this.line(`this.${fname} = ${copySrc}.${fname};`);
+      } else {
+        this.line(`this.${fname} = ${this.fieldInit(c, ft, fd, hit || null)};`);
+      }
     }
     if (!inh) {
       this.fnStack.push(fn);
@@ -594,6 +606,20 @@ class JsGen {
     });
   }
 
+  needsRbTreeHelpers(): boolean {
+    for (const list of this.cx.funcs.values()) {
+      for (const f of list) {
+        if (f.referenced && !f.isMethod && this.rbTreeStub(f)) return true;
+      }
+    }
+    return false;
+  }
+
+  // Fat-pointer helpers used by the libstdc++ red-black tree externals.
+  emitPtrHelpers(): void {
+    this.line(`function _ctj_peq(a, b) { return a === b || (!!a && !!b && a.a === b.a && a.i === b.i); }`);
+  }
+
   // The allocation operators are declared by <new> with no body; storage comes
   // from the target language, and freeing is its business too. A placement
   // version hands back the pointer it was given.
@@ -605,10 +631,51 @@ class JsGen {
     return null;
   }
 
+  // libstdc++ defines these in src/c++98/tree.cc, which is not a header.
+  rbTreeStub(f: FuncInfo): string | null {
+    if (f.fq === "std::_Rb_tree_insert_and_rebalance") {
+      return [
+        "var left=$a[0],x=$a[1],p=$a[2],h=$a[3];",
+        "var xn=x.a[x.i],pn=p.a[p.i],hn=h.a[h.i];",
+        "xn._M_parent={a:p.a,i:p.i};xn._M_left=null;xn._M_right=null;xn._M_color=0;",
+        "if(left){pn._M_left={a:x.a,i:x.i};",
+        "if(_ctj_peq(p,h)){hn._M_parent={a:x.a,i:x.i};hn._M_right={a:x.a,i:x.i};}",
+        "else if(_ctj_peq(p,hn._M_left)) hn._M_left={a:x.a,i:x.i};}",
+        "else{pn._M_right={a:x.a,i:x.i};",
+        "if(_ctj_peq(p,hn._M_right)) hn._M_right={a:x.a,i:x.i};}",
+      ].join("");
+    }
+    if (f.fq === "std::_Rb_tree_increment") {
+      return [
+        "var x=$a[0]; if(!x) return null; var n=x.a[x.i];",
+        "if(n._M_right){ x=n._M_right; n=x.a[x.i]; while(n._M_left){ x=n._M_left; n=x.a[x.i]; } return {a:x.a,i:x.i}; }",
+        "var y=n._M_parent;",
+        "while(y){ var p=y.a[y.i]; if(!_ctj_peq(x,p._M_right)) break; x=y; n=p; y=n._M_parent; }",
+        "n=x.a[x.i]; if(!n._M_right||!_ctj_peq(n._M_right,y)) x=y;",
+        "return x?{a:x.a,i:x.i}:null;",
+      ].join(" ");
+    }
+    if (f.fq === "std::_Rb_tree_decrement") {
+      return [
+        "var x=$a[0]; if(!x) return null; var n=x.a[x.i];",
+        "var yp=n._M_parent&&n._M_parent.a[n._M_parent.i];",
+        "if(n._M_color===0&&yp&&yp._M_parent&&_ctj_peq(yp._M_parent,x)){ x=n._M_right; return x?{a:x.a,i:x.i}:null; }",
+        "if(n._M_left){ x=n._M_left; n=x.a[x.i]; while(n._M_right){ x=n._M_right; n=x.a[x.i]; } return {a:x.a,i:x.i}; }",
+        "var y=n._M_parent;",
+        "while(y){ var p=y.a[y.i]; if(!_ctj_peq(x,p._M_left)) break; x=y; n=p; y=n._M_parent; }",
+        "return y?{a:y.a,i:y.i}:null;",
+      ].join(" ");
+    }
+    if (f.fq === "std::_Rb_tree_rebalance_for_erase") {
+      return "return $a[0];";
+    }
+    return null;
+  }
+
   emitFunc(f: FuncInfo): void {
     if (!(f.decl.body || []).length) {
-      const alloc = this.allocStub(f);
-      if (alloc !== null) this.line(`function ${f.mangled}(...$a) { ${alloc} }`);
+      const stub = this.allocStub(f) ?? this.rbTreeStub(f);
+      if (stub !== null) this.line(`function ${f.mangled}(...$a) { ${stub} }`);
       else this.line(`function ${f.mangled}(...$a) { throw new Error("unresolved external: ${f.fq}"); }`);
       return;
     }
@@ -1478,6 +1545,8 @@ class JsGen {
         const sym = this.cx.getAnn(x).sym;
         if (sym && sym.k === "var" && sym.v.typeCache && sym.v.typeCache.ref) return this.ex(x);
       }
+      // exCallValue already reads through a scalar reference return.
+      if (x.kind === "call" && this.returnsScalarRef(x as CallExpr)) return this.ex(x);
       return this.deref(x);
     }
     if (coreName(p) === "bool" && at && at.isBox() && !at.isFunc) return `(${this.ex(x)} != null)`;
@@ -2037,6 +2106,11 @@ class JsGen {
       // "T()" and "T{}" value initialise: the empty list is not an argument of
       // the constructor the cast resolved to.
       if (!cps.length || (e.arg.kind === "initlist" && !(e.arg as InitListExpr).items.length)) return `new ${cn}()`;
+      // "T(a, b)" is a functional cast whose argument list is an initlist of
+      // the constructor arguments (e.g. pair<_Base_ptr,_Base_ptr>(__x, __y)).
+      if (e.arg.kind === "initlist") {
+        return this.ctorExpr(cn, a.call as FuncInfo, (e.arg as InitListExpr).items, a.convs, t);
+      }
       return `new ${cn}(${this.argFor(cps[0].type, e.arg, a.conv)})`;
     }
     // "size_type()" value-initialises: there is no argument to convert.

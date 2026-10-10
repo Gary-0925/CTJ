@@ -170,6 +170,15 @@ export function parseClassBody(p: Parser, head: ClassHead, a: At): ClassDecl {
   if (head.name) p.registerType(head.name);
   p.inClass.push(cls);
   p.pushScope();
+  // Typedefs and nested types of a base class are visible while parsing the
+  // derived class (e.g. __one/__two from __sfinae_types used as return types
+  // of SFINAE helpers).  Without this, "static __one __test(...)" is skipped
+  // because __one is not a registered type name.
+  for (const b of head.bases) {
+    const bn = b.name.length ? b.name[b.name.length - 1].n : "";
+    const types = bn ? p.classTypes.get(bn) : undefined;
+    if (types) for (const n of types) p.registerType(n);
+  }
   p.expect("{");
   while (!p.eat("}")) {
     if (p.atEnd()) {

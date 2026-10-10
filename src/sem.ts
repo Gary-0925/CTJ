@@ -940,6 +940,10 @@ export class Cx {
       if (m.methods) return { k: "func", fns: m.methods };
       if (m.nested) return this.symOfNested(m.nested);
       if (m.typedef) return { k: "typedef", fq: m.typedef };
+      // Template member functions (e.g. SFINAE __test<_Tp>) are stored as
+      // templates, not as plain methods, until they are instantiated.
+      const tm = this.lookupTmplMember(c.fq, name, new Set());
+      if (tm) return { k: "tmpl", t: tm };
     }
     for (let i = scope.ns.length; i >= 0; i--) {
       const pre = scope.ns.slice(0, i).join("::");
@@ -1031,6 +1035,20 @@ export class Cx {
     };
   }
 
+  lookupTmplMember(clsFq: string, name: string, seen: Set<string>): TmplInfo | null {
+    if (seen.has(clsFq)) return null;
+    seen.add(clsFq);
+    const tlist = this.tmplsOf(clsFq + "::" + name);
+    if (tlist.length) return tlist[0];
+    const cls = this.classes.get(clsFq);
+    if (!cls) return null;
+    for (const b of cls.bases) {
+      const t = this.lookupTmplMember(b.fq, name, seen);
+      if (t) return t;
+    }
+    return null;
+  }
+
   lookupMember(clsFq: string, name: string, seen: Set<string>): { field: boolean; methods: FuncInfo[] | null; nested: string | null; typedef: string | null; constItem: { e: EnumInfo; item: string } | null; owner: string } {
     const r = { field: false, methods: null as FuncInfo[] | null, nested: null as string | null, typedef: null as string | null, constItem: null as { e: EnumInfo; item: string } | null, owner: clsFq };
     const cls = this.classes.get(clsFq);
@@ -1111,6 +1129,28 @@ export class Cx {
     if (!global && !parts[0].a.length) {
       for (let c = scope.cls; c; c = c.scope.cls) {
         if (this.declaredName(c) === parts[0].n) return { k: "class", cls: c };
+      }
+    }
+    // allocator<U> written inside allocator<T> must name the class template,
+    // not a converting constructor template of the current instantiation
+    // (which would collapse allocator<_Rb_tree_node<int>> to allocator<int>).
+    if (!global && parts[0].a.length) {
+      for (let c = scope.cls; c; c = c.scope.cls) {
+        if (this.declaredName(c) === parts[0].n && c.fromTmpl) {
+          const t = this.tmpls.get(c.fromTmpl);
+          if (t && t.kind === "class") {
+            const args = parts[0].a.map(a => this.resolveTypeNode(a, scope));
+            const cls = this.instantiateClass(t.fq, args, scope, null);
+            let sym: Sym = { k: "class", cls };
+            let idx = 1;
+            for (; idx < parts.length; idx++) {
+              const next = this.lookupNext(sym, parts[idx], scope);
+              if (!next) break;
+              sym = next;
+            }
+            if (idx === parts.length) return sym;
+          }
+        }
       }
     }
     let sym: Sym | null;
@@ -1651,11 +1691,23 @@ export class Cx {
         }
       } else {
         const decl = substDecl(t.decl, env);
+        // Default template arguments of a member template can mention the
+        // enclosing class parameters (e.g. enable_if<is_convertible<_U1, _T1>>
+        // on pair's converting constructors).  Substitute those too.
+        const e2 = copySubstEnv(env);
+        for (const tp of rest) {
+          e2.types.delete(tp.name);
+          e2.packs.delete(tp.name);
+          e2.values.delete(tp.name);
+          e2.valuePacks.delete(tp.name);
+          e2.packNames.delete(tp.name);
+        }
+        const rest2 = rest.map(tp => substTParam(tp, e2));
         // registerTmpl, not tmpls.set: the declaration of this member that the
         // class body carries is the same template, and the definition replaces it.
         // The member's own scope: the class's typedefs are visible in an
         // out-of-line definition.
-        this.registerTmpl({ fq: newFq, kind: t.kind, tparams: rest, decl, scope: this.memberScope(owner), specs: [] });
+        this.registerTmpl({ fq: newFq, kind: t.kind, tparams: rest2, decl, scope: this.memberScope(owner), specs: [] });
       }
     }
   }
