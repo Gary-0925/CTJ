@@ -240,6 +240,9 @@ export class Parser {
         if (e instanceof CtxError) {
           this.warn(`parse error: ${e.message} at ${e.where()}, skipping`, this.peek());
           this.recover();
+          // Skip stray closing braces at top level (recover() leaves them
+          // unconsumed so that namespace / class body loops can handle them).
+          if (this.peek().t === "}") { this.pos++; }
         } else throw e;
       }
     }
@@ -253,9 +256,9 @@ export class Parser {
       if (t.t === "eof") return;
       if (t.t === "{") { depth++; this.pos++; continue; }
       if (t.t === "}") {
-        this.pos++;
         if (depth === 0) return;
         depth--;
+        this.pos++;
         continue;
       }
       if (t.t === ";" && depth === 0) { this.pos++; return; }

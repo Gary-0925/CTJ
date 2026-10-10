@@ -18,6 +18,14 @@ export function analyzeAll(cx: Cx, tu: TranslationUnit): void {
     analyzeFunc(cx, fn);
   }
   finalizeFields(cx);
+  // finalizeFields may reference new classes and their virtual methods,
+  // pushing additional items onto the worklist.  Process them before
+  // code generation so that every reachable function body is annotated.
+  while (cx.worklist.length) {
+    const fn = cx.worklist.shift() as FuncInfo;
+    if (fn.analyzed) continue;
+    analyzeFunc(cx, fn);
+  }
   finalizeMangling(cx);
 }
 

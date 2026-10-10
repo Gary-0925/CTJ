@@ -689,6 +689,17 @@ function memberCall(cx: Cx, e: CallExpr, fn: MemberExpr, argTs: { t: CppType; e:
   const tmpls: TmplInfo[] = [];
   const tfq = m.owner + "::" + fn.field;
   for (const tm of cx.tmplsOf(tfq)) if (!tmpls.includes(tm)) tmpls.push(tm);
+  // When the owner is an instantiated class template, member function
+  // templates are stored under the base (uninstantiated) name.  Fall back
+  // to that if the instantiated lookup yields nothing.
+  if (!tmpls.length) {
+    const ownerCls = cx.classes.get(m.owner);
+    if (ownerCls && ownerCls.fromTmpl) {
+      for (const tm of cx.tmplsOf(ownerCls.fromTmpl + "::" + fn.field)) {
+        if (!tmpls.includes(tm)) tmpls.push(tm);
+      }
+    }
+  }
   if (!cands.length && !tmpls.length) cx.fail(`'${clsFq}' has no method '${fn.field}'`, fn);
   const xt = fn.targs.map(a => cx.resolveTypeNode(a, scope));
   const r = resolveOverload(cx, cands, tmpls, argTs, scope, e, xt.length ? xt : undefined, objT.cnst);
