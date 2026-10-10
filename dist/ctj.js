@@ -2315,6 +2315,10 @@ var CTJ;
                             if (!pt.parts.length && !pt.decltypeOf && !pt.ptr && !pt.ref && !pt.func && !pt.dims.length && !p.variadic && !p.isPack) {
                                 throw new Error("not params");
                             }
+                            // "sentry __cerb(*this)": *this is a pointer named this, not a type.
+                            if (!pt.parts.length && !pt.decltypeOf && !pt.func && !p.variadic && !p.isPack && p.name === "this") {
+                                throw new Error("not params");
+                            }
                         }
                         d.isFunc = true;
                         d.params = params;
@@ -2966,7 +2970,9 @@ var CTJ;
         if (tparams.length && (specArgs.length || isPartial)) {
             td = { kind: "template", tparams, decl: d, isSpec: true, specArgs, isExplicit: false, ...CTJ.at(t) };
         }
-        else if (!tparams.length && specArgs.length) {
+        else if (!tparams.length) {
+            // "template<> class tuple<>" is a full specialization even when the
+            // argument list is empty.
             td = { kind: "template", tparams: [], decl: d, isSpec: true, specArgs, isExplicit: false, ...CTJ.at(t) };
         }
         else {
@@ -4650,6 +4656,12 @@ var CTJ;
                         tp.def = old.def;
                 });
             }
+            // A friend "template<class...> class tuple;" must not replace the real
+            // definition, and a later forward declaration must not erase members.
+            const newMembers = inner.kind === "class" ? inner.members.length : 1;
+            const prevMembers = prev && prev.decl.kind === "class" ? prev.decl.members.length : (prev ? 1 : 0);
+            if (prev && prevMembers && !newMembers)
+                return;
             this.registerTmpl({ fq, kind, tparams, decl: inner, scope: this.snapScope(scope), specs: prev ? prev.specs : [], partials: prev ? prev.partials : [] });
         }
         registerTmpl(t) {
@@ -7556,8 +7568,16 @@ var CTJ;
     }
     function typeOfBinary(cx, e, scope) {
         const rawL = typeOf(cx, e.l, scope);
-        const rawR = typeOf(cx, e.r, scope);
         const ann = cx.getAnn(e);
+        // Formatted iostream insertion pulls in locale/num_put/_M_insert. Emit a
+        // builtin write instead of analysing those bodies.
+        if (e.op === "<<" && isOstreamLike(cx, rawL.core())) {
+            if (!streamManipName(e.r))
+                typeOf(cx, e.r, scope);
+            ann.call = { builtin: "__ctj_out" };
+            return rawL;
+        }
+        const rawR = typeOf(cx, e.r, scope);
         if (e.op === ",")
             return rawR;
         // Outside a plain assignment an lvalue of reference type behaves as the type
@@ -7828,7 +7848,15 @@ var CTJ;
                 tmpls.push(tm);
         if (!cands.length && !tmpls.length)
             cx.fail(`no constructor of '${clsFq}'`, t);
-        return resolveOverload(cx, cands, tmpls, args, scope, t);
+        try {
+            return resolveOverload(cx, cands, tmpls, args, scope, t);
+        }
+        catch (e) {
+            if (e instanceof Error && e.message.indexOf("no matching function") >= 0) {
+                cx.fail(`no matching constructor of '${clsFq}' for (${args.map(a => a.t.key()).join(", ")})`, t);
+            }
+            throw e;
+        }
     }
     CTJ.resolveCtor = resolveCtor;
     function tryResolveCtor(cx, clsFq, args, scope) {
@@ -7969,6 +7997,8 @@ var CTJ;
         const m = cx.lookupMember(lookupFq, mname, new Set());
         if (m.field) {
             const cls = cx.classes.get(m.owner);
+            const fd = cls.fields.get(fn.field);
+            cx.getAnn(fn).sym = { k: "var", v: cx.fieldVar(cls, fn.field, fd) };
             const ft = cx.fieldType(cls, fn.field);
             if (ft.isFunc)
                 return ft.ret;
@@ -7981,6 +8011,7 @@ var CTJ;
                     const r = resolveOverload(cx, ops, [], argTs, scope, e);
                     ann.call = r.fn;
                     ann.convs = r.convs;
+                    applyArgBoxing(cx, e, r.fn, argTs, scope);
                     return cx.funcRet(r.fn);
                 }
             }
@@ -8061,7 +8092,7 @@ var CTJ;
                 all.push(inst);
         }
         if (!all.length)
-            cx.fail("no matching function", t);
+            cx.fail(`no matching function(${args.map(a => a.t.key()).join(", ")})`, t);
         let best = null;
         let bestScore = -1e18;
         let bestConvs = [];
@@ -8084,7 +8115,7 @@ var CTJ;
             }
         }
         if (!best)
-            cx.fail("no matching function for call", t);
+            cx.fail(`no matching function for call(${args.map(a => a.t.key()).join(", ")})`, t);
         if (best.isDelete)
             cx.fail("call to deleted function", t);
         cx.markFunc(best);
@@ -8529,6 +8560,39 @@ var CTJ;
         return CTJ.last(t.segs).n;
     }
     CTJ.coreName = coreName;
+    function streamManipName(e) {
+        if (e.kind !== "id")
+            return null;
+        const n = CTJ.last(e.parts).n;
+        if (n === "endl" || n === "flush" || n === "ends")
+            return n;
+        return null;
+    }
+    CTJ.streamManipName = streamManipName;
+    function isOstreamLike(cx, t) {
+        const fq = cx.stripAll(t);
+        if (!fq)
+            return false;
+        const seen = new Set();
+        const q = [fq];
+        while (q.length) {
+            const cur = q.shift();
+            if (seen.has(cur))
+                continue;
+            seen.add(cur);
+            const short = cur.split("::").pop();
+            if (cur === "std::ostream" || cur === "std::wostream" || cur.startsWith("std::basic_ostream<"))
+                return true;
+            if (short === "ostream" || short === "wostream" || short.startsWith("basic_ostream<"))
+                return true;
+            const cls = cx.classes.get(cur);
+            if (cls)
+                for (const b of cls.bases)
+                    q.push(b.fq);
+        }
+        return false;
+    }
+    CTJ.isOstreamLike = isOstreamLike;
     function isClassVal(cx, t) {
         if (t.isBox() || t.dims.length > 0 || t.isFunc)
             return false;
@@ -9274,6 +9338,7 @@ var CTJ;
             this.exStack = [];
             this.rangeN = 0;
             this.fnStack = [];
+            this.needStreamFmt = false;
             this.cx = cx;
         }
         run() {
@@ -9309,8 +9374,21 @@ var CTJ;
                 const ps = this.cx.funcParams(main);
                 const args = ps.length >= 3 ? ["0", `{a: [], i: 0}`, "null"] : ps.length === 2 ? ["0", `{a: [], i: 0}`] : ps.length === 1 ? ["0"] : [];
                 this.line(`main(${args.join(", ")});`);
+                if (this.needStreamFmt)
+                    this.line(`__ctj_flush();`);
+            }
+            if (this.needStreamFmt) {
+                this.out.splice(1, 0, this.streamHelper());
             }
             return this.out.join("\n") + "\n";
+        }
+        streamHelper() {
+            return [
+                `var __ctj_obuf = "";`,
+                `function __ctj_fmt(v) { if (v == null) return "0"; if (typeof v === "boolean") return v ? "1" : "0"; if (typeof v === "number") return String(v); if (typeof v === "string") return v; var a = v && v.a, i = v && v.i; if (Array.isArray(v)) { a = v; i = 0; } if (Array.isArray(a)) { var s = ""; for (var k = i | 0; k < a.length && a[k]; k++) s += String.fromCharCode(a[k]); return s; } return String(v); }`,
+                `function __ctj_write(s) { s = String(s); if (typeof process !== "undefined" && process.stdout && process.stdout.write) { process.stdout.write(s); return; } __ctj_obuf += s; for (;;) { var n = __ctj_obuf.indexOf("\\n"); if (n < 0) break; console.log(__ctj_obuf.slice(0, n)); __ctj_obuf = __ctj_obuf.slice(n + 1); } }`,
+                `function __ctj_flush() { if (__ctj_obuf) { console.log(__ctj_obuf); __ctj_obuf = ""; } }`,
+            ].join("\n");
         }
         sortClasses() {
             const cs = [...this.cx.classes.values()].filter(c => c.complete && c.referenced && !c.isLambda);
@@ -9816,7 +9894,7 @@ var CTJ;
             this.line(`}`);
         }
         emitMethod(c, fns) {
-            const use = fns.filter(f => f.referenced && ((f.decl.body || []).length || f.decl.flags.includes("pure")));
+            const use = fns.filter(f => f.referenced);
             if (!use.length)
                 return;
             const groups = new Map();
@@ -9886,6 +9964,8 @@ var CTJ;
                         if (!p.variadic && p.name)
                             this.alias[this.alias.length - 1].set(p.name, this.ctorArg(p, j));
                     });
+                    // Wrap after the overload is chosen so later branches still see $a.
+                    this.boxRestParams(fn, ps);
                     this.fnStack.push(fn);
                     this.bodyStmts(fn.decl.body || []);
                     this.fnStack.pop();
@@ -10022,6 +10102,18 @@ var CTJ;
                 }
             });
         }
+        // Overload groups pass arguments as $a[j]. Wrap the chosen branch's
+        // address-taken parameters without mutating $a for later else-if arms.
+        boxRestParams(f, ps) {
+            ps.forEach((p, i) => {
+                if (p.variadic)
+                    return;
+                const v = this.paramVar(f, i);
+                if (v && (v.storage === "boxed" || v.storage === "bbox")) {
+                    this.line(`$a[${i}] = {v: $a[${i}]};`);
+                }
+            });
+        }
         // The VarInfo of a parameter hangs off its declaration node; the scope the
         // analysis built it in is a copy that no longer exists.
         paramVar(f, i) {
@@ -10031,6 +10123,10 @@ var CTJ;
         emitGlobal(v) {
             if (!v.referenced && !v.decl.init && !v.decl.directInit)
                 return;
+            if (v.isGlobal && /^(cout|cerr|clog|wcout|wcerr|wclog)$/.test(v.short)) {
+                this.line(`let ${v.mangled} = {};`);
+                return;
+            }
             const t = v.typeCache;
             if (v.lifted) {
                 this.line(`let ${v.mangled};`);
@@ -10905,10 +11001,10 @@ var CTJ;
                 return this.arrayInit(p, x.items, null);
             }
             if (pB && !aB) {
-                if (!at || at.name === "__null")
-                    return "null";
-                if (this.isZeroLit(x))
-                    return "null";
+                if (!at || at.name === "__null" || this.isZeroLit(x)) {
+                    // A reference still needs a box; a pointer parameter is null itself.
+                    return p.ref ? "{a: [null], i: 0}" : "null";
+                }
                 if (at.isFunc)
                     return this.ex(x);
                 return this.exBox(x);
@@ -11062,7 +11158,10 @@ var CTJ;
                 const ma = this.cx.getAnn(e.fn);
                 if (ma.arrowCall)
                     o = `(${this.paren(o)}.${methodJsName(ma.arrowCall)}())`;
-                if (e.fn.qual.length) {
+                // obj.field(args) on a functor field calls operator() on the field.
+                if (ma.sym && ma.sym.k === "var" && ma.sym.v.isField)
+                    o = this.ex(e.fn);
+                if (e.fn.qual.length && !(ma.sym && ma.sym.k === "var" && ma.sym.v.isField)) {
                     const cls = this.cx.classes.get(fn.cls);
                     s = `${cls.mangled}.prototype.${methodJsName(fn)}.call(${o}${aa.length ? ", " + aa.join(", ") : ""})`;
                 }
@@ -11313,8 +11412,38 @@ var CTJ;
                 return `(~${this.paren(this.ex(e.arg))})`;
             return this.ex(e.arg);
         }
+        exStreamOut(e) {
+            this.needStreamFmt = true;
+            const manip = CTJ.streamManipName(e.r);
+            let payload;
+            if (manip === "endl")
+                payload = `"\\n"`;
+            else if (manip === "ends")
+                payload = `"\\0"`;
+            else if (manip === "flush")
+                payload = `""`;
+            else {
+                const rt = this.cx.getAnn(e.r).t;
+                const core = rt ? CTJ.coreName(rt) : "";
+                const rs = this.ex(e.r);
+                if (rt && !rt.ptr && !rt.dims.length && (core === "char" || core === "signed char" || core === "unsigned char" || core === "wchar_t")) {
+                    payload = `String.fromCharCode(${rs})`;
+                }
+                else {
+                    payload = `__ctj_fmt(${rs})`;
+                }
+            }
+            const l = this.ex(e.l);
+            if (this.isSimple(e.l))
+                return `(__ctj_write(${payload}), ${l})`;
+            const t = this.tmp();
+            return `(${t} = ${l}, __ctj_write(${payload}), ${t})`;
+        }
         exBinary(e) {
             const a = this.cx.getAnn(e);
+            if (a.call && typeof a.call === "object" && "builtin" in a.call) {
+                return this.exStreamOut(e);
+            }
             if (a.call) {
                 const fn = a.call;
                 const ps = this.cx.funcParams(fn);
@@ -11698,6 +11827,7 @@ var CTJ;
             this.fnStack = [];
             this.usedGlobals = new Set();
             this.needThrow = false;
+            this.needStreamFmt = false;
             this.cx = cx;
         }
         run() {
@@ -11739,7 +11869,15 @@ var CTJ;
                 const args = ps.length >= 3 ? ["0", `["a" => [], "i" => 0]`, "null"] : ps.length === 2 ? ["0", `["a" => [], "i" => 0]`] : ps.length === 1 ? ["0"] : [];
                 this.line(`${phpFuncName(main)}(${args.join(", ")});`);
             }
+            if (this.needStreamFmt)
+                this.out.splice(1, 0, this.streamHelper());
             return this.out.join("\n") + "\n";
+        }
+        streamHelper() {
+            return [
+                `function __ctj_fmt($v) { if ($v === null) return "0"; if (is_bool($v)) return $v ? "1" : "0"; if (is_int($v) || is_float($v)) return (string)$v; if (is_string($v)) return $v; $a = is_array($v) && array_key_exists("a", $v) ? $v["a"] : (is_array($v) && array_values($v) === $v ? $v : null); $i = is_array($v) && array_key_exists("i", $v) ? $v["i"] : 0; if (is_array($a)) { $s = ""; for ($k = (int)$i; $k < count($a) && $a[$k]; $k++) $s .= chr($a[$k]); return $s; } return (string)$v; }`,
+                `function __ctj_write($s) { echo $s; }`,
+            ].join("\n");
         }
         sortClasses() {
             const cs = [...this.cx.classes.values()].filter(c => c.complete && c.referenced && !c.isLambda);
@@ -11884,7 +12022,7 @@ var CTJ;
                         if (seen.has(key))
                             continue;
                         seen.add(key);
-                        const use = fns.filter(f => f.referenced && (f.decl.body || []).length);
+                        const use = fns.filter(f => f.referenced);
                         if (use.length)
                             res.push({ cls: b, key, fns: use });
                     }
@@ -12274,7 +12412,7 @@ var CTJ;
             this.line(`}`);
         }
         emitMethod(c, fns) {
-            const use = fns.filter(f => f.referenced && ((f.decl.body || []).length || f.decl.flags.includes("pure")));
+            const use = fns.filter(f => f.referenced);
             if (!use.length)
                 return;
             const groups = new Map();
@@ -12310,6 +12448,7 @@ var CTJ;
                 const lines = this.withBody(() => {
                     for (const d of defs)
                         this.line(`if (func_num_args() < ${d.i + 1}) ${d.nm} = ${d.def};`);
+                    this.boxParams(fn, ps);
                     if (fn.decl.flags.includes("pure") && !(fn.decl.body || []).length) {
                         this.line(`throw new Exception("pure virtual called");`);
                     }
@@ -12337,6 +12476,7 @@ var CTJ;
                         if (!p.variadic && p.name)
                             this.alias[this.alias.length - 1].set(p.name, this.ctorArg(p, j));
                     });
+                    this.boxRestParams(fn, ps);
                     this.fnStack.push(fn);
                     this.bodyStmts(fn.decl.body || []);
                     this.fnStack.pop();
@@ -12390,18 +12530,7 @@ var CTJ;
             const lines = this.withBody(() => {
                 for (const d of defs)
                     this.line(`if (func_num_args() < ${d.i + 1}) ${d.nm} = ${d.def};`);
-                // A parameter whose address is taken is read through a wrapper, so the
-                // value the caller passed has to be put in one first.
-                ps.forEach((p, i) => {
-                    if (!p.name || p.variadic)
-                        return;
-                    const node = f.decl.params[i];
-                    const v = (node ? this.cx.getAnn(node).var : null);
-                    if (v && (v.storage === "boxed" || v.storage === "bbox")) {
-                        const nm = `$${CTJ.safeJsName(p.name)}`;
-                        this.line(`${nm} = ["v" => ${nm}];`);
-                    }
-                });
+                this.boxParams(f, ps);
                 this.fnStack.push(f);
                 this.bodyStmts(f.decl.body || []);
                 this.fnStack.pop();
@@ -12413,9 +12542,36 @@ var CTJ;
             this.ind = this.ind.slice(0, -2);
             this.line(`}`);
         }
+        boxParams(f, ps) {
+            ps.forEach((p, i) => {
+                if (!p.name || p.variadic)
+                    return;
+                const node = f.decl.params[i];
+                const v = (node ? this.cx.getAnn(node).var : null);
+                if (v && (v.storage === "boxed" || v.storage === "bbox")) {
+                    const nm = `$${CTJ.safeJsName(p.name)}`;
+                    this.line(`${nm} = ["v" => ${nm}];`);
+                }
+            });
+        }
+        boxRestParams(f, ps) {
+            ps.forEach((p, i) => {
+                if (p.variadic)
+                    return;
+                const node = f.decl.params[i];
+                const v = (node ? this.cx.getAnn(node).var : null);
+                if (v && (v.storage === "boxed" || v.storage === "bbox")) {
+                    this.line(`$a[${i}] = ["v" => $a[${i}]];`);
+                }
+            });
+        }
         emitGlobal(v) {
             if (!v.referenced && !v.decl.init && !v.decl.directInit)
                 return;
+            if (v.isGlobal && /^(cout|cerr|clog|wcout|wcerr|wclog)$/.test(v.short)) {
+                this.line(`$${v.mangled} = new stdClass();`);
+                return;
+            }
             const t = v.typeCache;
             if (v.lifted) {
                 this.line(`$${v.mangled} = null;`);
@@ -13224,10 +13380,9 @@ var CTJ;
                 return this.arrayInit(p, x.items);
             }
             if (pB && !aB) {
-                if (!at || at.name === "__null")
-                    return "null";
-                if (this.isZeroLit(x))
-                    return "null";
+                if (!at || at.name === "__null" || this.isZeroLit(x)) {
+                    return p.ref ? "[\"a\" => [null], \"i\" => 0]" : "null";
+                }
                 if (at.isFunc)
                     return this.ex(x);
                 return this.exBox(x);
@@ -13357,7 +13512,9 @@ var CTJ;
                 const ma = this.cx.getAnn(e.fn);
                 if (ma.arrowCall)
                     o = `(${this.paren(o)}->${phpMethodName(ma.arrowCall)}())`;
-                if (e.fn.qual.length) {
+                if (ma.sym && ma.sym.k === "var" && ma.sym.v.isField)
+                    o = this.ex(e.fn);
+                if (e.fn.qual.length && !(ma.sym && ma.sym.k === "var" && ma.sym.v.isField)) {
                     const cls = this.cx.classes.get(fn.cls);
                     const qn = phpClsName(cls);
                     s = `(Closure::bind(function (...$a) { return $this->${phpMethodName(fn)}(...$a); }, ${o}, ${qn}::class))(${aa.join(", ")})`;
@@ -13588,8 +13745,38 @@ var CTJ;
                 return `(~${this.paren(this.ex(e.arg))})`;
             return this.ex(e.arg);
         }
+        exStreamOut(e) {
+            this.needStreamFmt = true;
+            const manip = CTJ.streamManipName(e.r);
+            let payload;
+            if (manip === "endl")
+                payload = `"\\n"`;
+            else if (manip === "ends")
+                payload = `"\\0"`;
+            else if (manip === "flush")
+                payload = `""`;
+            else {
+                const rt = this.cx.getAnn(e.r).t;
+                const core = rt ? CTJ.coreName(rt) : "";
+                const rs = this.ex(e.r);
+                if (rt && !rt.ptr && !rt.dims.length && (core === "char" || core === "signed char" || core === "unsigned char" || core === "wchar_t")) {
+                    payload = `chr(${rs})`;
+                }
+                else {
+                    payload = `__ctj_fmt(${rs})`;
+                }
+            }
+            const l = this.ex(e.l);
+            if (this.isSimple(e.l))
+                return `(__ctj_write(${payload}), ${l})`;
+            const t = this.tmp();
+            return `(${t} = ${l}, __ctj_write(${payload}), ${t})`;
+        }
         exBinary(e) {
             const a = this.cx.getAnn(e);
+            if (a.call && typeof a.call === "object" && "builtin" in a.call) {
+                return this.exStreamOut(e);
+            }
             if (a.call) {
                 const fn = a.call;
                 const ps = this.cx.funcParams(fn);
@@ -13924,4 +14111,4 @@ var CTJ;
     g["CTJ"] = CTJ;
 })();
 
-CTJ.version = "30a157a 2026-10-10 16:57:47Z";
+CTJ.version = "6bfde61 2026-10-10 17:28:47Z";

@@ -45,6 +45,7 @@ class JsGen {
   exStack: string[] = [];
   rangeN = 0;
   fnStack: FuncInfo[] = [];
+  needStreamFmt = false;
 
   constructor(cx: Cx) {
     this.cx = cx;
@@ -77,8 +78,21 @@ class JsGen {
       const ps = this.cx.funcParams(main);
       const args = ps.length >= 3 ? ["0", `{a: [], i: 0}`, "null"] : ps.length === 2 ? ["0", `{a: [], i: 0}`] : ps.length === 1 ? ["0"] : [];
       this.line(`main(${args.join(", ")});`);
+      if (this.needStreamFmt) this.line(`__ctj_flush();`);
+    }
+    if (this.needStreamFmt) {
+      this.out.splice(1, 0, this.streamHelper());
     }
     return this.out.join("\n") + "\n";
+  }
+
+  streamHelper(): string {
+    return [
+      `var __ctj_obuf = "";`,
+      `function __ctj_fmt(v) { if (v == null) return "0"; if (typeof v === "boolean") return v ? "1" : "0"; if (typeof v === "number") return String(v); if (typeof v === "string") return v; var a = v && v.a, i = v && v.i; if (Array.isArray(v)) { a = v; i = 0; } if (Array.isArray(a)) { var s = ""; for (var k = i | 0; k < a.length && a[k]; k++) s += String.fromCharCode(a[k]); return s; } return String(v); }`,
+      `function __ctj_write(s) { s = String(s); if (typeof process !== "undefined" && process.stdout && process.stdout.write) { process.stdout.write(s); return; } __ctj_obuf += s; for (;;) { var n = __ctj_obuf.indexOf("\\n"); if (n < 0) break; console.log(__ctj_obuf.slice(0, n)); __ctj_obuf = __ctj_obuf.slice(n + 1); } }`,
+      `function __ctj_flush() { if (__ctj_obuf) { console.log(__ctj_obuf); __ctj_obuf = ""; } }`,
+    ].join("\n");
   }
 
   sortClasses(): ClsInfo[] {
@@ -533,7 +547,7 @@ class JsGen {
   }
 
   emitMethod(c: ClsInfo, fns: FuncInfo[]): void {
-    const use = fns.filter(f => f.referenced && ((f.decl.body || []).length || f.decl.flags.includes("pure")));
+    const use = fns.filter(f => f.referenced);
     if (!use.length) return;
     const groups = new Map<string, FuncInfo[]>();
     for (const f of use) {
@@ -595,6 +609,8 @@ class JsGen {
         ps.forEach((p, j) => {
           if (!p.variadic && p.name) this.alias[this.alias.length - 1].set(p.name, this.ctorArg(p, j));
         });
+        // Wrap after the overload is chosen so later branches still see $a.
+        this.boxRestParams(fn, ps);
         this.fnStack.push(fn);
         this.bodyStmts(fn.decl.body || []);
         this.fnStack.pop();
@@ -728,6 +744,18 @@ class JsGen {
     });
   }
 
+  // Overload groups pass arguments as $a[j]. Wrap the chosen branch's
+  // address-taken parameters without mutating $a for later else-if arms.
+  boxRestParams(f: FuncInfo, ps: FuncParam[]): void {
+    ps.forEach((p, i) => {
+      if (p.variadic) return;
+      const v = this.paramVar(f, i);
+      if (v && (v.storage === "boxed" || v.storage === "bbox")) {
+        this.line(`$a[${i}] = {v: $a[${i}]};`);
+      }
+    });
+  }
+
   // The VarInfo of a parameter hangs off its declaration node; the scope the
   // analysis built it in is a copy that no longer exists.
   paramVar(f: FuncInfo, i: number): VarInfo | null {
@@ -737,6 +765,10 @@ class JsGen {
 
   emitGlobal(v: VarInfo): void {
     if (!v.referenced && !v.decl.init && !v.decl.directInit) return;
+    if (v.isGlobal && /^(cout|cerr|clog|wcout|wcerr|wclog)$/.test(v.short)) {
+      this.line(`let ${v.mangled} = {};`);
+      return;
+    }
     const t = v.typeCache as CppType;
     if (v.lifted) {
       this.line(`let ${v.mangled};`);
@@ -1532,8 +1564,10 @@ class JsGen {
       return this.arrayInit(p, (x as InitListExpr).items, null as unknown as VarDecl);
     }
     if (pB && !aB) {
-      if (!at || at.name === "__null") return "null";
-      if (this.isZeroLit(x)) return "null";
+      if (!at || at.name === "__null" || this.isZeroLit(x)) {
+        // A reference still needs a box; a pointer parameter is null itself.
+        return p.ref ? "{a: [null], i: 0}" : "null";
+      }
       if (at.isFunc) return this.ex(x);
       return this.exBox(x);
     }
@@ -1674,7 +1708,9 @@ class JsGen {
       let o = this.objOf((e.fn as MemberExpr).obj);
       const ma = this.cx.getAnn(e.fn);
       if (ma.arrowCall) o = `(${this.paren(o)}.${methodJsName(ma.arrowCall as FuncInfo)}())`;
-      if ((e.fn as MemberExpr).qual.length) {
+      // obj.field(args) on a functor field calls operator() on the field.
+      if (ma.sym && ma.sym.k === "var" && ma.sym.v.isField) o = this.ex(e.fn);
+      if ((e.fn as MemberExpr).qual.length && !(ma.sym && ma.sym.k === "var" && ma.sym.v.isField)) {
         const cls = this.cx.classes.get(fn.cls as string) as ClsInfo;
         s = `${cls.mangled}.prototype.${methodJsName(fn)}.call(${o}${aa.length ? ", " + aa.join(", ") : ""})`;
       } else {
@@ -1903,8 +1939,34 @@ class JsGen {
     return this.ex(e.arg);
   }
 
+  exStreamOut(e: BinaryExpr): string {
+    this.needStreamFmt = true;
+    const manip = streamManipName(e.r);
+    let payload: string;
+    if (manip === "endl") payload = `"\\n"`;
+    else if (manip === "ends") payload = `"\\0"`;
+    else if (manip === "flush") payload = `""`;
+    else {
+      const rt = this.cx.getAnn(e.r).t as CppType | null;
+      const core = rt ? coreName(rt) : "";
+      const rs = this.ex(e.r);
+      if (rt && !rt.ptr && !rt.dims.length && (core === "char" || core === "signed char" || core === "unsigned char" || core === "wchar_t")) {
+        payload = `String.fromCharCode(${rs})`;
+      } else {
+        payload = `__ctj_fmt(${rs})`;
+      }
+    }
+    const l = this.ex(e.l);
+    if (this.isSimple(e.l)) return `(__ctj_write(${payload}), ${l})`;
+    const t = this.tmp();
+    return `(${t} = ${l}, __ctj_write(${payload}), ${t})`;
+  }
+
   exBinary(e: BinaryExpr): string {
     const a = this.cx.getAnn(e);
+    if (a.call && typeof a.call === "object" && "builtin" in (a.call as object)) {
+      return this.exStreamOut(e);
+    }
     if (a.call) {
       const fn = a.call as FuncInfo;
       const ps = this.cx.funcParams(fn);

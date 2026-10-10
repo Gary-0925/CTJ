@@ -796,6 +796,11 @@ export class Cx {
         if (!tp.def && old && old.def) tp.def = old.def;
       });
     }
+    // A friend "template<class...> class tuple;" must not replace the real
+    // definition, and a later forward declaration must not erase members.
+    const newMembers = inner.kind === "class" ? (inner as ClassDecl).members.length : 1;
+    const prevMembers = prev && prev.decl.kind === "class" ? (prev.decl as ClassDecl).members.length : (prev ? 1 : 0);
+    if (prev && prevMembers && !newMembers) return;
     this.registerTmpl({ fq, kind, tparams, decl: inner, scope: this.snapScope(scope), specs: prev ? prev.specs : [], partials: prev ? prev.partials : [] });
   }
 
