@@ -15561,3 +15561,5 @@ var CTJ;
     const g = globalThis;
     g["CTJ"] = CTJ;
 })();
+
+CTJ.version = "2bee0a7 2026-10-11 10:21:10Z";
