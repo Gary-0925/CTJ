@@ -107,6 +107,32 @@ class std_allocator_arg_t {
   __dtor() {
   }
 }
+class std_uses_alloc_base {
+  __dtor() {
+  }
+}
+class std_uses_alloc0_Anything {
+  constructor(...$a) {
+    this.__init_std_uses_alloc0_Anything(...$a);
+  }
+  __init_std_uses_alloc0_Anything(...$a) {
+  }
+  __dtor() {
+  }
+}
+class std_uses_alloc0 extends std_uses_alloc_base {
+  _M_a;
+  constructor(...$a) {
+    super();
+    this.__init_std_uses_alloc0(...$a);
+  }
+  __init_std_uses_alloc0(...$a) {
+    this._M_a = new std_uses_alloc0_Anything();
+  }
+  __dtor() {
+    std_uses_alloc_base.prototype.__dtor.call(this);
+  }
+}
 class lconv {
   decimal_point;
   thousands_sep;
@@ -855,7 +881,7 @@ class std_Vector_base_int_std_allocator_int_Vector_impl extends std_allocator_in
   _M_finish;
   _M_end_of_storage;
   constructor(...$a) {
-    super();
+    super(...[]);
     this.__init_std_Vector_base_int_std_allocator_int_Vector_impl(...$a);
   }
   __init_std_Vector_base_int_std_allocator_int_Vector_impl(...$a) {
@@ -892,7 +918,7 @@ class std_Vector_base_int_std_allocator_int {
 }
 class std_vector_int_std_allocator_int extends std_Vector_base_int_std_allocator_int {
   constructor(...$a) {
-    super();
+    super(...[]);
     this.__init_std_vector_int_std_allocator_int(...$a);
   }
   __init_std_vector_int_std_allocator_int(...$a) {
@@ -1972,7 +1998,7 @@ class std_move_iterator_int_P {
   }
   op_inc() {
     ++this._M_current.i;
-    return this;
+    return {a: [this], i: 0};
   }
 }
 class std_conditional_value0_int_P_std_move_iterator_int_P {
@@ -2034,23 +2060,75 @@ class std_fpos_int_P {
   __dtor() {
   }
 }
-class std_Tuple_impl_value0_int_P_int_P {
+class std_Tuple_impl_value1 {
   __dtor() {
   }
 }
-class std_tuple_int_P_int_P extends std_Tuple_impl_value0_int_P_int_P {
+class std_is_empty_int_P extends std_integral_constant_bool_value0 {
   constructor(...$a) {
     super();
-    this.__init_std_tuple_int_P_int_P(...$a);
+    this.__init_std_is_empty_int_P(...$a);
   }
-  __init_std_tuple_int_P_int_P(...$a) {
+  __init_std_is_empty_int_P(...$a) {
   }
   __dtor() {
-    std_Tuple_impl_value0_int_P_int_P.prototype.__dtor.call(this);
+    std_integral_constant_bool_value0.prototype.__dtor.call(this);
   }
 }
-class std_tuple {
+class std_is_empty_non_tuple_int_P extends std_is_empty_int_P {
+  constructor(...$a) {
+    super();
+    this.__init_std_is_empty_non_tuple_int_P(...$a);
+  }
+  __init_std_is_empty_non_tuple_int_P(...$a) {
+  }
   __dtor() {
+    std_is_empty_int_P.prototype.__dtor.call(this);
+  }
+}
+class std_conditional_value0_std_integral_constant_bool_value0_std_is_empty_non_tuple_int_P {
+  __dtor() {
+  }
+}
+class std_Head_base_value0_int_P_value0 {
+  _M_head_impl;
+  constructor(...$a) {
+    this.__init_std_Head_base_value0_int_P_value0(...$a);
+  }
+  __init_std_Head_base_value0_int_P_value0(...$a) {
+    this._M_head_impl = null;
+  }
+  __dtor() {
+  }
+}
+class std_Tuple_impl_value0_int_P extends std_Tuple_impl_value1 {
+  constructor(...$a) {
+    super();
+    this.__init_std_Tuple_impl_value0_int_P(...$a);
+  }
+  __init_std_Tuple_impl_value0_int_P(...$a) {
+    std_Head_base_value0_int_P_value0.prototype.__init_std_Head_base_value0_int_P_value0.call(this);
+  }
+  __dtor() {
+    std_Tuple_impl_value1.prototype.__dtor.call(this);
+    std_Head_base_value0_int_P_value0.prototype.__dtor.call(this);
+  }
+}
+for (const $k of Object.getOwnPropertyNames(std_Head_base_value0_int_P_value0.prototype)) {
+  if ($k !== "constructor" && !($k in std_Tuple_impl_value0_int_P.prototype)) std_Tuple_impl_value0_int_P.prototype[$k] = std_Head_base_value0_int_P_value0.prototype[$k];
+}
+for (const $k of Object.getOwnPropertyNames(std_Head_base_value0_int_P_value0)) {
+  if ($k !== "prototype" && $k !== "name" && $k !== "length" && !($k in std_Tuple_impl_value0_int_P)) std_Tuple_impl_value0_int_P[$k] = std_Head_base_value0_int_P_value0[$k];
+}
+class std_tuple_int_P extends std_Tuple_impl_value0_int_P {
+  constructor(...$a) {
+    super();
+    this.__init_std_tuple_int_P(...$a);
+  }
+  __init_std_tuple_int_P(...$a) {
+  }
+  __dtor() {
+    std_Tuple_impl_value0_int_P.prototype.__dtor.call(this);
   }
 }
 class gnu_cxx_char_traits_int_P {
@@ -2112,31 +2190,12 @@ class std_allocator_int_P_rebind_int_P {
   __dtor() {
   }
 }
-class std_Mutex_base_value0 {
+class std_is_char_int_P {
   __dtor() {
   }
 }
-class std_Sp_counted_base_value0 extends std_Mutex_base_value0 {
-  _M_use_count;
-  _M_weak_count;
-  constructor(...$a) {
-    super();
-    this.__init_std_Sp_counted_base_value0(...$a);
-  }
-  __init_std_Sp_counted_base_value0(...$a) {
-    this._M_use_count = 0;
-    this._M_weak_count = 0;
-  }
+class gnu_cxx_enable_if_value0_bool {
   __dtor() {
-    std_Mutex_base_value0.prototype.__dtor.call(this);
-  }
-  _M_dispose() {
-    throw new Error("pure virtual called");
-  }
-  _M_destroy() {
-  }
-  _M_get_deleter($p0) {
-    throw new Error("pure virtual called");
   }
 }
 class std_shared_count_value0 {
@@ -2172,6 +2231,33 @@ class std_shared_ptr_int_P extends std_shared_ptr_int_P_value0 {
   }
   __dtor() {
     std_shared_ptr_int_P_value0.prototype.__dtor.call(this);
+  }
+}
+class std_Mutex_base_value0 {
+  __dtor() {
+  }
+}
+class std_Sp_counted_base_value0 extends std_Mutex_base_value0 {
+  _M_use_count;
+  _M_weak_count;
+  constructor(...$a) {
+    super();
+    this.__init_std_Sp_counted_base_value0(...$a);
+  }
+  __init_std_Sp_counted_base_value0(...$a) {
+    this._M_use_count = 0;
+    this._M_weak_count = 0;
+  }
+  __dtor() {
+    std_Mutex_base_value0.prototype.__dtor.call(this);
+  }
+  _M_dispose() {
+    throw new Error("pure virtual called");
+  }
+  _M_destroy() {
+  }
+  _M_get_deleter($p0) {
+    throw new Error("pure virtual called");
   }
 }
 function std_throw_bad_alloc(...$a) { throw new Error("unresolved external: std::__throw_bad_alloc"); }

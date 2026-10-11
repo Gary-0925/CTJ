@@ -240,6 +240,9 @@ export class Parser {
         if (e instanceof CtxError) {
           this.warn(`parse error: ${e.message} at ${e.where()}, skipping`, this.peek());
           this.recover();
+          // Skip stray closing braces at top level (recover() leaves them
+          // unconsumed so that namespace / class body loops can handle them).
+          if (this.peek().t === "}") { this.pos++; }
         } else throw e;
       }
     }
@@ -253,9 +256,9 @@ export class Parser {
       if (t.t === "eof") return;
       if (t.t === "{") { depth++; this.pos++; continue; }
       if (t.t === "}") {
-        this.pos++;
         if (depth === 0) return;
         depth--;
+        this.pos++;
         continue;
       }
       if (t.t === ";" && depth === 0) { this.pos++; return; }
@@ -582,7 +585,16 @@ export class Parser {
         continue;
       }
       if (v === "operator" || v === "template" || v === "~") break;
-      if (!this.isTypeName(v) && this.peek(1).t !== "::" && this.peek(1).t !== "<") break;
+      if (!this.isTypeName(v) && this.peek(1).t !== "::" && this.peek(1).t !== "<") {
+        // After a storage/function specifier an unknown identifier followed by
+        // another identifier (or a pointer/ref/operator) is almost certainly a
+        // type the parser has not registered — typically a typedef of a base.
+        const nxt = this.peek(1);
+        const looksLikeType = flags.length && !type
+          && (nxt.t === "ident" || nxt.t === "*" || nxt.t === "&" || nxt.t === "&&"
+            || nxt.v === "operator");
+        if (!looksLikeType) break;
+      }
       if (this.peek(1).t === "(" && !type && !prefix.length) break;
       // "typedef typename R::iterator iterator;": once a type is complete, an
       // identifier that is itself a type name is the declarator being declared
@@ -968,6 +980,11 @@ export class Parser {
           for (const p of params) {
             const pt = p.type;
             if (!pt.parts.length && !pt.decltypeOf && !pt.ptr && !pt.ref && !pt.func && !pt.dims.length && !p.variadic && !p.isPack) {
+              throw new Error("not params");
+            }
+            // "sentry __cerb(*this)" is a variable, not a function named
+            // __cerb taking a parameter called this.
+            if (p.name === "this" && !pt.parts.length && !pt.decltypeOf) {
               throw new Error("not params");
             }
           }

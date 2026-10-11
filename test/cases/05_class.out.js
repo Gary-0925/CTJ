@@ -33,7 +33,7 @@ class Point {
   }
   addx(d) {
     this.x += d;
-    return this;
+    return {a: [this], i: 0};
   }
   static count = 5;
 }
@@ -53,7 +53,7 @@ function main() {
   q.v.addx(10);
   (console.log((q.v.sum())));
   let pp = (($t0 = {a: [new Point(1, 2)], i: 0}, $t0) ? {a: (($t0 = {a: [new Point(1, 2)], i: 0}, $t0)).a, i: (($t0 = {a: [new Point(1, 2)], i: 0}, $t0)).i} : null);
-  (console.log((((pp.a[pp.i])).sum())));
+  (console.log(((pp.a[pp.i]).sum())));
   return 0;
 }
 main();

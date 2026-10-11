@@ -145,6 +145,14 @@ function typeOfId(cx: Cx, e: IdExpr, scope: Scope): CppType {
     return cx.expandTypedef(s.fq, new Set());
   }
   if (s.k === "tmpl") {
+    if (s.t.kind === "func") {
+      // std::endl is a function template used as a value; the call site's
+      // expected function-pointer type instantiates it.
+      const t = new CppType("__overload");
+      t.isFunc = true;
+      t.ptr = 1;
+      return t;
+    }
     ann.isType = true;
     return CppType.basic("__template");
   }
@@ -197,6 +205,33 @@ function typeOfIndex(cx: Cx, e: IndexExpr, scope: Scope): CppType {
   cx.fail("subscript on non-array", e);
 }
 
+// obj.Base::member — Base is looked up in the object's class (typedefs and
+// injected base names of the enclosing class), then in the current scope.
+function resolveQualClass(cx: Cx, qual: QSeg[], objClsFq: string, scope: Scope, t: At): string {
+  const objCls = cx.classes.get(objClsFq);
+  const trySym = (sc: Scope): string | null => {
+    const qs = cx.resolveSym(qual, false, sc);
+    if (!qs) return null;
+    if (qs.k === "class") return qs.cls.fq;
+    if (qs.k === "typedef") {
+      try {
+        const ty = cx.expandTypedef(qs.fq, new Set());
+        const fq = cx.stripAll(ty);
+        if (fq) {
+          cx.markCls(fq);
+          if (cx.classes.has(fq)) return fq;
+          return fq;
+        }
+      } catch { /* not a class typedef */ }
+    }
+    return null;
+  };
+  let fq = objCls ? trySym(cx.memberScope(objCls)) : null;
+  if (!fq) fq = trySym(scope);
+  if (!fq) cx.fail(`unknown class '${qual.map(s => s.n).join("::")}'`, t);
+  return fq as string;
+}
+
 function typeOfMember(cx: Cx, e: MemberExpr, scope: Scope): CppType {
   const ot = typeOf(cx, e.obj, scope);
   const ann = cx.getAnn(e);
@@ -207,11 +242,7 @@ function typeOfMember(cx: Cx, e: MemberExpr, scope: Scope): CppType {
   const clsFq = classOf(cx, objT);
   if (!clsFq) cx.fail(`no member '${e.field}'`, e);
   let lookupFq = clsFq;
-  if (e.qual.length) {
-    const qs = cx.resolveSym(e.qual, false, scope);
-    if (!qs || qs.k !== "class") cx.fail(`unknown class '${e.qual.map(s => s.n).join("::")}'`, e);
-    lookupFq = (qs as Sym & { k: "class" }).cls.fq;
-  }
+  if (e.qual.length) lookupFq = resolveQualClass(cx, e.qual, clsFq, scope, e);
   const m = cx.lookupMember(lookupFq, e.field, new Set());
   if (m.field) {
     const cls = cx.classes.get(m.owner) as ClsInfo;
@@ -455,8 +486,9 @@ function typeOfCast(cx: Cx, e: CastExpr, scope: Scope): CppType {
   if (target.name === "void" && !target.ptr) return target;
   const tn = coreName(target);
   const sn = coreName(st);
-  const tCls = !target.isBox() && !target.dims.length && cx.classes.has(cx.stripAll(target));
-  const sCls = !st.isBox() && !st.dims.length && cx.classes.has(cx.stripAll(st));
+  // References to classes still denote that class (static_cast<Facet&>(x)).
+  const tCls = target.ptr === 0 && !target.dims.length && !target.isFunc && cx.classes.has(cx.stripAll(target));
+  const sCls = st.ptr === 0 && !st.dims.length && !st.isFunc && cx.classes.has(cx.stripAll(st));
   // "size_type()" and "P()" have no argument to convert: they value- or
   // default-construct the target.
   if (e.arg.kind === "initlist" && !(e.arg as InitListExpr).items.length
@@ -469,7 +501,9 @@ function typeOfCast(cx: Cx, e: CastExpr, scope: Scope): CppType {
     return target;
   }
   if (kind === "dynamic_cast") {
-    if (tCls || (target.ptr > 0 && coreName(target) === "void")) return target;
+    // dynamic_cast is a runtime check on a pointer or reference.  The target
+    // class may not have been instantiated yet (e.g. use_facet<num_put>).
+    if (target.ptr > 0 || target.ref || tCls) return target;
     cx.fail("bad dynamic_cast", e);
   }
   if (kind === "const_cast") {
@@ -582,7 +616,19 @@ function resolveCallExpr(cx: Cx, e: CallExpr, scope: Scope): CppType {
       ann.call = r.fn;
       ann.convs = r.convs;
       applyArgBoxing(cx, e, r.fn, argTs, scope);
-      return CppType.basic(fq);
+      return classType(cx.classes.get(fq) as ClsInfo);
+    }
+    if (s.k === "typedef") {
+      // _Build_index_tuple<N>::__type() value-initializes the typedef's class.
+      const ct = cx.expandTypedef(s.fq, new Set());
+      const fq = cx.stripAll(ct);
+      if (cx.classes.has(fq)) {
+        const r = resolveInitCtor(cx, fq, argTs, scope, e);
+        ann.call = r.fn;
+        ann.convs = r.convs;
+        applyArgBoxing(cx, e, r.fn, argTs, scope);
+        return classType(cx.classes.get(fq) as ClsInfo);
+      }
     }
     if (s.k === "func" || s.k === "tmpl") {
       let cands: FuncInfo[] = [];
@@ -593,6 +639,15 @@ function resolveCallExpr(cx: Cx, e: CallExpr, scope: Scope): CppType {
       if (cx.funcs.has(fq)) cands = cands.concat(cx.funcs.get(fq) as FuncInfo[]);
       if (s.k === "func") {
         for (const f of s.fns) {
+          if (!cands.includes(f)) cands.push(f);
+        }
+      }
+      // A member template is stored under tmpls; instantiations live on the
+      // class as methods and are not in cx.funcs.
+      const owner = s.k === "tmpl" ? s.t.scope.cls : (s.k === "func" && s.fns[0].cls ? cx.classes.get(s.fns[0].cls) : null);
+      if (owner) {
+        const short = last(fq.split("::"));
+        for (const f of owner.methods.get(short) || []) {
           if (!cands.includes(f)) cands.push(f);
         }
       }
@@ -612,7 +667,11 @@ function resolveCallExpr(cx: Cx, e: CallExpr, scope: Scope): CppType {
       const vt = s.v.isField
         ? cx.fieldType(cx.classes.get(s.v.fq.slice(0, s.v.fq.lastIndexOf("::"))) as ClsInfo, s.v.short)
         : cx.varType(s.v);
-      if (vt.isFunc) return vt.ret as CppType;
+      if (vt.isFunc) {
+        cx.getAnn(fn).t = vt;
+        cx.getAnn(fn).sym = s;
+        return vt.ret as CppType;
+      }
       return callOperator(cx, e, vt, argTs, scope);
     }
     if (s.k === "builtin") return ctjInline(cx, e, s.name, argTs, scope);
@@ -671,11 +730,7 @@ function memberCall(cx: Cx, e: CallExpr, fn: MemberExpr, argTs: { t: CppType; e:
   const clsFq = classOf(cx, objT);
   if (!clsFq) cx.fail(`no method '${fn.field}'`, fn);
   let lookupFq = clsFq;
-  if (fn.qual.length) {
-    const qs = cx.resolveSym(fn.qual, false, scope);
-    if (!qs || qs.k !== "class") cx.fail(`unknown class '${fn.qual.map(s => s.n).join("::")}'`, fn);
-    lookupFq = (qs as Sym & { k: "class" }).cls.fq;
-  }
+  if (fn.qual.length) lookupFq = resolveQualClass(cx, fn.qual, clsFq, scope, fn);
   // "p->~T()" names the destructor of the class the object belongs to.
   const mname = fn.field.charAt(0) === "~" ? "#dtor" : fn.field;
   const m = cx.lookupMember(lookupFq, mname, new Set());
@@ -683,12 +738,38 @@ function memberCall(cx: Cx, e: CallExpr, fn: MemberExpr, argTs: { t: CppType; e:
     const cls = cx.classes.get(m.owner) as ClsInfo;
     const ft = cx.fieldType(cls, fn.field);
     if (ft.isFunc) return ft.ret as CppType;
+    // A class instance with operator() is callable (e.g. std::less<int>).
+    const fieldClsFq = cx.stripAll(ft);
+    const fieldCls = cx.classes.get(fieldClsFq);
+    if (fieldCls) {
+      const ops = fieldCls.methods.get("operator()") || [];
+      if (ops.length) {
+        const r = resolveOverload(cx, ops, [], argTs, scope, e);
+        ann.call = r.fn;
+        ann.convs = r.convs;
+        cx.getAnn(fn).sym = { k: "var", v: cx.fieldVar(cls, fn.field, cls.fields.get(fn.field) as VarDecl) };
+        cx.getAnn(fn).t = ft;
+        applyArgBoxing(cx, e, r.fn, argTs, scope);
+        return cx.funcRet(r.fn);
+      }
+    }
     cx.fail(`'${fn.field}' is not callable`, fn);
   }
   const cands = m.methods ? m.methods.slice() : [];
   const tmpls: TmplInfo[] = [];
   const tfq = m.owner + "::" + fn.field;
   for (const tm of cx.tmplsOf(tfq)) if (!tmpls.includes(tm)) tmpls.push(tm);
+  // When the owner is an instantiated class template, member function
+  // templates are stored under the base (uninstantiated) name.  Fall back
+  // to that if the instantiated lookup yields nothing.
+  if (!tmpls.length) {
+    const ownerCls = cx.classes.get(m.owner);
+    if (ownerCls && ownerCls.fromTmpl) {
+      for (const tm of cx.tmplsOf(ownerCls.fromTmpl + "::" + fn.field)) {
+        if (!tmpls.includes(tm)) tmpls.push(tm);
+      }
+    }
+  }
   if (!cands.length && !tmpls.length) cx.fail(`'${clsFq}' has no method '${fn.field}'`, fn);
   const xt = fn.targs.map(a => cx.resolveTypeNode(a, scope));
   const r = resolveOverload(cx, cands, tmpls, argTs, scope, e, xt.length ? xt : undefined, objT.cnst);
@@ -726,20 +807,16 @@ function applyArgBoxing(cx: Cx, e: CallExpr, fn: FuncInfo, argTs: { t: CppType; 
 export function resolveOverload(cx: Cx, cands: FuncInfo[], tmpls: TmplInfo[], args: { t: CppType; e: Expr }[], scope: Scope, t: At, explicit?: CppType[], objConst = false): { fn: FuncInfo; convs: ({ kind: string; fn: FuncInfo } | null)[] } {
   let useCands = cands;
   if (explicit && explicit.length) {
+    // Explicit template arguments name one instantiation.  A previous
+    // use_facet<ctype> must not be chosen for use_facet<num_put>, even though
+    // both take the same locale argument.
     const expKey = explicit.map(a => a.key()).join(",");
-    const filtered = cands.filter(f => {
+    useCands = cands.filter(f => {
       if (!f.fromTmpl) return true;
-      const i = f.fq.indexOf("<");
-      const j = f.fq.lastIndexOf(">");
-      if (i < 0 || j < 0) return false;
-      const inner = f.fq.slice(i + 1, j);
-      return inner === expKey || inner.includes(expKey) || expKey.includes(inner);
+      const prefix = f.fromTmpl + "<";
+      if (!f.fq.startsWith(prefix) || !f.fq.endsWith(">")) return false;
+      return f.fq.slice(prefix.length, -1) === expKey;
     });
-    if (filtered.length) useCands = filtered;
-    else {
-      const nonTmpl = cands.filter(f => !f.fromTmpl);
-      if (nonTmpl.length) useCands = nonTmpl;
-    }
   }
   const all = useCands.slice();
   for (const tm of tmpls) {
@@ -769,6 +846,7 @@ export function resolveOverload(cx: Cx, cands: FuncInfo[], tmpls: TmplInfo[], ar
   cx.markFunc(best as FuncInfo);
   // A static member is emitted as part of its class, so the class is needed too.
   if ((best as FuncInfo).isStatic && (best as FuncInfo).cls) cx.markCls((best as FuncInfo).cls);
+  for (const c of bestConvs) if (c && c.fn) cx.markFunc(c.fn);
   return { fn: best as FuncInfo, convs: bestConvs };
 }
 
@@ -806,11 +884,34 @@ function scoreFunc(cx: Cx, f: FuncInfo, args: { t: CppType; e: Expr }[], scope: 
   return { viable: true, score, convs };
 }
 
+// Address of an overloaded function / function template, as in cout << endl:
+// the parameter is a function pointer and the argument names a template.
+function instantiateAddrOf(cx: Cx, e: Expr, p: CppType, scope: Scope): FuncInfo | null {
+  if (!p.isFunc) return null;
+  let cur: Expr = e;
+  if (cur.kind === "unary" && (cur as UnaryExpr).op === "&") cur = (cur as UnaryExpr).arg;
+  if (cur.kind !== "id") return null;
+  const sym = cx.getAnn(cur).sym;
+  if (!sym || sym.k !== "tmpl" || (sym as { k: "tmpl"; t: TmplInfo }).t.kind !== "func") return null;
+  const tmpls = cx.tmplsOf((sym as { k: "tmpl"; t: TmplInfo }).t.fq).filter(t => t.kind === "func");
+  const args = (p.funcParams || []).map(t => ({ t, e: cur }));
+  for (const tm of tmpls) {
+    const fn = tryInstantiateCall(cx, tm, args, scope, undefined, cur);
+    if (fn) return fn;
+  }
+  return null;
+}
+
 function tryInstantiateCall(cx: Cx, tm: TmplInfo, args: { t: CppType; e: Expr }[], scope: Scope, explicit: CppType[] | undefined, t: At): FuncInfo | null {
   try {
-    const full = deduce(cx, tm, args, scope, explicit || [], t);
-    if (!full) return null;
-    return cx.instantiateFunc(tm, full, new Map());
+    const d = deduce(cx, tm, args, scope, explicit || [], t);
+    if (!d) return null;
+    const fn = cx.instantiateFunc(tm, d.full, new Map(), tm.tparams.filter(p => p.isPack).length > 1 ? d.env : undefined);
+    // Substitution failure in the return type or parameters is SFINAE, not
+    // a hard error (e.g. decltype(__test_aux<_To>(declval<_From>()))).
+    cx.funcParams(fn);
+    cx.funcRet(fn);
+    return fn;
   } catch {
     return null;
   }
@@ -821,7 +922,11 @@ function packNameOf(tn: TypeNode): string {
   return "";
 }
 
-function deduce(cx: Cx, tm: TmplInfo, args: { t: CppType; e: Expr }[], scope: Scope, explicit: CppType[], t: At): CppType[] | null {
+function valueOfType(t: CppType): number {
+  return parseInt(t.name.replace("__value", "") || "0", 10);
+}
+
+function deduce(cx: Cx, tm: TmplInfo, args: { t: CppType; e: Expr }[], scope: Scope, explicit: CppType[], t: At): { full: CppType[]; env: SubstEnv } | null {
   void t;
   const env = new Map<string, CppType>();
   const venv = new Map<string, number>();
@@ -847,21 +952,34 @@ function deduce(cx: Cx, tm: TmplInfo, args: { t: CppType; e: Expr }[], scope: Sc
       if (!p.def) return null;
       continue;
     }
-    if (!deduceOne(cx, p.type, args[ai].t, env, venv)) return null;
+    if (!deduceOne(cx, p.type, args[ai].t, env, venv, packs, false)) return null;
     ai++;
   }
   const senv = blankSubstEnv();
   for (const [k, v] of env) senv.types.set(k, v);
   for (const [k, v] of venv) senv.values.set(k, v);
-  for (const [k, v] of packs) senv.packs.set(k, v);
+  // Two packs in one template cannot be recovered from a flat argument list:
+  // keep each pack under its own name so sizeof... and later substitution see
+  // the right length.
+  for (const tp of tm.tparams) {
+    if (!tp.isPack) continue;
+    const items = packs.get(tp.name) || [];
+    if (tp.kind === "nontype") senv.valuePacks.set(tp.name, items.map(valueOfType));
+    else senv.packs.set(tp.name, items);
+  }
+  for (const [k, v] of packs) {
+    if (senv.packs.has(k) || senv.valuePacks.has(k)) continue;
+    senv.packs.set(k, v);
+  }
   const full: CppType[] = [];
   for (const tp of tm.tparams) {
-    if (env.has(tp.name)) {
-      full.push(env.get(tp.name) as CppType);
+    if (tp.isPack) {
+      if (packs.has(tp.name)) full.push(...(packs.get(tp.name) as CppType[]));
+      else if (env.has(tp.name)) full.push(env.get(tp.name) as CppType);
       continue;
     }
-    if (tp.isPack) {
-      full.push(...(packs.get(tp.name) || []));
+    if (env.has(tp.name)) {
+      full.push(env.get(tp.name) as CppType);
       continue;
     }
     if (venv.has(tp.name)) {
@@ -879,7 +997,7 @@ function deduce(cx: Cx, tm: TmplInfo, args: { t: CppType; e: Expr }[], scope: Sc
       full.push(cx.resolveTypeNode(tn, tm.scope));
     }
   }
-  return full;
+  return { full, env: senv };
 }
 
 function noRef(t: CppType): CppType {
@@ -894,7 +1012,14 @@ function noRef(t: CppType): CppType {
   return c;
 }
 
-function deduceOne(cx: Cx, tn: TypeNode, t: CppType, env: Map<string, CppType>, venv: Map<string, number>): boolean {
+function copyType(t: CppType): CppType {
+  const c = noRef(t);
+  c.ref = t.ref;
+  c.cnst = t.cnst;
+  return c;
+}
+
+function deduceOne(cx: Cx, tn: TypeNode, t: CppType, env: Map<string, CppType>, venv: Map<string, number>, packs?: Map<string, CppType[]>, keepRef = false): boolean {
   void cx;
   if (tn.valueArg && tn.valueArg.kind === "id") {
     const id = tn.valueArg as IdExpr;
@@ -907,8 +1032,14 @@ function deduceOne(cx: Cx, tn: TypeNode, t: CppType, env: Map<string, CppType>, 
   if (!tn.parts.length) return true;
   const first = tn.parts[0].n;
   if (tn.parts.length === 1 && !tn.parts[0].a.length) {
+    if (tn.packExpand && packs) {
+      const list = packs.get(first) || [];
+      list.push(keepRef ? copyType(t) : noRef(t));
+      packs.set(first, list);
+      return true;
+    }
     if (!env.has(first)) {
-      const c = noRef(t);
+      const c = keepRef ? copyType(t) : noRef(t);
       if (tn.ptr > 0) c.ptr = Math.max(0, t.ptr - tn.ptr);
       env.set(first, c);
     }
@@ -920,14 +1051,87 @@ function deduceOne(cx: Cx, tn: TypeNode, t: CppType, env: Map<string, CppType>, 
     });
     return true;
   }
+  const seg = tn.parts[tn.parts.length - 1];
+  if (seg && seg.a.length && tn.parts.length === 1 && t.segs.length) {
+    // `_Index_tuple<_Indexes...>` / `_Tuple_impl<_i, _Head, _Tail...>`: the
+    // template-id is the last (or only) part.  Also try a derived-to-base
+    // conversion so get<_i>(tuple) matches _Tuple_impl<_i, ...>&.
+    const pat = seg.a;
+    const ta = typeNamesMatch(seg.n, t.segs[t.segs.length - 1].n) ? t.segs[t.segs.length - 1].a : t.segs[0].a;
+    const lastp = pat[pat.length - 1];
+    const packFromType = lastp && lastp.packExpand && lastp.parts.length === 1 && !lastp.parts[0].a.length
+      ? lastp.parts[0].n : "";
+    const packFromVal = lastp && lastp.valueArg && lastp.valueArg.kind === "unary" && lastp.valueArg.op === "..."
+      && lastp.valueArg.arg.kind === "id" && (lastp.valueArg.arg as IdExpr).parts.length === 1
+      ? (lastp.valueArg.arg as IdExpr).parts[0].n : "";
+    const pack = packFromType || packFromVal;
+    if (pack && packs) {
+      const fixed = pat.length - 1;
+      if (ta.length >= fixed && typeNamesMatch(seg.n, t.segs[t.segs.length - 1].n)) {
+        let ok = true;
+        for (let i = 0; i < fixed; i++) {
+          if (!deduceOne(cx, pat[i], ta[i], env, venv, packs, true)) { ok = false; break; }
+        }
+        if (ok) {
+          packs.set(pack, ta.slice(fixed).map(copyType));
+          return true;
+        }
+      }
+      if (deduceFromBases(cx, tn, t, env, venv, packs, keepRef)) return true;
+    }
+  }
   if (tn.parts[0].a.length && t.segs.length) {
+    const pat = tn.parts[0].a;
     const ta = t.segs[0].a;
-    if (ta.length !== tn.parts[0].a.length) return true;
+    const lastp = pat[pat.length - 1];
+    const pack = lastp && lastp.packExpand && lastp.parts.length === 1 && !lastp.parts[0].a.length
+      ? lastp.parts[0].n : "";
+    if (pack && packs) {
+      const fixed = pat.length - 1;
+      if (ta.length < fixed) return false;
+      for (let i = 0; i < fixed; i++) {
+        if (!deduceOne(cx, pat[i], ta[i], env, venv, packs, true)) return false;
+      }
+      packs.set(pack, ta.slice(fixed).map(copyType));
+      return true;
+    }
+    if (ta.length !== pat.length) return true;
     for (let i = 0; i < ta.length; i++) {
-      if (!deduceOne(cx, tn.parts[0].a[i], ta[i], env, venv)) return false;
+      if (!deduceOne(cx, pat[i], ta[i], env, venv, packs, true)) return false;
     }
   }
   return true;
+}
+
+function typeNamesMatch(pat: string, act: string): boolean {
+  const short = (n: string) => {
+    const s = n.split("::").pop() as string;
+    const i = s.indexOf("<");
+    return i < 0 ? s : s.slice(0, i);
+  };
+  return short(act) === short(pat) || act === pat || act.endsWith("::" + pat);
+}
+
+function deduceFromBases(cx: Cx, tn: TypeNode, t: CppType, env: Map<string, CppType>, venv: Map<string, number>, packs: Map<string, CppType[]> | undefined, keepRef: boolean): boolean {
+  const fq = cx.stripAll(t);
+  const cls = cx.classes.get(fq);
+  if (!cls) return false;
+  const seen = new Set<string>();
+  const walk = (c: ClsInfo): boolean => {
+    for (const b of c.bases) {
+      if (seen.has(b.fq)) continue;
+      seen.add(b.fq);
+      const bc = cx.classes.get(b.fq);
+      if (!bc) continue;
+      const bt = classType(bc);
+      bt.ref = t.ref;
+      bt.cnst = t.cnst;
+      if (deduceOne(cx, tn, bt, env, venv, packs, keepRef)) return true;
+      if (walk(bc)) return true;
+    }
+    return false;
+  };
+  return walk(cls);
 }
 
 export interface MatchResult {
@@ -937,9 +1141,37 @@ export interface MatchResult {
 
 const NOMATCH: MatchResult = { s: -1e17, conv: null };
 
+function isLvalueExpr(cx: Cx, e: Expr): boolean {
+  switch (e.kind) {
+    case "id":
+    case "member":
+    case "index":
+    case "this":
+      return true;
+    case "unary":
+      return e.op === "*" || ((e.op === "++" || e.op === "--") && !e.postfix);
+    case "cast":
+      return isLvalueExpr(cx, e.arg);
+    case "call":
+    case "binary":
+    case "assign": {
+      const t = cx.getAnn(e).t as CppType | undefined;
+      return !!t && t.ref === "&";
+    }
+    default:
+      return false;
+  }
+}
+
 export function matchScore(cx: Cx, p: CppType, a: CppType, e: Expr | null, scope: Scope, allowConv: boolean): MatchResult {
   if (p.name === "__any" || a.name === "__any") return { s: 80, conv: null };
   if (p.key() === a.key()) return { s: 100, conv: null };
+  // An lvalue does not bind to an rvalue reference. Restricted to iostreams
+  // so perfect-forwarding templates keep working.
+  if (p.ref === "&&" && a.ref !== "&&" && e && isLvalueExpr(cx, e)) {
+    const fq = cx.stripAll(p);
+    if (fq.indexOf("basic_ostream") >= 0 || fq.indexOf("basic_istream") >= 0) return NOMATCH;
+  }
   if (a.name === "__null") {
     if (p.ptr > 0 || p.isFunc) return { s: 70, conv: null };
     if (coreName(p) === "bool") return { s: 50, conv: null };
@@ -956,6 +1188,17 @@ export function matchScore(cx: Cx, p: CppType, a: CppType, e: Expr | null, scope
     return { s: 90, conv: null };
   }
   if (a.dims.length && !a.isBox() && p.ptr > 0 && pn === "void") return { s: 70, conv: null };
+  if (p.isFunc && e) {
+    const fn = instantiateAddrOf(cx, e, p, scope);
+    if (fn) {
+      let cur: Expr = e;
+      if (cur.kind === "unary" && (cur as UnaryExpr).op === "&") cur = (cur as UnaryExpr).arg;
+      cx.getAnn(cur).sym = { k: "func", fns: [fn] };
+      cx.getAnn(cur).t = funcSig(cx, fn);
+      cx.markFunc(fn);
+      return { s: 90, conv: null };
+    }
+  }
   if (p.isFunc && a.isFunc) {
     if (funcSigMatch(cx, p, a)) return { s: 90, conv: null };
     return NOMATCH;
@@ -982,14 +1225,14 @@ export function matchScore(cx: Cx, p: CppType, a: CppType, e: Expr | null, scope
   if (cx.enums.has(pFq || pn) && isIntegerName(an)) return { s: 40, conv: null };
   if (cx.enums.has(aFq || an) && isIntegerName(pn)) return { s: 60, conv: null };
   if (cx.enums.has(pFq || pn) && cx.enums.has(aFq || an) && pn === an) return { s: 90, conv: null };
-  if (isNumericName(pn) && isNumericName(an)) {
+  if (isNumericName(pn) && isNumericName(an) && p.ptr === a.ptr && !p.dims.length && !a.dims.length && !p.isFunc && !a.isFunc) {
     if (pn === an) return { s: 90, conv: null };
     if (isIntegerName(pn) && isIntegerName(an)) return { s: 60, conv: null };
     if (!isIntegerName(pn) && !isIntegerName(an)) return { s: 60, conv: null };
     return { s: 50, conv: null };
   }
-  if (pn === "bool" && isNumericName(an)) return { s: 40, conv: null };
-  if (isNumericName(pn) && an === "bool") return { s: 40, conv: null };
+  if (pn === "bool" && isNumericName(an) && !a.dims.length && a.ptr === 0) return { s: 40, conv: null };
+  if (isNumericName(pn) && an === "bool" && !p.dims.length && p.ptr === 0) return { s: 40, conv: null };
   if (pn === "bool" && a.ptr > 0) return { s: 40, conv: null };
   if (a.name === "__initlist" && p.ptr === 0 && !p.isFunc) {
     const cls = cx.classes.get(cx.stripAll(p));
@@ -1058,11 +1301,11 @@ export function findOperator(cx: Cx, op: string, l: { t: CppType; e: Expr } | nu
     argsLR.push({ t: CppType.basic("int"), e: { kind: "lit", lkind: "int", value: "0", file: t.file, line: t.line } });
   }
   let best: { fn: FuncInfo; convs: ({ kind: string; fn: FuncInfo } | null)[]; score: number } | null = null;
-  const consider = (cands: FuncInfo[], tmpls: TmplInfo[], args: { t: CppType; e: Expr }[]) => {
+  const consider = (cands: FuncInfo[], tmpls: TmplInfo[], args: { t: CppType; e: Expr }[], thisBonus = 0) => {
     if (!cands.length && !tmpls.length) return;
     try {
       const rr = resolveOverload(cx, cands, tmpls, args, scope, t);
-      let sc = 0;
+      let sc = thisBonus;
       const ps = cx.funcParams(rr.fn);
       args.forEach((a, i) => {
         if (i < ps.length) sc += matchScore(cx, ps[i].type, a.t, a.e, scope, true).s;
@@ -1076,7 +1319,9 @@ export function findOperator(cx: Cx, op: string, l: { t: CppType; e: Expr } | nu
     const m = cx.lookupMember(fq, key, new Set());
     const tmpls: TmplInfo[] = [];
     for (const tm of cx.tmplsOf(fq + "::" + key)) if (!tmpls.includes(tm)) tmpls.push(tm);
-    consider(m.methods ? m.methods.slice() : [], tmpls, r ? [r] : (postfix ? [{ t: CppType.basic("int"), e: argsLR[1].e }] : []));
+    // Members are scored on the right-hand argument only; give the implicit
+    // object the identity match a free function would get for the left side.
+    consider(m.methods ? m.methods.slice() : [], tmpls, r ? [r] : (postfix ? [{ t: CppType.basic("int"), e: argsLR[1].e }] : []), 100);
   }
   const cands: FuncInfo[] = [];
   const tmpls: TmplInfo[] = [];
@@ -1222,6 +1467,10 @@ function markBoxedOf(cx: Cx, e: Expr): void {
     return;
   }
   if (cur.kind === "member") {
+    // Taking the address of a field through a pointer or reference does not
+    // box the pointer itself — it already names the object.
+    const ot = cx.getAnn(cur.obj).t as CppType | undefined;
+    if (ot && ot.isBox()) return;
     markBoxedOf(cx, cur.obj);
     return;
   }

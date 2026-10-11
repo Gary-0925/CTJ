@@ -18,6 +18,14 @@ export function analyzeAll(cx: Cx, tu: TranslationUnit): void {
     analyzeFunc(cx, fn);
   }
   finalizeFields(cx);
+  // finalizeFields may reference new classes and their virtual methods,
+  // pushing additional items onto the worklist.  Process them before
+  // code generation so that every reachable function body is annotated.
+  while (cx.worklist.length) {
+    const fn = cx.worklist.shift() as FuncInfo;
+    if (fn.analyzed) continue;
+    analyzeFunc(cx, fn);
+  }
   finalizeMangling(cx);
 }
 
@@ -123,6 +131,7 @@ function deduceAuto(cx: Cx, declT: CppType, initT: CppType, t: At): CppType {
 function analyzeFunc(cx: Cx, fn: FuncInfo): void {
   fn.analyzed = true;
   if (!fn.decl.body || fn.isDelete) return;
+  if (ioRuntimeKind(fn)) return;
   const scope = cx.snapScope(fn.scope);
   scope.fn = fn;
   scope.locals.push(new Map());
@@ -165,6 +174,13 @@ function annotateCtorInit(cx: Cx, fn: FuncInfo, c: CtorInit, scope: Scope): void
     return;
   }
   const short = last(c.name).n;
+  // C++11 delegating constructor: pair(...) : pair(other_args) { }
+  if (cx.isDelegatingCtorInit(cls as ClsInfo, c)) {
+    const r = resolveCtor(cx, (cls as ClsInfo).fq, argTs, scope, c);
+    cx.getAnn(c).call = r.fn;
+    cx.getAnn(c).convs = r.convs;
+    return;
+  }
   if ((cls as ClsInfo).fields.has(short)) {
     const ft = cx.fieldType(cls as ClsInfo, short);
     annotateFieldInit(cx, cls as ClsInfo, short, ft, c.args, argTs, c, scope);
@@ -584,6 +600,10 @@ function markBoxed(cx: Cx, e: Expr): void {
     return;
   }
   if (cur.kind === "member") {
+    // Taking the address of a field through a pointer or reference does not
+    // box the pointer itself — it already names the object.
+    const ot = cx.getAnn(cur.obj).t as CppType | undefined;
+    if (ot && ot.isBox()) return;
     markBoxed(cx, cur.obj);
     return;
   }

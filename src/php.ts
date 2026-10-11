@@ -59,6 +59,7 @@ class PhpGen {
 
   run(): string {
     this.line(`<?php`);
+    if (this.needsIoHelpers()) this.emitIoHelpers();
     for (const c of this.sortClasses()) {
       if (!c.referenced || c.isLambda) continue;
       this.emitClass(c);
@@ -433,6 +434,22 @@ class PhpGen {
         if (!p.variadic && p.name) this.alias[this.alias.length - 1].set(p.name, this.ctorArg(p, i));
       });
     }
+    if (!inh) {
+      const del = fn.decl.ctorInit.find(x => this.cx.isDelegatingCtorInit(c, x));
+      if (del) {
+        const a = this.cx.getAnn(del);
+        if (a.call) {
+          const tps = this.cx.funcParams(a.call as FuncInfo);
+          const aa = del.args.map((x, i) => this.argFor(tps[i].type, x, (a.convs || [])[i] || null));
+          this.line(`$this->__init_${phpClsName(c)}(${aa.join(", ")});`);
+          this.fnStack.push(fn);
+          this.bodyStmts(fn.decl.body || []);
+          this.fnStack.pop();
+          if (!noAlias) this.alias.pop();
+          return;
+        }
+      }
+    }
     for (let bi = 1; bi < c.bases.length; bi++) {
       const b = c.bases[bi];
       const bc = this.cx.classes.get(b.fq) as ClsInfo;
@@ -571,7 +588,7 @@ class PhpGen {
   }
 
   emitMethod(c: ClsInfo, fns: FuncInfo[]): void {
-    const use = fns.filter(f => f.referenced && ((f.decl.body || []).length || f.decl.flags.includes("pure")));
+    const use = fns.filter(f => f.referenced && ((f.decl.body || []).length || f.decl.flags.includes("pure") || !!ioRuntimeKind(f)));
     if (!use.length) return;
     const groups = new Map<string, FuncInfo[]>();
     for (const f of use) {
@@ -586,6 +603,11 @@ class PhpGen {
     const m = phpMethodName(use[0]);
     const pre = use[0].isStatic ? "static " : "";
     void c;
+    const io = ioRuntimeKind(use[0]);
+    if (io) {
+      this.line(`${pre}function ${m}(...$a) { ${this.ioStubBody(io, true)} }`);
+      return;
+    }
     if (use.length === 1) {
       const fn = use[0];
       const ps = this.cx.funcParams(fn);
@@ -639,6 +661,66 @@ class PhpGen {
     this.line(`}`);
   }
 
+  needsIoHelpers(): boolean {
+    for (const list of this.cx.funcs.values()) {
+      for (const f of list) if (f.referenced && ioRuntimeKind(f)) return true;
+    }
+    for (const c of this.cx.classes.values()) {
+      if (!c.referenced) continue;
+      for (const fns of c.methods.values()) {
+        for (const f of fns) if (f.referenced && ioRuntimeKind(f)) return true;
+      }
+    }
+    return false;
+  }
+
+  emitIoHelpers(): void {
+    this.line(`function _ctj_cstr($p, $n = null) {`);
+    this.line(`  if ($p === null) return "";`);
+    this.line(`  $a = (is_array($p) && array_key_exists("a", $p)) ? $p["a"] : $p;`);
+    this.line(`  $i = (is_array($p) && array_key_exists("i", $p)) ? intval($p["i"]) : 0;`);
+    this.line(`  $lim = ($n === null) ? 1000000000 : intval($n);`);
+    this.line(`  $s = "";`);
+    this.line(`  for ($k = 0; $k < $lim; $k++) {`);
+    this.line(`    if (!isset($a[$i + $k])) break;`);
+    this.line(`    $c = $a[$i + $k];`);
+    this.line(`    if ($c === 0 || $c === null) break;`);
+    this.line(`    $s .= is_int($c) ? chr($c & 255) : strval($c);`);
+    this.line(`  }`);
+    this.line(`  return $s;`);
+    this.line(`}`);
+    this.line(`function _ctj_fmt($v) {`);
+    this.line(`  if ($v === null) return "0";`);
+    this.line(`  if (is_bool($v)) return $v ? "1" : "0";`);
+    this.line(`  if (is_array($v) && array_key_exists("a", $v)) return _ctj_cstr($v);`);
+    this.line(`  return strval($v);`);
+    this.line(`}`);
+  }
+
+  ioStubBody(kind: string, isMethod: boolean): string {
+    const retThis = isMethod ? "return [\"a\" => [$this], \"i\" => 0];" : "return $a[0];";
+    switch (kind) {
+      case "insert":
+        return `echo _ctj_fmt($a[0]); ${retThis}`;
+      case "put":
+        return `echo is_int($a[0]) ? chr($a[0] & 255) : _ctj_fmt($a[0]); ${retThis}`;
+      case "write":
+        return `echo _ctj_cstr($a[0], $a[1]); ${retThis}`;
+      case "sinsert":
+        return `echo _ctj_cstr($a[1], $a[2]); return $a[0];`;
+      case "flush":
+        return retThis;
+      case "widen":
+        return `return $a[0];`;
+      case "sentry_ctor":
+        return `$this->_M_ok = true;`;
+      case "sentry_bool":
+        return `return 1;`;
+      default:
+        return "";
+    }
+  }
+
   // The allocation operators are declared by <new> with no body; storage comes
   // from the target language, and freeing is its business too. A placement
   // version hands back the pointer it was given.
@@ -651,6 +733,11 @@ class PhpGen {
   }
 
   emitFunc(f: FuncInfo): void {
+    const io = ioRuntimeKind(f);
+    if (io) {
+      this.line(`function ${phpFuncName(f)}(...$a) { ${this.ioStubBody(io, false)} }`);
+      return;
+    }
     if (!(f.decl.body || []).length) {
       const alloc = this.allocStub(f);
       if (alloc !== null) this.line(`function ${phpFuncName(f)}(...$a) { ${alloc} }`);
@@ -698,9 +785,10 @@ class PhpGen {
       this.line(`$${v.mangled}_init = false;`);
       return;
     }
+    const wrap = (s: string) => (v.storage === "boxed" || v.storage === "bbox") ? `[\"v\" => ${s}]` : s;
     const init = v.decl.init;
     if (init) {
-      this.line(`$${v.mangled} = ${this.argFor(t, init, null)};`);
+      this.line(`$${v.mangled} = ${wrap(this.argFor(t, init, null))};`);
       return;
     }
     if (v.decl.directInit && v.decl.directInit.length) {
@@ -708,9 +796,9 @@ class PhpGen {
       const fcls = !t.isBox() && !t.dims.length && !t.isFunc ? this.cx.stripAll(t) : "";
       if (a.call && fcls && this.cx.classes.has(fcls)) {
         const cn = phpClsName(this.cx.classes.get(fcls) as ClsInfo);
-        this.line(`$${v.mangled} = ${this.ctorExpr(cn, a.call as FuncInfo, v.decl.directInit, a.convs)};`);
+        this.line(`$${v.mangled} = ${wrap(this.ctorExpr(cn, a.call as FuncInfo, v.decl.directInit, a.convs))};`);
       } else {
-        this.line(`$${v.mangled} = ${this.ex(v.decl.directInit[0])};`);
+        this.line(`$${v.mangled} = ${wrap(this.ex(v.decl.directInit[0]))};`);
       }
       return;
     }
@@ -718,7 +806,7 @@ class PhpGen {
     const fcls = !t.isBox() && !t.dims.length && !t.isFunc ? this.cx.stripAll(t) : "";
     if (fcls && this.cx.classes.has(fcls)) {
       const cn = phpClsName(this.cx.classes.get(fcls) as ClsInfo);
-      this.line(`$${v.mangled} = ${a.call ? this.ctorExpr(cn, a.call as FuncInfo, [], []) : `new ${cn}()`};`);
+      this.line(`$${v.mangled} = ${wrap(a.call ? this.ctorExpr(cn, a.call as FuncInfo, [], []) : `new ${cn}()`)};`);
     } else if (t.dims.length) {
       this.line(`$${v.mangled} = ${this.arrayNew(t)};`);
     } else if (t.isFunc || isBoxLike(t)) {
@@ -1263,7 +1351,10 @@ class PhpGen {
         return `["a" => ${arr}, "i" => (${this.ex(e.idx)})]`;
       }
       case "unary":
-        if (e.op === "*") return this.ex(e.arg);
+        if (e.op === "*") {
+          if (e.arg.kind === "this") return `["a" => [$this], "i" => 0]`;
+          return this.ex(e.arg);
+        }
         if (e.op === "&") return this.exBox(e.arg);
         return `["a" => [${this.ex(e)}], "i" => 0]`;
       case "call": case "this":
@@ -1279,6 +1370,7 @@ class PhpGen {
         return `(${this.ex(e.c)} ? ${this.exBox(e.a)} : ${this.exBox(e.b)})`;
       case "binary":
         if (e.op === ",") return `(${this.ex(e.l)}, ${this.exBox(e.r)})`;
+        if (et && et.ref) return this.ex(e);
         return `["a" => [${this.ex(e)}], "i" => 0]`;
       case "cast": {
         // A cast to a pointer or a reference yields the box of its operand;
@@ -1356,16 +1448,22 @@ class PhpGen {
 
   objOf(e: Expr): string {
     const t = this.cx.getAnn(e).t as CppType;
-    const s = this.complex(this.ex(e), e);
-    if (e.kind === "this") return s;
-    if (t && t.ptr > 0) {
-      const p = this.paren(s);
-      return `(${p}["a"][${p}["i"]])`;
+    const needDeref = e.kind !== "this" && !!t && (t.ptr > 0 ||
+      !!(t.ref && (e.kind === "call" || e.kind === "binary" || e.kind === "assign" || e.kind === "unary" || e.kind === "index")));
+    if (!needDeref) {
+      if (e.kind === "this") return this.ex(e);
+      return this.complex(this.ex(e), e);
     }
-    return s;
+    if (this.isSimple(e)) {
+      const p = this.paren(this.ex(e));
+      return `${p}["a"][${p}["i"]]`;
+    }
+    const tmp = this.tmp();
+    return `(${tmp} = ${this.ex(e)}, ${tmp}["a"][${tmp}["i"]])`;
   }
 
   deref(e: Expr): string {
+    if (e.kind === "this") return "$this";
     const s = this.complex(this.ex(e), e);
     const p = this.paren(s);
     return `${p}["a"][${p}["i"]]`;
@@ -1429,8 +1527,9 @@ class PhpGen {
       return this.arrayInit(p, (x as InitListExpr).items);
     }
     if (pB && !aB) {
-      if (!at || at.name === "__null") return "null";
-      if (this.isZeroLit(x)) return "null";
+      if (!at || at.name === "__null" || this.isZeroLit(x)) {
+        return p.ref ? `["a" => [null], "i" => 0]` : "null";
+      }
       if (at.isFunc) return this.ex(x);
       return this.exBox(x);
     }
@@ -1515,17 +1614,22 @@ class PhpGen {
     }
     const fn = a.call as FuncInfo | null;
     if (!fn) {
+      const ft = this.cx.getAnn(e.fn).t as CppType;
+      const aa = e.args.map((x, i) => {
+        const pt = ft && ft.isFunc && i < (ft.funcParams || []).length ? ft.funcParams[i] : null;
+        return pt ? this.argFor(pt, x, null) : this.ex(x);
+      });
       if (e.fn.kind === "member") {
         const m = e.fn as MemberExpr;
         const o = this.objOf(m.obj);
         const ma = this.cx.getAnn(m);
         const f = ma.sym;
         if (f && f.k === "var" && f.v.isField) {
-          return `${this.paren(o)}->${safeJsName(f.v.short)}(${e.args.map(x => this.ex(x)).join(", ")})`;
+          return `${this.paren(o)}->${safeJsName(f.v.short)}(${aa.join(", ")})`;
         }
       }
-      if (e.fn.kind === "id") return `${this.ex(e.fn)}(${e.args.map(x => this.ex(x)).join(", ")})`;
-      return `(${this.ex(e.fn)})(${e.args.map(x => this.ex(x)).join(", ")})`;
+      if (e.fn.kind === "id") return `${this.ex(e.fn)}(${aa.join(", ")})`;
+      return `(${this.ex(e.fn)})(${aa.join(", ")})`;
     }
     const ps = this.cx.funcParams(fn);
     const aa: string[] = [];
@@ -1541,16 +1645,21 @@ class PhpGen {
       aa.push(ps[i].def ? this.defArg(ps[i]) : "null");
     }
     let s: string;
-    if (!fn.isMethod) {
+    if (fn.isCtor) {
+      const cls = this.cx.classes.get(fn.cls as string) as ClsInfo;
+      s = `new ${phpClsName(cls)}(${aa.join(", ")})`;
+    } else if (!fn.isMethod) {
       s = `${phpFuncName(fn)}(${aa.join(", ")})`;
     } else if (fn.isStatic) {
       const cls = this.cx.classes.get(fn.cls as string) as ClsInfo;
       s = `${phpClsName(cls)}::${phpMethodName(fn)}(${aa.join(", ")})`;
     } else if (e.fn.kind === "member") {
-      let o = this.objOf((e.fn as MemberExpr).obj);
-      const ma = this.cx.getAnn(e.fn);
-      if (ma.arrowCall) o = `(${this.paren(o)}->${phpMethodName(ma.arrowCall as FuncInfo)}())`;
-      if ((e.fn as MemberExpr).qual.length) {
+      const mem = e.fn as MemberExpr;
+      const ma = this.cx.getAnn(mem);
+      const viaField = !!(ma.sym && ma.sym.k === "var" && ma.sym.v.isField && fn.short === "operator()");
+      let o = viaField ? this.objOf(mem) : this.objOf(mem.obj);
+      if (!viaField && ma.arrowCall) o = `(${this.paren(o)}->${phpMethodName(ma.arrowCall as FuncInfo)}())`;
+      if (mem.qual.length) {
         const cls = this.cx.classes.get(fn.cls as string) as ClsInfo;
         const qn = phpClsName(cls);
         s = `(Closure::bind(function (...$a) { return $this->${phpMethodName(fn)}(...$a); }, ${o}, ${qn}::class))(${aa.join(", ")})`;

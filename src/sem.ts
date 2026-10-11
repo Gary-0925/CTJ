@@ -532,6 +532,13 @@ export class Cx {
     return c.fromTmpl ? last(c.fromTmpl.split("::")) : c.short;
   }
 
+  // C++11 delegating constructor: pair(...) : pair(other_args) { }.
+  isDelegatingCtorInit(cls: ClsInfo, c: CtorInit): boolean {
+    const name = c.name.map(s => s.n).join("::");
+    const short = last(c.name).n;
+    return short === this.declaredName(cls) || short === cls.short || name === cls.fq;
+  }
+
   blankCls(fq: string, short: string, decl: ClassDecl, scope: Scope): ClsInfo {
     return {
       fq, short, mangled: mangleType(fq), decl, scope: this.snapScope(scope),
@@ -804,19 +811,50 @@ export class Cx {
     if (t.kind !== "func") return;
     const list = this.tmplOverloads.get(t.fq) || [];
     const sig = this.tmplSig(t);
-    const i = list.findIndex(x => this.tmplSig(x) === sig);
-    // A definition following a declaration is the same template, not an overload.
-    if (i >= 0) { t.ovl = list[i].ovl; list[i] = t; }
-    else { t.ovl = list.length; list.push(t); }
+    let i = list.findIndex(x => this.tmplSig(x) === sig);
+    if (i < 0) {
+      const d = t.decl as FuncDecl;
+      // Out-of-line definitions spell the return type as Class::iterator
+      // while the in-class declaration uses the nested typedef; they are
+      // the same template when only one of them has a body.
+      i = list.findIndex(x => {
+        if (this.tmplParamSig(x) !== this.tmplParamSig(t)) return false;
+        const xd = x.decl as FuncDecl;
+        return !(xd.body && d.body);
+      });
+    }
+    if (i >= 0) {
+      t.ovl = list[i].ovl;
+      const old = list[i].decl as FuncDecl;
+      const neu = t.decl as FuncDecl;
+      if (old.body && !neu.body) {
+        this.tmpls.set(t.fq, list[i]);
+        this.tmplOverloads.set(t.fq, list);
+        return;
+      }
+      list[i] = t;
+    } else {
+      t.ovl = list.length;
+      list.push(t);
+    }
     this.tmplOverloads.set(t.fq, list);
   }
 
-  tmplSig(t: TmplInfo): string {
+  tmplParamSig(t: TmplInfo): string {
     const d = t.decl as FuncDecl;
     const ps = (d.params || []).map(p => JSON.stringify(p.type.parts.map(s => s.n + s.a.length))
       + p.type.ptr + p.type.ref + (p.isPack ? "..." : "")).join(",");
     const tps = t.tparams.map(x => x.kind + (x.isPack ? "..." : "")).join(",");
     return [tps, ps, d.op || "", d.flags.includes("const") ? "c" : ""].join("|");
+  }
+
+  tmplSig(t: TmplInfo): string {
+    const d = t.decl as FuncDecl;
+    // enable_if in the return type is what distinguishes SFINAE overloads of
+    // the same parameters (allocator_traits::_S_construct).
+    const ret = d.trailing || d.ret;
+    const rs = ret ? ret.parts.map(s => s.n + s.a.map(a => a.parts.map(p => p.n).join("::")).join(",")).join("::") : "";
+    return this.tmplParamSig(t) + "|" + rs;
   }
 
   // Every template declared under this name, for overload resolution.
@@ -940,6 +978,10 @@ export class Cx {
       if (m.methods) return { k: "func", fns: m.methods };
       if (m.nested) return this.symOfNested(m.nested);
       if (m.typedef) return { k: "typedef", fq: m.typedef };
+      // Template member functions (e.g. SFINAE __test<_Tp>) are stored as
+      // templates, not as plain methods, until they are instantiated.
+      const tm = this.lookupTmplMember(c.fq, name, new Set());
+      if (tm) return { k: "tmpl", t: tm };
     }
     for (let i = scope.ns.length; i >= 0; i--) {
       const pre = scope.ns.slice(0, i).join("::");
@@ -1031,6 +1073,20 @@ export class Cx {
     };
   }
 
+  lookupTmplMember(clsFq: string, name: string, seen: Set<string>): TmplInfo | null {
+    if (seen.has(clsFq)) return null;
+    seen.add(clsFq);
+    const tlist = this.tmplsOf(clsFq + "::" + name);
+    if (tlist.length) return tlist[0];
+    const cls = this.classes.get(clsFq);
+    if (!cls) return null;
+    for (const b of cls.bases) {
+      const t = this.lookupTmplMember(b.fq, name, seen);
+      if (t) return t;
+    }
+    return null;
+  }
+
   lookupMember(clsFq: string, name: string, seen: Set<string>): { field: boolean; methods: FuncInfo[] | null; nested: string | null; typedef: string | null; constItem: { e: EnumInfo; item: string } | null; owner: string } {
     const r = { field: false, methods: null as FuncInfo[] | null, nested: null as string | null, typedef: null as string | null, constItem: null as { e: EnumInfo; item: string } | null, owner: clsFq };
     const cls = this.classes.get(clsFq);
@@ -1111,6 +1167,28 @@ export class Cx {
     if (!global && !parts[0].a.length) {
       for (let c = scope.cls; c; c = c.scope.cls) {
         if (this.declaredName(c) === parts[0].n) return { k: "class", cls: c };
+      }
+    }
+    // allocator<U> written inside allocator<T> must name the class template,
+    // not a converting constructor template of the current instantiation
+    // (which would collapse allocator<_Rb_tree_node<int>> to allocator<int>).
+    if (!global && parts[0].a.length) {
+      for (let c = scope.cls; c; c = c.scope.cls) {
+        if (this.declaredName(c) === parts[0].n && c.fromTmpl) {
+          const t = this.tmpls.get(c.fromTmpl);
+          if (t && t.kind === "class") {
+            const args = parts[0].a.map(a => this.resolveTypeNode(a, scope));
+            const cls = this.instantiateClass(t.fq, args, scope, null);
+            let sym: Sym = { k: "class", cls };
+            let idx = 1;
+            for (; idx < parts.length; idx++) {
+              const next = this.lookupNext(sym, parts[idx], scope);
+              if (!next) break;
+              sym = next;
+            }
+            if (idx === parts.length) return sym;
+          }
+        }
       }
     }
     let sym: Sym | null;
@@ -1418,13 +1496,22 @@ export class Cx {
       }
     }
     if (tn.func) {
+      // "R& (*)(A)" : the reference belongs to the return type, the pointer
+      // to the function itself.
+      const ret = new CppType(base.name);
+      ret.segs = base.segs;
+      ret.ref = base.ref;
+      ret.cnst = base.cnst;
+      ret.dims = base.dims.slice();
       base.isFunc = true;
-      base.ret = new CppType(base.name);
-      base.ret.segs = base.segs;
+      base.ret = ret;
       base.funcParams = tn.func.params.map(p => this.resolveTypeNode(p, scope));
       base.funcVariadic = tn.func.variadic;
       base.name = "__func";
       base.segs = [{ n: "__func", a: [] }];
+      base.ref = "";
+      base.cnst = false;
+      base.dims = [];
     }
   }
 
@@ -1473,16 +1560,43 @@ export class Cx {
     if (this.instStack.includes(key)) this.fail(`recursive instantiation of '${key}'`, t || undefined);
     this.instStack.push(key);
     try {
+      let best: { p: { tparams: TParam[]; specArgs: TypeNode[]; decl: Decl }; env: SubstEnv; score: number } | null = null;
       for (const p of (tmpl as TmplInfo).partials || []) {
         const env = this.matchPartial(p, full, tmpl as TmplInfo);
-        if (env) return this.instantiateClassDecl(key, tmpl as TmplInfo, substDecl(p.decl, env) as ClassDecl, full, env, t);
+        if (!env) continue;
+        const score = this.partialScore(p);
+        if (!best || score > best.score) best = { p, env, score };
       }
+      if (best) return this.instantiateClassDecl(key, tmpl as TmplInfo, substDecl(best.p.decl, best.env) as ClassDecl, full, best.env, t);
       const env = this.buildEnv((tmpl as TmplInfo).tparams, full);
       const decl = substDecl((tmpl as TmplInfo).decl, env) as ClassDecl;
       return this.instantiateClassDecl(key, tmpl as TmplInfo, decl, full, env, t);
     } finally {
       this.instStack.pop();
     }
+  }
+
+  // Prefer a more specialized partial: a literal `0` beats a parameter `__i`,
+  // so tuple_element<0, tuple<_Head, _Tail...>> wins over
+  // tuple_element<__i, tuple<_Head, _Tail...>> when __i is 0.
+  partialScore(p: { tparams: TParam[]; specArgs: TypeNode[] }): number {
+    const names = new Set(p.tparams.map(x => x.name));
+    let n = 0;
+    const walk = (tn: TypeNode): void => {
+      if (tn.valueArg) {
+        if (tn.valueArg.kind === "lit") n += 10;
+        else if (tn.valueArg.kind === "id") {
+          const id = tn.valueArg as IdExpr;
+          if (!(id.parts.length === 1 && names.has(id.parts[0].n))) n += 5;
+        } else n += 3;
+        return;
+      }
+      if (tn.parts.length === 1 && !tn.parts[0].a.length && names.has(tn.parts[0].n)) return;
+      n += 1;
+      for (const s of tn.parts) for (const a of s.a) walk(a);
+    };
+    for (const a of p.specArgs) walk(a);
+    return n;
   }
 
   // Match the argument list of a partial specialization against the arguments
@@ -1543,6 +1657,18 @@ export class Cx {
 
   matchTypeArg(tn: TypeNode, t: CppType, names: Set<string>, env: SubstEnv, scope: Scope): boolean {
     if (tn.valueArg) {
+      // A nontype parameter in the pattern binds to a value argument, as in
+      // _Tuple_impl<_Idx, _Head, _Tail...> matching _Tuple_impl<0, int>.
+      if (tn.valueArg.kind === "id") {
+        const id = tn.valueArg as IdExpr;
+        if (id.parts.length === 1 && !id.global && names.has(id.parts[0].n) && t.name.startsWith("__value")) {
+          const v = parseInt(t.name.replace("__value", "") || "0", 10);
+          const have = env.values.get(id.parts[0].n);
+          if (have !== undefined) return have === v;
+          env.values.set(id.parts[0].n, v);
+          return true;
+        }
+      }
       // The argument may be an expression over parameters matched earlier, as
       // in "conditional<_B1::value, ...>", so it is substituted first.
       const v = constEval(this, substExpr(tn.valueArg, env), scope);
@@ -1554,6 +1680,7 @@ export class Cx {
       // "_Res(_Args...)" is a function type: only a function argument matches,
       // and its parameter list has to line up with the pattern.
       if (tn.func) return this.matchFuncArg(tn, t, names, env, scope, first);
+      if (tn.cnst && !t.cnst) return false;
       if (t.ptr < tn.ptr || (tn.ref && tn.ref !== t.ref)) return false;
       // "_Tp[]" and "_Tp[_Size]" only match arrays; without this the array
       // specialization of remove_all_extents is picked for a plain int.
@@ -1570,6 +1697,40 @@ export class Cx {
       env.types.set(first, c);
       return true;
     }
+    if (tn.cnst && !t.cnst) return false;
+    const seg = tn.parts[tn.parts.length - 1];
+    if (seg && (seg.a.length || tn.parts.length > 1) && t.segs.length) {
+      const act = t.segs[t.segs.length - 1];
+      const patName = seg.n;
+      const actName = act.n;
+      const short = (n: string) => last(n.split("::"));
+      if (short(actName) !== short(patName) && actName !== patName && !actName.endsWith("::" + patName)) {
+        // Different template-ids do not match; fall through to the older
+        // parts[0] comparison and resolveTypeNode rather than rejecting here,
+        // so existing partials (vector, iterators) keep working.
+      } else {
+      const pat = seg.a;
+      const ta = act.a;
+      if (!pat.length && !ta.length) return true;
+      const lp = pat.length ? pat[pat.length - 1] : null;
+      const pack = lp && lp.packExpand && lp.parts.length === 1 && !lp.parts[0].a.length && names.has(lp.parts[0].n)
+        ? lp.parts[0].n : "";
+      if (pack) {
+        const fixed = pat.length - 1;
+        if (ta.length < fixed) return false;
+        for (let i = 0; i < fixed; i++) {
+          if (!this.matchTypeArg(pat[i], ta[i], names, env, scope)) return false;
+        }
+        env.packs.set(pack, ta.slice(fixed));
+        return true;
+      }
+      if (ta.length !== pat.length) return false;
+      for (let i = 0; i < ta.length; i++) {
+        if (!this.matchTypeArg(pat[i], ta[i], names, env, scope)) return false;
+      }
+      return true;
+      }
+    }
     if (tn.parts[0].a.length && t.segs.length) {
       const ta = t.segs[0].a;
       if (ta.length !== tn.parts[0].a.length) return false;
@@ -1578,7 +1739,11 @@ export class Cx {
       }
       return true;
     }
-    return this.resolveTypeNode(tn, scope).key() === t.key();
+    try {
+      return this.resolveTypeNode(tn, scope).key() === t.key();
+    } catch {
+      return false;
+    }
   }
 
   instantiateClassDecl(key: string, tmpl: TmplInfo, decl: ClassDecl, args: CppType[], env: SubstEnv, t: At | null): ClsInfo {
@@ -1650,12 +1815,25 @@ export class Cx {
           this.addMethod(owner, this.methodShort(decl), decl, this.memberScope(owner));
         }
       } else {
-        const decl = substDecl(t.decl, env);
+        // Default template arguments of a member template can mention the
+        // enclosing class parameters (e.g. enable_if<is_convertible<_U1, _T1>>
+        // on pair's converting constructors).  Substitute those too.  Inner
+        // packs must not be expanded: sizeof...(_Args1) would become 0.
+        const e2 = copySubstEnv(env);
+        for (const tp of rest) {
+          e2.types.delete(tp.name);
+          e2.packs.delete(tp.name);
+          e2.values.delete(tp.name);
+          e2.valuePacks.delete(tp.name);
+          e2.packNames.delete(tp.name);
+        }
+        const decl = substDecl(t.decl, e2);
+        const rest2 = rest.map(tp => substTParam(tp, e2));
         // registerTmpl, not tmpls.set: the declaration of this member that the
         // class body carries is the same template, and the definition replaces it.
         // The member's own scope: the class's typedefs are visible in an
         // out-of-line definition.
-        this.registerTmpl({ fq: newFq, kind: t.kind, tparams: rest, decl, scope: this.memberScope(owner), specs: [] });
+        this.registerTmpl({ fq: newFq, kind: t.kind, tparams: rest2, decl, scope: this.memberScope(owner), specs: [] });
       }
     }
   }
@@ -1719,15 +1897,32 @@ export class Cx {
     }
   }
 
-  instantiateFunc(tmpl: TmplInfo, args: CppType[], given: Map<string, CppType>): FuncInfo {
+  funcInstKey(tmpl: TmplInfo, args: CppType[], env: SubstEnv): string {
+    const tag = tmpl.ovl ? "#" + tmpl.ovl : "";
+    const nPacks = tmpl.tparams.filter(p => p.isPack).length;
+    if (nPacks > 1) {
+      const bits = tmpl.tparams.map(tp => {
+        if (tp.isPack) {
+          if (tp.kind === "nontype") return (env.valuePacks.get(tp.name) || []).join(",");
+          return (env.packs.get(tp.name) || []).map(a => a.key()).join(",");
+        }
+        if (tp.kind === "nontype") return env.values.has(tp.name) ? String(env.values.get(tp.name)) : "";
+        const ty = env.types.get(tp.name);
+        return ty ? ty.key() : "";
+      });
+      return tmpl.fq + tag + "<" + bits.join(";") + ">";
+    }
+    return tmpl.fq + tag + "<" + args.map(a => a.key()).join(",") + ">";
+  }
+
+  instantiateFunc(tmpl: TmplInfo, args: CppType[], given: Map<string, CppType>, envOverride?: SubstEnv): FuncInfo {
     // Overloads of one name are different functions: without the position of
     // this one among them, "operator!=" for reverse_iterator would stand in
     // for the one for move_iterator.
-    const tag = tmpl.ovl ? "#" + tmpl.ovl : "";
-    const key = tmpl.fq + tag + "<" + args.map(a => a.key()).join(",") + ">";
+    const env = envOverride ? copySubstEnv(envOverride) : this.buildEnv(tmpl.tparams, args);
+    const key = this.funcInstKey(tmpl, args, env);
     const exist = this.funcInsts.get(key);
     if (exist) return exist;
-    const env = this.buildEnv(tmpl.tparams, args);
     for (const [k, v] of given) {
       if (!env.types.has(k)) env.types.set(k, v);
     }
@@ -1851,7 +2046,16 @@ export class Cx {
   // The class name a type denotes, template arguments included, in the same
   // spelling instantiateClass uses for its key.
   stripAll(t: CppType): string {
-    return t.segs.map(g => g.a.length ? g.n + "<" + g.a.map(a => a.key()).join(",") + ">" : g.n).join("::");
+    const spelled = t.segs.map(g => g.a.length ? g.n + "<" + g.a.map(a => a.key()).join(",") + ">" : g.n).join("::");
+    if (this.classes.has(spelled)) return spelled;
+    // An empty argument list is dropped from segs (tuple<> keys as "tuple");
+    // the class itself is stored as "tuple<>".
+    if (t.segs.length && t.segs.every(g => !g.a.length)) {
+      const empty = t.segs.map(g => g.n + "<>").join("::");
+      if (this.classes.has(empty)) return empty;
+    }
+    if (t.name && this.classes.has(t.name)) return t.name;
+    return spelled;
   }
 
   synthCtor(cls: ClsInfo, copy: boolean, o: null): FuncDecl {
@@ -1921,6 +2125,40 @@ export class Cx {
 
 export function isBoxedVar(t: CppType): boolean {
   return t.isBox() && !t.isFunc;
+}
+
+// libstdc++ iostreams live in a .cc we do not have (locale, num_put, the
+// sentry). Named methods below are replaced with host stdout instead.
+export function ioRuntimeKind(fn: FuncInfo): string {
+  const cls = fn.cls || "";
+  const short = fn.short;
+  const fq = fn.fq;
+  if (fq.indexOf("__ostream_insert") >= 0) return "sinsert";
+  if (cls.indexOf("::sentry") >= 0) {
+    if (fn.isCtor) return "sentry_ctor";
+    if (fn.isConv || short.indexOf("#conv") === 0 || short === "operator bool") return "sentry_bool";
+    return "noop";
+  }
+  if (cls.indexOf("basic_ostream") >= 0) {
+    if (short === "_M_insert") return "insert";
+    if (short === "put") return "put";
+    if (short === "write") return "write";
+    if (short === "flush") return "flush";
+  }
+  if (cls.indexOf("basic_ios") >= 0) {
+    if (short === "widen" || short === "narrow") return "widen";
+    if (short === "init" || short === "_M_cache_locale") return "noop";
+  }
+  if (cls === "std::ios_base" || /::ios_base$/.test(cls)) {
+    if (fn.isCtor || fn.isDtor || short === "_M_init") return "noop";
+  }
+  if (cls.indexOf("ios_base") >= 0 && /::Init$/.test(cls)) {
+    if (fn.isCtor || fn.isDtor) return "noop";
+  }
+  if ((cls === "std::locale" || /::locale$/.test(cls)) && cls.indexOf("facet") < 0 && cls.indexOf("_Impl") < 0) {
+    if (fn.isCtor || fn.isDtor) return "noop";
+  }
+  return "";
 }
 
 // Pointers and references keep a token of their own: folding every

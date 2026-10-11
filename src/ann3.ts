@@ -250,6 +250,7 @@ function typeTrait(cx: Cx, nm: string, args: Expr[], scope: Scope): number | nul
   if (!ts.length) return null;
   const cls = cx.classes.get(ts[0].name) || null;
   switch (nm) {
+    case "__is_final": return 0;
     case "__is_enum": return cx.enums.has(ts[0].name) ? 1 : 0;
     case "__is_union": return cls && cls.isUnion ? 1 : 0;
     case "__is_class": return cls && !cls.isUnion ? 1 : 0;
@@ -390,9 +391,13 @@ function constEvalInner(cx: Cx, e: Expr, scope: Scope, seen: Set<string>): numbe
       if (e.arg.kind === "initlist" && !(e.arg as InitListExpr).items.length) return 0;
       const a = constEvalInner(cx, e.arg, scope, seen);
       if (typeof a !== "number") return a;
-      // An unsigned value wraps, and the width is the 32-bit one: a JS number
-      // cannot hold a 64-bit unsigned range.
-      return isUnsignedName(coreName(t)) ? a >>> 0 : a;
+      // An unsigned value wraps; the mask width depends on the type.
+      // JS numbers cannot hold the full 64-bit unsigned range.
+      if (!isUnsignedName(coreName(t))) return a;
+      const cn = coreName(t);
+      if (cn === "unsigned char" || cn === "signed char" || cn === "char" || cn === "char16_t") return a & 0xFF;
+      if (cn === "unsigned short" || cn === "short" || cn === "wchar_t") return a & 0xFFFF;
+      return a >>> 0;
     }
     case "call": {
       const nm = e.fn.kind === "id" && e.fn.parts.length === 1 ? e.fn.parts[0].n : "";
