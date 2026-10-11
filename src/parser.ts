@@ -982,13 +982,11 @@ export class Parser {
             if (!pt.parts.length && !pt.decltypeOf && !pt.ptr && !pt.ref && !pt.func && !pt.dims.length && !p.variadic && !p.isPack) {
               throw new Error("not params");
             }
-            // "sentry __cerb(*this)" is a variable, not a function named
-            // __cerb taking a parameter called this.
-            if (p.name === "this" && !pt.parts.length && !pt.decltypeOf) {
+            // "sentry __cerb(*this)": *this is a pointer named this, not a type.
+            if (!pt.parts.length && !pt.decltypeOf && !pt.func && !p.variadic && !p.isPack && p.name === "this") {
               throw new Error("not params");
             }
-          }
-          d.isFunc = true;
+          }          d.isFunc = true;
           d.params = params;
         } catch {
           this.reset(m);

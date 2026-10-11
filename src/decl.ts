@@ -404,9 +404,9 @@ export function parseTemplate(p: Parser, inClass: boolean): TemplateDecl {
   let td: TemplateDecl;
   if (tparams.length && (specArgs.length || isPartial)) {
     td = { kind: "template", tparams, decl: d, isSpec: true, specArgs, isExplicit: false, ...at(t) };
-  } else if (!tparams.length && (specArgs.length || (d && d.kind === "class"))) {
-    // template<> class tuple<>  is a full specialization with an empty
-    // argument list; without this it overwrote the primary tuple template.
+  } else if (!tparams.length) {
+    // "template<> class tuple<>" is a full specialization even when the
+    // argument list is empty.
     td = { kind: "template", tparams: [], decl: d, isSpec: true, specArgs, isExplicit: false, ...at(t) };
   } else {
     td = { kind: "template", tparams, decl: d, isSpec: false, specArgs: [], isExplicit: false, ...at(t) };

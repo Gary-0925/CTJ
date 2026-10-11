@@ -842,6 +842,11 @@ class std_Placeholder_value29 {
   }
 }
 class gnu_cxx_new_allocator_int {
+  constructor(...$a) {
+    this.__init_gnu_cxx_new_allocator_int(...$a);
+  }
+  __init_gnu_cxx_new_allocator_int(...$a) {
+  }
   __dtor() {
   }
   allocate(__n, $p1 = {a: [0], i: 0}) {
@@ -857,9 +862,15 @@ class gnu_cxx_new_allocator_int {
   max_size__c() {
     return (Math.trunc(((-(1)) >>> 0) / 4));
   }
-  construct(__p, __args_0) {
+  construct(...$a) {
     let $t1;
-    (__p.a[__p.i] = ($t1 = std_forward_1_int(__args_0), $t1.a[$t1.i]));
+    if ($a.length >= 2 && $a.length <= 2 && ($a[0] === null || typeof $a[0] === "object") && ($a[1] === null || typeof $a[1] === "object")) {
+      (($a[0]).a[($a[0]).i] = ($t1 = std_forward_1_int($a[1]), $t1.a[$t1.i]));
+    }
+    else if ($a.length >= 1 && $a.length <= 1 && ($a[0] === null || typeof $a[0] === "object")) {
+      (($a[0]).a[($a[0]).i] = 0);
+    }
+    else { throw new Error("no matching overload"); }
   }
   destroy(__p) {
     void 0;
@@ -867,10 +878,15 @@ class gnu_cxx_new_allocator_int {
 }
 class std_allocator_int extends gnu_cxx_new_allocator_int {
   constructor(...$a) {
-    super();
+    super(...($a.length >= 0 && $a.length <= 0 ? [] : $a.length >= 1 && $a.length <= 1 && ($a[0] !== null && typeof $a[0] === "object" && $a[0].a[$a[0].i] instanceof std_allocator_int) ? [$a[0]] : []));
     this.__init_std_allocator_int(...$a);
   }
   __init_std_allocator_int(...$a) {
+    if ($a.length >= 1 && $a.length <= 1 && ($a[0] !== null && typeof $a[0] === "object" && $a[0].a[$a[0].i] instanceof std_allocator_int)) {
+    }
+    else if ($a.length >= 0 && $a.length <= 0) {
+    }
+    else { throw new Error("no matching constructor"); }
   }
   __dtor() {
     gnu_cxx_new_allocator_int.prototype.__dtor.call(this);
@@ -881,13 +897,21 @@ class std_Vector_base_int_std_allocator_int_Vector_impl extends std_allocator_in
   _M_finish;
   _M_end_of_storage;
   constructor(...$a) {
-    super(...[]);
+    super(...($a.length >= 0 && $a.length <= 0 ? [] : $a.length >= 1 && $a.length <= 1 && ($a[0] !== null && typeof $a[0] === "object" && $a[0].a[$a[0].i] instanceof std_allocator_int) ? [$a[0]] : []));
     this.__init_std_Vector_base_int_std_allocator_int_Vector_impl(...$a);
   }
   __init_std_Vector_base_int_std_allocator_int_Vector_impl(...$a) {
-    this._M_start = null;
-    this._M_finish = null;
-    this._M_end_of_storage = null;
+    if ($a.length >= 1 && $a.length <= 1 && ($a[0] !== null && typeof $a[0] === "object" && $a[0].a[$a[0].i] instanceof std_allocator_int)) {
+      this._M_start = null;
+      this._M_finish = null;
+      this._M_end_of_storage = null;
+    }
+    else if ($a.length >= 0 && $a.length <= 0) {
+      this._M_start = null;
+      this._M_finish = null;
+      this._M_end_of_storage = null;
+    }
+    else { throw new Error("no matching constructor"); }
   }
   __dtor() {
     std_allocator_int.prototype.__dtor.call(this);
@@ -899,7 +923,14 @@ class std_Vector_base_int_std_allocator_int {
     this.__init_std_Vector_base_int_std_allocator_int(...$a);
   }
   __init_std_Vector_base_int_std_allocator_int(...$a) {
-    this._M_impl = new std_Vector_base_int_std_allocator_int_Vector_impl();
+    if ($a.length >= 2 && $a.length <= 2 && (typeof $a[0] === "number" || typeof $a[0] === "boolean") && ($a[1] !== null && typeof $a[1] === "object" && $a[1].a[$a[1].i] instanceof std_allocator_int)) {
+      this._M_impl = new std_Vector_base_int_std_allocator_int_Vector_impl($a[1]);
+      this._M_create_storage($a[0]);
+    }
+    else if ($a.length >= 0 && $a.length <= 0) {
+      this._M_impl = new std_Vector_base_int_std_allocator_int_Vector_impl();
+    }
+    else { throw new Error("no matching constructor"); }
   }
   __dtor() {
   }
@@ -915,13 +946,25 @@ class std_Vector_base_int_std_allocator_int {
       this._M_impl.deallocate((__p ? {a: __p.a, i: __p.i} : null), __n);
     }
   }
+  _M_create_storage(__n) {
+    let $t3, $t4;
+    this._M_impl._M_start = (($t3 = this._M_allocate(__n), $t3) ? {a: (($t3 = this._M_allocate(__n), $t3)).a, i: (($t3 = this._M_allocate(__n), $t3)).i} : null);
+    this._M_impl._M_finish = (this._M_impl._M_start ? {a: this._M_impl._M_start.a, i: this._M_impl._M_start.i} : null);
+    this._M_impl._M_end_of_storage = (($t4 = ({a: (this._M_impl._M_start ? this._M_impl._M_start.a : null), i: (this._M_impl._M_start ? this._M_impl._M_start.i : 0) + (__n)}), $t4) ? {a: (($t4 = ({a: (this._M_impl._M_start ? this._M_impl._M_start.a : null), i: (this._M_impl._M_start ? this._M_impl._M_start.i : 0) + (__n)}), $t4)).a, i: (($t4 = ({a: (this._M_impl._M_start ? this._M_impl._M_start.a : null), i: (this._M_impl._M_start ? this._M_impl._M_start.i : 0) + (__n)}), $t4)).i} : null);
+  }
 }
 class std_vector_int_std_allocator_int extends std_Vector_base_int_std_allocator_int {
   constructor(...$a) {
-    super(...[]);
+    super(...($a.length >= 0 && $a.length <= 0 ? [] : $a.length >= 1 && $a.length <= 2 && (typeof $a[0] === "number" || typeof $a[0] === "boolean") && ($a[1] !== null && typeof $a[1] === "object" && $a[1].a[$a[1].i] instanceof std_allocator_int) ? [$a[0], ($a[1] === undefined ? ({a: [new std_allocator_int()], i: 0}) : $a[1])] : []));
     this.__init_std_vector_int_std_allocator_int(...$a);
   }
   __init_std_vector_int_std_allocator_int(...$a) {
+    if ($a.length >= 1 && $a.length <= 2 && (typeof $a[0] === "number" || typeof $a[0] === "boolean") && ($a[1] !== null && typeof $a[1] === "object" && $a[1].a[$a[1].i] instanceof std_allocator_int)) {
+      this._M_default_initialize($a[0]);
+    }
+    else if ($a.length >= 0 && $a.length <= 0) {
+    }
+    else { throw new Error("no matching constructor"); }
   }
   __dtor() {
     std_Vector_base_int_std_allocator_int.prototype.__dtor.call(this);
@@ -949,13 +992,17 @@ class std_vector_int_std_allocator_int extends std_Vector_base_int_std_allocator
   clear() {
     this._M_erase_at_end((this._M_impl._M_start ? {a: this._M_impl._M_start.a, i: this._M_impl._M_start.i} : null));
   }
+  _M_default_initialize(__n) {
+    std_uninitialized_default_n_a_int_P_unsigned_long_long_std_allocator_int((this._M_impl._M_start ? {a: this._M_impl._M_start.a, i: this._M_impl._M_start.i} : null), __n, this._M_get_Tp_allocator());
+    this._M_impl._M_finish = (this._M_impl._M_end_of_storage ? {a: this._M_impl._M_end_of_storage.a, i: this._M_impl._M_end_of_storage.i} : null);
+  }
   _M_check_len__c(__n, __s) {
-    let $t3;
+    let $t5;
     __n = {v: __n};
     if (((this.max_size__c() - this.size__c()) < __n.v)) {
       std_throw_length_error((__s ? {a: __s.a, i: __s.i} : null));
     }
-    let __len = (this.size__c() + ($t3 = std_max_unsigned_long_long({a: [this.size__c()], i: 0}, {a: __n, i: "v"}), $t3.a[$t3.i]));
+    let __len = (this.size__c() + ($t5 = std_max_unsigned_long_long({a: [this.size__c()], i: 0}, {a: __n, i: "v"}), $t5.a[$t5.i]));
     return (((__len < this.size__c()) || (__len > this.max_size__c())) ? this.max_size__c() : __len);
   }
   _M_erase_at_end(__pos) {
@@ -963,22 +1010,22 @@ class std_vector_int_std_allocator_int extends std_Vector_base_int_std_allocator
     this._M_impl._M_finish = (__pos ? {a: __pos.a, i: __pos.i} : null);
   }
   _M_emplace_back_aux(__args_0) {
-    let $t4, $t5, $t6, $t7;
+    let $t6, $t7, $t8, $t9;
     let __len = this._M_check_len__c((1 >>> 0), {a: [118, 101, 99, 116, 111, 114, 58, 58, 95, 77, 95, 101, 109, 112, 108, 97, 99, 101, 95, 98, 97, 99, 107, 95, 97, 117, 120, 0], i: 0});
     let __new_start = this._M_allocate(__len);
     let __new_finish = __new_start;
     if (true) {
        {
-        gnu_cxx_alloc_traits_std_allocator_int.construct({a: this, i: "_M_impl"}, (($t4 = ({a: (__new_start ? __new_start.a : null), i: (__new_start ? __new_start.i : 0) + (this.size__c())}), $t4) ? {a: (($t4 = ({a: (__new_start ? __new_start.a : null), i: (__new_start ? __new_start.i : 0) + (this.size__c())}), $t4)).a, i: (($t4 = ({a: (__new_start ? __new_start.a : null), i: (__new_start ? __new_start.i : 0) + (this.size__c())}), $t4)).i} : null), std_forward_1_int(__args_0));
+        gnu_cxx_alloc_traits_std_allocator_int.construct({a: this, i: "_M_impl"}, (($t6 = ({a: (__new_start ? __new_start.a : null), i: (__new_start ? __new_start.i : 0) + (this.size__c())}), $t6) ? {a: (($t6 = ({a: (__new_start ? __new_start.a : null), i: (__new_start ? __new_start.i : 0) + (this.size__c())}), $t6)).a, i: (($t6 = ({a: (__new_start ? __new_start.a : null), i: (__new_start ? __new_start.i : 0) + (this.size__c())}), $t6)).i} : null), std_forward_1_int(__args_0));
         __new_finish = null;
-        __new_finish = (($t5 = std_uninitialized_move_if_noexcept_a_int_P_int_P_std_allocator_int((this._M_impl._M_start ? {a: this._M_impl._M_start.a, i: this._M_impl._M_start.i} : null), (this._M_impl._M_finish ? {a: this._M_impl._M_finish.a, i: this._M_impl._M_finish.i} : null), (__new_start ? {a: __new_start.a, i: __new_start.i} : null), this._M_get_Tp_allocator()), $t5) ? {a: (($t5 = std_uninitialized_move_if_noexcept_a_int_P_int_P_std_allocator_int((this._M_impl._M_start ? {a: this._M_impl._M_start.a, i: this._M_impl._M_start.i} : null), (this._M_impl._M_finish ? {a: this._M_impl._M_finish.a, i: this._M_impl._M_finish.i} : null), (__new_start ? {a: __new_start.a, i: __new_start.i} : null), this._M_get_Tp_allocator()), $t5)).a, i: (($t5 = std_uninitialized_move_if_noexcept_a_int_P_int_P_std_allocator_int((this._M_impl._M_start ? {a: this._M_impl._M_start.a, i: this._M_impl._M_start.i} : null), (this._M_impl._M_finish ? {a: this._M_impl._M_finish.a, i: this._M_impl._M_finish.i} : null), (__new_start ? {a: __new_start.a, i: __new_start.i} : null), this._M_get_Tp_allocator()), $t5)).i} : null);
+        __new_finish = (($t7 = std_uninitialized_move_if_noexcept_a_int_P_int_P_std_allocator_int((this._M_impl._M_start ? {a: this._M_impl._M_start.a, i: this._M_impl._M_start.i} : null), (this._M_impl._M_finish ? {a: this._M_impl._M_finish.a, i: this._M_impl._M_finish.i} : null), (__new_start ? {a: __new_start.a, i: __new_start.i} : null), this._M_get_Tp_allocator()), $t7) ? {a: (($t7 = std_uninitialized_move_if_noexcept_a_int_P_int_P_std_allocator_int((this._M_impl._M_start ? {a: this._M_impl._M_start.a, i: this._M_impl._M_start.i} : null), (this._M_impl._M_finish ? {a: this._M_impl._M_finish.a, i: this._M_impl._M_finish.i} : null), (__new_start ? {a: __new_start.a, i: __new_start.i} : null), this._M_get_Tp_allocator()), $t7)).a, i: (($t7 = std_uninitialized_move_if_noexcept_a_int_P_int_P_std_allocator_int((this._M_impl._M_start ? {a: this._M_impl._M_start.a, i: this._M_impl._M_start.i} : null), (this._M_impl._M_finish ? {a: this._M_impl._M_finish.a, i: this._M_impl._M_finish.i} : null), (__new_start ? {a: __new_start.a, i: __new_start.i} : null), this._M_get_Tp_allocator()), $t7)).i} : null);
         ++__new_finish.i;
       }
     }
     if (false) {
        {
         if ((!__new_finish)) {
-          gnu_cxx_alloc_traits_std_allocator_int.destroy({a: this, i: "_M_impl"}, (($t6 = ({a: (__new_start ? __new_start.a : null), i: (__new_start ? __new_start.i : 0) + (this.size__c())}), $t6) ? {a: (($t6 = ({a: (__new_start ? __new_start.a : null), i: (__new_start ? __new_start.i : 0) + (this.size__c())}), $t6)).a, i: (($t6 = ({a: (__new_start ? __new_start.a : null), i: (__new_start ? __new_start.i : 0) + (this.size__c())}), $t6)).i} : null));
+          gnu_cxx_alloc_traits_std_allocator_int.destroy({a: this, i: "_M_impl"}, (($t8 = ({a: (__new_start ? __new_start.a : null), i: (__new_start ? __new_start.i : 0) + (this.size__c())}), $t8) ? {a: (($t8 = ({a: (__new_start ? __new_start.a : null), i: (__new_start ? __new_start.i : 0) + (this.size__c())}), $t8)).a, i: (($t8 = ({a: (__new_start ? __new_start.a : null), i: (__new_start ? __new_start.i : 0) + (this.size__c())}), $t8)).i} : null));
         }
         else {
           std_Destroy_2_int_P_std_allocator_int((__new_start ? {a: __new_start.a, i: __new_start.i} : null), (__new_finish ? {a: __new_finish.a, i: __new_finish.i} : null), this._M_get_Tp_allocator());
@@ -990,14 +1037,20 @@ class std_vector_int_std_allocator_int extends std_Vector_base_int_std_allocator
     this._M_deallocate((this._M_impl._M_start ? {a: this._M_impl._M_start.a, i: this._M_impl._M_start.i} : null), ((this._M_impl._M_end_of_storage ? this._M_impl._M_end_of_storage.i : 0) - (this._M_impl._M_start ? this._M_impl._M_start.i : 0)));
     this._M_impl._M_start = (__new_start ? {a: __new_start.a, i: __new_start.i} : null);
     this._M_impl._M_finish = (__new_finish ? {a: __new_finish.a, i: __new_finish.i} : null);
-    this._M_impl._M_end_of_storage = (($t7 = ({a: (__new_start ? __new_start.a : null), i: (__new_start ? __new_start.i : 0) + (__len)}), $t7) ? {a: (($t7 = ({a: (__new_start ? __new_start.a : null), i: (__new_start ? __new_start.i : 0) + (__len)}), $t7)).a, i: (($t7 = ({a: (__new_start ? __new_start.a : null), i: (__new_start ? __new_start.i : 0) + (__len)}), $t7)).i} : null);
+    this._M_impl._M_end_of_storage = (($t9 = ({a: (__new_start ? __new_start.a : null), i: (__new_start ? __new_start.i : 0) + (__len)}), $t9) ? {a: (($t9 = ({a: (__new_start ? __new_start.a : null), i: (__new_start ? __new_start.i : 0) + (__len)}), $t9)).a, i: (($t9 = ({a: (__new_start ? __new_start.a : null), i: (__new_start ? __new_start.i : 0) + (__len)}), $t9)).i} : null);
   }
 }
 class gnu_cxx_alloc_traits_std_allocator_int {
   __dtor() {
   }
-  static construct(__a, __p, __arg) {
-    (__a.a[__a.i]).construct((__p ? {a: __p.a, i: __p.i} : null), __arg);
+  static construct(...$a) {
+    if ($a.length >= 2 && $a.length <= 2 && ($a[0] !== null && typeof $a[0] === "object" && $a[0].a[$a[0].i] instanceof std_allocator_int) && ($a[1] === null || typeof $a[1] === "object")) {
+      (($a[0]).a[($a[0]).i]).construct(($a[1] ? {a: ($a[1]).a, i: ($a[1]).i} : null));
+    }
+    else if ($a.length >= 3 && $a.length <= 3 && ($a[0] !== null && typeof $a[0] === "object" && $a[0].a[$a[0].i] instanceof std_allocator_int) && ($a[1] === null || typeof $a[1] === "object") && ($a[2] === null || typeof $a[2] === "object")) {
+      (($a[0]).a[($a[0]).i]).construct(($a[1] ? {a: ($a[1]).a, i: ($a[1]).i} : null), $a[2]);
+    }
+    else { throw new Error("no matching overload"); }
   }
   static max_size(__a) {
     return (__a.a[__a.i]).max_size__c();
@@ -2265,33 +2318,51 @@ function std_throw_length_error(...$a) { throw new Error("unresolved external: s
 function operatornew__unsigned_long_long(...$a) { return {a: new Array($a[0]).fill(0), i: 0}; }
 function operatordelete__voidP(...$a) {  }
 function main() {
-  let $t8, $t9, $t10;
+  let $t10, $t11, $t12;
   let v = new std_vector_int_std_allocator_int();
   for (let i = 1; (i <= 4); i++) {
     v.push_back({a: [(i * 10)], i: 0});
   }
   let sum = 0;
   for (let i = 0; (i < v.size__c()); i++) {
-    sum += ($t8 = v.op_index(i), $t8.a[$t8.i]);
+    sum += ($t10 = v.op_index(i), $t10.a[$t10.i]);
   }
-  ($t9 = v.op_index(1), $t9.a[$t9.i] = 99);
-  let second = ($t10 = v.op_index(1), $t10.a[$t10.i]);
+  ($t11 = v.op_index(1), $t11.a[$t11.i] = 99);
+  let second = ($t12 = v.op_index(1), $t12.a[$t12.i]);
   let n = v.size__c();
   v.clear();
   (console.log((sum), (second), (n), (v.size__c())));
+  let w = new std_vector_int_std_allocator_int(3, {a: [new std_allocator_int()], i: 0});
+  (console.log((w.size__c())));
   return 0;
 }
 function std_forward_1_int(__t) {
   return __t;
 }
 function std_uninitialized_move_if_noexcept_a_int_P_int_P_std_allocator_int(__first, __last, __result, __alloc) {
-  let $t11;
-  return (($t11 = std_uninitialized_copy_a_std_move_iterator_int_P_int_P_std_allocator_int(new std_move_iterator_int_P({a: [std_make_move_if_noexcept_iterator_int_P_std_move_iterator_int_P((__first ? {a: __first.a, i: __first.i} : null))], i: 0}), new std_move_iterator_int_P({a: [std_make_move_if_noexcept_iterator_int_P_std_move_iterator_int_P((__last ? {a: __last.a, i: __last.i} : null))], i: 0}), (__result ? {a: __result.a, i: __result.i} : null), __alloc), $t11) ? {a: (($t11 = std_uninitialized_copy_a_std_move_iterator_int_P_int_P_std_allocator_int(new std_move_iterator_int_P({a: [std_make_move_if_noexcept_iterator_int_P_std_move_iterator_int_P((__first ? {a: __first.a, i: __first.i} : null))], i: 0}), new std_move_iterator_int_P({a: [std_make_move_if_noexcept_iterator_int_P_std_move_iterator_int_P((__last ? {a: __last.a, i: __last.i} : null))], i: 0}), (__result ? {a: __result.a, i: __result.i} : null), __alloc), $t11)).a, i: (($t11 = std_uninitialized_copy_a_std_move_iterator_int_P_int_P_std_allocator_int(new std_move_iterator_int_P({a: [std_make_move_if_noexcept_iterator_int_P_std_move_iterator_int_P((__first ? {a: __first.a, i: __first.i} : null))], i: 0}), new std_move_iterator_int_P({a: [std_make_move_if_noexcept_iterator_int_P_std_move_iterator_int_P((__last ? {a: __last.a, i: __last.i} : null))], i: 0}), (__result ? {a: __result.a, i: __result.i} : null), __alloc), $t11)).i} : null);
+  let $t13;
+  return (($t13 = std_uninitialized_copy_a_std_move_iterator_int_P_int_P_std_allocator_int(new std_move_iterator_int_P({a: [std_make_move_if_noexcept_iterator_int_P_std_move_iterator_int_P((__first ? {a: __first.a, i: __first.i} : null))], i: 0}), new std_move_iterator_int_P({a: [std_make_move_if_noexcept_iterator_int_P_std_move_iterator_int_P((__last ? {a: __last.a, i: __last.i} : null))], i: 0}), (__result ? {a: __result.a, i: __result.i} : null), __alloc), $t13) ? {a: (($t13 = std_uninitialized_copy_a_std_move_iterator_int_P_int_P_std_allocator_int(new std_move_iterator_int_P({a: [std_make_move_if_noexcept_iterator_int_P_std_move_iterator_int_P((__first ? {a: __first.a, i: __first.i} : null))], i: 0}), new std_move_iterator_int_P({a: [std_make_move_if_noexcept_iterator_int_P_std_move_iterator_int_P((__last ? {a: __last.a, i: __last.i} : null))], i: 0}), (__result ? {a: __result.a, i: __result.i} : null), __alloc), $t13)).a, i: (($t13 = std_uninitialized_copy_a_std_move_iterator_int_P_int_P_std_allocator_int(new std_move_iterator_int_P({a: [std_make_move_if_noexcept_iterator_int_P_std_move_iterator_int_P((__first ? {a: __first.a, i: __first.i} : null))], i: 0}), new std_move_iterator_int_P({a: [std_make_move_if_noexcept_iterator_int_P_std_move_iterator_int_P((__last ? {a: __last.a, i: __last.i} : null))], i: 0}), (__result ? {a: __result.a, i: __result.i} : null), __alloc), $t13)).i} : null);
 }
 function std_Destroy_2_int_P_std_allocator_int(__first, __last, __alloc) {
-  let $t12;
+  let $t14;
   for (; (!(__first === __last || (__first && __last && __first.a === __last.a && __first.i === __last.i))); ++__first.i) {
-    gnu_cxx_alloc_traits_std_allocator_int.destroy(__alloc, (($t12 = std_addressof_int(__first), $t12) ? {a: (($t12 = std_addressof_int(__first), $t12)).a, i: (($t12 = std_addressof_int(__first), $t12)).i} : null));
+    gnu_cxx_alloc_traits_std_allocator_int.destroy(__alloc, (($t14 = std_addressof_int(__first), $t14) ? {a: (($t14 = std_addressof_int(__first), $t14)).a, i: (($t14 = std_addressof_int(__first), $t14)).i} : null));
+  }
+}
+function std_uninitialized_default_n_a_int_P_unsigned_long_long_std_allocator_int(__first, __n, __alloc) {
+  let $t15;
+  let __cur = (__first ? {a: __first.a, i: __first.i} : null);
+  if (true) {
+     {
+      for (; (__n > 0); (--__n, ++__cur.i)) {
+        gnu_cxx_alloc_traits_std_allocator_int.construct(__alloc, (($t15 = std_addressof_int(__cur), $t15) ? {a: (($t15 = std_addressof_int(__cur), $t15)).a, i: (($t15 = std_addressof_int(__cur), $t15)).i} : null));
+      }
+    }
+  }
+  if (false) {
+     {
+      std_Destroy_2_int_P_std_allocator_int((__first ? {a: __first.a, i: __first.i} : null), (__cur ? {a: __cur.a, i: __cur.i} : null), __alloc);
+    }
   }
 }
 function std_max_unsigned_long_long(__a, __b) {
@@ -2307,12 +2378,12 @@ function std_make_move_if_noexcept_iterator_int_P_std_move_iterator_int_P(__i) {
   return new std_move_iterator_int_P((__i ? {a: __i.a, i: __i.i} : null));
 }
 function std_uninitialized_copy_a_std_move_iterator_int_P_int_P_std_allocator_int(__first, __last, __result, __alloc) {
-  let $t13;
+  let $t16;
   let __cur = (__result ? {a: __result.a, i: __result.i} : null);
   if (true) {
      {
       for (; std_operator_3_int_P_int_P({a: [__first], i: 0}, {a: [__last], i: 0}); (__first.op_inc(), ++__cur.i)) {
-        gnu_cxx_alloc_traits_std_allocator_int.construct(__alloc, (($t13 = std_addressof_int(__cur), $t13) ? {a: (($t13 = std_addressof_int(__cur), $t13)).a, i: (($t13 = std_addressof_int(__cur), $t13)).i} : null), __first.op_mul__c());
+        gnu_cxx_alloc_traits_std_allocator_int.construct(__alloc, (($t16 = std_addressof_int(__cur), $t16) ? {a: (($t16 = std_addressof_int(__cur), $t16)).a, i: (($t16 = std_addressof_int(__cur), $t16)).i} : null), __first.op_mul__c());
       }
       return (__cur ? {a: __cur.a, i: __cur.i} : null);
     }
@@ -2330,8 +2401,8 @@ function std_operator_3_int_P_int_P(__x, __y) {
   return (!(std_operator_3_int_P_int_P_1030(__x, __y)));
 }
 function std_operator_3_int_P_int_P_1030(__x, __y) {
-  let $t14, $t15, $t16, $t17;
-  return ($t16 = ($t14 = (__x.a[__x.i]).base__c(), $t14), $t17 = ($t15 = (__y.a[__y.i]).base__c(), $t15), ($t16 === $t17 || ($t16 && $t17 && $t16.a === $t17.a && $t16.i === $t17.i)));
+  let $t17, $t18, $t19, $t20;
+  return ($t19 = ($t17 = (__x.a[__x.i]).base__c(), $t17), $t20 = ($t18 = (__y.a[__y.i]).base__c(), $t18), ($t19 === $t20 || ($t19 && $t20 && $t19.a === $t20.a && $t19.i === $t20.i)));
 }
 function std_move_int(__t) {
   return __t;

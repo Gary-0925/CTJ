@@ -346,8 +346,15 @@ function typeOfUnary(cx: Cx, e: UnaryExpr, scope: Scope): CppType {
 
 function typeOfBinary(cx: Cx, e: BinaryExpr, scope: Scope): CppType {
   const rawL = typeOf(cx, e.l, scope);
-  const rawR = typeOf(cx, e.r, scope);
   const ann = cx.getAnn(e);
+  // Formatted iostream insertion pulls in locale/num_put/_M_insert. Emit a
+  // builtin write instead of analysing those bodies.
+  if (e.op === "<<" && isOstreamLike(cx, rawL.core())) {
+    if (!streamManipName(e.r)) typeOf(cx, e.r, scope);
+    ann.call = { builtin: "__ctj_out" };
+    return rawL;
+  }
+  const rawR = typeOf(cx, e.r, scope);
   if (e.op === ",") return rawR;
   // Outside a plain assignment an lvalue of reference type behaves as the type
   // it refers to; only the assignment needs to know it writes through one.
@@ -582,7 +589,14 @@ export function resolveCtor(cx: Cx, clsFq: string, args: { t: CppType; e: Expr }
   const tfq = clsFq + "::" + (cls as ClsInfo).decl.name;
   for (const tm of cx.tmplsOf(tfq)) if (!tmpls.includes(tm)) tmpls.push(tm);
   if (!cands.length && !tmpls.length) cx.fail(`no constructor of '${clsFq}'`, t);
-  return resolveOverload(cx, cands, tmpls, args, scope, t);
+  try {
+    return resolveOverload(cx, cands, tmpls, args, scope, t);
+  } catch (e) {
+    if (e instanceof Error && e.message.indexOf("no matching function") >= 0) {
+      cx.fail(`no matching constructor of '${clsFq}' for (${args.map(a => a.t.key()).join(", ")})`, t);
+    }
+    throw e;
+  }
 }
 
 export function tryResolveCtor(cx: Cx, clsFq: string, args: { t: CppType; e: Expr }[], scope: Scope): { fn: FuncInfo; convs: ({ kind: string; fn: FuncInfo } | null)[] } | null {
@@ -736,6 +750,8 @@ function memberCall(cx: Cx, e: CallExpr, fn: MemberExpr, argTs: { t: CppType; e:
   const m = cx.lookupMember(lookupFq, mname, new Set());
   if (m.field) {
     const cls = cx.classes.get(m.owner) as ClsInfo;
+    const fd = cls.fields.get(fn.field) as VarDecl;
+    cx.getAnn(fn).sym = { k: "var", v: cx.fieldVar(cls, fn.field, fd) };
     const ft = cx.fieldType(cls, fn.field);
     if (ft.isFunc) return ft.ret as CppType;
     // A class instance with operator() is callable (e.g. std::less<int>).
@@ -823,8 +839,7 @@ export function resolveOverload(cx: Cx, cands: FuncInfo[], tmpls: TmplInfo[], ar
     const inst = tryInstantiateCall(cx, tm, args, scope, explicit, t);
     if (inst) all.push(inst);
   }
-  if (!all.length) cx.fail("no matching function", t);
-  let best: FuncInfo | null = null;
+  if (!all.length) cx.fail(`no matching function(${args.map(a => a.t.key()).join(", ")})`, t);  let best: FuncInfo | null = null;
   let bestScore = -1e18;
   let bestConvs: ({ kind: string; fn: FuncInfo } | null)[] = [];
   for (const f of all) {
@@ -841,7 +856,7 @@ export function resolveOverload(cx: Cx, cands: FuncInfo[], tmpls: TmplInfo[], ar
       bestConvs = r.convs;
     }
   }
-  if (!best) cx.fail("no matching function for call", t);
+  if (!best) cx.fail(`no matching function for call(${args.map(a => a.t.key()).join(", ")})`, t);
   if ((best as FuncInfo).isDelete) cx.fail("call to deleted function", t);
   cx.markFunc(best as FuncInfo);
   // A static member is emitted as part of its class, so the class is needed too.
@@ -1382,6 +1397,31 @@ export function isDerived(cx: Cx, from: string, to: string): boolean {
 export function coreName(t: CppType): string {
   if (!t.segs.length) return t.name;
   return last(t.segs).n;
+}
+
+export function streamManipName(e: Expr): string | null {
+  if (e.kind !== "id") return null;
+  const n = last((e as IdExpr).parts).n;
+  if (n === "endl" || n === "flush" || n === "ends") return n;
+  return null;
+}
+
+export function isOstreamLike(cx: Cx, t: CppType): boolean {
+  const fq = cx.stripAll(t);
+  if (!fq) return false;
+  const seen = new Set<string>();
+  const q = [fq];
+  while (q.length) {
+    const cur = q.shift() as string;
+    if (seen.has(cur)) continue;
+    seen.add(cur);
+    const short = cur.split("::").pop() as string;
+    if (cur === "std::ostream" || cur === "std::wostream" || cur.startsWith("std::basic_ostream<")) return true;
+    if (short === "ostream" || short === "wostream" || short.startsWith("basic_ostream<")) return true;
+    const cls = cx.classes.get(cur);
+    if (cls) for (const b of cls.bases) q.push(b.fq);
+  }
+  return false;
 }
 
 export function isClassVal(cx: Cx, t: CppType): boolean {
