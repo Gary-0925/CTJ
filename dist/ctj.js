@@ -4507,6 +4507,17 @@ var CTJ;
         paramShape(d) {
             return d.params.map(p => [p.type.ptr, p.type.ref, p.type.dims.length, p.type.func ? "f" : "", p.variadic || p.isPack ? "..." : ""].join(",")).join(";");
         }
+        // An out-of-line definition repeats the parameter list but not the default
+        // arguments, which are written on the declaration alone: without them a call
+        // that relies on one stops matching ("basic_string(const _CharT*, ...)").
+        mergeDefDefaults(decl, def) {
+            const ps = decl.params || [];
+            const dp = def.params || [];
+            for (let i = 0; i < dp.length && i < ps.length; i++) {
+                if (!dp[i].def && ps[i].def)
+                    dp[i].def = ps[i].def;
+            }
+        }
         addMethod(cls, short, d, scope) {
             const key = this.methodKey(d, short);
             const sc = this.snapScope(scope);
@@ -4514,6 +4525,7 @@ var CTJ;
             const list = cls.methods.get(key) || [];
             for (const f of list) {
                 if (!f.decl.body && d.body && this.paramShape(f.decl) === this.paramShape(d)) {
+                    this.mergeDefDefaults(f.decl, d);
                     f.decl = d;
                     f.scope = sc;
                     return f;
@@ -4540,6 +4552,7 @@ var CTJ;
                 if (!f.decl.body && d.body && !d.op) {
                     let same = f.decl.params.length === d.params.length;
                     if (same) {
+                        this.mergeDefDefaults(f.decl, d);
                         f.decl = d;
                         f.scope = this.snapScope(declScope);
                         return f;
@@ -5924,6 +5937,7 @@ var CTJ;
                     this.annDefaults(decl, this.memberScope(owner));
                     const exist = this.findMethod(owner, decl);
                     if (exist && !exist.decl.body && decl.body) {
+                        this.mergeDefDefaults(exist.decl, decl);
                         exist.decl = decl;
                         exist.scope = this.memberScope(owner);
                     }
@@ -7493,6 +7507,7 @@ var CTJ;
                     const asList = [{ t: initListType(cx, items, vd), e: vd.init }];
                     const lr = CTJ.tryResolveCtor(cx, cls.fq, asList, scope);
                     if (lr) {
+                        CTJ.annotateListElems(cx, lr.fn, vd.init, scope);
                         cx.getAnn(vd.init).call = lr.fn;
                         cx.getAnn(vd.init).convs = lr.convs;
                         return;
@@ -7579,6 +7594,12 @@ var CTJ;
         void scope;
         void t;
         const a = arg.t;
+        // A reference to a pointer ("T*&") names the pointer variable itself, and
+        // the emitter writes through it: the variable needs a cell of its own for
+        // that write to land in, exactly as taking its address does.
+        if (param.ref !== "" && param.ptr > 0 && !param.isFunc && a.ptr > 0 && a.ref === "" && !a.dims.length) {
+            markRef(cx, arg.e);
+        }
         if (param.isBox() && !a.isBox() && !a.dims.length && a.name !== "__null" && a.name !== "__initlist") {
             markBoxed(cx, arg.e);
         }
@@ -7591,6 +7612,12 @@ var CTJ;
         }
     }
     CTJ.boxArg = boxArg;
+    // A variable a reference binds to needs exactly the storage its address
+    // needs: the reference stands in for the object, and a write through it has to
+    // land in the object itself.
+    function markRef(cx, e) {
+        markBoxed(cx, e);
+    }
     function markBoxed(cx, e) {
         let cur = e;
         while (cur.kind === "cast")
@@ -8233,6 +8260,11 @@ var CTJ;
                 return target;
             cx.fail("bad const_cast", e);
         }
+        // "reinterpret_cast<const volatile char&>(__r)" (std::__addressof) is the
+        // same object seen as a different type.  A reference is one box either way,
+        // so nothing is constructed -- not even when the object is a class one.
+        if (kind === "reinterpret_cast" && target.ref !== "" && st.ref !== "")
+            return target;
         if (tCls && sCls) {
             const tf = cx.stripAll(target);
             const sf = cx.stripAll(st);
@@ -8292,8 +8324,10 @@ var CTJ;
                 return resolveCtor(cx, clsFq, [], scope, t, true);
             const asList = [{ t: listType(items), e: args[0].e }];
             const lr = tryResolveCtor(cx, clsFq, asList, scope);
-            if (lr)
+            if (lr) {
+                annotateListElems(cx, lr.fn, args[0].e, scope);
                 return lr;
+            }
             return resolveCtor(cx, clsFq, items, scope, t, true);
         }
         return resolveCtor(cx, clsFq, args, scope, t, true);
@@ -8305,6 +8339,40 @@ var CTJ;
             ty.ret = items[0].t;
         return ty;
     }
+    // The elements of an initializer_list argument have the element type, and a
+    // braced sub-list builds one of them: "map<int,int> m{{1,10},{2,20}}" makes
+    // pairs, "vector<vector<int>> vv{{1}}" makes vectors.  Their constructors are
+    // resolved here, where the constructor that takes the list is known.
+    function annotateListElems(cx, fn, il, scope) {
+        if (il.kind !== "initlist")
+            return;
+        const ps = cx.funcParams(fn);
+        const pt = ps.length ? ps[0].type : null;
+        if (!pt || pt.isBox() || pt.dims.length || pt.segs.length !== 1 || pt.segs[0].a.length !== 1)
+            return;
+        const et = pt.segs[0].a[0];
+        const fq = !et.isBox() && !et.dims.length && !et.isFunc ? cx.stripAll(et) : "";
+        const cls = fq && cx.classes.has(fq) ? cx.classes.get(fq) : null;
+        if (!cls)
+            return;
+        for (const item of il.items) {
+            if (item.kind !== "initlist")
+                continue;
+            const sub = item.items.map(x => ({ t: typeOf(cx, x, scope), e: x }));
+            try {
+                const r = tryResolveCtor(cx, cls.fq, sub.length ? [{ t: listType(sub), e: item }] : [], scope)
+                    || tryResolveCtor(cx, cls.fq, sub, scope);
+                if (r) {
+                    cx.getAnn(item).call = r.fn;
+                    cx.getAnn(item).convs = r.convs;
+                }
+            }
+            catch {
+                /* the emitter reports a value it cannot build */
+            }
+        }
+    }
+    CTJ.annotateListElems = annotateListElems;
     function resolveCtor(cx, clsFq, args, scope, t, allowExplicit = true) {
         const cls = cx.classes.get(clsFq);
         if (!cls)
@@ -10622,15 +10690,17 @@ var CTJ;
         }
         ctorExpr(cn, fn, args, convs, _t) {
             const ps = this.cx.funcParams(fn);
-            if (ps.length === 1 && this.isInitListParam(ps[0].type) && args.length === 1 && args[0].kind === "initlist") {
-                const items = args[0].items.map(x => this.ex(x));
+            const ilParam = ps.length && !ps[0].variadic && this.isInitListParam(ps[0].type) ? ps[0].type : null;
+            if (ilParam && args.length === 1 && args[0].kind === "initlist") {
+                const et = ilParam.segs[0].a[0];
+                const items = args[0].items.map(x => this.initListItem(et, x));
                 return `new ${cn}([${items.join(", ")}])`;
             }
             // "vector<int> v{a, b, c}" gives the constructor one initializer_list made
             // of the elements, not one argument per element.
-            if (ps.length && !ps[0].variadic && this.isInitListParam(ps[0].type) &&
-                args.length && args.every(x => x.kind !== "initlist")) {
-                const aa = [`[${args.map(x => this.ex(x)).join(", ")}]`];
+            if (ilParam && args.length) {
+                const et = ilParam.segs[0].a[0];
+                const aa = [`[${args.map(x => this.initListItem(et, x)).join(", ")}]`];
                 for (let i = 1; i < ps.length && !ps[i].variadic; i++)
                     aa.push(ps[i].def ? this.defArg(ps[i]) : "undefined");
                 return `new ${cn}(${aa.join(", ")})`;
@@ -10649,6 +10719,18 @@ var CTJ;
         }
         isInitListParam(t) {
             return t.segs.length === 1 && t.segs[0].a.length === 1 && !t.isBox() && !t.dims.length;
+        }
+        // One element of an initializer_list argument: a braced sub-list builds the
+        // element itself, with the constructor the annotator recorded on it.
+        initListItem(et, x) {
+            if (x.kind !== "initlist")
+                return this.ex(x);
+            const ann = this.cx.getAnn(x);
+            const fq = !et.isBox() && !et.dims.length && !et.isFunc ? this.cx.stripAll(et) : "";
+            const cls = fq ? this.cx.classes.get(fq) : null;
+            if (!cls || !ann.call)
+                return this.ex(x);
+            return this.ctorExpr(cls.mangled, ann.call, x.items, ann.convs, et);
         }
         emitDtor(c) {
             const fns = c.methods.get("#dtor") || [];
@@ -12030,6 +12112,87 @@ var CTJ;
         isZeroLit(e) {
             return e.kind === "lit" && (e.lkind === "null" || ((e.lkind === "int" || e.lkind === "char") && CTJ.parseNumber(e.value) === 0));
         }
+        // The storage a reference to this expression names: a (container, key) pair
+        // that writes into the object itself, so that a write through the reference
+        // is seen by the variable it was made from.  Only an expression with storage
+        // of its own has one; anything else is a value and needs a temporary box.
+        refBox(e) {
+            let x = e;
+            while (x.kind === "cast")
+                x = x.arg;
+            if (x.kind === "id") {
+                const ann = this.cx.getAnn(x);
+                const s = ann.sym;
+                if (!s || s.k !== "var")
+                    return null;
+                const v = s.v;
+                const nm = this.varName(v, ann.needsThis);
+                if (v.isStatic) {
+                    const cls = this.cx.classes.get(v.fq.split("::").slice(0, -1).join("::"));
+                    return `{a: ${cls.mangled}, i: "${CTJ.safeJsName(v.short)}"}`;
+                }
+                // A field written without an object ("x" inside a method) is a field of
+                // "this", and its storage is the property it lives in.
+                if (v.isField)
+                    return ann.needsThis ? `{a: this, i: "${CTJ.safeJsName(v.short)}"}` : null;
+                const t = v.typeCache;
+                if (t && t.ref !== "")
+                    return nm;
+                if (v.storage === "boxed" || v.storage === "bbox")
+                    return `{a: ${nm}, i: "v"}`;
+                return null;
+            }
+            if (x.kind === "member") {
+                const m = this.cx.getAnn(x);
+                const f = m.sym;
+                if (!f || f.k !== "var" || !f.v.isField)
+                    return null;
+                const v = f.v;
+                const fname = CTJ.safeJsName(v.short);
+                if (v.isStatic) {
+                    const cls = this.cx.classes.get(v.fq.split("::").slice(0, -1).join("::"));
+                    return `{a: ${cls.mangled}, i: "${fname}"}`;
+                }
+                return `{a: ${this.objOf(x.obj)}, i: "${fname}"}`;
+            }
+            if (x.kind === "unary" && x.op === "*" && !this.cx.getAnn(x).call) {
+                // "*__x" is the object __x points at, and a pointer is the storage of
+                // what it points at: the pointer itself is the box of it.
+                return this.ex(x.arg);
+            }
+            if (x.kind === "index") {
+                const m = this.cx.getAnn(x);
+                if (m.call) {
+                    // An "operator[]" that returns a reference hands back the box already.
+                    const ct = this.cx.getAnn(x).t;
+                    if (ct && ct.ref !== "" && ct.ptr > 0 && !ct.isFunc)
+                        return this.ex(x);
+                    return null;
+                }
+                const at = this.cx.getAnn(x.arr).t;
+                if (!at)
+                    return null;
+                if (at.ptr > 0) {
+                    const p = this.complex(this.ex(x.arr), x.arr);
+                    const pp = this.paren(p);
+                    const idx = this.isZeroLit(x.idx) ? `${pp}.i` : `${pp}.i + (${this.ex(x.idx)})`;
+                    return `{a: ${pp}.a, i: ${idx}}`;
+                }
+                if (at.dims.length && !at.isBox()) {
+                    const arr = this.complex(this.ex(x.arr), x.arr);
+                    return `{a: ${arr}, i: (${this.ex(x.idx)})}`;
+                }
+                return null;
+            }
+            if (x.kind === "call") {
+                // A call returning a reference hands back the box the reference is.
+                const ct = this.cx.getAnn(x).t;
+                if (ct && ct.ref !== "" && ct.ptr > 0 && !ct.isFunc)
+                    return this.exCall(x);
+                return null;
+            }
+            return null;
+        }
         argFor(p, x, conv) {
             if (conv && conv.kind === "ctor") {
                 const fq = this.cx.stripAll(p);
@@ -12100,13 +12263,22 @@ var CTJ;
             if (p.ptr > 0 && at && at.dims.length && !at.isBox())
                 return this.exBox(x);
             if (pB && aB) {
-                if (at && at.ref)
+                if (at && at.ref) {
+                    if (p.ptr > 0 && !p.isFunc) {
+                        const r = this.refBox(x);
+                        if (r !== null)
+                            return r;
+                    }
                     return this.exBox(x);
+                }
                 // A reference parameter reads through an address, so a value has to be
                 // given one: a class object, and a pointer too, since a pointer is
                 // already a box and "const _Iterator&" is a box around it.
                 if (p.ref && at && !at.ref && !at.isFunc && !at.dims.length) {
                     if (at.ptr > 0) {
+                        const r = this.refBox(x);
+                        if (r !== null)
+                            return r;
                         return `{a: [${this.ex(x)}], i: 0}`;
                     }
                     if (this.cx.classes.has(this.cx.stripAll(at)))
@@ -15561,5 +15733,3 @@ var CTJ;
     const g = globalThis;
     g["CTJ"] = CTJ;
 })();
-
-CTJ.version = "2bee0a7 2026-10-11 10:21:10Z";
