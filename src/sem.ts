@@ -615,6 +615,17 @@ export class Cx {
     return d.params.map(p => [p.type.ptr, p.type.ref, p.type.dims.length, p.type.func ? "f" : "", p.variadic || p.isPack ? "..." : ""].join(",")).join(";");
   }
 
+  // An out-of-line definition repeats the parameter list but not the default
+  // arguments, which are written on the declaration alone: without them a call
+  // that relies on one stops matching ("basic_string(const _CharT*, ...)").
+  mergeDefDefaults(decl: FuncDecl, def: FuncDecl): void {
+    const ps = decl.params || [];
+    const dp = def.params || [];
+    for (let i = 0; i < dp.length && i < ps.length; i++) {
+      if (!dp[i].def && ps[i].def) dp[i].def = ps[i].def;
+    }
+  }
+
   addMethod(cls: ClsInfo, short: string, d: FuncDecl, scope: Scope): FuncInfo {
     const key = this.methodKey(d, short);
     const sc = this.snapScope(scope);
@@ -622,6 +633,7 @@ export class Cx {
     const list = cls.methods.get(key) || [];
     for (const f of list) {
       if (!f.decl.body && d.body && this.paramShape(f.decl) === this.paramShape(d)) {
+        this.mergeDefDefaults(f.decl, d);
         f.decl = d;
         f.scope = sc;
         return f;
@@ -649,6 +661,7 @@ export class Cx {
       if (!f.decl.body && d.body && !d.op) {
         let same = f.decl.params.length === d.params.length;
         if (same) {
+          this.mergeDefDefaults(f.decl, d);
           f.decl = d;
           f.scope = this.snapScope(declScope);
           return f;
@@ -1875,6 +1888,7 @@ export class Cx {
         this.annDefaults(decl, this.memberScope(owner));
         const exist = this.findMethod(owner, decl);
         if (exist && !exist.decl.body && decl.body) {
+          this.mergeDefDefaults(exist.decl, decl);
           exist.decl = decl;
           exist.scope = this.memberScope(owner);
         } else if (!exist) {

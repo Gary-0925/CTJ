@@ -1257,8 +1257,8 @@ class std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P {
       this.second = ((($a[1]).a[($a[1]).i]) ? {a: (($a[1]).a[($a[1]).i]).a, i: (($a[1]).a[($a[1]).i]).i} : null);
     }
     else if ($a.length >= 2 && $a.length <= 2 && ($a[0] === null || typeof $a[0] === "object") && ($a[1] === null || typeof $a[1] === "object")) {
-      this.first = ($t2 = std_forward_1_std_Rb_tree_node_int_P(($a[0]).a[($a[0]).i]), $t3 = ($t2 ? $t2.a[$t2.i] : null), $t3 && $t3.a !== undefined ? {a: $t3.a, i: $t3.i} : $t3);
-      this.second = ($t4 = std_forward_1_std_Rb_tree_node_int_P(($a[1]).a[($a[1]).i]), $t5 = ($t4 ? $t4.a[$t4.i] : null), $t5 && $t5.a !== undefined ? {a: $t5.a, i: $t5.i} : $t5);
+      this.first = ($t2 = std_forward_1_std_Rb_tree_node_int_P($a[0]), $t3 = ($t2 ? $t2.a[$t2.i] : null), $t3 && $t3.a !== undefined ? {a: $t3.a, i: $t3.i} : $t3);
+      this.second = ($t4 = std_forward_1_std_Rb_tree_node_int_P($a[1]), $t5 = ($t4 ? $t4.a[$t4.i] : null), $t5 && $t5.a !== undefined ? {a: $t5.a, i: $t5.i} : $t5);
     }
     else { throw new Error("no matching constructor"); }
   }
@@ -1718,7 +1718,7 @@ class std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int {
     if (this._M_impl._M_key_compare.op_call__c(std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int._S_key((__j._M_node ? {a: __j._M_node.a, i: __j._M_node.i} : null)), __k)) {
       return new std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P({a: [__x], i: 0}, {a: [__y], i: 0});
     }
-    return new std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P({a: [__j._M_node], i: 0}, {a: [null], i: 0});
+    return new std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P({a: __j, i: "_M_node"}, {a: [null], i: 0});
   }
   begin() {
     return new std_Rb_tree_iterator_int((this._M_impl._M_header._M_left ? {a: this._M_impl._M_header._M_left.a, i: this._M_impl._M_header._M_left.i} : null));
@@ -3513,7 +3513,7 @@ function std_forward_1_std_Rb_tree_iterator_int(__t) {
   return __t;
 }
 function std_forward_1_std_Rb_tree_node_int_P(__t) {
-  return __t.a[__t.i];
+  return __t;
 }
 let std_piecewise_construct = new std_piecewise_construct_t();
 main();

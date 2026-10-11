@@ -520,6 +520,10 @@ function typeOfCast(cx: Cx, e: CastExpr, scope: Scope): CppType {
     if (tn === sn || (tCls && sCls && cx.stripAll(target) === cx.stripAll(st))) return target;
     cx.fail("bad const_cast", e);
   }
+  // "reinterpret_cast<const volatile char&>(__r)" (std::__addressof) is the
+  // same object seen as a different type.  A reference is one box either way,
+  // so nothing is constructed -- not even when the object is a class one.
+  if (kind === "reinterpret_cast" && target.ref !== "" && st.ref !== "") return target;
   if (tCls && sCls) {
     const tf = cx.stripAll(target);
     const sf = cx.stripAll(st);
@@ -570,7 +574,10 @@ export function resolveInitCtor(cx: Cx, clsFq: string, args: { t: CppType; e: Ex
     if (!items.length) return resolveCtor(cx, clsFq, [], scope, t, true);
     const asList = [{ t: listType(items), e: args[0].e }];
     const lr = tryResolveCtor(cx, clsFq, asList, scope);
-    if (lr) return lr;
+    if (lr) {
+      annotateListElems(cx, lr.fn, args[0].e, scope);
+      return lr;
+    }
     return resolveCtor(cx, clsFq, items, scope, t, true);
   }
   return resolveCtor(cx, clsFq, args, scope, t, true);
@@ -580,6 +587,35 @@ function listType(items: { t: CppType }[]): CppType {
   const ty = CppType.basic("__initlist");
   if (items.length) ty.ret = items[0].t;
   return ty;
+}
+
+// The elements of an initializer_list argument have the element type, and a
+// braced sub-list builds one of them: "map<int,int> m{{1,10},{2,20}}" makes
+// pairs, "vector<vector<int>> vv{{1}}" makes vectors.  Their constructors are
+// resolved here, where the constructor that takes the list is known.
+export function annotateListElems(cx: Cx, fn: FuncInfo, il: Expr, scope: Scope): void {
+  if (il.kind !== "initlist") return;
+  const ps = cx.funcParams(fn);
+  const pt = ps.length ? ps[0].type : null;
+  if (!pt || pt.isBox() || pt.dims.length || pt.segs.length !== 1 || pt.segs[0].a.length !== 1) return;
+  const et = pt.segs[0].a[0];
+  const fq = !et.isBox() && !et.dims.length && !et.isFunc ? cx.stripAll(et) : "";
+  const cls = fq && cx.classes.has(fq) ? cx.classes.get(fq) as ClsInfo : null;
+  if (!cls) return;
+  for (const item of (il as InitListExpr).items) {
+    if (item.kind !== "initlist") continue;
+    const sub = (item as InitListExpr).items.map(x => ({ t: typeOf(cx, x, scope), e: x }));
+    try {
+      const r = tryResolveCtor(cx, cls.fq, sub.length ? [{ t: listType(sub), e: item }] : [], scope)
+        || tryResolveCtor(cx, cls.fq, sub, scope);
+      if (r) {
+        cx.getAnn(item).call = r.fn;
+        cx.getAnn(item).convs = r.convs;
+      }
+    } catch {
+      /* the emitter reports a value it cannot build */
+    }
+  }
 }
 
 export function resolveCtor(cx: Cx, clsFq: string, args: { t: CppType; e: Expr }[], scope: Scope, t: At, allowExplicit = true): { fn: FuncInfo; convs: ({ kind: string; fn: FuncInfo } | null)[] } {
@@ -854,7 +890,9 @@ export function resolveOverload(cx: Cx, cands: FuncInfo[], tmpls: TmplInfo[], ar
     let r: { viable: boolean; score: number; convs: ({ kind: string; fn: FuncInfo } | null)[] };
     try {
       r = scoreFunc(cx, f, args, scope, objConst);
-    } catch { continue; }
+    } catch {
+      continue;
+    }
     if (!r.viable) continue;
     if (r.score > bestScore) {
       best = f;

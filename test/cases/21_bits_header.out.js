@@ -2305,10 +2305,10 @@ class std_vector_int_std_allocator_int extends std_Vector_base_int_std_allocator
     std_Vector_base_int_std_allocator_int.prototype.__dtor.call(this);
   }
   begin() {
-    return new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [this._M_impl._M_start], i: 0});
+    return new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: this._M_impl, i: "_M_start"});
   }
   end() {
-    return new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [this._M_impl._M_finish], i: 0});
+    return new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: this._M_impl, i: "_M_finish"});
   }
   size__c() {
     return (((this._M_impl._M_finish ? this._M_impl._M_finish.i : 0) - (this._M_impl._M_start ? this._M_impl._M_start.i : 0)) >>> 0);
@@ -2468,7 +2468,7 @@ class gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int {
     return new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [({a: (this._M_current ? this._M_current.a : null), i: (this._M_current ? this._M_current.i : 0) - (__n.a[__n.i])})], i: 0});
   }
   base__c() {
-    return {a: [this._M_current], i: 0};
+    return {a: this, i: "_M_current"};
   }
   op_assign(o) {
     this._M_current = (((o.a[o.i])._M_current) ? {a: ((o.a[o.i])._M_current).a, i: ((o.a[o.i])._M_current).i} : null);

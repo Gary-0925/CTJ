@@ -513,6 +513,7 @@ function annotateVarInit(cx: Cx, v: VarInfo, scope: Scope): void {
         const asList = [{ t: initListType(cx, items, vd), e: vd.init }];
         const lr = tryResolveCtor(cx, cls.fq, asList, scope);
         if (lr) {
+          annotateListElems(cx, lr.fn, vd.init, scope);
           cx.getAnn(vd.init).call = lr.fn;
           cx.getAnn(vd.init).convs = lr.convs;
           return;
@@ -595,6 +596,12 @@ export function boxArg(cx: Cx, param: CppType, arg: { t: CppType; e: Expr }, sco
   void scope;
   void t;
   const a = arg.t;
+  // A reference to a pointer ("T*&") names the pointer variable itself, and
+  // the emitter writes through it: the variable needs a cell of its own for
+  // that write to land in, exactly as taking its address does.
+  if (param.ref !== "" && param.ptr > 0 && !param.isFunc && a.ptr > 0 && a.ref === "" && !a.dims.length) {
+    markRef(cx, arg.e);
+  }
   if (param.isBox() && !a.isBox() && !a.dims.length && a.name !== "__null" && a.name !== "__initlist") {
     markBoxed(cx, arg.e);
   }
@@ -604,6 +611,13 @@ export function boxArg(cx: Cx, param: CppType, arg: { t: CppType; e: Expr }, sco
   if (param.dims.length || param.isBox()) {
     if (a.dims.length && !a.isBox()) return;
   }
+}
+
+// A variable a reference binds to needs exactly the storage its address
+// needs: the reference stands in for the object, and a write through it has to
+// land in the object itself.
+function markRef(cx: Cx, e: Expr): void {
+  markBoxed(cx, e);
 }
 
 function markBoxed(cx: Cx, e: Expr): void {

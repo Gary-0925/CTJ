@@ -534,15 +534,17 @@ class JsGen {
 
   ctorExpr(cn: string, fn: FuncInfo, args: Expr[], convs: ({ kind: string; fn: FuncInfo } | null)[], _t: CppType): string {
     const ps = this.cx.funcParams(fn);
-    if (ps.length === 1 && this.isInitListParam(ps[0].type) && args.length === 1 && args[0].kind === "initlist") {
-      const items = (args[0] as InitListExpr).items.map(x => this.ex(x));
+    const ilParam = ps.length && !ps[0].variadic && this.isInitListParam(ps[0].type) ? ps[0].type : null;
+    if (ilParam && args.length === 1 && args[0].kind === "initlist") {
+      const et = ilParam.segs[0].a[0];
+      const items = (args[0] as InitListExpr).items.map(x => this.initListItem(et, x));
       return `new ${cn}([${items.join(", ")}])`;
     }
     // "vector<int> v{a, b, c}" gives the constructor one initializer_list made
     // of the elements, not one argument per element.
-    if (ps.length && !ps[0].variadic && this.isInitListParam(ps[0].type) &&
-      args.length && args.every(x => x.kind !== "initlist")) {
-      const aa = [`[${args.map(x => this.ex(x)).join(", ")}]`];
+    if (ilParam && args.length) {
+      const et = ilParam.segs[0].a[0];
+      const aa = [`[${args.map(x => this.initListItem(et, x)).join(", ")}]`];
       for (let i = 1; i < ps.length && !ps[i].variadic; i++) aa.push(ps[i].def ? this.defArg(ps[i]) : "undefined");
       return `new ${cn}(${aa.join(", ")})`;
     }
@@ -561,6 +563,17 @@ class JsGen {
 
   isInitListParam(t: CppType): boolean {
     return t.segs.length === 1 && t.segs[0].a.length === 1 && !t.isBox() && !t.dims.length;
+  }
+
+  // One element of an initializer_list argument: a braced sub-list builds the
+  // element itself, with the constructor the annotator recorded on it.
+  initListItem(et: CppType, x: Expr): string {
+    if (x.kind !== "initlist") return this.ex(x);
+    const ann = this.cx.getAnn(x);
+    const fq = !et.isBox() && !et.dims.length && !et.isFunc ? this.cx.stripAll(et) : "";
+    const cls = fq ? this.cx.classes.get(fq) : null;
+    if (!cls || !ann.call) return this.ex(x);
+    return this.ctorExpr(cls.mangled, ann.call as FuncInfo, (x as InitListExpr).items, ann.convs, et);
   }
 
   emitDtor(c: ClsInfo): void {
@@ -1840,6 +1853,79 @@ class JsGen {
     return e.kind === "lit" && (e.lkind === "null" || ((e.lkind === "int" || e.lkind === "char") && parseNumber(e.value) === 0));
   }
 
+  // The storage a reference to this expression names: a (container, key) pair
+  // that writes into the object itself, so that a write through the reference
+  // is seen by the variable it was made from.  Only an expression with storage
+  // of its own has one; anything else is a value and needs a temporary box.
+  refBox(e: Expr): string | null {
+    let x = e;
+    while (x.kind === "cast") x = (x as CastExpr).arg;
+    if (x.kind === "id") {
+      const ann = this.cx.getAnn(x);
+      const s = ann.sym;
+      if (!s || s.k !== "var") return null;
+      const v = s.v;
+      const nm = this.varName(v, ann.needsThis);
+      if (v.isStatic) {
+        const cls = this.cx.classes.get(v.fq.split("::").slice(0, -1).join("::")) as ClsInfo;
+        return `{a: ${cls.mangled}, i: "${safeJsName(v.short)}"}`;
+      }
+      // A field written without an object ("x" inside a method) is a field of
+      // "this", and its storage is the property it lives in.
+      if (v.isField) return ann.needsThis ? `{a: this, i: "${safeJsName(v.short)}"}` : null;
+      const t = v.typeCache as CppType | null;
+      if (t && t.ref !== "") return nm;
+      if (v.storage === "boxed" || v.storage === "bbox") return `{a: ${nm}, i: "v"}`;
+      return null;
+    }
+    if (x.kind === "member") {
+      const m = this.cx.getAnn(x);
+      const f = m.sym;
+      if (!f || f.k !== "var" || !f.v.isField) return null;
+      const v = f.v;
+      const fname = safeJsName(v.short);
+      if (v.isStatic) {
+        const cls = this.cx.classes.get(v.fq.split("::").slice(0, -1).join("::")) as ClsInfo;
+        return `{a: ${cls.mangled}, i: "${fname}"}`;
+      }
+      return `{a: ${this.objOf((x as MemberExpr).obj)}, i: "${fname}"}`;
+    }
+    if (x.kind === "unary" && (x as UnaryExpr).op === "*" && !this.cx.getAnn(x).call) {
+      // "*__x" is the object __x points at, and a pointer is the storage of
+      // what it points at: the pointer itself is the box of it.
+      return this.ex((x as UnaryExpr).arg);
+    }
+    if (x.kind === "index") {
+      const m = this.cx.getAnn(x);
+      if (m.call) {
+        // An "operator[]" that returns a reference hands back the box already.
+        const ct = this.cx.getAnn(x).t as CppType | null;
+        if (ct && ct.ref !== "" && ct.ptr > 0 && !ct.isFunc) return this.ex(x);
+        return null;
+      }
+      const at = this.cx.getAnn((x as IndexExpr).arr).t as CppType | null;
+      if (!at) return null;
+      if (at.ptr > 0) {
+        const p = this.complex(this.ex((x as IndexExpr).arr), (x as IndexExpr).arr);
+        const pp = this.paren(p);
+        const idx = this.isZeroLit((x as IndexExpr).idx) ? `${pp}.i` : `${pp}.i + (${this.ex((x as IndexExpr).idx)})`;
+        return `{a: ${pp}.a, i: ${idx}}`;
+      }
+      if (at.dims.length && !at.isBox()) {
+        const arr = this.complex(this.ex((x as IndexExpr).arr), (x as IndexExpr).arr);
+        return `{a: ${arr}, i: (${this.ex((x as IndexExpr).idx)})}`;
+      }
+      return null;
+    }
+    if (x.kind === "call") {
+      // A call returning a reference hands back the box the reference is.
+      const ct = this.cx.getAnn(x).t as CppType | null;
+      if (ct && ct.ref !== "" && ct.ptr > 0 && !ct.isFunc) return this.exCall(x as CallExpr);
+      return null;
+    }
+    return null;
+  }
+
   argFor(p: CppType, x: Expr, conv: { kind: string; fn: FuncInfo } | null): string {
     if (conv && conv.kind === "ctor") {
       const fq = this.cx.stripAll(p);
@@ -1904,12 +1990,20 @@ class JsGen {
     }
     if (p.ptr > 0 && at && at.dims.length && !at.isBox()) return this.exBox(x);
     if (pB && aB) {
-      if (at && at.ref) return this.exBox(x);
+      if (at && at.ref) {
+        if (p.ptr > 0 && !p.isFunc) {
+          const r = this.refBox(x);
+          if (r !== null) return r;
+        }
+        return this.exBox(x);
+      }
       // A reference parameter reads through an address, so a value has to be
       // given one: a class object, and a pointer too, since a pointer is
       // already a box and "const _Iterator&" is a box around it.
       if (p.ref && at && !at.ref && !at.isFunc && !at.dims.length) {
         if (at.ptr > 0) {
+          const r = this.refBox(x);
+          if (r !== null) return r;
           return `{a: [${this.ex(x)}], i: 0}`;
         }
         if (this.cx.classes.has(this.cx.stripAll(at))) return this.exBox(x);
