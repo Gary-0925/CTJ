@@ -97,7 +97,7 @@ class PhpGen {
 
   streamHelper(): string {
     return [
-      `function __ctj_fmt($v) { if ($v === null) return "0"; if (is_bool($v)) return $v ? "1" : "0"; if (is_int($v) || is_float($v)) return (string)$v; if (is_string($v)) return $v; $a = is_array($v) && array_key_exists("a", $v) ? $v["a"] : (is_array($v) && array_values($v) === $v ? $v : null); $i = is_array($v) && array_key_exists("i", $v) ? $v["i"] : 0; if (is_array($a)) { $s = ""; for ($k = (int)$i; $k < count($a) && $a[$k]; $k++) $s .= chr($a[$k]); return $s; } return (string)$v; }`,
+      `function __ctj_fmt($v) { for ($n = 0; $n < 4 && is_array($v) && array_key_exists("a", $v) && array_key_exists("i", $v) && !is_array($v["a"]); $n++) $v = $v["a"][$v["i"]]; if ($v === null) return "0"; if (is_bool($v)) return $v ? "1" : "0"; if (is_int($v) || is_float($v)) return (string)$v; if (is_string($v)) return $v; $a = is_array($v) && array_key_exists("a", $v) ? $v["a"] : (is_array($v) && array_values($v) === $v ? $v : null); $i = is_array($v) && array_key_exists("i", $v) ? $v["i"] : 0; if (is_array($a)) { $s = ""; for ($k = (int)$i; $k < count($a) && $a[$k]; $k++) $s .= chr($a[$k]); return $s; } return (string)$v; }`,
       `function __ctj_write($s) { echo $s; }`,
     ].join("\n");
   }
@@ -701,8 +701,11 @@ class PhpGen {
     this.line(`  return $s;`);
     this.line(`}`);
     this.line(`function _ctj_fmt($v) {`);
+    this.line(`  for ($n = 0; $n < 4 && is_array($v) && array_key_exists("a", $v) && array_key_exists("i", $v) && !is_array($v["a"]); $n++) $v = $v["a"][$v["i"]];`);
     this.line(`  if ($v === null) return "0";`);
     this.line(`  if (is_bool($v)) return $v ? "1" : "0";`);
+    this.line(`  if (is_int($v) || is_float($v)) return (string)$v;`);
+    this.line(`  if (is_string($v)) return $v;`);
     this.line(`  if (is_array($v) && array_key_exists("a", $v)) return _ctj_cstr($v);`);
     this.line(`  return strval($v);`);
     this.line(`}`);
@@ -1530,6 +1533,10 @@ class PhpGen {
     // data behind the object: the instance gets an array to be addressed in.
     if (e.kind === "this") return `["a" => (isset($this->ctj_a) ? $this->ctj_a : ($this->ctj_a = [])), "i" => (isset($this->ctj_i) ? $this->ctj_i : 0)]`;
     if (t.dims.length && !t.isBox()) return `["a" => ${x}, "i" => 0]`;
+    if (t.ref && t.ptr > 0 && e.kind === "call") {
+      const p = this.paren(x);
+      return `(${x} ? ${p}["a"][${p}["i"]] : null)`;
+    }
     return x;
   }
 
@@ -1551,6 +1558,17 @@ class PhpGen {
     const at = this.cx.getAnn(x).t as CppType;
     const pB = isBoxLike(p);
     const aB = at ? isBoxLike(at) : false;
+    if (p.ptr > 0 && !p.ref && !p.dims.length && !p.isFunc &&
+      at && at.ptr > 0 && !at.dims.length && !at.isFunc) {
+      const raw = this.ex(x);
+      const src = this.isSimple(x) ? this.paren(raw) : this.tmp();
+      const pre = this.isSimple(x) ? "" : `${src} = ${raw}, `;
+      if (at.ref && x.kind === "call") {
+        const t = this.tmp();
+        return `(${pre}${t} = (${src} ? ${src}["a"][${src}["i"]] : null), ${t} && is_array(${t}) && array_key_exists("a", ${t}) ? ["a" => ${t}["a"], "i" => ${t}["i"]] : ${t})`;
+      }
+      return `(${pre}${src} ? ["a" => ${src}["a"], "i" => ${src}["i"]] : null)`;
+    }
     if (p.dims.length && x.kind === "initlist") {
       return this.arrayInit(p, (x as InitListExpr).items);
     }
@@ -1560,7 +1578,8 @@ class PhpGen {
       }
       if (at.isFunc) return this.ex(x);
       return this.exBox(x);
-    }    if (!pB && aB) {
+    }
+    if (!pB && aB) {
       if (at && at.name === "__null" && coreName(p) === "bool") return "false";
       // Reading a reference variable already yields the value it refers to;
       // only an expression that produces a fat pointer needs one more step.

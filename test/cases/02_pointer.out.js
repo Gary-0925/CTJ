@@ -2,7 +2,7 @@
 function main() {
   let $t0, $t1, $t2, $t3, $t4;
   let x = {v: 10};
-  let p = {v: ({a: x, i: "v"} ? {a: ({a: x, i: "v"}).a, i: ({a: x, i: "v"}).i} : null)};
+  let p = {v: (({a: x, i: "v"}) ? {a: ({a: x, i: "v"}).a, i: ({a: x, i: "v"}).i} : null)};
   p.v.a[p.v.i] = 20;
   (console.log((x.v)));
   (console.log((p.v.a[p.v.i])));
@@ -20,13 +20,13 @@ function main() {
   let n = null;
   (console.log((((n === null) ? 1 : 0))));
   (console.log((((p.v === null) ? 1 : 0))));
-  let h = (($t3 = {a: [99], i: 0}, $t3) ? {a: (($t3 = {a: [99], i: 0}, $t3)).a, i: (($t3 = {a: [99], i: 0}, $t3)).i} : null);
+  let h = ($t3 = {a: [99], i: 0}, $t3 ? {a: $t3.a, i: $t3.i} : null);
   (console.log((h.a[h.i])));
-  let arr = (($t4 = {a: new Array(3).fill(0), i: 0}, $t4) ? {a: (($t4 = {a: new Array(3).fill(0), i: 0}, $t4)).a, i: (($t4 = {a: new Array(3).fill(0), i: 0}, $t4)).i} : null);
+  let arr = ($t4 = {a: new Array(3).fill(0), i: 0}, $t4 ? {a: $t4.a, i: $t4.i} : null);
   arr.a[arr.i] = 7;
   arr.a[arr.i + (2)] = 9;
   (console.log((((arr.a[arr.i] + arr.a[arr.i + (1)]) + arr.a[arr.i + (2)]))));
-  let pp = ({a: p, i: "v"} ? {a: ({a: p, i: "v"}).a, i: ({a: p, i: "v"}).i} : null);
+  let pp = (({a: p, i: "v"}) ? {a: ({a: p, i: "v"}).a, i: ({a: p, i: "v"}).i} : null);
   (pp.a[pp.i]).a[(pp.a[pp.i]).i] = 30;
   (console.log((x.v)));
   return 0;

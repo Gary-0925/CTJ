@@ -1,6 +1,6 @@
 "use strict";
 var __ctj_obuf = "";
-function __ctj_fmt(v) { if (v == null) return "0"; if (typeof v === "boolean") return v ? "1" : "0"; if (typeof v === "number") return String(v); if (typeof v === "string") return v; var a = v && v.a, i = v && v.i; if (Array.isArray(v)) { a = v; i = 0; } if (Array.isArray(a)) { var s = ""; for (var k = i | 0; k < a.length && a[k]; k++) s += String.fromCharCode(a[k]); return s; } return String(v); }
+function __ctj_fmt(v) { for (var n = 0; n < 4 && v && typeof v === "object" && v.a !== undefined && !Array.isArray(v) && !Array.isArray(v.a); n++) v = v.a[v.i]; if (v == null) return "0"; if (typeof v === "boolean") return v ? "1" : "0"; if (typeof v === "number") return String(v); if (typeof v === "string") return v; var a = v && v.a, i = v && v.i; if (Array.isArray(v)) { a = v; i = 0; } if (Array.isArray(a)) { var s = ""; for (var k = i | 0; k < a.length && a[k]; k++) s += String.fromCharCode(a[k]); return s; } return String(v); }
 function __ctj_write(s) { s = String(s); if (typeof process !== "undefined" && process.stdout && process.stdout.write) { process.stdout.write(s); return; } __ctj_obuf += s; for (;;) { var n = __ctj_obuf.indexOf("\n"); if (n < 0) break; console.log(__ctj_obuf.slice(0, n)); __ctj_obuf = __ctj_obuf.slice(n + 1); } }
 function __ctj_flush() { if (__ctj_obuf) { console.log(__ctj_obuf); __ctj_obuf = ""; } }
 function _ctj_cstr(p, n) {
@@ -17,9 +17,12 @@ function _ctj_cstr(p, n) {
   return s;
 }
 function _ctj_fmt(v) {
+  for (let n = 0; n < 4 && v && typeof v === "object" && v.a !== undefined && !Array.isArray(v) && !Array.isArray(v.a); n++) v = v.a[v.i];
   if (v === null || v === undefined) return "0";
   if (typeof v === "boolean") return v ? "1" : "0";
-  if (typeof v === "object" && v && v.a !== undefined) return _ctj_cstr(v);
+  if (typeof v === "number") return String(v);
+  if (typeof v === "string") return v;
+  if (typeof v === "object") return _ctj_cstr(v);
   return String(v);
 }
 class IO_FILE {
@@ -248,7 +251,7 @@ class std_char_traits_char {
   }
   static copy(__s1, __s2, __n) {
     let $t0;
-    return (($t0 = (($d, $s, $n) => { for (let $k = 0; $k < $n; $k++) $d.a[$d.i + $k] = $s.a[$s.i + $k]; return $d; })((($q) => ($q && $q.a !== undefined ? $q : { a: $q, i: 0 }))(__s1), (($q) => ($q && $q.a !== undefined ? $q : { a: $q, i: 0 }))(__s2), __n), $t0) ? {a: (($t0 = (($d, $s, $n) => { for (let $k = 0; $k < $n; $k++) $d.a[$d.i + $k] = $s.a[$s.i + $k]; return $d; })((($q) => ($q && $q.a !== undefined ? $q : { a: $q, i: 0 }))(__s1), (($q) => ($q && $q.a !== undefined ? $q : { a: $q, i: 0 }))(__s2), __n), $t0)).a, i: (($t0 = (($d, $s, $n) => { for (let $k = 0; $k < $n; $k++) $d.a[$d.i + $k] = $s.a[$s.i + $k]; return $d; })((($q) => ($q && $q.a !== undefined ? $q : { a: $q, i: 0 }))(__s1), (($q) => ($q && $q.a !== undefined ? $q : { a: $q, i: 0 }))(__s2), __n), $t0)).i} : null);
+    return ($t0 = (($d, $s, $n) => { for (let $k = 0; $k < $n; $k++) $d.a[$d.i + $k] = $s.a[$s.i + $k]; return $d; })((($q) => ($q && $q.a !== undefined ? $q : { a: $q, i: 0 }))(__s1), (($q) => ($q && $q.a !== undefined ? $q : { a: $q, i: 0 }))(__s2), __n), $t0 ? {a: $t0.a, i: $t0.i} : null);
   }
   static to_char_type(__c) {
     return __c.a[__c.i];
@@ -345,7 +348,7 @@ class std_char_traits_wchar_t {
   }
   static copy(__s1, __s2, __n) {
     let $t1;
-    return (($t1 = wmemcpy((__s1 ? {a: __s1.a, i: __s1.i} : null), (__s2 ? {a: __s2.a, i: __s2.i} : null), __n), $t1) ? {a: (($t1 = wmemcpy((__s1 ? {a: __s1.a, i: __s1.i} : null), (__s2 ? {a: __s2.a, i: __s2.i} : null), __n), $t1)).a, i: (($t1 = wmemcpy((__s1 ? {a: __s1.a, i: __s1.i} : null), (__s2 ? {a: __s2.a, i: __s2.i} : null), __n), $t1)).i} : null);
+    return ($t1 = wmemcpy((__s1 ? {a: __s1.a, i: __s1.i} : null), (__s2 ? {a: __s2.a, i: __s2.i} : null), __n), $t1 ? {a: $t1.a, i: $t1.i} : null);
   }
   static to_char_type(__c) {
     return __c.a[__c.i];
@@ -781,7 +784,7 @@ class std_ctype_char extends std_locale_facet {
     }
     else if ($a.length >= 3 && $a.length <= 3 && ($a[0] === null || typeof $a[0] === "object") && ($a[1] === null || typeof $a[1] === "object") && ($a[2] === null || typeof $a[2] === "object")) {
       (($d, $s, $n) => { for (let $k = 0; $k < $n; $k++) $d.a[$d.i + $k] = $s.a[$s.i + $k]; return $d; })((($q) => ($q && $q.a !== undefined ? $q : { a: $q, i: 0 }))($a[2]), (($q) => ($q && $q.a !== undefined ? $q : { a: $q, i: 0 }))($a[0]), ((($a[1]) ? (($a[1])).i : 0) - (($a[0]) ? (($a[0])).i : 0)));
-      return ($a[1] ? {a: ($a[1]).a, i: ($a[1]).i} : null);
+      return (($a[1]) ? {a: ($a[1]).a, i: ($a[1]).i} : null);
     }
     else { throw new Error("no matching overload"); }
   }
@@ -791,7 +794,7 @@ class std_ctype_char extends std_locale_facet {
     }
     else if ($a.length >= 4 && $a.length <= 4 && ($a[0] === null || typeof $a[0] === "object") && ($a[1] === null || typeof $a[1] === "object") && (typeof $a[2] === "number" || typeof $a[2] === "boolean") && ($a[3] === null || typeof $a[3] === "object")) {
       (($d, $s, $n) => { for (let $k = 0; $k < $n; $k++) $d.a[$d.i + $k] = $s.a[$s.i + $k]; return $d; })((($q) => ($q && $q.a !== undefined ? $q : { a: $q, i: 0 }))($a[3]), (($q) => ($q && $q.a !== undefined ? $q : { a: $q, i: 0 }))($a[0]), ((($a[1]) ? (($a[1])).i : 0) - (($a[0]) ? (($a[0])).i : 0)));
-      return ($a[1] ? {a: ($a[1]).a, i: ($a[1]).i} : null);
+      return (($a[1]) ? {a: ($a[1]).a, i: ($a[1]).i} : null);
     }
     else { throw new Error("no matching overload"); }
   }
@@ -909,7 +912,7 @@ class std_basic_streambuf_char_std_char_traits_char {
            {
             let __remaining = {v: (__n - __ret)};
             let __len = ($t6 = std_min_long({a: __buf_len, i: "v"}, {a: __remaining, i: "v"}), $t6.a[$t6.i]);
-            std_char_traits_char.copy((__s ? {a: __s.a, i: __s.i} : null), (($t7 = this.gptr__c(), $t7) ? {a: (($t7 = this.gptr__c(), $t7)).a, i: (($t7 = this.gptr__c(), $t7)).i} : null), __len);
+            std_char_traits_char.copy((__s ? {a: __s.a, i: __s.i} : null), ($t7 = this.gptr__c(), $t7 ? {a: $t7.a, i: $t7.i} : null), __len);
             __ret += __len;
             __s.i += (__len);
             this.__safe_gbump(__len);
@@ -960,7 +963,7 @@ class std_basic_streambuf_char_std_char_traits_char {
            {
             let __remaining = {v: (__n - __ret)};
             let __len = ($t12 = std_min_long({a: __buf_len, i: "v"}, {a: __remaining, i: "v"}), $t12.a[$t12.i]);
-            std_char_traits_char.copy((($t13 = this.pptr__c(), $t13) ? {a: (($t13 = this.pptr__c(), $t13)).a, i: (($t13 = this.pptr__c(), $t13)).i} : null), (__s ? {a: __s.a, i: __s.i} : null), __len);
+            std_char_traits_char.copy(($t13 = this.pptr__c(), $t13 ? {a: $t13.a, i: $t13.i} : null), (__s ? {a: __s.a, i: __s.i} : null), __len);
             __ret += __len;
             __s.i += (__len);
             this.__safe_pbump(__len);
@@ -1111,7 +1114,7 @@ class std_basic_streambuf_wchar_t_std_char_traits_wchar_t {
            {
             let __remaining = {v: (__n - __ret)};
             let __len = ($t18 = std_min_long({a: __buf_len, i: "v"}, {a: __remaining, i: "v"}), $t18.a[$t18.i]);
-            std_char_traits_wchar_t.copy((__s ? {a: __s.a, i: __s.i} : null), (($t19 = this.gptr__c(), $t19) ? {a: (($t19 = this.gptr__c(), $t19)).a, i: (($t19 = this.gptr__c(), $t19)).i} : null), __len);
+            std_char_traits_wchar_t.copy((__s ? {a: __s.a, i: __s.i} : null), ($t19 = this.gptr__c(), $t19 ? {a: $t19.a, i: $t19.i} : null), __len);
             __ret += __len;
             __s.i += (__len);
             this.__safe_gbump(__len);
@@ -1162,7 +1165,7 @@ class std_basic_streambuf_wchar_t_std_char_traits_wchar_t {
            {
             let __remaining = {v: (__n - __ret)};
             let __len = ($t24 = std_min_long({a: __buf_len, i: "v"}, {a: __remaining, i: "v"}), $t24.a[$t24.i]);
-            std_char_traits_wchar_t.copy((($t25 = this.pptr__c(), $t25) ? {a: (($t25 = this.pptr__c(), $t25)).a, i: (($t25 = this.pptr__c(), $t25)).i} : null), (__s ? {a: __s.a, i: __s.i} : null), __len);
+            std_char_traits_wchar_t.copy(($t25 = this.pptr__c(), $t25 ? {a: $t25.a, i: $t25.i} : null), (__s ? {a: __s.a, i: __s.i} : null), __len);
             __ret += __len;
             __s.i += (__len);
             this.__safe_pbump(__len);
@@ -1238,7 +1241,7 @@ class std_ostreambuf_iterator_char_std_char_traits_char extends std_iterator_std
     this.__init_std_ostreambuf_iterator_char_std_char_traits_char(...$a);
   }
   __init_std_ostreambuf_iterator_char_std_char_traits_char(...$a) {
-    this._M_sbuf = ((($a[0]).a[($a[0]).i])._M_sbuf ? {a: ((($a[0]).a[($a[0]).i])._M_sbuf).a, i: ((($a[0]).a[($a[0]).i])._M_sbuf).i} : null);
+    this._M_sbuf = (((($a[0]).a[($a[0]).i])._M_sbuf) ? {a: ((($a[0]).a[($a[0]).i])._M_sbuf).a, i: ((($a[0]).a[($a[0]).i])._M_sbuf).i} : null);
     this._M_failed = (($a[0]).a[($a[0]).i])._M_failed;
   }
   __dtor() {
@@ -1289,7 +1292,7 @@ class std_istreambuf_iterator_char_std_char_traits_char extends std_iterator_std
     this.__init_std_istreambuf_iterator_char_std_char_traits_char(...$a);
   }
   __init_std_istreambuf_iterator_char_std_char_traits_char(...$a) {
-    this._M_sbuf = ((($a[0]).a[($a[0]).i])._M_sbuf ? {a: ((($a[0]).a[($a[0]).i])._M_sbuf).a, i: ((($a[0]).a[($a[0]).i])._M_sbuf).i} : null);
+    this._M_sbuf = (((($a[0]).a[($a[0]).i])._M_sbuf) ? {a: ((($a[0]).a[($a[0]).i])._M_sbuf).a, i: ((($a[0]).a[($a[0]).i])._M_sbuf).i} : null);
     this._M_c = (($a[0]).a[($a[0]).i])._M_c;
   }
   __dtor() {
@@ -1421,7 +1424,7 @@ class std_ostreambuf_iterator_wchar_t_std_char_traits_wchar_t extends std_iterat
     this.__init_std_ostreambuf_iterator_wchar_t_std_char_traits_wchar_t(...$a);
   }
   __init_std_ostreambuf_iterator_wchar_t_std_char_traits_wchar_t(...$a) {
-    this._M_sbuf = ((($a[0]).a[($a[0]).i])._M_sbuf ? {a: ((($a[0]).a[($a[0]).i])._M_sbuf).a, i: ((($a[0]).a[($a[0]).i])._M_sbuf).i} : null);
+    this._M_sbuf = (((($a[0]).a[($a[0]).i])._M_sbuf) ? {a: ((($a[0]).a[($a[0]).i])._M_sbuf).a, i: ((($a[0]).a[($a[0]).i])._M_sbuf).i} : null);
     this._M_failed = (($a[0]).a[($a[0]).i])._M_failed;
   }
   __dtor() {
@@ -1472,7 +1475,7 @@ class std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t extends std_iterat
     this.__init_std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t(...$a);
   }
   __init_std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t(...$a) {
-    this._M_sbuf = ((($a[0]).a[($a[0]).i])._M_sbuf ? {a: ((($a[0]).a[($a[0]).i])._M_sbuf).a, i: ((($a[0]).a[($a[0]).i])._M_sbuf).i} : null);
+    this._M_sbuf = (((($a[0]).a[($a[0]).i])._M_sbuf) ? {a: ((($a[0]).a[($a[0]).i])._M_sbuf).a, i: ((($a[0]).a[($a[0]).i])._M_sbuf).i} : null);
     this._M_c = (($a[0]).a[($a[0]).i])._M_c;
   }
   __dtor() {

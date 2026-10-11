@@ -90,7 +90,7 @@ class JsGen {
   streamHelper(): string {
     return [
       `var __ctj_obuf = "";`,
-      `function __ctj_fmt(v) { if (v == null) return "0"; if (typeof v === "boolean") return v ? "1" : "0"; if (typeof v === "number") return String(v); if (typeof v === "string") return v; var a = v && v.a, i = v && v.i; if (Array.isArray(v)) { a = v; i = 0; } if (Array.isArray(a)) { var s = ""; for (var k = i | 0; k < a.length && a[k]; k++) s += String.fromCharCode(a[k]); return s; } return String(v); }`,
+      `function __ctj_fmt(v) { for (var n = 0; n < 4 && v && typeof v === "object" && v.a !== undefined && !Array.isArray(v) && !Array.isArray(v.a); n++) v = v.a[v.i]; if (v == null) return "0"; if (typeof v === "boolean") return v ? "1" : "0"; if (typeof v === "number") return String(v); if (typeof v === "string") return v; var a = v && v.a, i = v && v.i; if (Array.isArray(v)) { a = v; i = 0; } if (Array.isArray(a)) { var s = ""; for (var k = i | 0; k < a.length && a[k]; k++) s += String.fromCharCode(a[k]); return s; } return String(v); }`,
       `function __ctj_write(s) { s = String(s); if (typeof process !== "undefined" && process.stdout && process.stdout.write) { process.stdout.write(s); return; } __ctj_obuf += s; for (;;) { var n = __ctj_obuf.indexOf("\\n"); if (n < 0) break; console.log(__ctj_obuf.slice(0, n)); __ctj_obuf = __ctj_obuf.slice(n + 1); } }`,
       `function __ctj_flush() { if (__ctj_obuf) { console.log(__ctj_obuf); __ctj_obuf = ""; } }`,
     ].join("\n");
@@ -682,9 +682,12 @@ class JsGen {
     this.line(`  return s;`);
     this.line(`}`);
     this.line(`function _ctj_fmt(v) {`);
+    this.line(`  for (let n = 0; n < 4 && v && typeof v === "object" && v.a !== undefined && !Array.isArray(v) && !Array.isArray(v.a); n++) v = v.a[v.i];`);
     this.line(`  if (v === null || v === undefined) return "0";`);
     this.line(`  if (typeof v === "boolean") return v ? "1" : "0";`);
-    this.line(`  if (typeof v === "object" && v && v.a !== undefined) return _ctj_cstr(v);`);
+    this.line(`  if (typeof v === "number") return String(v);`);
+    this.line(`  if (typeof v === "string") return v;`);
+    this.line(`  if (typeof v === "object") return _ctj_cstr(v);`);
     this.line(`  return String(v);`);
     this.line(`}`);
   }
@@ -740,6 +743,7 @@ class JsGen {
         "else if(_ctj_peq(p,hn._M_left)) hn._M_left={a:x.a,i:x.i};}",
         "else{pn._M_right={a:x.a,i:x.i};",
         "if(_ctj_peq(p,hn._M_right)) hn._M_right={a:x.a,i:x.i};}",
+        "if(hn._M_parent){var r=hn._M_parent.a[hn._M_parent.i];if(r) r._M_color=1;}",
       ].join("");
     }
     if (f.fq === "std::_Rb_tree_increment") {
@@ -1630,6 +1634,11 @@ class JsGen {
     // data behind the object: the instance gets an array to be addressed in.
     if (e.kind === "this") return `{a: (this.ctj_a || (this.ctj_a = [])), i: (this.ctj_i || 0)}`;
     if (t.dims.length && !t.isBox()) return `{a: ${x}, i: 0}`;
+    // _M_leftmost()/_M_rightmost() are T*&: compare the pointer they refer to.
+    if (t.ref && t.ptr > 0 && e.kind === "call") {
+      const p = this.paren(x);
+      return `(${x} ? ${p}.a[${p}.i] : null)`;
+    }
     return x;
   }
 
@@ -1652,12 +1661,22 @@ class JsGen {
     const pB = isBoxLike(p);
     const aB = at ? isBoxLike(at) : false;
     // A pointer is a value: the copy must not share its fat pointer with the
-    // original, or moving one of them would move the other.
+    // original, or moving one of them would move the other.  A reference to a
+    // pointer (_M_rightmost() is _Base_ptr&) decays first.
     if (p.ptr > 0 && !p.ref && !p.dims.length && !p.isFunc &&
-      at && at.ptr > 0 && !at.ref && !at.dims.length && !at.isFunc) {
-      const src = this.complex(this.ex(x), x);
-      const sp = this.paren(src);
-      return `(${src} ? {a: ${sp}.a, i: ${sp}.i} : null)`;
+      at && at.ptr > 0 && !at.dims.length && !at.isFunc) {
+      // Bind once: complex() inlines `$t = src, $t` and the ternary would
+      // evaluate that (and any --it inside) three times.
+      const raw = this.ex(x);
+      const src = this.isSimple(x) ? this.paren(raw) : this.tmp();
+      const pre = this.isSimple(x) ? "" : `${src} = ${raw}, `;
+      // T*& from a call (_M_rightmost) is a fat pointer to the pointer.
+      // A T*& id is already unboxed by ex, so copying it is enough.
+      if (at.ref && x.kind === "call") {
+        const t = this.tmp();
+        return `(${pre}${t} = (${src} ? ${src}.a[${src}.i] : null), ${t} && ${t}.a !== undefined ? {a: ${t}.a, i: ${t}.i} : ${t})`;
+      }
+      return `(${pre}${src} ? {a: ${src}.a, i: ${src}.i} : null)`;
     }
     if (p.dims.length && x.kind === "initlist") {
       return this.arrayInit(p, (x as InitListExpr).items, null as unknown as VarDecl);
@@ -1665,7 +1684,8 @@ class JsGen {
     if (pB && !aB) {
       if (!at || at.name === "__null" || this.isZeroLit(x)) {
         // A reference still needs a box; a pointer parameter is null itself.
-        return p.ref ? "{a: [null], i: 0}" : "null";      }
+        return p.ref ? "{a: [null], i: 0}" : "null";
+      }
       if (at.isFunc) return this.ex(x);
       return this.exBox(x);
     }
