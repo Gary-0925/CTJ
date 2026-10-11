@@ -10,5 +10,7 @@ int main() {
   int n = (int)v.size();
   v.clear();
   __ctj_js("console.log($1, $2, $3, $4)", sum, second, n, (int)v.size());
+  std::vector<int> w(3);
+  __ctj_js("console.log($1)", (int)w.size());
   return 0;
 }

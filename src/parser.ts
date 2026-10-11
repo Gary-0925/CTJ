@@ -585,7 +585,16 @@ export class Parser {
         continue;
       }
       if (v === "operator" || v === "template" || v === "~") break;
-      if (!this.isTypeName(v) && this.peek(1).t !== "::" && this.peek(1).t !== "<") break;
+      if (!this.isTypeName(v) && this.peek(1).t !== "::" && this.peek(1).t !== "<") {
+        // After a storage/function specifier an unknown identifier followed by
+        // another identifier (or a pointer/ref/operator) is almost certainly a
+        // type the parser has not registered — typically a typedef of a base.
+        const nxt = this.peek(1);
+        const looksLikeType = flags.length && !type
+          && (nxt.t === "ident" || nxt.t === "*" || nxt.t === "&" || nxt.t === "&&"
+            || nxt.v === "operator");
+        if (!looksLikeType) break;
+      }
       if (this.peek(1).t === "(" && !type && !prefix.length) break;
       // "typedef typename R::iterator iterator;": once a type is complete, an
       // identifier that is itself a type name is the declarator being declared
@@ -971,6 +980,10 @@ export class Parser {
           for (const p of params) {
             const pt = p.type;
             if (!pt.parts.length && !pt.decltypeOf && !pt.ptr && !pt.ref && !pt.func && !pt.dims.length && !p.variadic && !p.isPack) {
+              throw new Error("not params");
+            }
+            // "sentry __cerb(*this)": *this is a pointer named this, not a type.
+            if (!pt.parts.length && !pt.decltypeOf && !pt.func && !p.variadic && !p.isPack && p.name === "this") {
               throw new Error("not params");
             }
           }

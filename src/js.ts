@@ -45,6 +45,7 @@ class JsGen {
   exStack: string[] = [];
   rangeN = 0;
   fnStack: FuncInfo[] = [];
+  needStreamFmt = false;
 
   constructor(cx: Cx) {
     this.cx = cx;
@@ -52,6 +53,7 @@ class JsGen {
 
   run(): string {
     this.line(`"use strict";`);
+    if (this.needsRbTreeHelpers()) this.emitPtrHelpers();
     for (const c of this.sortClasses()) {
       if (!c.referenced || c.isLambda) continue;
       this.emitClass(c);
@@ -76,8 +78,21 @@ class JsGen {
       const ps = this.cx.funcParams(main);
       const args = ps.length >= 3 ? ["0", `{a: [], i: 0}`, "null"] : ps.length === 2 ? ["0", `{a: [], i: 0}`] : ps.length === 1 ? ["0"] : [];
       this.line(`main(${args.join(", ")});`);
+      if (this.needStreamFmt) this.line(`__ctj_flush();`);
+    }
+    if (this.needStreamFmt) {
+      this.out.splice(1, 0, this.streamHelper());
     }
     return this.out.join("\n") + "\n";
+  }
+
+  streamHelper(): string {
+    return [
+      `var __ctj_obuf = "";`,
+      `function __ctj_fmt(v) { if (v == null) return "0"; if (typeof v === "boolean") return v ? "1" : "0"; if (typeof v === "number") return String(v); if (typeof v === "string") return v; var a = v && v.a, i = v && v.i; if (Array.isArray(v)) { a = v; i = 0; } if (Array.isArray(a)) { var s = ""; for (var k = i | 0; k < a.length && a[k]; k++) s += String.fromCharCode(a[k]); return s; } return String(v); }`,
+      `function __ctj_write(s) { s = String(s); if (typeof process !== "undefined" && process.stdout && process.stdout.write) { process.stdout.write(s); return; } __ctj_obuf += s; for (;;) { var n = __ctj_obuf.indexOf("\\n"); if (n < 0) break; console.log(__ctj_obuf.slice(0, n)); __ctj_obuf = __ctj_obuf.slice(n + 1); } }`,
+      `function __ctj_flush() { if (__ctj_obuf) { console.log(__ctj_obuf); __ctj_obuf = ""; } }`,
+    ].join("\n");
   }
 
   sortClasses(): ClsInfo[] {
@@ -421,11 +436,22 @@ class JsGen {
         this.line(`${bn}.prototype.__init_${bn}.call(this);`);
       }
     }
+    const copySrc = this.cx.isCopyCtor(fn) && ps.length
+      ? (ps[0].type.ref || ps[0].type.ptr > 0
+        ? `($a[0] && $a[0].a ? $a[0].a[$a[0].i] : $a[0])`
+        : `$a[0]`)
+      : null;
+    const copyDefault = !!(copySrc && (fn.isDefault || !fn.decl.body || !fn.decl.body.length));
     for (const [name, fd] of c.fields) {
       if (c.fieldStatic.has(name)) continue;
       const ft = this.cx.fieldType(c, name);
       const hit = !inh ? fn.decl.ctorInit.find(x => last(x.name).n === name) : null;
-      this.line(`this.${safeJsName(name)} = ${this.fieldInit(c, ft, fd, hit || null)};`);
+      const fname = safeJsName(name);
+      if (!hit && copyDefault) {
+        this.line(`this.${fname} = ${copySrc}.${fname};`);
+      } else {
+        this.line(`this.${fname} = ${this.fieldInit(c, ft, fd, hit || null)};`);
+      }
     }
     if (!inh) {
       this.fnStack.push(fn);
@@ -521,7 +547,7 @@ class JsGen {
   }
 
   emitMethod(c: ClsInfo, fns: FuncInfo[]): void {
-    const use = fns.filter(f => f.referenced && ((f.decl.body || []).length || f.decl.flags.includes("pure")));
+    const use = fns.filter(f => f.referenced);
     if (!use.length) return;
     const groups = new Map<string, FuncInfo[]>();
     for (const f of use) {
@@ -583,6 +609,8 @@ class JsGen {
         ps.forEach((p, j) => {
           if (!p.variadic && p.name) this.alias[this.alias.length - 1].set(p.name, this.ctorArg(p, j));
         });
+        // Wrap after the overload is chosen so later branches still see $a.
+        this.boxRestParams(fn, ps);
         this.fnStack.push(fn);
         this.bodyStmts(fn.decl.body || []);
         this.fnStack.pop();
@@ -592,6 +620,20 @@ class JsGen {
       });
       this.line(`else { throw new Error("no matching overload"); }`);
     });
+  }
+
+  needsRbTreeHelpers(): boolean {
+    for (const list of this.cx.funcs.values()) {
+      for (const f of list) {
+        if (f.referenced && !f.isMethod && this.rbTreeStub(f)) return true;
+      }
+    }
+    return false;
+  }
+
+  // Fat-pointer helpers used by the libstdc++ red-black tree externals.
+  emitPtrHelpers(): void {
+    this.line(`function _ctj_peq(a, b) { return a === b || (!!a && !!b && a.a === b.a && a.i === b.i); }`);
   }
 
   // The allocation operators are declared by <new> with no body; storage comes
@@ -605,10 +647,51 @@ class JsGen {
     return null;
   }
 
+  // libstdc++ defines these in src/c++98/tree.cc, which is not a header.
+  rbTreeStub(f: FuncInfo): string | null {
+    if (f.fq === "std::_Rb_tree_insert_and_rebalance") {
+      return [
+        "var left=$a[0],x=$a[1],p=$a[2],h=$a[3];",
+        "var xn=x.a[x.i],pn=p.a[p.i],hn=h.a[h.i];",
+        "xn._M_parent={a:p.a,i:p.i};xn._M_left=null;xn._M_right=null;xn._M_color=0;",
+        "if(left){pn._M_left={a:x.a,i:x.i};",
+        "if(_ctj_peq(p,h)){hn._M_parent={a:x.a,i:x.i};hn._M_right={a:x.a,i:x.i};}",
+        "else if(_ctj_peq(p,hn._M_left)) hn._M_left={a:x.a,i:x.i};}",
+        "else{pn._M_right={a:x.a,i:x.i};",
+        "if(_ctj_peq(p,hn._M_right)) hn._M_right={a:x.a,i:x.i};}",
+      ].join("");
+    }
+    if (f.fq === "std::_Rb_tree_increment") {
+      return [
+        "var x=$a[0]; if(!x) return null; var n=x.a[x.i];",
+        "if(n._M_right){ x=n._M_right; n=x.a[x.i]; while(n._M_left){ x=n._M_left; n=x.a[x.i]; } return {a:x.a,i:x.i}; }",
+        "var y=n._M_parent;",
+        "while(y){ var p=y.a[y.i]; if(!_ctj_peq(x,p._M_right)) break; x=y; n=p; y=n._M_parent; }",
+        "n=x.a[x.i]; if(!n._M_right||!_ctj_peq(n._M_right,y)) x=y;",
+        "return x?{a:x.a,i:x.i}:null;",
+      ].join(" ");
+    }
+    if (f.fq === "std::_Rb_tree_decrement") {
+      return [
+        "var x=$a[0]; if(!x) return null; var n=x.a[x.i];",
+        "var yp=n._M_parent&&n._M_parent.a[n._M_parent.i];",
+        "if(n._M_color===0&&yp&&yp._M_parent&&_ctj_peq(yp._M_parent,x)){ x=n._M_right; return x?{a:x.a,i:x.i}:null; }",
+        "if(n._M_left){ x=n._M_left; n=x.a[x.i]; while(n._M_right){ x=n._M_right; n=x.a[x.i]; } return {a:x.a,i:x.i}; }",
+        "var y=n._M_parent;",
+        "while(y){ var p=y.a[y.i]; if(!_ctj_peq(x,p._M_left)) break; x=y; n=p; y=n._M_parent; }",
+        "return y?{a:y.a,i:y.i}:null;",
+      ].join(" ");
+    }
+    if (f.fq === "std::_Rb_tree_rebalance_for_erase") {
+      return "return $a[0];";
+    }
+    return null;
+  }
+
   emitFunc(f: FuncInfo): void {
     if (!(f.decl.body || []).length) {
-      const alloc = this.allocStub(f);
-      if (alloc !== null) this.line(`function ${f.mangled}(...$a) { ${alloc} }`);
+      const stub = this.allocStub(f) ?? this.rbTreeStub(f);
+      if (stub !== null) this.line(`function ${f.mangled}(...$a) { ${stub} }`);
       else this.line(`function ${f.mangled}(...$a) { throw new Error("unresolved external: ${f.fq}"); }`);
       return;
     }
@@ -661,6 +744,18 @@ class JsGen {
     });
   }
 
+  // Overload groups pass arguments as $a[j]. Wrap the chosen branch's
+  // address-taken parameters without mutating $a for later else-if arms.
+  boxRestParams(f: FuncInfo, ps: FuncParam[]): void {
+    ps.forEach((p, i) => {
+      if (p.variadic) return;
+      const v = this.paramVar(f, i);
+      if (v && (v.storage === "boxed" || v.storage === "bbox")) {
+        this.line(`$a[${i}] = {v: $a[${i}]};`);
+      }
+    });
+  }
+
   // The VarInfo of a parameter hangs off its declaration node; the scope the
   // analysis built it in is a copy that no longer exists.
   paramVar(f: FuncInfo, i: number): VarInfo | null {
@@ -670,6 +765,10 @@ class JsGen {
 
   emitGlobal(v: VarInfo): void {
     if (!v.referenced && !v.decl.init && !v.decl.directInit) return;
+    if (v.isGlobal && /^(cout|cerr|clog|wcout|wcerr|wclog)$/.test(v.short)) {
+      this.line(`let ${v.mangled} = {};`);
+      return;
+    }
     const t = v.typeCache as CppType;
     if (v.lifted) {
       this.line(`let ${v.mangled};`);
@@ -1465,8 +1564,10 @@ class JsGen {
       return this.arrayInit(p, (x as InitListExpr).items, null as unknown as VarDecl);
     }
     if (pB && !aB) {
-      if (!at || at.name === "__null") return "null";
-      if (this.isZeroLit(x)) return "null";
+      if (!at || at.name === "__null" || this.isZeroLit(x)) {
+        // A reference still needs a box; a pointer parameter is null itself.
+        return p.ref ? "{a: [null], i: 0}" : "null";
+      }
       if (at.isFunc) return this.ex(x);
       return this.exBox(x);
     }
@@ -1478,6 +1579,8 @@ class JsGen {
         const sym = this.cx.getAnn(x).sym;
         if (sym && sym.k === "var" && sym.v.typeCache && sym.v.typeCache.ref) return this.ex(x);
       }
+      // exCallValue already reads through a scalar reference return.
+      if (x.kind === "call" && this.returnsScalarRef(x as CallExpr)) return this.ex(x);
       return this.deref(x);
     }
     if (coreName(p) === "bool" && at && at.isBox() && !at.isFunc) return `(${this.ex(x)} != null)`;
@@ -1605,7 +1708,9 @@ class JsGen {
       let o = this.objOf((e.fn as MemberExpr).obj);
       const ma = this.cx.getAnn(e.fn);
       if (ma.arrowCall) o = `(${this.paren(o)}.${methodJsName(ma.arrowCall as FuncInfo)}())`;
-      if ((e.fn as MemberExpr).qual.length) {
+      // obj.field(args) on a functor field calls operator() on the field.
+      if (ma.sym && ma.sym.k === "var" && ma.sym.v.isField) o = this.ex(e.fn);
+      if ((e.fn as MemberExpr).qual.length && !(ma.sym && ma.sym.k === "var" && ma.sym.v.isField)) {
         const cls = this.cx.classes.get(fn.cls as string) as ClsInfo;
         s = `${cls.mangled}.prototype.${methodJsName(fn)}.call(${o}${aa.length ? ", " + aa.join(", ") : ""})`;
       } else {
@@ -1834,8 +1939,34 @@ class JsGen {
     return this.ex(e.arg);
   }
 
+  exStreamOut(e: BinaryExpr): string {
+    this.needStreamFmt = true;
+    const manip = streamManipName(e.r);
+    let payload: string;
+    if (manip === "endl") payload = `"\\n"`;
+    else if (manip === "ends") payload = `"\\0"`;
+    else if (manip === "flush") payload = `""`;
+    else {
+      const rt = this.cx.getAnn(e.r).t as CppType | null;
+      const core = rt ? coreName(rt) : "";
+      const rs = this.ex(e.r);
+      if (rt && !rt.ptr && !rt.dims.length && (core === "char" || core === "signed char" || core === "unsigned char" || core === "wchar_t")) {
+        payload = `String.fromCharCode(${rs})`;
+      } else {
+        payload = `__ctj_fmt(${rs})`;
+      }
+    }
+    const l = this.ex(e.l);
+    if (this.isSimple(e.l)) return `(__ctj_write(${payload}), ${l})`;
+    const t = this.tmp();
+    return `(${t} = ${l}, __ctj_write(${payload}), ${t})`;
+  }
+
   exBinary(e: BinaryExpr): string {
     const a = this.cx.getAnn(e);
+    if (a.call && typeof a.call === "object" && "builtin" in (a.call as object)) {
+      return this.exStreamOut(e);
+    }
     if (a.call) {
       const fn = a.call as FuncInfo;
       const ps = this.cx.funcParams(fn);
@@ -2037,6 +2168,11 @@ class JsGen {
       // "T()" and "T{}" value initialise: the empty list is not an argument of
       // the constructor the cast resolved to.
       if (!cps.length || (e.arg.kind === "initlist" && !(e.arg as InitListExpr).items.length)) return `new ${cn}()`;
+      // "T(a, b)" is a functional cast whose argument list is an initlist of
+      // the constructor arguments (e.g. pair<_Base_ptr,_Base_ptr>(__x, __y)).
+      if (e.arg.kind === "initlist") {
+        return this.ctorExpr(cn, a.call as FuncInfo, (e.arg as InitListExpr).items, a.convs, t);
+      }
       return `new ${cn}(${this.argFor(cps[0].type, e.arg, a.conv)})`;
     }
     // "size_type()" value-initialises: there is no argument to convert.

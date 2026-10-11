@@ -180,6 +180,11 @@ var CTJ;
                         j += 2;
                         continue;
                     }
+                    if (src[j] === "\\" && src[j + 1] === "\r" && src[j + 2] === "\n") {
+                        text += "\n";
+                        j += 3;
+                        continue;
+                    }
                     if (src[j] === "\n")
                         break;
                     text += src[j];
@@ -1435,6 +1440,11 @@ var CTJ;
                     if (e instanceof CTJ.CtxError) {
                         this.warn(`parse error: ${e.message} at ${e.where()}, skipping`, this.peek());
                         this.recover();
+                        // Skip stray closing braces at top level (recover() leaves them
+                        // unconsumed so that namespace / class body loops can handle them).
+                        if (this.peek().t === "}") {
+                            this.pos++;
+                        }
                     }
                     else
                         throw e;
@@ -1454,10 +1464,10 @@ var CTJ;
                     continue;
                 }
                 if (t.t === "}") {
-                    this.pos++;
                     if (depth === 0)
                         return;
                     depth--;
+                    this.pos++;
                     continue;
                 }
                 if (t.t === ";" && depth === 0) {
@@ -1846,8 +1856,17 @@ var CTJ;
                 }
                 if (v === "operator" || v === "template" || v === "~")
                     break;
-                if (!this.isTypeName(v) && this.peek(1).t !== "::" && this.peek(1).t !== "<")
-                    break;
+                if (!this.isTypeName(v) && this.peek(1).t !== "::" && this.peek(1).t !== "<") {
+                    // After a storage/function specifier an unknown identifier followed by
+                    // another identifier (or a pointer/ref/operator) is almost certainly a
+                    // type the parser has not registered — typically a typedef of a base.
+                    const nxt = this.peek(1);
+                    const looksLikeType = flags.length && !type
+                        && (nxt.t === "ident" || nxt.t === "*" || nxt.t === "&" || nxt.t === "&&"
+                            || nxt.v === "operator");
+                    if (!looksLikeType)
+                        break;
+                }
                 if (this.peek(1).t === "(" && !type && !prefix.length)
                     break;
                 // "typedef typename R::iterator iterator;": once a type is complete, an
@@ -2296,6 +2315,10 @@ var CTJ;
                             if (!pt.parts.length && !pt.decltypeOf && !pt.ptr && !pt.ref && !pt.func && !pt.dims.length && !p.variadic && !p.isPack) {
                                 throw new Error("not params");
                             }
+                            // "sentry __cerb(*this)": *this is a pointer named this, not a type.
+                            if (!pt.parts.length && !pt.decltypeOf && !pt.func && !p.variadic && !p.isPack && p.name === "this") {
+                                throw new Error("not params");
+                            }
                         }
                         d.isFunc = true;
                         d.params = params;
@@ -2679,6 +2702,17 @@ var CTJ;
             p.registerType(head.name);
         p.inClass.push(cls);
         p.pushScope();
+        // Typedefs and nested types of a base class are visible while parsing the
+        // derived class (e.g. __one/__two from __sfinae_types used as return types
+        // of SFINAE helpers).  Without this, "static __one __test(...)" is skipped
+        // because __one is not a registered type name.
+        for (const b of head.bases) {
+            const bn = b.name.length ? b.name[b.name.length - 1].n : "";
+            const types = bn ? p.classTypes.get(bn) : undefined;
+            if (types)
+                for (const n of types)
+                    p.registerType(n);
+        }
         p.expect("{");
         while (!p.eat("}")) {
             if (p.atEnd()) {
@@ -2936,7 +2970,9 @@ var CTJ;
         if (tparams.length && (specArgs.length || isPartial)) {
             td = { kind: "template", tparams, decl: d, isSpec: true, specArgs, isExplicit: false, ...CTJ.at(t) };
         }
-        else if (!tparams.length && specArgs.length) {
+        else if (!tparams.length) {
+            // "template<> class tuple<>" is a full specialization even when the
+            // argument list is empty.
             td = { kind: "template", tparams: [], decl: d, isSpec: true, specArgs, isExplicit: false, ...CTJ.at(t) };
         }
         else {
@@ -4620,6 +4656,12 @@ var CTJ;
                         tp.def = old.def;
                 });
             }
+            // A friend "template<class...> class tuple;" must not replace the real
+            // definition, and a later forward declaration must not erase members.
+            const newMembers = inner.kind === "class" ? inner.members.length : 1;
+            const prevMembers = prev && prev.decl.kind === "class" ? prev.decl.members.length : (prev ? 1 : 0);
+            if (prev && prevMembers && !newMembers)
+                return;
             this.registerTmpl({ fq, kind, tparams, decl: inner, scope: this.snapScope(scope), specs: prev ? prev.specs : [], partials: prev ? prev.partials : [] });
         }
         registerTmpl(t) {
@@ -4793,6 +4835,11 @@ var CTJ;
                     return this.symOfNested(m.nested);
                 if (m.typedef)
                     return { k: "typedef", fq: m.typedef };
+                // Template member functions (e.g. SFINAE __test<_Tp>) are stored as
+                // templates, not as plain methods, until they are instantiated.
+                const tm = this.lookupTmplMember(c.fq, name, new Set());
+                if (tm)
+                    return { k: "tmpl", t: tm };
             }
             for (let i = scope.ns.length; i >= 0; i--) {
                 const pre = scope.ns.slice(0, i).join("::");
@@ -4902,6 +4949,23 @@ var CTJ;
                 isParam: false, isField: true, lifted: false, referenced: false,
             };
         }
+        lookupTmplMember(clsFq, name, seen) {
+            if (seen.has(clsFq))
+                return null;
+            seen.add(clsFq);
+            const tlist = this.tmplsOf(clsFq + "::" + name);
+            if (tlist.length)
+                return tlist[0];
+            const cls = this.classes.get(clsFq);
+            if (!cls)
+                return null;
+            for (const b of cls.bases) {
+                const t = this.lookupTmplMember(b.fq, name, seen);
+                if (t)
+                    return t;
+            }
+            return null;
+        }
         lookupMember(clsFq, name, seen) {
             const r = { field: false, methods: null, nested: null, typedef: null, constItem: null, owner: clsFq };
             const cls = this.classes.get(clsFq);
@@ -4989,6 +5053,30 @@ var CTJ;
                 for (let c = scope.cls; c; c = c.scope.cls) {
                     if (this.declaredName(c) === parts[0].n)
                         return { k: "class", cls: c };
+                }
+            }
+            // allocator<U> written inside allocator<T> must name the class template,
+            // not a converting constructor template of the current instantiation
+            // (which would collapse allocator<_Rb_tree_node<int>> to allocator<int>).
+            if (!global && parts[0].a.length) {
+                for (let c = scope.cls; c; c = c.scope.cls) {
+                    if (this.declaredName(c) === parts[0].n && c.fromTmpl) {
+                        const t = this.tmpls.get(c.fromTmpl);
+                        if (t && t.kind === "class") {
+                            const args = parts[0].a.map(a => this.resolveTypeNode(a, scope));
+                            const cls = this.instantiateClass(t.fq, args, scope, null);
+                            let sym = { k: "class", cls };
+                            let idx = 1;
+                            for (; idx < parts.length; idx++) {
+                                const next = this.lookupNext(sym, parts[idx], scope);
+                                if (!next)
+                                    break;
+                                sym = next;
+                            }
+                            if (idx === parts.length)
+                                return sym;
+                        }
+                    }
                 }
             }
             let sym;
@@ -5596,11 +5684,23 @@ var CTJ;
                 }
                 else {
                     const decl = CTJ.substDecl(t.decl, env);
+                    // Default template arguments of a member template can mention the
+                    // enclosing class parameters (e.g. enable_if<is_convertible<_U1, _T1>>
+                    // on pair's converting constructors).  Substitute those too.
+                    const e2 = CTJ.copySubstEnv(env);
+                    for (const tp of rest) {
+                        e2.types.delete(tp.name);
+                        e2.packs.delete(tp.name);
+                        e2.values.delete(tp.name);
+                        e2.valuePacks.delete(tp.name);
+                        e2.packNames.delete(tp.name);
+                    }
+                    const rest2 = rest.map(tp => CTJ.substTParam(tp, e2));
                     // registerTmpl, not tmpls.set: the declaration of this member that the
                     // class body carries is the same template, and the definition replaces it.
                     // The member's own scope: the class's typedefs are visible in an
                     // out-of-line definition.
-                    this.registerTmpl({ fq: newFq, kind: t.kind, tparams: rest, decl, scope: this.memberScope(owner), specs: [] });
+                    this.registerTmpl({ fq: newFq, kind: t.kind, tparams: rest2, decl, scope: this.memberScope(owner), specs: [] });
                 }
             }
         }
@@ -6305,6 +6405,21 @@ var CTJ;
         // parameter, so the name is substituted like any other qualified name.
         return { name: substQName(c.name, env), args: substCallArgs(c.args, env), file: c.file, line: c.line };
     }
+    function substTParam(tp, env) {
+        let def = tp.def;
+        if (def) {
+            if (tp.kind === "nontype")
+                def = substExpr(def, env);
+            else
+                def = substTypeNode(def, env);
+        }
+        return {
+            kind: tp.kind, name: tp.name,
+            type: tp.type ? substTypeNode(tp.type, env) : null,
+            def, isPack: tp.isPack, file: tp.file, line: tp.line,
+        };
+    }
+    CTJ.substTParam = substTParam;
     function substDecl(d, env) {
         const f = d.file;
         const l = d.line;
@@ -6371,7 +6486,7 @@ var CTJ;
                     e2.packNames.delete(tp.name);
                 }
                 return {
-                    kind: "template", tparams: d.tparams,
+                    kind: "template", tparams: d.tparams.map(tp => substTParam(tp, e2)),
                     decl: d.decl ? substDecl(d.decl, e2) : null,
                     isSpec: d.isSpec, specArgs: substTArgs(d.specArgs, e2), isExplicit: d.isExplicit, file: f, line: l,
                 };
@@ -6407,6 +6522,15 @@ var CTJ;
             analyzeFunc(cx, fn);
         }
         finalizeFields(cx);
+        // finalizeFields may reference new classes and their virtual methods,
+        // pushing additional items onto the worklist.  Process them before
+        // code generation so that every reachable function body is annotated.
+        while (cx.worklist.length) {
+            const fn = cx.worklist.shift();
+            if (fn.analyzed)
+                continue;
+            analyzeFunc(cx, fn);
+        }
         finalizeMangling(cx);
     }
     CTJ.analyzeAll = analyzeAll;
@@ -7288,6 +7412,38 @@ var CTJ;
         }
         cx.fail("subscript on non-array", e);
     }
+    // obj.Base::member — Base is looked up in the object's class (typedefs and
+    // injected base names of the enclosing class), then in the current scope.
+    function resolveQualClass(cx, qual, objClsFq, scope, t) {
+        const objCls = cx.classes.get(objClsFq);
+        const trySym = (sc) => {
+            const qs = cx.resolveSym(qual, false, sc);
+            if (!qs)
+                return null;
+            if (qs.k === "class")
+                return qs.cls.fq;
+            if (qs.k === "typedef") {
+                try {
+                    const ty = cx.expandTypedef(qs.fq, new Set());
+                    const fq = cx.stripAll(ty);
+                    if (fq) {
+                        cx.markCls(fq);
+                        if (cx.classes.has(fq))
+                            return fq;
+                        return fq;
+                    }
+                }
+                catch { /* not a class typedef */ }
+            }
+            return null;
+        };
+        let fq = objCls ? trySym(cx.memberScope(objCls)) : null;
+        if (!fq)
+            fq = trySym(scope);
+        if (!fq)
+            cx.fail(`unknown class '${qual.map(s => s.n).join("::")}'`, t);
+        return fq;
+    }
     function typeOfMember(cx, e, scope) {
         const ot = typeOf(cx, e.obj, scope);
         const ann = cx.getAnn(e);
@@ -7299,12 +7455,8 @@ var CTJ;
         if (!clsFq)
             cx.fail(`no member '${e.field}'`, e);
         let lookupFq = clsFq;
-        if (e.qual.length) {
-            const qs = cx.resolveSym(e.qual, false, scope);
-            if (!qs || qs.k !== "class")
-                cx.fail(`unknown class '${e.qual.map(s => s.n).join("::")}'`, e);
-            lookupFq = qs.cls.fq;
-        }
+        if (e.qual.length)
+            lookupFq = resolveQualClass(cx, e.qual, clsFq, scope, e);
         const m = cx.lookupMember(lookupFq, e.field, new Set());
         if (m.field) {
             const cls = cx.classes.get(m.owner);
@@ -7416,8 +7568,16 @@ var CTJ;
     }
     function typeOfBinary(cx, e, scope) {
         const rawL = typeOf(cx, e.l, scope);
-        const rawR = typeOf(cx, e.r, scope);
         const ann = cx.getAnn(e);
+        // Formatted iostream insertion pulls in locale/num_put/_M_insert. Emit a
+        // builtin write instead of analysing those bodies.
+        if (e.op === "<<" && isOstreamLike(cx, rawL.core())) {
+            if (!streamManipName(e.r))
+                typeOf(cx, e.r, scope);
+            ann.call = { builtin: "__ctj_out" };
+            return rawL;
+        }
+        const rawR = typeOf(cx, e.r, scope);
         if (e.op === ",")
             return rawR;
         // Outside a plain assignment an lvalue of reference type behaves as the type
@@ -7575,8 +7735,9 @@ var CTJ;
             return target;
         const tn = coreName(target);
         const sn = coreName(st);
-        const tCls = !target.isBox() && !target.dims.length && cx.classes.has(cx.stripAll(target));
-        const sCls = !st.isBox() && !st.dims.length && cx.classes.has(cx.stripAll(st));
+        // References to classes still denote that class (static_cast<Facet&>(x)).
+        const tCls = target.ptr === 0 && !target.dims.length && !target.isFunc && cx.classes.has(cx.stripAll(target));
+        const sCls = st.ptr === 0 && !st.dims.length && !st.isFunc && cx.classes.has(cx.stripAll(st));
         // "size_type()" and "P()" have no argument to convert: they value- or
         // default-construct the target.
         if (e.arg.kind === "initlist" && !e.arg.items.length
@@ -7589,7 +7750,9 @@ var CTJ;
             return target;
         }
         if (kind === "dynamic_cast") {
-            if (tCls || (target.ptr > 0 && coreName(target) === "void"))
+            // dynamic_cast is a runtime check on a pointer or reference.  The target
+            // class may not have been instantiated yet (e.g. use_facet<num_put>).
+            if (target.ptr > 0 || target.ref || tCls)
                 return target;
             cx.fail("bad dynamic_cast", e);
         }
@@ -7685,7 +7848,15 @@ var CTJ;
                 tmpls.push(tm);
         if (!cands.length && !tmpls.length)
             cx.fail(`no constructor of '${clsFq}'`, t);
-        return resolveOverload(cx, cands, tmpls, args, scope, t);
+        try {
+            return resolveOverload(cx, cands, tmpls, args, scope, t);
+        }
+        catch (e) {
+            if (e instanceof Error && e.message.indexOf("no matching function") >= 0) {
+                cx.fail(`no matching constructor of '${clsFq}' for (${args.map(a => a.t.key()).join(", ")})`, t);
+            }
+            throw e;
+        }
     }
     CTJ.resolveCtor = resolveCtor;
     function tryResolveCtor(cx, clsFq, args, scope) {
@@ -7819,20 +7990,31 @@ var CTJ;
         if (!clsFq)
             cx.fail(`no method '${fn.field}'`, fn);
         let lookupFq = clsFq;
-        if (fn.qual.length) {
-            const qs = cx.resolveSym(fn.qual, false, scope);
-            if (!qs || qs.k !== "class")
-                cx.fail(`unknown class '${fn.qual.map(s => s.n).join("::")}'`, fn);
-            lookupFq = qs.cls.fq;
-        }
+        if (fn.qual.length)
+            lookupFq = resolveQualClass(cx, fn.qual, clsFq, scope, fn);
         // "p->~T()" names the destructor of the class the object belongs to.
         const mname = fn.field.charAt(0) === "~" ? "#dtor" : fn.field;
         const m = cx.lookupMember(lookupFq, mname, new Set());
         if (m.field) {
             const cls = cx.classes.get(m.owner);
+            const fd = cls.fields.get(fn.field);
+            cx.getAnn(fn).sym = { k: "var", v: cx.fieldVar(cls, fn.field, fd) };
             const ft = cx.fieldType(cls, fn.field);
             if (ft.isFunc)
                 return ft.ret;
+            // A class instance with operator() is callable (e.g. std::less<int>).
+            const fieldClsFq = cx.stripAll(ft);
+            const fieldCls = cx.classes.get(fieldClsFq);
+            if (fieldCls) {
+                const ops = fieldCls.methods.get("operator()") || [];
+                if (ops.length) {
+                    const r = resolveOverload(cx, ops, [], argTs, scope, e);
+                    ann.call = r.fn;
+                    ann.convs = r.convs;
+                    applyArgBoxing(cx, e, r.fn, argTs, scope);
+                    return cx.funcRet(r.fn);
+                }
+            }
             cx.fail(`'${fn.field}' is not callable`, fn);
         }
         const cands = m.methods ? m.methods.slice() : [];
@@ -7841,6 +8023,18 @@ var CTJ;
         for (const tm of cx.tmplsOf(tfq))
             if (!tmpls.includes(tm))
                 tmpls.push(tm);
+        // When the owner is an instantiated class template, member function
+        // templates are stored under the base (uninstantiated) name.  Fall back
+        // to that if the instantiated lookup yields nothing.
+        if (!tmpls.length) {
+            const ownerCls = cx.classes.get(m.owner);
+            if (ownerCls && ownerCls.fromTmpl) {
+                for (const tm of cx.tmplsOf(ownerCls.fromTmpl + "::" + fn.field)) {
+                    if (!tmpls.includes(tm))
+                        tmpls.push(tm);
+                }
+            }
+        }
         if (!cands.length && !tmpls.length)
             cx.fail(`'${clsFq}' has no method '${fn.field}'`, fn);
         const xt = fn.targs.map(a => cx.resolveTypeNode(a, scope));
@@ -7878,24 +8072,18 @@ var CTJ;
     function resolveOverload(cx, cands, tmpls, args, scope, t, explicit, objConst = false) {
         let useCands = cands;
         if (explicit && explicit.length) {
+            // Explicit template arguments name one instantiation.  A previous
+            // use_facet<ctype> must not be chosen for use_facet<num_put>, even though
+            // both take the same locale argument.
             const expKey = explicit.map(a => a.key()).join(",");
-            const filtered = cands.filter(f => {
+            useCands = cands.filter(f => {
                 if (!f.fromTmpl)
                     return true;
-                const i = f.fq.indexOf("<");
-                const j = f.fq.lastIndexOf(">");
-                if (i < 0 || j < 0)
+                const prefix = f.fromTmpl + "<";
+                if (!f.fq.startsWith(prefix) || !f.fq.endsWith(">"))
                     return false;
-                const inner = f.fq.slice(i + 1, j);
-                return inner === expKey || inner.includes(expKey) || expKey.includes(inner);
+                return f.fq.slice(prefix.length, -1) === expKey;
             });
-            if (filtered.length)
-                useCands = filtered;
-            else {
-                const nonTmpl = cands.filter(f => !f.fromTmpl);
-                if (nonTmpl.length)
-                    useCands = nonTmpl;
-            }
         }
         const all = useCands.slice();
         for (const tm of tmpls) {
@@ -7904,7 +8092,7 @@ var CTJ;
                 all.push(inst);
         }
         if (!all.length)
-            cx.fail("no matching function", t);
+            cx.fail(`no matching function(${args.map(a => a.t.key()).join(", ")})`, t);
         let best = null;
         let bestScore = -1e18;
         let bestConvs = [];
@@ -7927,7 +8115,7 @@ var CTJ;
             }
         }
         if (!best)
-            cx.fail("no matching function for call", t);
+            cx.fail(`no matching function for call(${args.map(a => a.t.key()).join(", ")})`, t);
         if (best.isDelete)
             cx.fail("call to deleted function", t);
         cx.markFunc(best);
@@ -7980,7 +8168,12 @@ var CTJ;
             const full = deduce(cx, tm, args, scope, explicit || [], t);
             if (!full)
                 return null;
-            return cx.instantiateFunc(tm, full, new Map());
+            const fn = cx.instantiateFunc(tm, full, new Map());
+            // Substitution failure in the return type or parameters is SFINAE, not
+            // a hard error (e.g. decltype(__test_aux<_To>(declval<_From>()))).
+            cx.funcParams(fn);
+            cx.funcRet(fn);
+            return fn;
         }
         catch {
             return null;
@@ -8367,6 +8560,39 @@ var CTJ;
         return CTJ.last(t.segs).n;
     }
     CTJ.coreName = coreName;
+    function streamManipName(e) {
+        if (e.kind !== "id")
+            return null;
+        const n = CTJ.last(e.parts).n;
+        if (n === "endl" || n === "flush" || n === "ends")
+            return n;
+        return null;
+    }
+    CTJ.streamManipName = streamManipName;
+    function isOstreamLike(cx, t) {
+        const fq = cx.stripAll(t);
+        if (!fq)
+            return false;
+        const seen = new Set();
+        const q = [fq];
+        while (q.length) {
+            const cur = q.shift();
+            if (seen.has(cur))
+                continue;
+            seen.add(cur);
+            const short = cur.split("::").pop();
+            if (cur === "std::ostream" || cur === "std::wostream" || cur.startsWith("std::basic_ostream<"))
+                return true;
+            if (short === "ostream" || short === "wostream" || short.startsWith("basic_ostream<"))
+                return true;
+            const cls = cx.classes.get(cur);
+            if (cls)
+                for (const b of cls.bases)
+                    q.push(b.fq);
+        }
+        return false;
+    }
+    CTJ.isOstreamLike = isOstreamLike;
     function isClassVal(cx, t) {
         if (t.isBox() || t.dims.length > 0 || t.isFunc)
             return false;
@@ -8931,9 +9157,16 @@ var CTJ;
                 const a = constEvalInner(cx, e.arg, scope, seen);
                 if (typeof a !== "number")
                     return a;
-                // An unsigned value wraps, and the width is the 32-bit one: a JS number
-                // cannot hold a 64-bit unsigned range.
-                return CTJ.isUnsignedName(CTJ.coreName(t)) ? a >>> 0 : a;
+                // An unsigned value wraps; the mask width depends on the type.
+                // JS numbers cannot hold the full 64-bit unsigned range.
+                if (!CTJ.isUnsignedName(CTJ.coreName(t)))
+                    return a;
+                const cn = CTJ.coreName(t);
+                if (cn === "unsigned char" || cn === "signed char" || cn === "char" || cn === "char16_t")
+                    return a & 0xFF;
+                if (cn === "unsigned short" || cn === "short" || cn === "wchar_t")
+                    return a & 0xFFFF;
+                return a >>> 0;
             }
             case "call": {
                 const nm = e.fn.kind === "id" && e.fn.parts.length === 1 ? e.fn.parts[0].n : "";
@@ -9105,10 +9338,13 @@ var CTJ;
             this.exStack = [];
             this.rangeN = 0;
             this.fnStack = [];
+            this.needStreamFmt = false;
             this.cx = cx;
         }
         run() {
             this.line(`"use strict";`);
+            if (this.needsRbTreeHelpers())
+                this.emitPtrHelpers();
             for (const c of this.sortClasses()) {
                 if (!c.referenced || c.isLambda)
                     continue;
@@ -9138,8 +9374,21 @@ var CTJ;
                 const ps = this.cx.funcParams(main);
                 const args = ps.length >= 3 ? ["0", `{a: [], i: 0}`, "null"] : ps.length === 2 ? ["0", `{a: [], i: 0}`] : ps.length === 1 ? ["0"] : [];
                 this.line(`main(${args.join(", ")});`);
+                if (this.needStreamFmt)
+                    this.line(`__ctj_flush();`);
+            }
+            if (this.needStreamFmt) {
+                this.out.splice(1, 0, this.streamHelper());
             }
             return this.out.join("\n") + "\n";
+        }
+        streamHelper() {
+            return [
+                `var __ctj_obuf = "";`,
+                `function __ctj_fmt(v) { if (v == null) return "0"; if (typeof v === "boolean") return v ? "1" : "0"; if (typeof v === "number") return String(v); if (typeof v === "string") return v; var a = v && v.a, i = v && v.i; if (Array.isArray(v)) { a = v; i = 0; } if (Array.isArray(a)) { var s = ""; for (var k = i | 0; k < a.length && a[k]; k++) s += String.fromCharCode(a[k]); return s; } return String(v); }`,
+                `function __ctj_write(s) { s = String(s); if (typeof process !== "undefined" && process.stdout && process.stdout.write) { process.stdout.write(s); return; } __ctj_obuf += s; for (;;) { var n = __ctj_obuf.indexOf("\\n"); if (n < 0) break; console.log(__ctj_obuf.slice(0, n)); __ctj_obuf = __ctj_obuf.slice(n + 1); } }`,
+                `function __ctj_flush() { if (__ctj_obuf) { console.log(__ctj_obuf); __ctj_obuf = ""; } }`,
+            ].join("\n");
         }
         sortClasses() {
             const cs = [...this.cx.classes.values()].filter(c => c.complete && c.referenced && !c.isLambda);
@@ -9153,7 +9402,12 @@ var CTJ;
                     if (idx.has(b.fq))
                         d.add(b.fq);
                 for (const [name] of c.fields) {
-                    const fq = this.cx.stripAll(this.cx.fieldType(c, name));
+                    const ft = this.cx.fieldType(c, name);
+                    // Pointer and reference fields don't require the pointee class to be
+                    // emitted first — only value (non-pointer, non-reference) fields do.
+                    if (ft.ptr > 0 || ft.ref)
+                        continue;
+                    const fq = this.cx.stripAll(ft);
                     if (idx.has(fq) && fq !== c.fq)
                         d.add(fq);
                 }
@@ -9334,7 +9588,13 @@ var CTJ;
                 const bn = bc.mangled;
                 void bn;
                 const list = fn.decl.ctorInit;
-                const hit = !inh ? list.find(x => CTJ.last(x.name).n === bc.short || CTJ.last(x.name).n === b.fq) : null;
+                let hit = !inh ? list.find(x => CTJ.last(x.name).n === bc.short || CTJ.last(x.name).n === b.fq) : null;
+                // When the base is written through a typedef or template alias (e.g.
+                // "_Tp_alloc_type(__a)"), the init name won't match the resolved class
+                // short name.  Fall back to ctorBase which resolves the alias.
+                if (!hit && !inh) {
+                    hit = list.find(x => this.cx.ctorBase(c, x.name) === b.fq) || null;
+                }
                 if (inh && b.fq === inh) {
                     const ps = this.cx.funcParams(fn);
                     const aa = [];
@@ -9362,7 +9622,24 @@ var CTJ;
                     const sib = this.siblingClasses(all.map(x => x.fn));
                     const parts = all.map((x, i) => {
                         const cond = this.matchCond(x.fn, i, sib[i]);
-                        return `${cond} ? [${baseArgs(0, x.fn, x.inh).replace(/^\.\.\./, "")}] : `;
+                        const raw = baseArgs(0, x.fn, x.inh);
+                        // baseArgs returns a spread expression: "...[expr1, expr2]" or
+                        // "...(function(){...})()"  or "".  We need the raw arg expressions
+                        // inside a plain [...] for the ternary branches.
+                        let inner;
+                        if (raw.startsWith("...[")) {
+                            // Strip outer ...[...] to get the raw comma-separated expressions.
+                            inner = raw.slice(4, -1);
+                        }
+                        else if (raw.startsWith("...")) {
+                            // Inherited ctor: ...(function () { return [args]; })()
+                            // Keep the spread inside the array literal: [...(function(){...})()]
+                            return `${cond} ? [${raw}] : `;
+                        }
+                        else {
+                            inner = raw;
+                        }
+                        return `${cond} ? [${inner}] : `;
                     });
                     this.line(`super(...(${parts.join("")}[]));`);
                 }
@@ -9503,12 +9780,24 @@ var CTJ;
                     this.line(`${bn}.prototype.__init_${bn}.call(this);`);
                 }
             }
+            const copySrc = this.cx.isCopyCtor(fn) && ps.length
+                ? (ps[0].type.ref || ps[0].type.ptr > 0
+                    ? `($a[0] && $a[0].a ? $a[0].a[$a[0].i] : $a[0])`
+                    : `$a[0]`)
+                : null;
+            const copyDefault = !!(copySrc && (fn.isDefault || !fn.decl.body || !fn.decl.body.length));
             for (const [name, fd] of c.fields) {
                 if (c.fieldStatic.has(name))
                     continue;
                 const ft = this.cx.fieldType(c, name);
                 const hit = !inh ? fn.decl.ctorInit.find(x => CTJ.last(x.name).n === name) : null;
-                this.line(`this.${CTJ.safeJsName(name)} = ${this.fieldInit(c, ft, fd, hit || null)};`);
+                const fname = CTJ.safeJsName(name);
+                if (!hit && copyDefault) {
+                    this.line(`this.${fname} = ${copySrc}.${fname};`);
+                }
+                else {
+                    this.line(`this.${fname} = ${this.fieldInit(c, ft, fd, hit || null)};`);
+                }
             }
             if (!inh) {
                 this.fnStack.push(fn);
@@ -9605,7 +9894,7 @@ var CTJ;
             this.line(`}`);
         }
         emitMethod(c, fns) {
-            const use = fns.filter(f => f.referenced && ((f.decl.body || []).length || f.decl.flags.includes("pure")));
+            const use = fns.filter(f => f.referenced);
             if (!use.length)
                 return;
             const groups = new Map();
@@ -9675,6 +9964,8 @@ var CTJ;
                         if (!p.variadic && p.name)
                             this.alias[this.alias.length - 1].set(p.name, this.ctorArg(p, j));
                     });
+                    // Wrap after the overload is chosen so later branches still see $a.
+                    this.boxRestParams(fn, ps);
                     this.fnStack.push(fn);
                     this.bodyStmts(fn.decl.body || []);
                     this.fnStack.pop();
@@ -9684,6 +9975,19 @@ var CTJ;
                 });
                 this.line(`else { throw new Error("no matching overload"); }`);
             });
+        }
+        needsRbTreeHelpers() {
+            for (const list of this.cx.funcs.values()) {
+                for (const f of list) {
+                    if (f.referenced && !f.isMethod && this.rbTreeStub(f))
+                        return true;
+                }
+            }
+            return false;
+        }
+        // Fat-pointer helpers used by the libstdc++ red-black tree externals.
+        emitPtrHelpers() {
+            this.line(`function _ctj_peq(a, b) { return a === b || (!!a && !!b && a.a === b.a && a.i === b.i); }`);
         }
         // The allocation operators are declared by <new> with no body; storage comes
         // from the target language, and freeing is its business too. A placement
@@ -9696,11 +10000,52 @@ var CTJ;
                 return "";
             return null;
         }
+        // libstdc++ defines these in src/c++98/tree.cc, which is not a header.
+        rbTreeStub(f) {
+            if (f.fq === "std::_Rb_tree_insert_and_rebalance") {
+                return [
+                    "var left=$a[0],x=$a[1],p=$a[2],h=$a[3];",
+                    "var xn=x.a[x.i],pn=p.a[p.i],hn=h.a[h.i];",
+                    "xn._M_parent={a:p.a,i:p.i};xn._M_left=null;xn._M_right=null;xn._M_color=0;",
+                    "if(left){pn._M_left={a:x.a,i:x.i};",
+                    "if(_ctj_peq(p,h)){hn._M_parent={a:x.a,i:x.i};hn._M_right={a:x.a,i:x.i};}",
+                    "else if(_ctj_peq(p,hn._M_left)) hn._M_left={a:x.a,i:x.i};}",
+                    "else{pn._M_right={a:x.a,i:x.i};",
+                    "if(_ctj_peq(p,hn._M_right)) hn._M_right={a:x.a,i:x.i};}",
+                ].join("");
+            }
+            if (f.fq === "std::_Rb_tree_increment") {
+                return [
+                    "var x=$a[0]; if(!x) return null; var n=x.a[x.i];",
+                    "if(n._M_right){ x=n._M_right; n=x.a[x.i]; while(n._M_left){ x=n._M_left; n=x.a[x.i]; } return {a:x.a,i:x.i}; }",
+                    "var y=n._M_parent;",
+                    "while(y){ var p=y.a[y.i]; if(!_ctj_peq(x,p._M_right)) break; x=y; n=p; y=n._M_parent; }",
+                    "n=x.a[x.i]; if(!n._M_right||!_ctj_peq(n._M_right,y)) x=y;",
+                    "return x?{a:x.a,i:x.i}:null;",
+                ].join(" ");
+            }
+            if (f.fq === "std::_Rb_tree_decrement") {
+                return [
+                    "var x=$a[0]; if(!x) return null; var n=x.a[x.i];",
+                    "var yp=n._M_parent&&n._M_parent.a[n._M_parent.i];",
+                    "if(n._M_color===0&&yp&&yp._M_parent&&_ctj_peq(yp._M_parent,x)){ x=n._M_right; return x?{a:x.a,i:x.i}:null; }",
+                    "if(n._M_left){ x=n._M_left; n=x.a[x.i]; while(n._M_right){ x=n._M_right; n=x.a[x.i]; } return {a:x.a,i:x.i}; }",
+                    "var y=n._M_parent;",
+                    "while(y){ var p=y.a[y.i]; if(!_ctj_peq(x,p._M_left)) break; x=y; n=p; y=n._M_parent; }",
+                    "return y?{a:y.a,i:y.i}:null;",
+                ].join(" ");
+            }
+            if (f.fq === "std::_Rb_tree_rebalance_for_erase") {
+                return "return $a[0];";
+            }
+            return null;
+        }
         emitFunc(f) {
+            var _a;
             if (!(f.decl.body || []).length) {
-                const alloc = this.allocStub(f);
-                if (alloc !== null)
-                    this.line(`function ${f.mangled}(...$a) { ${alloc} }`);
+                const stub = (_a = this.allocStub(f)) !== null && _a !== void 0 ? _a : this.rbTreeStub(f);
+                if (stub !== null)
+                    this.line(`function ${f.mangled}(...$a) { ${stub} }`);
                 else
                     this.line(`function ${f.mangled}(...$a) { throw new Error("unresolved external: ${f.fq}"); }`);
                 return;
@@ -9757,6 +10102,18 @@ var CTJ;
                 }
             });
         }
+        // Overload groups pass arguments as $a[j]. Wrap the chosen branch's
+        // address-taken parameters without mutating $a for later else-if arms.
+        boxRestParams(f, ps) {
+            ps.forEach((p, i) => {
+                if (p.variadic)
+                    return;
+                const v = this.paramVar(f, i);
+                if (v && (v.storage === "boxed" || v.storage === "bbox")) {
+                    this.line(`$a[${i}] = {v: $a[${i}]};`);
+                }
+            });
+        }
         // The VarInfo of a parameter hangs off its declaration node; the scope the
         // analysis built it in is a copy that no longer exists.
         paramVar(f, i) {
@@ -9766,6 +10123,10 @@ var CTJ;
         emitGlobal(v) {
             if (!v.referenced && !v.decl.init && !v.decl.directInit)
                 return;
+            if (v.isGlobal && /^(cout|cerr|clog|wcout|wcerr|wclog)$/.test(v.short)) {
+                this.line(`let ${v.mangled} = {};`);
+                return;
+            }
             const t = v.typeCache;
             if (v.lifted) {
                 this.line(`let ${v.mangled};`);
@@ -10640,10 +11001,10 @@ var CTJ;
                 return this.arrayInit(p, x.items, null);
             }
             if (pB && !aB) {
-                if (!at || at.name === "__null")
-                    return "null";
-                if (this.isZeroLit(x))
-                    return "null";
+                if (!at || at.name === "__null" || this.isZeroLit(x)) {
+                    // A reference still needs a box; a pointer parameter is null itself.
+                    return p.ref ? "{a: [null], i: 0}" : "null";
+                }
                 if (at.isFunc)
                     return this.ex(x);
                 return this.exBox(x);
@@ -10658,6 +11019,9 @@ var CTJ;
                     if (sym && sym.k === "var" && sym.v.typeCache && sym.v.typeCache.ref)
                         return this.ex(x);
                 }
+                // exCallValue already reads through a scalar reference return.
+                if (x.kind === "call" && this.returnsScalarRef(x))
+                    return this.ex(x);
                 return this.deref(x);
             }
             if (CTJ.coreName(p) === "bool" && at && at.isBox() && !at.isFunc)
@@ -10794,7 +11158,10 @@ var CTJ;
                 const ma = this.cx.getAnn(e.fn);
                 if (ma.arrowCall)
                     o = `(${this.paren(o)}.${methodJsName(ma.arrowCall)}())`;
-                if (e.fn.qual.length) {
+                // obj.field(args) on a functor field calls operator() on the field.
+                if (ma.sym && ma.sym.k === "var" && ma.sym.v.isField)
+                    o = this.ex(e.fn);
+                if (e.fn.qual.length && !(ma.sym && ma.sym.k === "var" && ma.sym.v.isField)) {
                     const cls = this.cx.classes.get(fn.cls);
                     s = `${cls.mangled}.prototype.${methodJsName(fn)}.call(${o}${aa.length ? ", " + aa.join(", ") : ""})`;
                 }
@@ -11045,8 +11412,38 @@ var CTJ;
                 return `(~${this.paren(this.ex(e.arg))})`;
             return this.ex(e.arg);
         }
+        exStreamOut(e) {
+            this.needStreamFmt = true;
+            const manip = CTJ.streamManipName(e.r);
+            let payload;
+            if (manip === "endl")
+                payload = `"\\n"`;
+            else if (manip === "ends")
+                payload = `"\\0"`;
+            else if (manip === "flush")
+                payload = `""`;
+            else {
+                const rt = this.cx.getAnn(e.r).t;
+                const core = rt ? CTJ.coreName(rt) : "";
+                const rs = this.ex(e.r);
+                if (rt && !rt.ptr && !rt.dims.length && (core === "char" || core === "signed char" || core === "unsigned char" || core === "wchar_t")) {
+                    payload = `String.fromCharCode(${rs})`;
+                }
+                else {
+                    payload = `__ctj_fmt(${rs})`;
+                }
+            }
+            const l = this.ex(e.l);
+            if (this.isSimple(e.l))
+                return `(__ctj_write(${payload}), ${l})`;
+            const t = this.tmp();
+            return `(${t} = ${l}, __ctj_write(${payload}), ${t})`;
+        }
         exBinary(e) {
             const a = this.cx.getAnn(e);
+            if (a.call && typeof a.call === "object" && "builtin" in a.call) {
+                return this.exStreamOut(e);
+            }
             if (a.call) {
                 const fn = a.call;
                 const ps = this.cx.funcParams(fn);
@@ -11256,6 +11653,11 @@ var CTJ;
                 // the constructor the cast resolved to.
                 if (!cps.length || (e.arg.kind === "initlist" && !e.arg.items.length))
                     return `new ${cn}()`;
+                // "T(a, b)" is a functional cast whose argument list is an initlist of
+                // the constructor arguments (e.g. pair<_Base_ptr,_Base_ptr>(__x, __y)).
+                if (e.arg.kind === "initlist") {
+                    return this.ctorExpr(cn, a.call, e.arg.items, a.convs, t);
+                }
                 return `new ${cn}(${this.argFor(cps[0].type, e.arg, a.conv)})`;
             }
             // "size_type()" value-initialises: there is no argument to convert.
@@ -11425,6 +11827,7 @@ var CTJ;
             this.fnStack = [];
             this.usedGlobals = new Set();
             this.needThrow = false;
+            this.needStreamFmt = false;
             this.cx = cx;
         }
         run() {
@@ -11466,7 +11869,15 @@ var CTJ;
                 const args = ps.length >= 3 ? ["0", `["a" => [], "i" => 0]`, "null"] : ps.length === 2 ? ["0", `["a" => [], "i" => 0]`] : ps.length === 1 ? ["0"] : [];
                 this.line(`${phpFuncName(main)}(${args.join(", ")});`);
             }
+            if (this.needStreamFmt)
+                this.out.splice(1, 0, this.streamHelper());
             return this.out.join("\n") + "\n";
+        }
+        streamHelper() {
+            return [
+                `function __ctj_fmt($v) { if ($v === null) return "0"; if (is_bool($v)) return $v ? "1" : "0"; if (is_int($v) || is_float($v)) return (string)$v; if (is_string($v)) return $v; $a = is_array($v) && array_key_exists("a", $v) ? $v["a"] : (is_array($v) && array_values($v) === $v ? $v : null); $i = is_array($v) && array_key_exists("i", $v) ? $v["i"] : 0; if (is_array($a)) { $s = ""; for ($k = (int)$i; $k < count($a) && $a[$k]; $k++) $s .= chr($a[$k]); return $s; } return (string)$v; }`,
+                `function __ctj_write($s) { echo $s; }`,
+            ].join("\n");
         }
         sortClasses() {
             const cs = [...this.cx.classes.values()].filter(c => c.complete && c.referenced && !c.isLambda);
@@ -11611,7 +12022,7 @@ var CTJ;
                         if (seen.has(key))
                             continue;
                         seen.add(key);
-                        const use = fns.filter(f => f.referenced && (f.decl.body || []).length);
+                        const use = fns.filter(f => f.referenced);
                         if (use.length)
                             res.push({ cls: b, key, fns: use });
                     }
@@ -12001,7 +12412,7 @@ var CTJ;
             this.line(`}`);
         }
         emitMethod(c, fns) {
-            const use = fns.filter(f => f.referenced && ((f.decl.body || []).length || f.decl.flags.includes("pure")));
+            const use = fns.filter(f => f.referenced);
             if (!use.length)
                 return;
             const groups = new Map();
@@ -12037,6 +12448,7 @@ var CTJ;
                 const lines = this.withBody(() => {
                     for (const d of defs)
                         this.line(`if (func_num_args() < ${d.i + 1}) ${d.nm} = ${d.def};`);
+                    this.boxParams(fn, ps);
                     if (fn.decl.flags.includes("pure") && !(fn.decl.body || []).length) {
                         this.line(`throw new Exception("pure virtual called");`);
                     }
@@ -12064,6 +12476,7 @@ var CTJ;
                         if (!p.variadic && p.name)
                             this.alias[this.alias.length - 1].set(p.name, this.ctorArg(p, j));
                     });
+                    this.boxRestParams(fn, ps);
                     this.fnStack.push(fn);
                     this.bodyStmts(fn.decl.body || []);
                     this.fnStack.pop();
@@ -12117,18 +12530,7 @@ var CTJ;
             const lines = this.withBody(() => {
                 for (const d of defs)
                     this.line(`if (func_num_args() < ${d.i + 1}) ${d.nm} = ${d.def};`);
-                // A parameter whose address is taken is read through a wrapper, so the
-                // value the caller passed has to be put in one first.
-                ps.forEach((p, i) => {
-                    if (!p.name || p.variadic)
-                        return;
-                    const node = f.decl.params[i];
-                    const v = (node ? this.cx.getAnn(node).var : null);
-                    if (v && (v.storage === "boxed" || v.storage === "bbox")) {
-                        const nm = `$${CTJ.safeJsName(p.name)}`;
-                        this.line(`${nm} = ["v" => ${nm}];`);
-                    }
-                });
+                this.boxParams(f, ps);
                 this.fnStack.push(f);
                 this.bodyStmts(f.decl.body || []);
                 this.fnStack.pop();
@@ -12140,9 +12542,36 @@ var CTJ;
             this.ind = this.ind.slice(0, -2);
             this.line(`}`);
         }
+        boxParams(f, ps) {
+            ps.forEach((p, i) => {
+                if (!p.name || p.variadic)
+                    return;
+                const node = f.decl.params[i];
+                const v = (node ? this.cx.getAnn(node).var : null);
+                if (v && (v.storage === "boxed" || v.storage === "bbox")) {
+                    const nm = `$${CTJ.safeJsName(p.name)}`;
+                    this.line(`${nm} = ["v" => ${nm}];`);
+                }
+            });
+        }
+        boxRestParams(f, ps) {
+            ps.forEach((p, i) => {
+                if (p.variadic)
+                    return;
+                const node = f.decl.params[i];
+                const v = (node ? this.cx.getAnn(node).var : null);
+                if (v && (v.storage === "boxed" || v.storage === "bbox")) {
+                    this.line(`$a[${i}] = ["v" => $a[${i}]];`);
+                }
+            });
+        }
         emitGlobal(v) {
             if (!v.referenced && !v.decl.init && !v.decl.directInit)
                 return;
+            if (v.isGlobal && /^(cout|cerr|clog|wcout|wcerr|wclog)$/.test(v.short)) {
+                this.line(`$${v.mangled} = new stdClass();`);
+                return;
+            }
             const t = v.typeCache;
             if (v.lifted) {
                 this.line(`$${v.mangled} = null;`);
@@ -12951,10 +13380,9 @@ var CTJ;
                 return this.arrayInit(p, x.items);
             }
             if (pB && !aB) {
-                if (!at || at.name === "__null")
-                    return "null";
-                if (this.isZeroLit(x))
-                    return "null";
+                if (!at || at.name === "__null" || this.isZeroLit(x)) {
+                    return p.ref ? "[\"a\" => [null], \"i\" => 0]" : "null";
+                }
                 if (at.isFunc)
                     return this.ex(x);
                 return this.exBox(x);
@@ -13084,7 +13512,9 @@ var CTJ;
                 const ma = this.cx.getAnn(e.fn);
                 if (ma.arrowCall)
                     o = `(${this.paren(o)}->${phpMethodName(ma.arrowCall)}())`;
-                if (e.fn.qual.length) {
+                if (ma.sym && ma.sym.k === "var" && ma.sym.v.isField)
+                    o = this.ex(e.fn);
+                if (e.fn.qual.length && !(ma.sym && ma.sym.k === "var" && ma.sym.v.isField)) {
                     const cls = this.cx.classes.get(fn.cls);
                     const qn = phpClsName(cls);
                     s = `(Closure::bind(function (...$a) { return $this->${phpMethodName(fn)}(...$a); }, ${o}, ${qn}::class))(${aa.join(", ")})`;
@@ -13315,8 +13745,38 @@ var CTJ;
                 return `(~${this.paren(this.ex(e.arg))})`;
             return this.ex(e.arg);
         }
+        exStreamOut(e) {
+            this.needStreamFmt = true;
+            const manip = CTJ.streamManipName(e.r);
+            let payload;
+            if (manip === "endl")
+                payload = `"\\n"`;
+            else if (manip === "ends")
+                payload = `"\\0"`;
+            else if (manip === "flush")
+                payload = `""`;
+            else {
+                const rt = this.cx.getAnn(e.r).t;
+                const core = rt ? CTJ.coreName(rt) : "";
+                const rs = this.ex(e.r);
+                if (rt && !rt.ptr && !rt.dims.length && (core === "char" || core === "signed char" || core === "unsigned char" || core === "wchar_t")) {
+                    payload = `chr(${rs})`;
+                }
+                else {
+                    payload = `__ctj_fmt(${rs})`;
+                }
+            }
+            const l = this.ex(e.l);
+            if (this.isSimple(e.l))
+                return `(__ctj_write(${payload}), ${l})`;
+            const t = this.tmp();
+            return `(${t} = ${l}, __ctj_write(${payload}), ${t})`;
+        }
         exBinary(e) {
             const a = this.cx.getAnn(e);
+            if (a.call && typeof a.call === "object" && "builtin" in a.call) {
+                return this.exStreamOut(e);
+            }
             if (a.call) {
                 const fn = a.call;
                 const ps = this.cx.funcParams(fn);
@@ -13651,4 +14111,4 @@ var CTJ;
     g["CTJ"] = CTJ;
 })();
 
-CTJ.version = "1f67845 2026-09-11 07:55:29Z";
+CTJ.version = "6bfde61 2026-10-10 17:28:47Z";

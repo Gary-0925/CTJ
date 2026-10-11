@@ -69,6 +69,17 @@ class Str_char_Traits_char {
   }
   static npos = -1;
 }
+class Node_double {
+  next;
+  constructor(...$a) {
+    this.__init_Node_double(...$a);
+  }
+  __init_Node_double(...$a) {
+    this.next = null;
+  }
+  __dtor() {
+  }
+}
 class Node_double_Rebind_int {
   __dtor() {
   }
@@ -79,17 +90,6 @@ class Node_int {
     this.__init_Node_int(...$a);
   }
   __init_Node_int(...$a) {
-    this.next = null;
-  }
-  __dtor() {
-  }
-}
-class Node_double {
-  next;
-  constructor(...$a) {
-    this.__init_Node_double(...$a);
-  }
-  __init_Node_double(...$a) {
     this.next = null;
   }
   __dtor() {

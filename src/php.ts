@@ -52,6 +52,7 @@ class PhpGen {
   fnStack: FuncInfo[] = [];
   usedGlobals: Set<string> = new Set();
   needThrow = false;
+  needStreamFmt = false;
 
   constructor(cx: Cx) {
     this.cx = cx;
@@ -89,7 +90,15 @@ class PhpGen {
       const args = ps.length >= 3 ? ["0", `["a" => [], "i" => 0]`, "null"] : ps.length === 2 ? ["0", `["a" => [], "i" => 0]`] : ps.length === 1 ? ["0"] : [];
       this.line(`${phpFuncName(main)}(${args.join(", ")});`);
     }
+    if (this.needStreamFmt) this.out.splice(1, 0, this.streamHelper());
     return this.out.join("\n") + "\n";
+  }
+
+  streamHelper(): string {
+    return [
+      `function __ctj_fmt($v) { if ($v === null) return "0"; if (is_bool($v)) return $v ? "1" : "0"; if (is_int($v) || is_float($v)) return (string)$v; if (is_string($v)) return $v; $a = is_array($v) && array_key_exists("a", $v) ? $v["a"] : (is_array($v) && array_values($v) === $v ? $v : null); $i = is_array($v) && array_key_exists("i", $v) ? $v["i"] : 0; if (is_array($a)) { $s = ""; for ($k = (int)$i; $k < count($a) && $a[$k]; $k++) $s .= chr($a[$k]); return $s; } return (string)$v; }`,
+      `function __ctj_write($s) { echo $s; }`,
+    ].join("\n");
   }
 
   sortClasses(): ClsInfo[] {
@@ -222,7 +231,7 @@ class PhpGen {
         for (const [key, fns] of b.methods) {
           if (seen.has(key)) continue;
           seen.add(key);
-          const use = fns.filter(f => f.referenced && (f.decl.body || []).length);
+          const use = fns.filter(f => f.referenced);
           if (use.length) res.push({ cls: b, key, fns: use });
         }
         const bf = new Map<string, string>();
@@ -571,7 +580,7 @@ class PhpGen {
   }
 
   emitMethod(c: ClsInfo, fns: FuncInfo[]): void {
-    const use = fns.filter(f => f.referenced && ((f.decl.body || []).length || f.decl.flags.includes("pure")));
+    const use = fns.filter(f => f.referenced);
     if (!use.length) return;
     const groups = new Map<string, FuncInfo[]>();
     for (const f of use) {
@@ -599,6 +608,7 @@ class PhpGen {
       });
       const lines = this.withBody(() => {
         for (const d of defs) this.line(`if (func_num_args() < ${d.i + 1}) ${d.nm} = ${d.def};`);
+        this.boxParams(fn, ps);
         if (fn.decl.flags.includes("pure") && !(fn.decl.body || []).length) {
           this.line(`throw new Exception("pure virtual called");`);
         } else {
@@ -623,6 +633,7 @@ class PhpGen {
         ps.forEach((p, j) => {
           if (!p.variadic && p.name) this.alias[this.alias.length - 1].set(p.name, this.ctorArg(p, j));
         });
+        this.boxRestParams(fn, ps);
         this.fnStack.push(fn);
         this.bodyStmts(fn.decl.body || []);
         this.fnStack.pop();
@@ -668,17 +679,7 @@ class PhpGen {
     });
     const lines = this.withBody(() => {
       for (const d of defs) this.line(`if (func_num_args() < ${d.i + 1}) ${d.nm} = ${d.def};`);
-      // A parameter whose address is taken is read through a wrapper, so the
-      // value the caller passed has to be put in one first.
-      ps.forEach((p, i) => {
-        if (!p.name || p.variadic) return;
-        const node = f.decl.params[i];
-        const v = (node ? this.cx.getAnn(node).var : null) as VarInfo | null;
-        if (v && (v.storage === "boxed" || v.storage === "bbox")) {
-          const nm = `$${safeJsName(p.name)}`;
-          this.line(`${nm} = ["v" => ${nm}];`);
-        }
-      });
+      this.boxParams(f, ps);
       this.fnStack.push(f);
       this.bodyStmts(f.decl.body || []);
       this.fnStack.pop();
@@ -690,8 +691,35 @@ class PhpGen {
     this.line(`}`);
   }
 
+  boxParams(f: FuncInfo, ps: FuncParam[]): void {
+    ps.forEach((p, i) => {
+      if (!p.name || p.variadic) return;
+      const node = f.decl.params[i];
+      const v = (node ? this.cx.getAnn(node).var : null) as VarInfo | null;
+      if (v && (v.storage === "boxed" || v.storage === "bbox")) {
+        const nm = `$${safeJsName(p.name)}`;
+        this.line(`${nm} = ["v" => ${nm}];`);
+      }
+    });
+  }
+
+  boxRestParams(f: FuncInfo, ps: FuncParam[]): void {
+    ps.forEach((p, i) => {
+      if (p.variadic) return;
+      const node = f.decl.params[i];
+      const v = (node ? this.cx.getAnn(node).var : null) as VarInfo | null;
+      if (v && (v.storage === "boxed" || v.storage === "bbox")) {
+        this.line(`$a[${i}] = ["v" => $a[${i}]];`);
+      }
+    });
+  }
+
   emitGlobal(v: VarInfo): void {
     if (!v.referenced && !v.decl.init && !v.decl.directInit) return;
+    if (v.isGlobal && /^(cout|cerr|clog|wcout|wcerr|wclog)$/.test(v.short)) {
+      this.line(`$${v.mangled} = new stdClass();`);
+      return;
+    }
     const t = v.typeCache as CppType;
     if (v.lifted) {
       this.line(`$${v.mangled} = null;`);
@@ -1429,8 +1457,9 @@ class PhpGen {
       return this.arrayInit(p, (x as InitListExpr).items);
     }
     if (pB && !aB) {
-      if (!at || at.name === "__null") return "null";
-      if (this.isZeroLit(x)) return "null";
+      if (!at || at.name === "__null" || this.isZeroLit(x)) {
+        return p.ref ? "[\"a\" => [null], \"i\" => 0]" : "null";
+      }
       if (at.isFunc) return this.ex(x);
       return this.exBox(x);
     }
@@ -1550,7 +1579,8 @@ class PhpGen {
       let o = this.objOf((e.fn as MemberExpr).obj);
       const ma = this.cx.getAnn(e.fn);
       if (ma.arrowCall) o = `(${this.paren(o)}->${phpMethodName(ma.arrowCall as FuncInfo)}())`;
-      if ((e.fn as MemberExpr).qual.length) {
+      if (ma.sym && ma.sym.k === "var" && ma.sym.v.isField) o = this.ex(e.fn);
+      if ((e.fn as MemberExpr).qual.length && !(ma.sym && ma.sym.k === "var" && ma.sym.v.isField)) {
         const cls = this.cx.classes.get(fn.cls as string) as ClsInfo;
         const qn = phpClsName(cls);
         s = `(Closure::bind(function (...$a) { return $this->${phpMethodName(fn)}(...$a); }, ${o}, ${qn}::class))(${aa.join(", ")})`;
@@ -1755,8 +1785,34 @@ class PhpGen {
     return this.ex(e.arg);
   }
 
+  exStreamOut(e: BinaryExpr): string {
+    this.needStreamFmt = true;
+    const manip = streamManipName(e.r);
+    let payload: string;
+    if (manip === "endl") payload = `"\\n"`;
+    else if (manip === "ends") payload = `"\\0"`;
+    else if (manip === "flush") payload = `""`;
+    else {
+      const rt = this.cx.getAnn(e.r).t as CppType | null;
+      const core = rt ? coreName(rt) : "";
+      const rs = this.ex(e.r);
+      if (rt && !rt.ptr && !rt.dims.length && (core === "char" || core === "signed char" || core === "unsigned char" || core === "wchar_t")) {
+        payload = `chr(${rs})`;
+      } else {
+        payload = `__ctj_fmt(${rs})`;
+      }
+    }
+    const l = this.ex(e.l);
+    if (this.isSimple(e.l)) return `(__ctj_write(${payload}), ${l})`;
+    const t = this.tmp();
+    return `(${t} = ${l}, __ctj_write(${payload}), ${t})`;
+  }
+
   exBinary(e: BinaryExpr): string {
     const a = this.cx.getAnn(e);
+    if (a.call && typeof a.call === "object" && "builtin" in (a.call as object)) {
+      return this.exStreamOut(e);
+    }
     if (a.call) {
       const fn = a.call as FuncInfo;
       const ps = this.cx.funcParams(fn);
