@@ -740,7 +740,18 @@ export class Parser {
           const ps = this.parseParamList();
           const nx = this.peek().t;
           if (nx === "," || nx === ">" || nx === ">>" || nx === "...") {
-            fn = { params: ps.map(x => x.type), variadic: ps.some(x => x.variadic) };
+            // The "..." of "_ArgTypes..." stays on the parameter it belongs to
+            // so that matchFuncArg can bind the pack to the remaining
+            // arguments ("std::function<void(int, char)>").
+            fn = {
+              params: ps.map(x => {
+                if (!x.isPack) return x.type;
+                const pt = this.cloneType(x.type);
+                pt.packExpand = true;
+                return pt;
+              }),
+              variadic: ps.some(x => x.variadic),
+            };
           }
         } catch { fn = null; }
         if (fn) ta.func = fn;

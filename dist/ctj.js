@@ -455,10 +455,14 @@ var CTJ;
 var CTJ;
 (function (CTJ) {
     const MAX_DEPTH = 64;
-    // libstdc++ writes its pedantic asserts as function-like macros that its
-    // configuration header defines away unless a program asks for them. They carry
-    // no behaviour, so the defaults come from here; "defines" can still override.
-    CTJ.DEFAULT_EMPTY_FN_MACROS = ["_GLIBCXX_DEBUG_PEDASSERT"];
+    // libstdc++ writes its pedantic asserts and its thread-sanitizer annotations as
+    // function-like macros that its configuration header defines away unless a
+    // program asks for them. They carry no behaviour, so the defaults come from
+    // here; "defines" can still override.
+    CTJ.DEFAULT_EMPTY_FN_MACROS = [
+        "_GLIBCXX_DEBUG_ASSERT", "_GLIBCXX_DEBUG_PEDASSERT",
+        "_GLIBCXX_SYNCHRONIZATION_HAPPENS_BEFORE", "_GLIBCXX_SYNCHRONIZATION_HAPPENS_AFTER",
+    ];
     CTJ.DEFAULT_PREDEFINED = {
         "__cplusplus": "201103L",
         "__STRICT_ANSI__": "1",
@@ -516,6 +520,14 @@ var CTJ;
         "__SIZEOF_SHORT__": "2",
         "__SIZEOF_FLOAT__": "4",
         "__SIZEOF_DOUBLE__": "8",
+        "__SIZEOF_LONG_LONG__": "8",
+    };
+    // Headers the target environment provides but that the bundled "include"
+    // directory does not carry.  They only declare their names, which is what the
+    // standard headers include them for; calling into them is an unresolved
+    // external at run time.
+    CTJ.BUILTIN_HEADERS = {
+        "fenv.h": "/* <fenv.h> for CTJ.  The floating point environment is not modelled, so this\n   header only provides the names the standard headers look for. */\n#ifndef _CTJ_FENV_H\n#define _CTJ_FENV_H\n\n#define FE_INVALID 1\n#define FE_DIVBYZERO 4\n#define FE_OVERFLOW 8\n#define FE_UNDERFLOW 16\n#define FE_INEXACT 32\n#define FE_ALL_EXCEPT 61\n\n#define FE_TONEAREST 0\n#define FE_DOWNWARD 0x400\n#define FE_UPWARD 0x800\n#define FE_TOWARDZERO 0xc00\n\ntypedef unsigned short fexcept_t;\ntypedef struct { unsigned short __control; unsigned int __status; } fenv_t;\n\n#define FE_DFL_ENV ((const fenv_t *) -1l)\n\n#ifdef __cplusplus\nextern \"C\" {\n#endif\n\nint feclearexcept(int __excepts);\nint fegetexceptflag(fexcept_t *__flagp, int __excepts);\nint feraiseexcept(int __excepts);\nint fesetexceptflag(const fexcept_t *__flagp, int __excepts);\nint fetestexcept(int __excepts);\nint fegetround(void);\nint fesetround(int __round);\nint fegetenv(fenv_t *__envp);\nint feholdexcept(fenv_t *__envp);\nint fesetenv(const fenv_t *__envp);\nint feupdateenv(const fenv_t *__envp);\n\n#ifdef __cplusplus\n}\n#endif\n\n#endif\n",
     };
     class Preprocessor {
         constructor(loadFile, includeDirs) {
@@ -523,6 +535,8 @@ var CTJ;
             this.missing = [];
             this.macros = new Map();
             this.onceFiles = new Set();
+            // A built-in stub is reported once however often its header is included.
+            this.stubWarned = new Set();
             this.fileStack = [];
             this.fileDirIndex = new Map();
             this.loadFile = loadFile;
@@ -740,7 +754,19 @@ var CTJ;
                     return;
                 }
             }
-            const full = this.resolveInclude(name, kind, file, next);
+            let full = this.resolveInclude(name, kind, file, next);
+            let content = null;
+            if (full === null && CTJ.BUILTIN_HEADERS[name] !== undefined) {
+                // "<cfenv>" includes "<fenv.h>", which the bundled includes do not carry.
+                // The stub keeps it, and everything that goes through "<bits/stdc++.h>",
+                // working; the names it declares stay unresolved externals.
+                full = name;
+                content = CTJ.BUILTIN_HEADERS[name];
+                if (!this.stubWarned.has(name)) {
+                    this.stubWarned.add(name);
+                    this.warn(`header ${name} is not bundled, using the CTJ stub`, file, line);
+                }
+            }
             if (full === null) {
                 if (!this.missing.includes(name))
                     this.missing.push(name);
@@ -749,7 +775,8 @@ var CTJ;
             }
             if (this.onceFiles.has(full))
                 return;
-            const content = this.loadFile(full);
+            if (content === null)
+                content = this.loadFile(full);
             if (content === null)
                 return;
             const sub = this.processFile(content, full);
@@ -2051,7 +2078,19 @@ var CTJ;
                         const ps = this.parseParamList();
                         const nx = this.peek().t;
                         if (nx === "," || nx === ">" || nx === ">>" || nx === "...") {
-                            fn = { params: ps.map(x => x.type), variadic: ps.some(x => x.variadic) };
+                            // The "..." of "_ArgTypes..." stays on the parameter it belongs to
+                            // so that matchFuncArg can bind the pack to the remaining
+                            // arguments ("std::function<void(int, char)>").
+                            fn = {
+                                params: ps.map(x => {
+                                    if (!x.isPack)
+                                        return x.type;
+                                    const pt = this.cloneType(x.type);
+                                    pt.packExpand = true;
+                                    return pt;
+                                }),
+                                variadic: ps.some(x => x.variadic),
+                            };
                         }
                     }
                     catch {
@@ -3051,8 +3090,33 @@ var CTJ;
                 let def = null;
                 // Stop below the relational precedence so the closing '>' of the
                 // parameter list is not taken for a comparison operator.
-                if (p.eat("="))
+                if (p.eat("=")) {
                     def = CTJ.parseExpr(p, 10);
+                    // A relational default is written without parentheses in the library
+                    // ("bool = _Nb < _GLIBCXX_BITSET_BITS_PER_ULL>"), where the '<' belongs
+                    // to the default and the '>' ends the parameter list.  The comparison
+                    // is taken on only when a '>' really follows it.
+                    for (;;) {
+                        const op = p.peek();
+                        if (op.t !== "<" && op.t !== "<=")
+                            break;
+                        const m = p.mark();
+                        p.pos++;
+                        let rhs = null;
+                        try {
+                            rhs = CTJ.parseExpr(p, 10);
+                        }
+                        catch {
+                            rhs = null;
+                        }
+                        const nx = p.peek().t;
+                        if (!rhs || (nx !== ">" && nx !== ">>" && nx !== ",")) {
+                            p.reset(m);
+                            break;
+                        }
+                        def = { kind: "binary", op: op.t, l: def, r: rhs, file: op.file, line: op.line };
+                    }
+                }
                 out.push({ kind: "nontype", name: nm || p.anonName("np"), type: spec.type, def, isPack, ...CTJ.at(t) });
             }
             p.skipGnu();
@@ -4436,13 +4500,20 @@ var CTJ;
                 return "operator" + d.op;
             return short;
         }
+        // The kinds of arguments a declaration takes, so that a definition is merged
+        // into the declaration of its own overload rather than into a sibling that
+        // happens to take the same number of them ("merge(list&&)" against
+        // "merge(list&)", which delegates to it).
+        paramShape(d) {
+            return d.params.map(p => [p.type.ptr, p.type.ref, p.type.dims.length, p.type.func ? "f" : "", p.variadic || p.isPack ? "..." : ""].join(",")).join(";");
+        }
         addMethod(cls, short, d, scope) {
             const key = this.methodKey(d, short);
             const sc = this.snapScope(scope);
             sc.cls = cls;
             const list = cls.methods.get(key) || [];
             for (const f of list) {
-                if (!f.decl.body && d.body && f.decl.params.length === d.params.length) {
+                if (!f.decl.body && d.body && this.paramShape(f.decl) === this.paramShape(d)) {
                     f.decl = d;
                     f.scope = sc;
                     return f;
@@ -4708,8 +4779,18 @@ var CTJ;
         }
         tmplParamSig(t) {
             const d = t.decl;
-            const ps = (d.params || []).map(p => JSON.stringify(p.type.parts.map(s => s.n + s.a.length))
-                + p.type.ptr + p.type.ref + (p.isPack ? "..." : "")).join(",");
+            // A template parameter stands for itself whatever it is called: the
+            // declaration "sort(_RAIter, _RAIter)" and the definition
+            // "sort(_RandomAccessIterator, _RandomAccessIterator)" are one template, and
+            // the declaration must not shadow the definition that carries the body.
+            const idx = new Map(t.tparams.map((x, i) => [x.name, i]));
+            const ps = (d.params || []).map(p => {
+                const tn = p.type;
+                const name = tn.parts.length === 1 && !tn.parts[0].a.length && idx.has(tn.parts[0].n)
+                    ? "$" + idx.get(tn.parts[0].n)
+                    : JSON.stringify(tn.parts.map(s => s.n + s.a.length));
+                return name + tn.ptr + tn.ref + (p.isPack ? "..." : "");
+            }).join(",");
             const tps = t.tparams.map(x => x.kind + (x.isPack ? "..." : "")).join(",");
             return [tps, ps, d.op || "", d.flags.includes("const") ? "c" : ""].join("|");
         }
@@ -5118,6 +5199,20 @@ var CTJ;
             }
             else {
                 sym = this.lookupFirst(parts[0].n, scope);
+                // A template-id names a template. What the lookup found through the base
+                // chain may be the injected-class-name's constructors instead ("_Head_base
+                // <...>" inside a class deriving from "_Head_base<_Idx, _Head, ...>"), so
+                // the name is looked up again among the namespaces only.
+                if (sym && parts[0].a.length && ((sym.k === "tmpl" && sym.t.decl.isCtor)
+                    || (sym.k === "func" && sym.fns.length > 0 && sym.fns.every(f => f.isCtor)))) {
+                    for (let i = scope.ns.length; i >= 0; i--) {
+                        const s2 = this.lookupInNs(scope.ns.slice(0, i).join("::"), parts[0].n, new Set());
+                        if (s2) {
+                            sym = s2;
+                            break;
+                        }
+                    }
+                }
             }
             if (!sym)
                 return null;
@@ -5324,6 +5419,22 @@ var CTJ;
         resolveTypeNode(tn, scope) {
             const key = tnKey(tn);
             const at = this.resolving.indexOf(key);
+            if (at >= 0) {
+                // A class being instantiated can name itself before its own instantiation
+                // has returned ("typedef _Deque_iterator<_Tp, _Tp&, _Tp*> iterator" in a
+                // constructor's "const iterator&" parameter). Those classes are
+                // registered before their members are read, so the type is that class.
+                for (let i = scope.ns.length; i >= 0; i--) {
+                    const cand = [...scope.ns.slice(0, i), key].join("::");
+                    const self = this.classes.get(cand);
+                    if (!self)
+                        continue;
+                    const t = new CppType(self.fq);
+                    t.segs = [{ n: self.fromTmpl || self.fq, a: self.instArgs.slice() }];
+                    this.markCls(self.fq);
+                    return t;
+                }
+            }
             if (at >= 0 && (tn.ptr > 0 || tn.ref !== "" || tn.dims.length > 0 || !!tn.func)) {
                 const baseName = tn.parts.map(s => s.n).join("::") || "void";
                 const t = CppType.basic(baseName);
@@ -5882,7 +5993,7 @@ var CTJ;
             if (!list)
                 return null;
             for (const f of list) {
-                if (f.decl.params.length === d.params.length)
+                if (this.paramShape(f.decl) === this.paramShape(d))
                     return f;
             }
             return list[0] || null;
@@ -5989,7 +6100,7 @@ var CTJ;
                     const ex = CTJ.substExpr(tp.def, env);
                     const v = CTJ.constEval(this, ex, scope);
                     if (typeof v !== "number")
-                        this.fail(`non-constant template argument for '${tp.name}'`, t || undefined);
+                        this.fail(`non-constant template argument for '${tp.name}' in '${tmpl.fq}'`, t || undefined);
                     full.push(CppType.basic("__value" + Math.trunc(v)));
                     env.values.set(tp.name, Math.trunc(v));
                 }
@@ -6256,7 +6367,9 @@ var CTJ;
         out.decltypeOf = tn.decltypeOf ? substExpr(tn.decltypeOf, env) : null;
         out.valueArg = tn.valueArg ? substExpr(tn.valueArg, env) : null;
         out.dims = tn.dims.map(d => substExpr(d, env));
-        out.func = tn.func ? { params: tn.func.params.map(p => substTypeNode(p, env)), variadic: tn.func.variadic } : null;
+        // The parameter list may hold a pack ("_Signature_type(_ArgTypes...)"), which
+        // expands to one node per bound argument.
+        out.func = tn.func ? { params: substTArgs(tn.func.params, env), variadic: tn.func.variadic } : null;
         if (!tn.parts.length)
             return out;
         const first = tn.parts[0].n;
@@ -7241,18 +7354,40 @@ var CTJ;
                 cx.fail(`'${clsFq}' has no end() for range-for`, vd);
             const er = CTJ.resolveOverload(cx, em.methods, [], [], scope, vd);
             const bt = cx.funcRet(r.fn);
-            const itFq = cx.stripAll(bt);
-            const ne = cx.lookupMember(itFq, "operator!=", new Set());
-            const inc = cx.lookupMember(itFq, "operator++", new Set());
-            const star = cx.lookupMember(itFq, "operator*", new Set());
-            if (!ne.methods || !inc.methods || !star.methods)
-                cx.fail("bad iterator for range-for", vd);
-            const btArg = { t: bt, e: vd };
-            const neR = CTJ.resolveOverload(cx, ne.methods, [], [btArg], scope, vd);
-            const incR = CTJ.resolveOverload(cx, inc.methods, [], [], scope, vd);
-            const starR = CTJ.resolveOverload(cx, star.methods, [], [], scope, vd);
-            cx.getAnn(rf).range = { beginFn: r.fn, endFn: er.fn, neFn: neR.fn, incFn: incR.fn, starFn: starR.fn };
-            elem = cx.funcRet(starR.fn);
+            // libstdc++ iterators keep the interesting operators outside the class
+            // (operator!= of __normal_iterator and of the rb-tree iterators are free
+            // functions), so both kinds are looked up the way "a != b" would be.
+            const itT = bt.core();
+            const itFq = cx.stripAll(itT);
+            const ptrIter = itT.ptr > 0 && !itT.isBox() && !itT.isFunc;
+            let ne;
+            let inc;
+            let star;
+            if (ptrIter) {
+                // A pointer is its own iterator: "!=" compares the fat pointers, "++"
+                // advances the index and "*" hands the fat pointer to the element out.
+                ne = { fn: null, isMember: false, op: "!=", builtin: "ptr" };
+                inc = { fn: null, isMember: false, op: "++", builtin: "ptr" };
+                star = { fn: null, isMember: false, op: "*", builtin: "ptr" };
+                elem = itT;
+            }
+            else {
+                const arg = { t: itT, e: vd };
+                const neR = CTJ.findOperator(cx, "!=", arg, arg, scope, vd);
+                if (!neR)
+                    cx.fail("bad iterator for range-for", vd);
+                const incR = CTJ.findOperator(cx, "++", arg, null, scope, vd);
+                if (!incR)
+                    cx.fail("bad iterator for range-for", vd);
+                const starR = CTJ.findOperator(cx, "*", arg, null, scope, vd);
+                if (!starR)
+                    cx.fail("bad iterator for range-for", vd);
+                ne = { fn: neR.fn, isMember: neR.fn.isMethod, op: "!=", builtin: "" };
+                inc = { fn: incR.fn, isMember: incR.fn.isMethod, op: "++", builtin: "" };
+                star = { fn: starR.fn, isMember: starR.fn.isMethod, op: "*", builtin: "" };
+                elem = cx.funcRet(starR.fn);
+            }
+            cx.getAnn(rf).range = { beginFn: r.fn, endFn: er.fn, ne, inc, star };
         }
         let t = cx.resolveTypeNode(vd.type, scope);
         if (t.name === "auto")
@@ -7823,7 +7958,7 @@ var CTJ;
         const at = typeOf(cx, e.arg, scope);
         const ann = cx.getAnn(e);
         if (e.op === "*") {
-            if (isClassVal(cx, at)) {
+            if (classValFq(cx, at)) {
                 const r = findOperator(cx, "*", { t: at, e: e.arg }, null, scope, e);
                 if (!r)
                     cx.fail("no operator* ", e);
@@ -7866,7 +8001,7 @@ var CTJ;
         if (e.op === "!")
             return CTJ.CppType.basic("bool");
         if (e.op === "++" || e.op === "--") {
-            if (isClassVal(cx, at)) {
+            if (classValFq(cx, at)) {
                 const r = findOperator(cx, e.op, { t: at, e: e.arg }, null, scope, e, e.postfix);
                 if (!r)
                     cx.fail(`no ${e.op}`, e);
@@ -7877,7 +8012,7 @@ var CTJ;
             return at;
         }
         if (e.op === "+" || e.op === "-") {
-            if (isClassVal(cx, at)) {
+            if (classValFq(cx, at)) {
                 const r = findOperator(cx, e.op, { t: at, e: e.arg }, null, scope, e);
                 if (!r)
                     cx.fail(`no ${e.op}`, e);
@@ -7888,7 +8023,7 @@ var CTJ;
             return promoteUnary(cx, at);
         }
         if (e.op === "~") {
-            if (isClassVal(cx, at)) {
+            if (classValFq(cx, at)) {
                 const r = findOperator(cx, "~", { t: at, e: e.arg }, null, scope, e);
                 if (!r)
                     cx.fail("no operator~", e);
@@ -7974,7 +8109,10 @@ var CTJ;
         const lt = typeOf(cx, e.l, scope);
         const rt = typeOf(cx, e.r, scope);
         const ann = cx.getAnn(e);
-        if (isClassVal(cx, lt)) {
+        // A reference to a class is the object itself: "__i += __n" on an iterator
+        // reference calls the class's own operator+= (stl_iterator_base_funcs.h).
+        const classRef = lt.ref !== "" && !lt.ptr && !lt.dims.length && !lt.isFunc && cx.classes.has(cx.stripAll(lt));
+        if (isClassVal(cx, lt) || classRef) {
             const r = findOperator(cx, e.op, { t: lt, e: e.l }, { t: rt, e: e.r }, scope, e);
             if (!r && e.op === "=" && rt.name === "__initlist") {
                 const items = e.r.items.map(x => ({ t: typeOf(cx, x, scope), e: x }));
@@ -8211,8 +8349,11 @@ var CTJ;
             cx.getAnn(fn).sym = sym;
             if (!sym) {
                 const nm = fn.parts.map(s => s.n).join("::");
-                if (fn.parts.length === 1 && fn.parts[0].n.startsWith("__builtin_")) {
-                    return CTJ.builtinCall(cx, e, fn.parts[0].n, argTs, scope);
+                const bname = fn.parts.length === 1 ? fn.parts[0].n : "";
+                // The compiler's own builtins are declared nowhere: the numeric ones
+                // (__builtin_popcount, ...) and the type traits (__is_trivial, ...).
+                if (bname.startsWith("__builtin_") || bname.startsWith("__is_")) {
+                    return CTJ.builtinCall(cx, e, bname, argTs, scope);
                 }
                 cx.fail(`unknown function '${nm}'`, fn);
             }
@@ -8702,6 +8843,12 @@ var CTJ;
             }
             if (!env.has(first)) {
                 const c = keepRef ? copyType(t) : noRef(t);
+                // An array passed to a by-value parameter decays to a pointer, exactly as
+                // it does in the language: sort(a, a + n) deduces _RAIter as int*.
+                if (!keepRef && !tn.dims.length && c.dims.length) {
+                    c.ptr = c.ptr + 1;
+                    c.dims = [];
+                }
                 if (tn.ptr > 0)
                     c.ptr = Math.max(0, t.ptr - tn.ptr);
                 env.set(first, c);
@@ -8854,8 +9001,20 @@ var CTJ;
         if (e && e.kind === "lit" && e.lkind === "int" && CTJ.parseNumber(e.value) === 0 && p.ptr > 0) {
             return { s: 70, conv: null };
         }
-        if (p.core().key() === a.core().key())
+        if (p.core().key() === a.core().key()) {
+            // A reference of one kind does not bind to a reference of the other: an
+            // rvalue cannot be a "T&", so "merge(list&)" delegating with
+            // "merge(std::move(__x))" reaches "merge(list&&)" and "set(int&)"
+            // delegating with "set(1)" reaches "set(int&&)"; and an lvalue cannot be
+            // a "T&&", so "a.set(z)" reaches "set(int&)". Both still convert, at a
+            // lower rank, so the headers that pass a move or an lvalue where only one
+            // of the two exists keep working.
+            if (e && ((p.ref === "&" && !p.cnst && !isLvalueExpr(cx, e))
+                || (p.ref === "&&" && !p.cnst && isLvalueExpr(cx, e)))) {
+                return { s: 85, conv: null };
+            }
             return { s: 90, conv: null };
+        }
         const pn = coreName(p);
         const an = coreName(a);
         if (a.dims.length && !a.isBox() && p.ptr > 0 && pn === an && p.ptr === a.ptr + 1) {
@@ -9018,8 +9177,8 @@ var CTJ;
             catch (er) {
             }
         };
-        if (l && isClassVal(cx, l.t)) {
-            const fq = cx.stripAll(l.t);
+        const fq = l ? classValFq(cx, l.t) : "";
+        if (l && fq) {
             const m = cx.lookupMember(fq, key, new Set());
             const tmpls = [];
             for (const tm of cx.tmplsOf(fq + "::" + key))
@@ -9142,6 +9301,16 @@ var CTJ;
         return cx.classes.has(cx.stripAll(t));
     }
     CTJ.isClassVal = isClassVal;
+    // The name of the class an operand is, reading through a reference: an
+    // operator written on a reference to a class ("__i += __n" on an iterator
+    // reference) is the class's own operator, "const _Iterator&" included.
+    function classValFq(cx, t) {
+        if (t.ptr > 0 || t.dims.length > 0 || t.isFunc)
+            return "";
+        const fq = cx.stripAll(t);
+        return cx.classes.has(fq) ? fq : "";
+    }
+    CTJ.classValFq = classValFq;
     function isClassBox(cx, t) {
         if (!t.isBox() || t.dims.length > 0 || t.isFunc)
             return false;
@@ -9262,8 +9431,29 @@ var CTJ;
         return MATH_BUILTINS.has(name);
     }
     CTJ.isMathBuiltin = isMathBuiltin;
+    // The "unsigned long"/"unsigned long long" variants of the bit builtins
+    // ("__builtin_popcountl", "__builtin_ctzll"): the width of the argument does
+    // not change the value, so they are spelled like the plain form.
+    function bitBuiltin(name) {
+        for (const b of ["__builtin_popcount", "__builtin_parity", "__builtin_clz", "__builtin_ctz", "__builtin_ffs"]) {
+            if (name === b || name === b + "l" || name === b + "ll")
+                return b;
+        }
+        return "";
+    }
+    CTJ.bitBuiltin = bitBuiltin;
     function builtinCall(cx, e, name, argTs, scope) {
         cx.getAnn(e).call = { builtin: name };
+        if (name.startsWith("__is_")) {
+            // GCC answers these type traits itself. The classes collected from the
+            // headers are enough to work them out, and the answer is a constant, so one
+            // value serves both the constant-expression path and the emitted code.
+            const v = typeTrait(cx, name, e.args, scope);
+            if (v === null)
+                cx.warn(`${name} could not be evaluated, using 0`, e);
+            cx.getAnn(e).call = { builtin: name, value: v === null ? 0 : v };
+            return CTJ.CppType.basic("bool");
+        }
         const voidPtr = () => {
             const t = CTJ.CppType.basic("void");
             t.ptr = 1;
@@ -9313,8 +9503,7 @@ var CTJ;
             cx.warn(`${name} is not supported, stubbed as null`, e);
             return voidPtr();
         }
-        if (name === "__builtin_clz" || name === "__builtin_ctz" || name === "__builtin_popcount" ||
-            name === "__builtin_ffs" || name === "__builtin_parity" || name === "__builtin_bswap16" ||
+        if (bitBuiltin(name) || name === "__builtin_bswap16" ||
             name === "__builtin_bswap32" || name === "__builtin_bswap64") {
             return CTJ.CppType.basic("int");
         }
@@ -9855,7 +10044,11 @@ var CTJ;
             return "constructor";
         if (fn.short === "#dtor")
             return "__dtor";
-        const suf = fn.isConst && !fn.isStatic ? "__c" : "";
+        // "f(T&)" and "f(T&&)" take the same argument shape at run time, so a name
+        // of their own keeps the rvalue one from being taken for the other
+        // ("merge(list&)" delegates to "merge(list&&)", "set(int&)" to "set(int&&)").
+        const rv = fn.decl.params.some(p => p.type && p.type.ref === "&&") ? "__rv" : "";
+        const suf = (fn.isConst && !fn.isStatic ? "__c" : "") + rv;
         if (fn.short.startsWith("#conv:"))
             return "op_conv_" + CTJ.safeJsName(fn.short.slice(6)) + suf;
         if (fn.short.startsWith("operator")) {
@@ -10288,8 +10481,14 @@ var CTJ;
             if (CTJ.isNumericName(n) || this.cx.enums.has(this.cx.stripAll(t)))
                 return `(typeof ${v} === "number" || typeof ${v} === "boolean")`;
             const fq = this.cx.stripAll(t);
-            if (this.cx.classes.has(fq))
-                return `${v} instanceof ${this.cx.classes.get(fq).mangled}`;
+            if (this.cx.classes.has(fq)) {
+                const c = this.cx.classes.get(fq);
+                // "std::initializer_list<T>" is the array its elements are made of, and
+                // that array is what is passed, so the guard has to accept it.
+                if ((c.fromTmpl || "").split("::").pop() === "initializer_list")
+                    return `Array.isArray(${v})`;
+                return `${v} instanceof ${c.mangled}`;
+            }
             return "";
         }
         // A default argument is a value; a reference or pointer parameter takes a
@@ -10360,10 +10559,10 @@ var CTJ;
                 const hit = !inh ? fn.decl.ctorInit.find(x => CTJ.last(x.name).n === name) : null;
                 const fname = CTJ.safeJsName(name);
                 if (!hit && copyDefault) {
-                    this.line(`this.${fname} = ${copySrc}.${fname};`);
+                    this.fieldAssign(name, ft, `${copySrc}.${fname}`);
                 }
                 else {
-                    this.line(`this.${fname} = ${this.fieldInit(c, ft, fd, hit || null)};`);
+                    this.fieldAssign(name, ft, this.fieldInit(c, ft, fd, hit || null));
                 }
             }
             if (!inh) {
@@ -10381,7 +10580,7 @@ var CTJ;
             for (const [name, fd] of c.fields) {
                 if (c.fieldStatic.has(name))
                     continue;
-                this.line(`this.${CTJ.safeJsName(name)} = ${this.fieldInit(c, this.cx.fieldType(c, name), fd, null)};`);
+                this.fieldAssign(name, this.cx.fieldType(c, name), this.fieldInit(c, this.cx.fieldType(c, name), fd, null));
             }
         }
         fieldInit(c, ft, fd, hit) {
@@ -10427,6 +10626,15 @@ var CTJ;
                 const items = args[0].items.map(x => this.ex(x));
                 return `new ${cn}([${items.join(", ")}])`;
             }
+            // "vector<int> v{a, b, c}" gives the constructor one initializer_list made
+            // of the elements, not one argument per element.
+            if (ps.length && !ps[0].variadic && this.isInitListParam(ps[0].type) &&
+                args.length && args.every(x => x.kind !== "initlist")) {
+                const aa = [`[${args.map(x => this.ex(x)).join(", ")}]`];
+                for (let i = 1; i < ps.length && !ps[i].variadic; i++)
+                    aa.push(ps[i].def ? this.defArg(ps[i]) : "undefined");
+                return `new ${cn}(${aa.join(", ")})`;
+            }
             const aa = args.map((x, i) => {
                 const pt = i < ps.length && !ps[i].variadic ? ps[i].type : null;
                 if (pt && this.isInitListParam(pt) && x.kind === "initlist") {
@@ -10461,7 +10669,7 @@ var CTJ;
             this.line(`}`);
         }
         emitMethod(c, fns) {
-            const use = fns.filter(f => f.referenced && ((f.decl.body || []).length || f.decl.flags.includes("pure") || !!CTJ.ioRuntimeKind(f)));
+            const use = fns.filter(f => f.referenced && ((f.decl.body || []).length || f.decl.flags.includes("pure") || !!CTJ.ioRuntimeKind(f) || !!this.listNodeStub(f)));
             if (!use.length)
                 return;
             const groups = new Map();
@@ -10481,6 +10689,11 @@ var CTJ;
             const io = CTJ.ioRuntimeKind(use[0]);
             if (io) {
                 this.line(`${pre}${m}(...$a) { ${this.ioStubBody(io, true)} }`);
+                return;
+            }
+            const list = this.listNodeStub(use[0]);
+            if (list !== null) {
+                this.line(`${pre}${m}(...$a) { ${list} }`);
                 return;
             }
             if (use.length === 1) {
@@ -10636,6 +10849,88 @@ var CTJ;
             if (f.fq === "operatordelete" || f.fq === "operatordelete[]")
                 return "";
             return null;
+        }
+        // libstdc++ defines the node operations of an intrusive list in
+        // src/c++98/list.cc, which is not a header: without them a list cannot
+        // insert, erase, splice or reverse anything. The bodies are the ones from
+        // that file, written against the fat pointers the generator uses.
+        listNodeStub(f) {
+            if (!f.isMethod || !f.fq.endsWith("_List_node_base::" + f.short))
+                return null;
+            const ad = `const $ad = (o) => (o.ctj_a ? {a: o.ctj_a, i: o.ctj_i} : {a: (o.ctj_a = []), i: (o.ctj_i = 0)});`;
+            switch (f.short) {
+                case "_M_hook":
+                    // __position->_M_prev->_M_next = this; __position->_M_prev = this;
+                    return [
+                        ad + `const $me = $ad(this), $pos = $a[0].a[$a[0].i], $prev = $pos._M_prev;`,
+                        `this._M_next = $a[0];`,
+                        `this._M_prev = $prev;`,
+                        `$prev.a[$prev.i]._M_next = $me;`,
+                        `$pos._M_prev = $me;`,
+                    ].join("");
+                case "_M_unhook":
+                    // __prev_node->_M_next = __next_node; __next_node->_M_prev = __prev_node;
+                    return [
+                        `const $next = this._M_next, $prev = this._M_prev;`,
+                        `$prev.a[$prev.i]._M_next = $next;`,
+                        `$next.a[$next.i]._M_prev = $prev;`,
+                    ].join("");
+                case "_M_transfer":
+                    // The members of "this" are moved in front of __last from the range
+                    // that starts at __first, by rewiring the four nodes around them.
+                    return [
+                        ad,
+                        `if ($a[1].a[$a[1].i] === this) return;`,
+                        `const $me = $ad(this), $fp = $a[0], $lp = $a[1];`,
+                        `$lp.a[$lp.i]._M_prev.a[$lp.a[$lp.i]._M_prev.i]._M_next = $me;`,
+                        `$fp.a[$fp.i]._M_prev.a[$fp.a[$fp.i]._M_prev.i]._M_next = $lp;`,
+                        `this._M_prev.a[this._M_prev.i]._M_next = $fp;`,
+                        `const $tmp = this._M_prev;`,
+                        `this._M_prev = $lp.a[$lp.i]._M_prev;`,
+                        `$lp.a[$lp.i]._M_prev = $fp.a[$fp.i]._M_prev;`,
+                        `$fp.a[$fp.i]._M_prev = $tmp;`,
+                    ].join("");
+                case "_M_reverse":
+                    // Every node swaps its two links; the walk follows _M_prev, which is
+                    // the next node of the reversed list.
+                    return [
+                        ad + `let $p = $ad(this);`,
+                        `do {`,
+                        `const $t = $p.a[$p.i]._M_next;`,
+                        `$p.a[$p.i]._M_next = $p.a[$p.i]._M_prev;`,
+                        `$p.a[$p.i]._M_prev = $t;`,
+                        `$p = $p.a[$p.i]._M_prev;`,
+                        `} while ($p.a[$p.i] !== this);`,
+                    ].join("");
+                case "swap":
+                    // The nodes that end up next to a sentinel have to be pointed back at
+                    // it: after the links are exchanged, the first and last node of each
+                    // list still name the other sentinel (LWG 953).
+                    return [
+                        ad,
+                        `const $x = $a[0].a[$a[0].i], $y = $a[1].a[$a[1].i];`,
+                        `if ($x === $y) return;`,
+                        `const $xa = $ad($x), $ya = $ad($y);`,
+                        `const $xe = $x._M_next && $x._M_next.a === $xa.a && $x._M_next.i === $xa.i;`,
+                        `const $ye = $y._M_next && $y._M_next.a === $ya.a && $y._M_next.i === $ya.i;`,
+                        `if (!$xe && !$ye) {`,
+                        `let $t = $x._M_next; $x._M_next = $y._M_next; $y._M_next = $t;`,
+                        `$t = $x._M_prev; $x._M_prev = $y._M_prev; $y._M_prev = $t;`,
+                        `$x._M_next.a[$x._M_next.i]._M_prev = $xa; $x._M_prev.a[$x._M_prev.i]._M_next = $xa;`,
+                        `$y._M_next.a[$y._M_next.i]._M_prev = $ya; $y._M_prev.a[$y._M_prev.i]._M_next = $ya;`,
+                        `} else if (!$xe) {`,
+                        `$y._M_next = $x._M_next; $y._M_prev = $x._M_prev;`,
+                        `$y._M_next.a[$y._M_next.i]._M_prev = $ya; $y._M_prev.a[$y._M_prev.i]._M_next = $ya;`,
+                        `$x._M_next = $xa; $x._M_prev = $xa;`,
+                        `} else if (!$ye) {`,
+                        `$x._M_next = $y._M_next; $x._M_prev = $y._M_prev;`,
+                        `$x._M_next.a[$x._M_next.i]._M_prev = $xa; $x._M_prev.a[$x._M_prev.i]._M_next = $xa;`,
+                        `$y._M_next = $ya; $y._M_prev = $ya;`,
+                        `}`,
+                    ].join("");
+                default:
+                    return null;
+            }
         }
         // libstdc++ defines these in src/c++98/tree.cc, which is not a header.
         rbTreeStub(f) {
@@ -10855,7 +11150,7 @@ var CTJ;
                         });
                         return;
                     }
-                    this.block(`if (${this.ex(s.cond)})`, () => this.stmt(s.then));
+                    this.block(`if (${this.exVal(s.cond)})`, () => this.stmt(s.then));
                     if (s.els)
                         this.block(`else`, () => this.stmt(s.els));
                     return;
@@ -10870,7 +11165,7 @@ var CTJ;
                         });
                         return;
                     }
-                    this.block(`switch (${this.ex(s.cond)})`, () => this.stmt(s.body));
+                    this.block(`switch (${this.exVal(s.cond)})`, () => this.stmt(s.body));
                     return;
                 case "case":
                     this.line(s.value ? `case ${this.constStr(s.value)}:` : `default:`);
@@ -10888,14 +11183,14 @@ var CTJ;
                         });
                         return;
                     }
-                    this.block(`while (${this.ex(s.cond)})`, () => this.stmt(s.body));
+                    this.block(`while (${this.exVal(s.cond)})`, () => this.stmt(s.body));
                     return;
                 case "do":
                     this.line(`do {`);
                     this.ind += "  ";
                     this.stmt(s.body);
                     this.ind = this.ind.slice(0, -2);
-                    this.line(`} while (${this.ex(s.cond)});`);
+                    this.line(`} while (${this.exVal(s.cond)});`);
                     return;
                 case "for": {
                     if (s.init && s.init.kind === "decl") {
@@ -10909,13 +11204,13 @@ var CTJ;
                             this.varDeclFor(d, v, t);
                             this.out = save;
                             const head = lines.length === 1 ? lines[0].trim().replace(/;$/, "") : `let ${v.mangled}`;
-                            this.block(`for (${head}; ${s.cond ? this.ex(s.cond) : ""}; ${s.step ? this.ex(s.step) : ""})`, () => this.stmt(s.body));
+                            this.block(`for (${head}; ${s.cond ? this.exVal(s.cond) : ""}; ${s.step ? this.ex(s.step) : ""})`, () => this.stmt(s.body));
                             return;
                         }
                     }
                     if (s.init)
                         this.stmt(s.init);
-                    this.block(`for (; ${s.cond ? this.ex(s.cond) : ""}; ${s.step ? this.ex(s.step) : ""})`, () => this.stmt(s.body));
+                    this.block(`for (; ${s.cond ? this.exVal(s.cond) : ""}; ${s.step ? this.ex(s.step) : ""})`, () => this.stmt(s.body));
                     return;
                 }
                 case "rangefor":
@@ -11051,9 +11346,12 @@ var CTJ;
             if (vd.init) {
                 if (fcls && this.cx.classes.has(fcls)) {
                     const cn = this.cx.classes.get(fcls).mangled;
-                    if (a.call) {
+                    // "vector<int> v{1, 2, 3}" resolves the initializer-list constructor
+                    // while annotating the list itself, not the declaration.
+                    const ca = vd.init.kind === "initlist" ? this.cx.getAnn(vd.init) : a;
+                    if (ca.call) {
                         const items = vd.init.kind === "initlist" ? vd.init.items : [vd.init];
-                        return this.ctorExpr(cn, a.call, items, a.convs, t);
+                        return this.ctorExpr(cn, ca.call, items, ca.convs, t);
                     }
                 }
                 if (t.dims.length && vd.init.kind === "initlist") {
@@ -11129,13 +11427,39 @@ var CTJ;
             const e = `$e${ri}`;
             const bm = methodJsName(info.beginFn);
             const em = methodJsName(info.endFn);
-            const nm = methodJsName(info.neFn);
-            const im = methodJsName(info.incFn);
-            const sm = methodJsName(info.starFn);
-            this.block(`for (let ${b} = ${obj}.${bm}(), ${e} = ${obj}.${em}(); ${b}.${nm}(${e}); ${b}.${im}())`, () => {
-                this.rangeVar(v, t, `${b}.${sm}()`, "", "");
+            const itT = this.cx.funcRet(info.beginFn).core();
+            const cond = this.rangeOp(info.ne, itT, b, e);
+            const step = this.rangeOp(info.inc, itT, b, "");
+            const deref = this.rangeOp(info.star, itT, b, "");
+            this.block(`for (let ${b} = ${obj}.${bm}(), ${e} = ${obj}.${em}(); ${cond}; ${step})`, () => {
+                this.rangeVar(v, t, deref, "", "");
                 this.stmt(s.body);
             });
+        }
+        // The body of an iterator operation, which may live in the class itself or
+        // be a free function ("operator!=" of __normal_iterator, for instance).
+        rangeOp(op, itT, a, b) {
+            if (op.builtin === "ptr") {
+                if (op.op === "!=")
+                    return `!(${a} === ${b} || (${a} && ${b} && ${a}.a === ${b}.a && ${a}.i === ${b}.i))`;
+                if (op.op === "++")
+                    return `(${a} = {a: ${a}.a, i: ${a}.i + 1})`;
+                return a;
+            }
+            const fn = op.fn;
+            const ps = this.cx.funcParams(fn);
+            if (op.isMember) {
+                return `${a}.${methodJsName(fn)}(${b ? this.boxFor(ps[0].type, itT, b) : ""})`;
+            }
+            const aa = (b ? [a, b] : [a]).map((x, i) => this.boxFor(ps[i] ? ps[i].type : null, itT, x));
+            return `${fn.mangled}(${aa.join(", ")})`;
+        }
+        // An argument a parameter reads through a box has to be put in one, the way
+        // argFor does for an ordinary call.
+        boxFor(p, a, s) {
+            if (p && isBoxLike(p) && !isBoxLike(a))
+                return `{a: [${s}], i: 0}`;
+            return s;
         }
         rangeVar(v, t, elem, arr, idx) {
             const nm = this.localName(v);
@@ -11188,7 +11512,7 @@ var CTJ;
                 case "unary": return this.exUnary(e);
                 case "binary": return this.exBinary(e);
                 case "assign": return this.exAssign(e);
-                case "cond": return `(${this.ex(e.c)} ? ${this.ex(e.a)} : ${this.ex(e.b)})`;
+                case "cond": return `(${this.exVal(e.c)} ? ${this.ex(e.a)} : ${this.ex(e.b)})`;
                 case "new": return this.exNew(e);
                 case "delete": return "void 0";
                 case "cast": return this.exCast(e);
@@ -11280,6 +11604,29 @@ var CTJ;
             codes.push(0);
             return `[${codes.join(", ")}]`;
         }
+        // The memory builtins copy elements rather than bytes, but the C++ count is a
+        // byte count ("sizeof(_Tp) * _Num" in the __copy_move specializations), so it
+        // is divided by the size of the element the destination points at. Character
+        // buffers and pointers to void keep the count they were given.
+        memCount(e, pi, ci) {
+            const s = this.ex(e.args[ci]);
+            const pt = this.cx.getAnn(e.args[pi]).t;
+            if (!pt || pt.ptr === 0)
+                return s;
+            const el = new CTJ.CppType(pt.name);
+            el.segs = pt.segs;
+            el.ptr = pt.ptr - 1;
+            let sz = 0;
+            try {
+                sz = CTJ.constSizeof(this.cx, el, new Set());
+            }
+            catch {
+                sz = 0;
+            }
+            if (sz <= 1)
+                return s;
+            return `Math.trunc((${s}) / ${sz})`;
+        }
         // The string and memory builtins work on the same boxes every other pointer
         // uses: an array of bytes and an offset into it.
         exMemBuiltin(name, e) {
@@ -11302,13 +11649,13 @@ var CTJ;
                 case "__builtin_strchr":
                     return `(($s, $c) => { let $i = $s.i; while ($s.a[$i] && $s.a[$i] !== ($c & 255)) $i++; return ($s.a[$i] || 0) === ($c & 255) ? { a: $s.a, i: $i } : null; })(${p(0)}, ${a[1]})`;
                 case "__builtin_memset":
-                    return `(($d, $c, $n) => { for (let $k = 0; $k < $n; $k++) $d.a[$d.i + $k] = $c & 255; return $d; })(${p(0)}, ${a[1]}, ${a[2]})`;
+                    return `(($d, $c, $n) => { for (let $k = 0; $k < $n; $k++) $d.a[$d.i + $k] = $c & 255; return $d; })(${p(0)}, ${a[1]}, ${this.memCount(e, 0, 2)})`;
                 case "__builtin_memcpy":
-                    return `(($d, $s, $n) => { for (let $k = 0; $k < $n; $k++) $d.a[$d.i + $k] = $s.a[$s.i + $k]; return $d; })(${p(0)}, ${p(1)}, ${a[2]})`;
+                    return `(($d, $s, $n) => { for (let $k = 0; $k < $n; $k++) $d.a[$d.i + $k] = $s.a[$s.i + $k]; return $d; })(${p(0)}, ${p(1)}, ${this.memCount(e, 0, 2)})`;
                 case "__builtin_memmove":
-                    return `(($d, $s, $n) => { const $t = $s.a.slice($s.i, $s.i + $n); for (let $k = 0; $k < $n; $k++) $d.a[$d.i + $k] = $t[$k]; return $d; })(${p(0)}, ${p(1)}, ${a[2]})`;
+                    return `(($d, $s, $n) => { const $t = $s.a.slice($s.i, $s.i + $n); for (let $k = 0; $k < $n; $k++) $d.a[$d.i + $k] = $t[$k]; return $d; })(${p(0)}, ${p(1)}, ${this.memCount(e, 0, 2)})`;
                 case "__builtin_memcmp":
-                    return `(($x, $y, $n) => { for (let $k = 0; $k < $n; $k++) { const $d = ($x.a[$x.i + $k] || 0) - ($y.a[$y.i + $k] || 0); if ($d) return $d; } return 0; })(${p(0)}, ${p(1)}, ${a[2]})`;
+                    return `(($x, $y, $n) => { for (let $k = 0; $k < $n; $k++) { const $d = ($x.a[$x.i + $k] || 0) - ($y.a[$y.i + $k] || 0); if ($d) return $d; } return 0; })(${p(0)}, ${p(1)}, ${this.memCount(e, 0, 2)})`;
                 default:
                     return null;
             }
@@ -11448,6 +11795,15 @@ var CTJ;
                     }
                     if (e.op === "&")
                         return this.exBox(e.arg);
+                    // "++it" on a class calls an operator that returns a reference, and a
+                    // reference to a class is already a box: wrapping it again would point
+                    // at the box instead of the object ("++__first != __last" in
+                    // std::max_element).
+                    if ((e.op === "++" || e.op === "--") && this.cx.getAnn(e).call) {
+                        const ct = et && et.ref ? this.cx.stripAll(et) : "";
+                        if (ct && this.cx.classes.has(ct))
+                            return this.ex(e);
+                    }
                     return `{a: [${this.ex(e)}], i: 0}`;
                 case "call":
                 case "this":
@@ -11538,6 +11894,10 @@ var CTJ;
                 case "unary": {
                     if (e.op !== "*")
                         this.cx.fail("not assignable", e);
+                    if (this.classDeref(e)) {
+                        const t = this.tmp();
+                        return `(${t} = ${this.ex(e)}, ${t}.a[${t}.i])`;
+                    }
                     const p = this.complex(this.ex(e.arg), e.arg);
                     const pp = this.paren(p);
                     return `${pp}.a[${pp}.i]`;
@@ -11594,7 +11954,17 @@ var CTJ;
                 return true;
             if (e.kind === "index" && this.cx.getAnn(e).call)
                 return true;
-            return false;
+            return this.classDeref(e);
+        }
+        // "*it" for a class iterator calls an operator* that yields a reference: the
+        // reference has to be bound to a temporary before anything can be assigned
+        // through it, so an assignment to "*it" is a split target like a call.
+        classDeref(e) {
+            if (e.kind !== "unary" || e.op !== "*")
+                return false;
+            const at = this.cx.getAnn(e.arg).t;
+            return !!at && at.ptr === 0 && !at.dims.length && !at.isFunc &&
+                this.cx.classes.has(this.cx.stripAll(at));
         }
         // Binds complex pointer operands to temporaries: a fat pointer is read in two
         // places, and evaluating the expression twice would repeat its side effects.
@@ -11620,6 +11990,26 @@ var CTJ;
         }
         parr(x) {
             return `(${x} ? ${this.paren(x)}.a : null)`;
+        }
+        // A class-typed field holds a sub-object: the storage it was built in is
+        // remembered on it, as a placement new records it, so that a pointer built
+        // from the sub-object itself ("this" in one of its methods) is the same
+        // pointer as the one "&this->_M_impl._M_node" writes.
+        fieldAssign(name, ft, value) {
+            const fname = CTJ.safeJsName(name);
+            this.line(`this.${fname} = ${value};`);
+            if (!ft.isBox() && !ft.dims.length && !ft.isFunc && this.cx.classes.has(this.cx.stripAll(ft))) {
+                this.line(`this.${fname}.ctj_a = this; this.${fname}.ctj_i = "${fname}";`);
+            }
+        }
+        // The operand pbox is given. A call returning a reference to a scalar
+        // pointer ("base()" hands back "const int*&") is read through by ex, and
+        // pbox takes exactly that step, so the box the reference is goes in instead.
+        pboxArg(e, t, v) {
+            if (t && t.ref && t.ptr > 0 && e.kind === "call" && this.returnsScalarRef(e)) {
+                return this.exCall(e);
+            }
+            return v;
         }
         pbox(s, e, t) {
             const x = this.complex(s, e);
@@ -11659,9 +12049,12 @@ var CTJ;
             // pointer (_M_rightmost() is _Base_ptr&) decays first.
             if (p.ptr > 0 && !p.ref && !p.dims.length && !p.isFunc &&
                 at && at.ptr > 0 && !at.dims.length && !at.isFunc) {
-                // Bind once: complex() inlines `$t = src, $t` and the ternary would
-                // evaluate that (and any --it inside) three times.
-                const raw = this.ex(x);
+                // A call that returns a reference to a *scalar* pointer ("base()" hands
+                // back "const int*&") is read through by ex; the branch below wants the
+                // box the reference is, so the raw call is taken instead.
+                const raw = at.ref && x.kind === "call" && this.returnsScalarRef(x)
+                    ? this.exCall(x)
+                    : this.ex(x);
                 const src = this.isSimple(x) ? this.paren(raw) : this.tmp();
                 const pre = this.isSimple(x) ? "" : `${src} = ${raw}, `;
                 // T*& from a call (_M_rightmost) is a fat pointer to the pointer.
@@ -11779,8 +12172,76 @@ var CTJ;
             }
             return this.exCall(e);
         }
+        // The value an expression stands for. A call, an index or a "*" through an
+        // operator that returns a reference to a scalar hands back the box; where a
+        // value is wanted, the element the box points at is read.
+        exVal(e) {
+            const t = this.cx.getAnn(e).t;
+            if (!t || !t.ref || t.ptr > 0 || t.dims.length || t.isFunc)
+                return this.ex(e);
+            if (this.cx.classes.has(this.cx.stripAll(t)))
+                return this.ex(e);
+            if (e.kind === "id" || e.kind === "call")
+                return this.ex(e);
+            return this.deref(e);
+        }
+        // The C library's memory functions take a byte count, but an array holds
+        // elements: the count is divided by the size of one element, exactly as the
+        // "__builtin_mem*" forms of the same functions do. Only the bundled C headers
+        // are treated this way, so a program may still define its own "memcpy".
+        memFuncCount(fn, e, aa) {
+            if (fn.isMethod || e.args.length < 3)
+                return;
+            const file = (fn.decl.file || "").replace(/^.*[\/\\]/, "");
+            if (["string.h", "cstring", "wchar.h", "cwchar", "strings.h"].indexOf(file) < 0)
+                return;
+            const pt = this.cx.getAnn(e.args[0]).t;
+            if (!pt || pt.ptr === 0)
+                return;
+            const el = new CTJ.CppType(pt.name);
+            el.segs = pt.segs;
+            el.ptr = pt.ptr - 1;
+            let sz = 0;
+            try {
+                sz = CTJ.constSizeof(this.cx, el, new Set());
+            }
+            catch {
+                sz = 0;
+            }
+            if (sz <= 1)
+                return;
+            aa[2] = `Math.trunc((${aa[2]}) / ${sz})`;
+        }
+        // "std::initializer_list<T>" is the array its elements are made of: the
+        // header's own begin/end/size are answered from that array, so
+        // "vector<int> v{1, 2, 3}" can run the standard range-construction.
+        initListCall(e) {
+            if (e.fn.kind !== "member")
+                return null;
+            const m = e.fn;
+            const ot = this.cx.getAnn(m.obj).t;
+            if (!ot || ot.isBox() || ot.dims.length || ot.isFunc)
+                return null;
+            const cls = this.cx.classes.get(this.cx.stripAll(ot));
+            if (!cls)
+                return null;
+            const tmpl = (cls.fromTmpl || "").split("::").pop();
+            if (tmpl !== "initializer_list")
+                return null;
+            const o = this.objOf(m.obj);
+            if (m.field === "begin")
+                return `({a: ${o}, i: 0})`;
+            if (m.field === "end")
+                return `({a: ${o}, i: ${this.paren(o)}.length})`;
+            if (m.field === "size")
+                return `${this.paren(o)}.length`;
+            return null;
+        }
         exCall(e) {
             const a = this.cx.getAnn(e);
+            const il = this.initListCall(e);
+            if (il !== null)
+                return il;
             // A destructor call that resolved to no destructor has nothing to do; the
             // target language reclaims the storage itself.
             if (!a.call && e.fn.kind === "member" && e.fn.field.charAt(0) === "~")
@@ -11818,6 +12279,7 @@ var CTJ;
                     aa.push(pt ? this.argFor(pt, x, a.convs[i] || null) : this.ex(x));
                 }
             });
+            this.memFuncCount(fn, e, aa);
             for (let i = e.args.length; i < ps.length && !ps[i].variadic; i++) {
                 aa.push(ps[i].def ? this.defArg(ps[i]) : "undefined");
             }
@@ -11878,12 +12340,16 @@ var CTJ;
                 }
                 let tpl = (e.args[0].value).slice(1, -1);
                 for (let i = 1; i < e.args.length; i++) {
-                    tpl = tpl.split(`$${i}`).join(`(${this.ex(e.args[i])})`);
+                    tpl = tpl.split(`$${i}`).join(`(${this.exVal(e.args[i])})`);
                 }
                 return `(${tpl})`;
             }
             if (name === "__ctj_php")
                 return "undefined";
+            if (name.startsWith("__is_")) {
+                const a = this.cx.getAnn(e).call;
+                return String(a && typeof a.value === "number" ? a.value : 0);
+            }
             if (name === "__builtin_expect" || name === "__builtin_expect_with_probability")
                 return this.ex(e.args[0]);
             if (name === "__builtin_choose_expr") {
@@ -11914,21 +12380,24 @@ var CTJ;
                     m = m.slice(0, -1);
                 return `Math.${m}(${e.args.map(x => this.ex(x)).join(", ")})`;
             }
-            if (name === "__builtin_clz")
+            // "__builtin_popcountl" and friends differ only in the width of their
+            // argument, which the target language's number does not distinguish.
+            const bit = CTJ.bitBuiltin(name) || name;
+            if (bit === "__builtin_clz")
                 return `Math.clz32(${this.ex(e.args[0])})`;
-            if (name === "__builtin_ctz") {
+            if (bit === "__builtin_ctz") {
                 const x = this.ex(e.args[0]);
                 return `(${x} === 0 ? 32 : 31 - Math.clz32((${x}) & -(${x})))`;
             }
-            if (name === "__builtin_popcount") {
+            if (bit === "__builtin_popcount") {
                 const x = this.ex(e.args[0]);
                 return `(((${x}) >>> 0).toString(2).split("1").length - 1)`;
             }
-            if (name === "__builtin_ffs") {
+            if (bit === "__builtin_ffs") {
                 const x = this.ex(e.args[0]);
                 return `(((${x}) & 0xffffffff) === 0 ? 0 : 32 - Math.clz32((${x}) & -(${x})))`;
             }
-            if (name === "__builtin_parity") {
+            if (bit === "__builtin_parity") {
                 const x = this.ex(e.args[0]);
                 return `(((((${x}) >>> 0).toString(2).split("1").length - 1) & 1))`;
             }
@@ -12087,7 +12556,7 @@ var CTJ;
                 return post ? `${l}${inc}` : `${inc}${l}`;
             }
             if (e.op === "!")
-                return `(!${this.paren(this.ex(e.arg))})`;
+                return `(!${this.paren(this.exVal(e.arg))})`;
             if (e.op === "+")
                 return `(+${this.paren(this.ex(e.arg))})`;
             if (e.op === "-")
@@ -12109,7 +12578,9 @@ var CTJ;
             else {
                 const rt = this.cx.getAnn(e.r).t;
                 const core = rt ? CTJ.coreName(rt) : "";
-                const rs = this.ex(e.r);
+                // "*it" and a call that hands back an "int&" stand for the value; read
+                // the box before printing it.
+                const rs = this.exVal(e.r);
                 if (rt && !rt.ptr && !rt.dims.length && (core === "char" || core === "signed char" || core === "unsigned char" || core === "wchar_t")) {
                     payload = `String.fromCharCode(${rs})`;
                 }
@@ -12153,8 +12624,10 @@ var CTJ;
             }
             const lt = this.cx.getAnn(e.l).t;
             const rt = this.cx.getAnn(e.r).t;
-            const l = this.ex(e.l);
-            const r = this.ex(e.r);
+            const l = this.exVal(e.l);
+            const r = this.exVal(e.r);
+            const lb = this.pboxArg(e.l, lt, l);
+            const rb = this.pboxArg(e.r, rt, r);
             if (e.op === "&&" || e.op === "||")
                 return `(${l} ${e.op} ${r})`;
             if (e.op === ",")
@@ -12165,8 +12638,8 @@ var CTJ;
                 const op = e.op === "==" ? "===" : "!==";
                 if (lp && rp) {
                     const b = this.pbind([
-                        { s: this.pbox(l, e.l, lt), e: e.l },
-                        { s: this.pbox(r, e.r, rt), e: e.r },
+                        { s: this.pbox(lb, e.l, lt), e: e.l },
+                        { s: this.pbox(rb, e.r, rt), e: e.r },
                     ]);
                     const xp = b.v[0];
                     const yp = b.v[1];
@@ -12184,8 +12657,8 @@ var CTJ;
             if (e.op === "<" || e.op === ">" || e.op === "<=" || e.op === ">=") {
                 if (lp && rp) {
                     const b = this.pbind([
-                        { s: this.pbox(l, e.l, lt), e: e.l },
-                        { s: this.pbox(r, e.r, rt), e: e.r },
+                        { s: this.pbox(lb, e.l, lt), e: e.l },
+                        { s: this.pbox(rb, e.r, rt), e: e.r },
                     ]);
                     const body = `(${this.pidx(b.v[0])} ${e.op} ${this.pidx(b.v[1])})`;
                     return b.pre ? `(${b.pre}, ${body})` : body;
@@ -12197,19 +12670,19 @@ var CTJ;
                     if (e.op !== "-")
                         this.cx.fail("bad pointer arithmetic", e);
                     const b = this.pbind([
-                        { s: this.pbox(l, e.l, lt), e: e.l },
-                        { s: this.pbox(r, e.r, rt), e: e.r },
+                        { s: this.pbox(lb, e.l, lt), e: e.l },
+                        { s: this.pbox(rb, e.r, rt), e: e.r },
                     ]);
                     const body = `(${this.pidx(b.v[0])} - ${this.pidx(b.v[1])})`;
                     return b.pre ? `(${b.pre}, ${body})` : body;
                 }
                 if (lp) {
-                    const b = this.pbind([{ s: this.pbox(l, e.l, lt), e: e.l }]);
+                    const b = this.pbind([{ s: this.pbox(lb, e.l, lt), e: e.l }]);
                     const sign = e.op === "+" ? "+" : "-";
                     const body = `({a: ${this.parr(b.v[0])}, i: ${this.pidx(b.v[0])} ${sign} (${r})})`;
                     return b.pre ? `(${b.pre}, ${body})` : body;
                 }
-                const b = this.pbind([{ s: this.pbox(r, e.r, rt), e: e.r }]);
+                const b = this.pbind([{ s: this.pbox(rb, e.r, rt), e: e.r }]);
                 const body = `({a: ${this.parr(b.v[0])}, i: (${l}) + ${this.pidx(b.v[0])}})`;
                 return b.pre ? `(${b.pre}, ${body})` : body;
             }
@@ -12377,7 +12850,7 @@ var CTJ;
             // An unsigned value wraps, so "size_t(-1)" is the largest size rather than
             // a negative one. The width is the 32-bit one: a JS number cannot hold a
             // 64-bit unsigned range.
-            if (CTJ.isUnsignedName(CTJ.coreName(t)))
+            if (t.ptr === 0 && !t.dims.length && CTJ.isUnsignedName(CTJ.coreName(t)))
                 return `(${this.ex(e.arg)} >>> 0)`;
             return this.ex(e.arg);
         }
@@ -13425,7 +13898,7 @@ var CTJ;
                         });
                         return;
                     }
-                    this.block(`if (${this.ex(s.cond)})`, () => this.stmt(s.then));
+                    this.block(`if (${this.exVal(s.cond)})`, () => this.stmt(s.then));
                     if (s.els)
                         this.block(`else`, () => this.stmt(s.els));
                     return;
@@ -13440,7 +13913,7 @@ var CTJ;
                         });
                         return;
                     }
-                    this.block(`switch (${this.ex(s.cond)})`, () => this.stmt(s.body));
+                    this.block(`switch (${this.exVal(s.cond)})`, () => this.stmt(s.body));
                     return;
                 case "case":
                     this.line(s.value ? `case ${this.constStr(s.value)}:` : `default:`);
@@ -13458,14 +13931,14 @@ var CTJ;
                         });
                         return;
                     }
-                    this.block(`while (${this.ex(s.cond)})`, () => this.stmt(s.body));
+                    this.block(`while (${this.exVal(s.cond)})`, () => this.stmt(s.body));
                     return;
                 case "do":
                     this.line(`do {`);
                     this.ind += "  ";
                     this.stmt(s.body);
                     this.ind = this.ind.slice(0, -2);
-                    this.line(`} while (${this.ex(s.cond)});`);
+                    this.line(`} while (${this.exVal(s.cond)});`);
                     return;
                 case "for": {
                     if (s.init && s.init.kind === "decl") {
@@ -13478,13 +13951,13 @@ var CTJ;
                             this.varDeclFor(d, v, v.typeCache);
                             this.out = save;
                             const head = lines.length === 1 ? lines[0].trim().replace(/;$/, "") : `$${v.mangled} = null`;
-                            this.block(`for (${head}; ${s.cond ? this.ex(s.cond) : ""}; ${s.step ? this.ex(s.step) : ""})`, () => this.stmt(s.body));
+                            this.block(`for (${head}; ${s.cond ? this.exVal(s.cond) : ""}; ${s.step ? this.ex(s.step) : ""})`, () => this.stmt(s.body));
                             return;
                         }
                     }
                     if (s.init)
                         this.stmt(s.init);
-                    this.block(`for (; ${s.cond ? this.ex(s.cond) : ""}; ${s.step ? this.ex(s.step) : ""})`, () => this.stmt(s.body));
+                    this.block(`for (; ${s.cond ? this.exVal(s.cond) : ""}; ${s.step ? this.ex(s.step) : ""})`, () => this.stmt(s.body));
                     return;
                 }
                 case "rangefor":
@@ -13706,13 +14179,39 @@ var CTJ;
             const e = `$e${ri}`;
             const bm = phpMethodName(info.beginFn);
             const em = phpMethodName(info.endFn);
-            const nm = phpMethodName(info.neFn);
-            const im = phpMethodName(info.incFn);
-            const sm = phpMethodName(info.starFn);
-            this.block(`for (${b} = ${obj}->${bm}(), ${e} = ${obj}->${em}(); ${b}->${nm}(${e}); ${b}->${im}())`, () => {
-                this.rangeVar(v, t, `${b}->${sm}()`, "", "");
+            const itT = this.cx.funcRet(info.beginFn).core();
+            const cond = this.rangeOp(info.ne, itT, b, e);
+            const step = this.rangeOp(info.inc, itT, b, "");
+            const deref = this.rangeOp(info.star, itT, b, "");
+            this.block(`for (${b} = ${obj}->${bm}(), ${e} = ${obj}->${em}(); ${cond}; ${step})`, () => {
+                this.rangeVar(v, t, deref, "", "");
                 this.stmt(s.body);
             });
+        }
+        // The body of an iterator operation, which may live in the class itself or
+        // be a free function ("operator!=" of __normal_iterator, for instance).
+        rangeOp(op, itT, a, b) {
+            if (op.builtin === "ptr") {
+                if (op.op === "!=")
+                    return `!(${a} === ${b} || (${a} !== null && ${b} !== null && ${a}["a"] === ${b}["a"] && ${a}["i"] === ${b}["i"]))`;
+                if (op.op === "++")
+                    return `${a} = ["a" => ${a}["a"], "i" => ${a}["i"] + 1]`;
+                return a;
+            }
+            const fn = op.fn;
+            const ps = this.cx.funcParams(fn);
+            if (op.isMember) {
+                return `${a}->${phpMethodName(fn)}(${b ? this.boxFor(ps[0].type, itT, b) : ""})`;
+            }
+            const aa = (b ? [a, b] : [a]).map((x, i) => this.boxFor(ps[i] ? ps[i].type : null, itT, x));
+            return `${phpFuncName(fn)}(${aa.join(", ")})`;
+        }
+        // An argument a parameter reads through a box has to be put in one, the way
+        // argFor does for an ordinary call.
+        boxFor(p, a, s) {
+            if (p && CTJ.isBoxLike(p) && !CTJ.isBoxLike(a))
+                return `["a" => [${s}], "i" => 0]`;
+            return s;
         }
         rangeVar(v, t, elem, arr, idx) {
             const nm = this.localName(v);
@@ -13745,7 +14244,7 @@ var CTJ;
                 case "unary": return this.exUnary(e);
                 case "binary": return this.exBinary(e);
                 case "assign": return this.exAssign(e);
-                case "cond": return `(${this.ex(e.c)} ? ${this.ex(e.a)} : ${this.ex(e.b)})`;
+                case "cond": return `(${this.exVal(e.c)} ? ${this.ex(e.a)} : ${this.ex(e.b)})`;
                 case "new": return this.exNew(e);
                 case "delete": return "null";
                 case "cast": return this.exCast(e);
@@ -13837,6 +14336,29 @@ var CTJ;
             codes.push(0);
             return `[${codes.join(", ")}]`;
         }
+        // The memory builtins copy elements rather than bytes, but the C++ count is a
+        // byte count ("sizeof(_Tp) * _Num" in the __copy_move specializations), so it
+        // is divided by the size of the element the destination points at. Character
+        // buffers and pointers to void keep the count they were given.
+        memCount(e, pi, ci) {
+            const s = this.ex(e.args[ci]);
+            const pt = this.cx.getAnn(e.args[pi]).t;
+            if (!pt || pt.ptr === 0)
+                return s;
+            const el = new CTJ.CppType(pt.name);
+            el.segs = pt.segs;
+            el.ptr = pt.ptr - 1;
+            let sz = 0;
+            try {
+                sz = CTJ.constSizeof(this.cx, el, new Set());
+            }
+            catch {
+                sz = 0;
+            }
+            if (sz <= 1)
+                return s;
+            return `intdiv(${s}, ${sz})`;
+        }
         // The string and memory builtins work on the same boxes every other pointer
         // uses: an array of bytes and an offset into it.
         exMemBuiltin(name, e) {
@@ -13859,13 +14381,13 @@ var CTJ;
                 case "__builtin_strchr":
                     return `(function ($s, $c) { $i = $s["i"]; while (($s["a"][$i] ?? 0) && ($s["a"][$i] ?? 0) !== ($c & 255)) $i++; return ($s["a"][$i] ?? 0) === ($c & 255) ? ["a" => $s["a"], "i" => $i] : null; })(${p(0)}, ${a[1]})`;
                 case "__builtin_memset":
-                    return `(function ($d, $c, $n) { for ($k = 0; $k < $n; $k++) $d["a"][$d["i"] + $k] = $c & 255; return $d; })(${p(0)}, ${a[1]}, ${a[2]})`;
+                    return `(function ($d, $c, $n) { for ($k = 0; $k < $n; $k++) $d["a"][$d["i"] + $k] = $c & 255; return $d; })(${p(0)}, ${a[1]}, ${this.memCount(e, 0, 2)})`;
                 case "__builtin_memcpy":
-                    return `(function ($d, $s, $n) { for ($k = 0; $k < $n; $k++) $d["a"][$d["i"] + $k] = $s["a"][$s["i"] + $k]; return $d; })(${p(0)}, ${p(1)}, ${a[2]})`;
+                    return `(function ($d, $s, $n) { for ($k = 0; $k < $n; $k++) $d["a"][$d["i"] + $k] = $s["a"][$s["i"] + $k]; return $d; })(${p(0)}, ${p(1)}, ${this.memCount(e, 0, 2)})`;
                 case "__builtin_memmove":
-                    return `(function ($d, $s, $n) { $t = array_slice($s["a"], $s["i"], $n); for ($k = 0; $k < $n; $k++) $d["a"][$d["i"] + $k] = $t[$k]; return $d; })(${p(0)}, ${p(1)}, ${a[2]})`;
+                    return `(function ($d, $s, $n) { $t = array_slice($s["a"], $s["i"], $n); for ($k = 0; $k < $n; $k++) $d["a"][$d["i"] + $k] = $t[$k]; return $d; })(${p(0)}, ${p(1)}, ${this.memCount(e, 0, 2)})`;
                 case "__builtin_memcmp":
-                    return `(function ($x, $y, $n) { for ($k = 0; $k < $n; $k++) { $d = ($x["a"][$x["i"] + $k] ?? 0) - ($y["a"][$y["i"] + $k] ?? 0); if ($d) return $d; } return 0; })(${p(0)}, ${p(1)}, ${a[2]})`;
+                    return `(function ($x, $y, $n) { for ($k = 0; $k < $n; $k++) { $d = ($x["a"][$x["i"] + $k] ?? 0) - ($y["a"][$y["i"] + $k] ?? 0); if ($d) return $d; } return 0; })(${p(0)}, ${p(1)}, ${this.memCount(e, 0, 2)})`;
                 default:
                     return null;
             }
@@ -13989,6 +14511,14 @@ var CTJ;
                     }
                     if (e.op === "&")
                         return this.exBox(e.arg);
+                    // "++it" on a class calls an operator that returns a reference, and a
+                    // reference to a class is already a box: wrapping it again would point
+                    // at the box instead of the object.
+                    if (e.op === "++" || e.op === "--") {
+                        const ct = et && et.ref ? this.cx.stripAll(et) : "";
+                        if (ct && this.cx.classes.has(ct))
+                            return this.ex(e);
+                    }
                     return `["a" => [${this.ex(e)}], "i" => 0]`;
                 case "call":
                 case "this":
@@ -14077,6 +14607,10 @@ var CTJ;
                 case "unary": {
                     if (e.op !== "*")
                         this.cx.fail("not assignable", e);
+                    if (this.classDeref(e)) {
+                        const t = this.tmp();
+                        return `(${t} = ${this.ex(e)}, ${t}["a"][${t}["i"]])`;
+                    }
                     const p = this.complex(this.ex(e.arg), e.arg);
                     const pp = this.paren(p);
                     return `${pp}["a"][${pp}["i"]]`;
@@ -14130,7 +14664,17 @@ var CTJ;
                 return true;
             if (e.kind === "index" && this.cx.getAnn(e).call)
                 return true;
-            return false;
+            return this.classDeref(e);
+        }
+        // "*it" for a class iterator calls an operator* that yields a reference: the
+        // reference has to be bound to a temporary before anything can be assigned
+        // through it, so an assignment to "*it" is a split target like a call.
+        classDeref(e) {
+            if (e.kind !== "unary" || e.op !== "*")
+                return false;
+            const at = this.cx.getAnn(e.arg).t;
+            return !!at && at.ptr === 0 && !at.dims.length && !at.isFunc &&
+                this.cx.classes.has(this.cx.stripAll(at));
         }
         // A null pointer is null itself, so reading through one needs a guard.
         pidx(x) {
@@ -14138,6 +14682,15 @@ var CTJ;
         }
         parr(x) {
             return `(${x} ? ${this.paren(x)}["a"] : null)`;
+        }
+        // The operand pbox is given. A call returning a reference to a scalar
+        // pointer ("base()" hands back "const int*&") is read through by ex, and
+        // pbox takes exactly that step, so the box the reference is goes in instead.
+        pboxArg(e, t, v) {
+            if (t && t.ref && t.ptr > 0 && e.kind === "call" && this.returnsScalarRef(e)) {
+                return this.exCall(e);
+            }
+            return v;
         }
         pbox(s, e, t) {
             const x = this.complex(s, e);
@@ -14173,7 +14726,12 @@ var CTJ;
             const aB = at ? CTJ.isBoxLike(at) : false;
             if (p.ptr > 0 && !p.ref && !p.dims.length && !p.isFunc &&
                 at && at.ptr > 0 && !at.dims.length && !at.isFunc) {
-                const raw = this.ex(x);
+                // A call that returns a reference to a *scalar* pointer ("base()" hands
+                // back "const int*&") is read through by ex; the branch below wants the
+                // box the reference is, so the raw call is taken instead.
+                const raw = at.ref && x.kind === "call" && this.returnsScalarRef(x)
+                    ? this.exCall(x)
+                    : this.ex(x);
                 const src = this.isSimple(x) ? this.paren(raw) : this.tmp();
                 const pre = this.isSimple(x) ? "" : `${src} = ${raw}, `;
                 if (at.ref && x.kind === "call") {
@@ -14267,8 +14825,76 @@ var CTJ;
             }
             return this.exCall(e);
         }
+        // The value an expression stands for. A call, an index or a "*" through an
+        // operator that returns a reference to a scalar hands back the box; where a
+        // value is wanted, the element the box points at is read.
+        exVal(e) {
+            const t = this.cx.getAnn(e).t;
+            if (!t || !t.ref || t.ptr > 0 || t.dims.length || t.isFunc)
+                return this.ex(e);
+            if (this.cx.classes.has(this.cx.stripAll(t)))
+                return this.ex(e);
+            if (e.kind === "id" || e.kind === "call")
+                return this.ex(e);
+            return this.deref(e);
+        }
+        // The C library's memory functions take a byte count, but an array holds
+        // elements: the count is divided by the size of one element, exactly as the
+        // "__builtin_mem*" forms of the same functions do. Only the bundled C headers
+        // are treated this way, so a program may still define its own "memcpy".
+        memFuncCount(fn, e, aa) {
+            if (fn.isMethod || e.args.length < 3)
+                return;
+            const file = (fn.decl.file || "").replace(/^.*[\/\\]/, "");
+            if (["string.h", "cstring", "wchar.h", "cwchar", "strings.h"].indexOf(file) < 0)
+                return;
+            const pt = this.cx.getAnn(e.args[0]).t;
+            if (!pt || pt.ptr === 0)
+                return;
+            const el = new CTJ.CppType(pt.name);
+            el.segs = pt.segs;
+            el.ptr = pt.ptr - 1;
+            let sz = 0;
+            try {
+                sz = CTJ.constSizeof(this.cx, el, new Set());
+            }
+            catch {
+                sz = 0;
+            }
+            if (sz <= 1)
+                return;
+            aa[2] = `intdiv(${aa[2]}, ${sz})`;
+        }
+        // "std::initializer_list<T>" is the array its elements are made of: the
+        // header's own begin/end/size are answered from that array, so
+        // "vector<int> v{1, 2, 3}" can run the standard range-construction.
+        initListCall(e) {
+            if (e.fn.kind !== "member")
+                return null;
+            const m = e.fn;
+            const ot = this.cx.getAnn(m.obj).t;
+            if (!ot || ot.isBox() || ot.dims.length || ot.isFunc)
+                return null;
+            const cls = this.cx.classes.get(this.cx.stripAll(ot));
+            if (!cls)
+                return null;
+            const tmpl = (cls.fromTmpl || "").split("::").pop();
+            if (tmpl !== "initializer_list")
+                return null;
+            const o = this.objOf(m.obj);
+            if (m.field === "begin")
+                return `["a" => ${o}, "i" => 0]`;
+            if (m.field === "end")
+                return `["a" => ${o}, "i" => count(${o})]`;
+            if (m.field === "size")
+                return `count(${o})`;
+            return null;
+        }
         exCall(e) {
             const a = this.cx.getAnn(e);
+            const il = this.initListCall(e);
+            if (il !== null)
+                return il;
             // A destructor call that resolved to no destructor has nothing to do; the
             // target language reclaims the storage itself.
             if (!a.call && e.fn.kind === "member" && e.fn.field.charAt(0) === "~")
@@ -14307,6 +14933,7 @@ var CTJ;
                     aa.push(pt ? this.argFor(pt, x, a.convs[i] || null) : this.ex(x));
                 }
             });
+            this.memFuncCount(fn, e, aa);
             for (let i = e.args.length; i < ps.length && !ps[i].variadic; i++) {
                 aa.push(ps[i].def ? this.defArg(ps[i]) : "null");
             }
@@ -14360,12 +14987,16 @@ var CTJ;
                 }
                 let tpl = (e.args[0].value).slice(1, -1);
                 for (let i = 1; i < e.args.length; i++) {
-                    tpl = tpl.split(`$${i}`).join(`(${this.ex(e.args[i])})`);
+                    tpl = tpl.split(`$${i}`).join(`(${this.exVal(e.args[i])})`);
                 }
                 return `(${tpl})`;
             }
             if (name === "__ctj_js")
                 return "null";
+            if (name.startsWith("__is_")) {
+                const a = this.cx.getAnn(e).call;
+                return String(a && typeof a.value === "number" ? a.value : 0);
+            }
             if (name === "__builtin_expect" || name === "__builtin_expect_with_probability")
                 return this.ex(e.args[0]);
             if (name === "__builtin_choose_expr") {
@@ -14404,23 +15035,26 @@ var CTJ;
                     m = "abs";
                 return `${m}(${e.args.map(x => this.ex(x)).join(", ")})`;
             }
-            if (name === "__builtin_clz") {
+            // "__builtin_popcountl" and friends differ only in the width of their
+            // argument, which the target language's number does not distinguish.
+            const bit = CTJ.bitBuiltin(name) || name;
+            if (bit === "__builtin_clz") {
                 const x = this.ex(e.args[0]);
                 return `((${x}) === 0 ? 32 : 32 - strlen(decbin((${x}) & 0xffffffff)))`;
             }
-            if (name === "__builtin_ctz") {
+            if (bit === "__builtin_ctz") {
                 const x = this.ex(e.args[0]);
                 return `(function ($v) { if ($v === 0) return 32; $b = decbin($v & 0xffffffff); return strlen($b) - 1 - strrpos($b, "1"); })(${x})`;
             }
-            if (name === "__builtin_popcount") {
+            if (bit === "__builtin_popcount") {
                 const x = this.ex(e.args[0]);
                 return `substr_count(decbin((${x}) & 0xffffffff), "1")`;
             }
-            if (name === "__builtin_ffs") {
+            if (bit === "__builtin_ffs") {
                 const x = this.ex(e.args[0]);
                 return `(function ($v) { $v = $v & 0xffffffff; if ($v === 0) return 0; return 32 - (32 - strlen(decbin($v & -$v))); })(${x})`;
             }
-            if (name === "__builtin_parity") {
+            if (bit === "__builtin_parity") {
                 const x = this.ex(e.args[0]);
                 return `(substr_count(decbin((${x}) & 0xffffffff), "1") & 1)`;
             }
@@ -14551,7 +15185,7 @@ var CTJ;
                 return post ? `${l}${inc}` : `${inc}${l}`;
             }
             if (e.op === "!")
-                return `(!${this.paren(this.ex(e.arg))})`;
+                return `(!${this.paren(this.exVal(e.arg))})`;
             if (e.op === "+")
                 return `(+${this.paren(this.ex(e.arg))})`;
             if (e.op === "-")
@@ -14617,8 +15251,10 @@ var CTJ;
             }
             const lt = this.cx.getAnn(e.l).t;
             const rt = this.cx.getAnn(e.r).t;
-            const l = this.ex(e.l);
-            const r = this.ex(e.r);
+            const l = this.exVal(e.l);
+            const r = this.exVal(e.r);
+            const lb = this.pboxArg(e.l, lt, l);
+            const rb = this.pboxArg(e.r, rt, r);
             if (e.op === "&&" || e.op === "||")
                 return `(${l} ${e.op} ${r})`;
             if (e.op === ",")
@@ -14628,8 +15264,8 @@ var CTJ;
             if (e.op === "==" || e.op === "!=") {
                 const op = e.op === "==" ? "===" : "!==";
                 if (lp && rp) {
-                    const x = this.pbox(l, e.l, lt);
-                    const y = this.pbox(r, e.r, rt);
+                    const x = this.pbox(lb, e.l, lt);
+                    const y = this.pbox(rb, e.r, rt);
                     const xp = this.paren(x);
                     const yp = this.paren(y);
                     // A null pointer is null itself, so both sides are checked first.
@@ -14644,8 +15280,8 @@ var CTJ;
             }
             if (e.op === "<" || e.op === ">" || e.op === "<=" || e.op === ">=") {
                 if (lp && rp) {
-                    const x = this.pbox(l, e.l, lt);
-                    const y = this.pbox(r, e.r, rt);
+                    const x = this.pbox(lb, e.l, lt);
+                    const y = this.pbox(rb, e.r, rt);
                     return `(${this.pidx(x)} ${e.op} ${this.pidx(y)})`;
                 }
                 return `(${l} ${e.op} ${r})`;
@@ -14654,17 +15290,17 @@ var CTJ;
                 if (lp && rp) {
                     if (e.op !== "-")
                         this.cx.fail("bad pointer arithmetic", e);
-                    const x = this.pbox(l, e.l, lt);
-                    const y = this.pbox(r, e.r, rt);
+                    const x = this.pbox(lb, e.l, lt);
+                    const y = this.pbox(rb, e.r, rt);
                     return `(${this.pidx(x)} - ${this.pidx(y)})`;
                 }
                 if (lp) {
-                    const x = this.pbox(l, e.l, lt);
+                    const x = this.pbox(lb, e.l, lt);
                     const xp = this.paren(x);
                     const sign = e.op === "+" ? "+" : "-";
                     return `(["a" => ${xp}["a"], "i" => ${xp}["i"] ${sign} (${r})])`;
                 }
-                const y = this.pbox(r, e.r, rt);
+                const y = this.pbox(rb, e.r, rt);
                 const yp = this.paren(y);
                 return `(["a" => ${yp}["a"], "i" => (${l}) + ${yp}["i"]])`;
             }
@@ -14811,7 +15447,7 @@ var CTJ;
                 return "null";
             // An unsigned value wraps, so "size_t(-1)" is the largest size rather than
             // a negative one. The width is the 32-bit one, matching the JS emitter.
-            if (CTJ.isUnsignedName(CTJ.coreName(t)))
+            if (t.ptr === 0 && !t.dims.length && CTJ.isUnsignedName(CTJ.coreName(t)))
                 return `((${this.ex(e.arg)}) & 0xFFFFFFFF)`;
             return this.ex(e.arg);
         }
@@ -14925,5 +15561,3 @@ var CTJ;
     const g = globalThis;
     g["CTJ"] = CTJ;
 })();
-
-CTJ.version = "c171e26 2026-10-11 07:46:30Z";

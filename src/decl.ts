@@ -468,7 +468,27 @@ export function parseTParams(p: Parser): TParam[] {
       let def: TypeNode | Expr | null = null;
       // Stop below the relational precedence so the closing '>' of the
       // parameter list is not taken for a comparison operator.
-      if (p.eat("=")) def = parseExpr(p, 10);
+      if (p.eat("=")) {
+        def = parseExpr(p, 10);
+        // A relational default is written without parentheses in the library
+        // ("bool = _Nb < _GLIBCXX_BITSET_BITS_PER_ULL>"), where the '<' belongs
+        // to the default and the '>' ends the parameter list.  The comparison
+        // is taken on only when a '>' really follows it.
+        for (;;) {
+          const op = p.peek();
+          if (op.t !== "<" && op.t !== "<=") break;
+          const m = p.mark();
+          p.pos++;
+          let rhs: Expr | null = null;
+          try { rhs = parseExpr(p, 10); } catch { rhs = null; }
+          const nx = p.peek().t;
+          if (!rhs || (nx !== ">" && nx !== ">>" && nx !== ",")) {
+            p.reset(m);
+            break;
+          }
+          def = { kind: "binary", op: op.t, l: def as Expr, r: rhs, file: op.file, line: op.line };
+        }
+      }
       out.push({ kind: "nontype", name: nm || p.anonName("np"), type: spec.type, def, isPack, ...at(t) });
     }
     p.skipGnu();

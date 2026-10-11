@@ -43,6 +43,7 @@ class Str_char_Traits_char {
   __init_Str_char_Traits_char(...$a) {
     this.buf = new Array(32).fill(0);
     this.rep = new Str_char_Traits_char_Rep();
+    this.rep.ctj_a = this; this.rep.ctj_i = "rep";
   }
   __dtor() {
   }

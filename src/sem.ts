@@ -247,10 +247,27 @@ export type Sym =
   | { k: "tmpl"; t: TmplInfo }
   | { k: "builtin"; name: string };
 
+// One operation of a range-for: either a member/non-member operator function
+// ("fn"), or, when the iterator is a plain pointer, a builtin one.
+export interface RangeOp {
+  fn: FuncInfo | null;
+  isMember: boolean;
+  op: string;
+  builtin: "ptr" | "";
+}
+
+export interface RangeInfo {
+  beginFn: FuncInfo;
+  endFn: FuncInfo;
+  ne: RangeOp;
+  inc: RangeOp;
+  star: RangeOp;
+}
+
 export interface Ann {
   t: CppType | null;
   sym: Sym | null;
-  call: FuncInfo | { builtin: string } | null;
+  call: FuncInfo | { builtin: string; value?: number } | null;
   conv: { kind: string; fn: FuncInfo } | null;
   convs: ({ kind: string; fn: FuncInfo } | null)[];
   caps: { name: string; mode: string; v: VarInfo }[];
@@ -258,7 +275,7 @@ export interface Ann {
   arrowCall: FuncInfo | null;
   initCall: FuncInfo | null;
   copyCtor: FuncInfo | null;
-  range: { beginFn: FuncInfo; endFn: FuncInfo; neFn: FuncInfo; incFn: FuncInfo; starFn: FuncInfo } | null;
+  range: RangeInfo | null;
   needsThis: boolean;
   isType: boolean;
 }
@@ -590,13 +607,21 @@ export class Cx {
     return short;
   }
 
+  // The kinds of arguments a declaration takes, so that a definition is merged
+  // into the declaration of its own overload rather than into a sibling that
+  // happens to take the same number of them ("merge(list&&)" against
+  // "merge(list&)", which delegates to it).
+  paramShape(d: FuncDecl): string {
+    return d.params.map(p => [p.type.ptr, p.type.ref, p.type.dims.length, p.type.func ? "f" : "", p.variadic || p.isPack ? "..." : ""].join(",")).join(";");
+  }
+
   addMethod(cls: ClsInfo, short: string, d: FuncDecl, scope: Scope): FuncInfo {
     const key = this.methodKey(d, short);
     const sc = this.snapScope(scope);
     sc.cls = cls;
     const list = cls.methods.get(key) || [];
     for (const f of list) {
-      if (!f.decl.body && d.body && f.decl.params.length === d.params.length) {
+      if (!f.decl.body && d.body && this.paramShape(f.decl) === this.paramShape(d)) {
         f.decl = d;
         f.scope = sc;
         return f;
@@ -847,8 +872,18 @@ export class Cx {
 
   tmplParamSig(t: TmplInfo): string {
     const d = t.decl as FuncDecl;
-    const ps = (d.params || []).map(p => JSON.stringify(p.type.parts.map(s => s.n + s.a.length))
-      + p.type.ptr + p.type.ref + (p.isPack ? "..." : "")).join(",");
+    // A template parameter stands for itself whatever it is called: the
+    // declaration "sort(_RAIter, _RAIter)" and the definition
+    // "sort(_RandomAccessIterator, _RandomAccessIterator)" are one template, and
+    // the declaration must not shadow the definition that carries the body.
+    const idx = new Map(t.tparams.map((x, i) => [x.name, i]));
+    const ps = (d.params || []).map(p => {
+      const tn = p.type;
+      const name = tn.parts.length === 1 && !tn.parts[0].a.length && idx.has(tn.parts[0].n)
+        ? "$" + idx.get(tn.parts[0].n)
+        : JSON.stringify(tn.parts.map(s => s.n + s.a.length));
+      return name + tn.ptr + tn.ref + (p.isPack ? "..." : "");
+    }).join(",");
     const tps = t.tparams.map(x => x.kind + (x.isPack ? "..." : "")).join(",");
     return [tps, ps, d.op || "", d.flags.includes("const") ? "c" : ""].join("|");
   }
@@ -1202,6 +1237,17 @@ export class Cx {
       sym = this.lookupGlobalFirst(parts[0].n);
     } else {
       sym = this.lookupFirst(parts[0].n, scope);
+      // A template-id names a template. What the lookup found through the base
+      // chain may be the injected-class-name's constructors instead ("_Head_base
+      // <...>" inside a class deriving from "_Head_base<_Idx, _Head, ...>"), so
+      // the name is looked up again among the namespaces only.
+      if (sym && parts[0].a.length && ((sym.k === "tmpl" && (sym.t.decl as FuncDecl).isCtor)
+        || (sym.k === "func" && sym.fns.length > 0 && sym.fns.every(f => f.isCtor)))) {
+        for (let i = scope.ns.length; i >= 0; i--) {
+          const s2 = this.lookupInNs(scope.ns.slice(0, i).join("::"), parts[0].n, new Set());
+          if (s2) { sym = s2; break; }
+        }
+      }
     }
     if (!sym) return null;
     sym = this.applySegArgs(sym, parts[0], scope);
@@ -1395,6 +1441,21 @@ export class Cx {
   resolveTypeNode(tn: TypeNode, scope: Scope): CppType {
     const key = tnKey(tn);
     const at = this.resolving.indexOf(key);
+    if (at >= 0) {
+      // A class being instantiated can name itself before its own instantiation
+      // has returned ("typedef _Deque_iterator<_Tp, _Tp&, _Tp*> iterator" in a
+      // constructor's "const iterator&" parameter). Those classes are
+      // registered before their members are read, so the type is that class.
+      for (let i = scope.ns.length; i >= 0; i--) {
+        const cand = [...scope.ns.slice(0, i), key].join("::");
+        const self = this.classes.get(cand);
+        if (!self) continue;
+        const t = new CppType(self.fq);
+        t.segs = [{ n: self.fromTmpl || self.fq, a: self.instArgs.slice() }];
+        this.markCls(self.fq);
+        return t;
+      }
+    }
     if (at >= 0 && (tn.ptr > 0 || tn.ref !== "" || tn.dims.length > 0 || !!tn.func)) {
       const baseName = tn.parts.map(s => s.n).join("::") || "void";
       const t = CppType.basic(baseName);
@@ -1878,7 +1939,7 @@ export class Cx {
     const list = cls.methods.get(key);
     if (!list) return null;
     for (const f of list) {
-      if (f.decl.params.length === d.params.length) return f;
+      if (this.paramShape(f.decl) === this.paramShape(d)) return f;
     }
     return list[0] || null;
   }
@@ -1975,7 +2036,7 @@ export class Cx {
       } else {
         const ex = substExpr(tp.def as Expr, env);
         const v = constEval(this, ex, scope);
-        if (typeof v !== "number") this.fail(`non-constant template argument for '${tp.name}'`, t || undefined);
+        if (typeof v !== "number") this.fail(`non-constant template argument for '${tp.name}' in '${tmpl.fq}'`, t || undefined);
         full.push(CppType.basic("__value" + Math.trunc(v)));
         env.values.set(tp.name, Math.trunc(v));
       }

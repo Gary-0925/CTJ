@@ -384,17 +384,36 @@ function annotateRangeVar(cx: Cx, rf: RangeFor, rt: CppType, scope: Scope): void
     if (!em.methods) cx.fail(`'${clsFq}' has no end() for range-for`, vd);
     const er = resolveOverload(cx, em.methods, [], [], scope, vd);
     const bt = cx.funcRet(r.fn);
-    const itFq = cx.stripAll(bt);
-    const ne = cx.lookupMember(itFq, "operator!=", new Set());
-    const inc = cx.lookupMember(itFq, "operator++", new Set());
-    const star = cx.lookupMember(itFq, "operator*", new Set());
-    if (!ne.methods || !inc.methods || !star.methods) cx.fail("bad iterator for range-for", vd);
-    const btArg = { t: bt, e: vd as unknown as Expr };
-    const neR = resolveOverload(cx, ne.methods, [], [btArg], scope, vd);
-    const incR = resolveOverload(cx, inc.methods, [], [], scope, vd);
-    const starR = resolveOverload(cx, star.methods, [], [], scope, vd);
-    cx.getAnn(rf).range = { beginFn: r.fn, endFn: er.fn, neFn: neR.fn, incFn: incR.fn, starFn: starR.fn };
-    elem = cx.funcRet(starR.fn);
+    // libstdc++ iterators keep the interesting operators outside the class
+    // (operator!= of __normal_iterator and of the rb-tree iterators are free
+    // functions), so both kinds are looked up the way "a != b" would be.
+    const itT = bt.core();
+    const itFq = cx.stripAll(itT);
+    const ptrIter = itT.ptr > 0 && !itT.isBox() && !itT.isFunc;
+    let ne: RangeOp;
+    let inc: RangeOp;
+    let star: RangeOp;
+    if (ptrIter) {
+      // A pointer is its own iterator: "!=" compares the fat pointers, "++"
+      // advances the index and "*" hands the fat pointer to the element out.
+      ne = { fn: null, isMember: false, op: "!=", builtin: "ptr" };
+      inc = { fn: null, isMember: false, op: "++", builtin: "ptr" };
+      star = { fn: null, isMember: false, op: "*", builtin: "ptr" };
+      elem = itT;
+    } else {
+      const arg = { t: itT, e: vd as unknown as Expr };
+      const neR = findOperator(cx, "!=", arg, arg, scope, vd);
+      if (!neR) cx.fail("bad iterator for range-for", vd);
+      const incR = findOperator(cx, "++", arg, null, scope, vd);
+      if (!incR) cx.fail("bad iterator for range-for", vd);
+      const starR = findOperator(cx, "*", arg, null, scope, vd);
+      if (!starR) cx.fail("bad iterator for range-for", vd);
+      ne = { fn: neR.fn, isMember: neR.fn.isMethod, op: "!=", builtin: "" };
+      inc = { fn: incR.fn, isMember: incR.fn.isMethod, op: "++", builtin: "" };
+      star = { fn: starR.fn, isMember: starR.fn.isMethod, op: "*", builtin: "" };
+      elem = cx.funcRet(starR.fn);
+    }
+    cx.getAnn(rf).range = { beginFn: r.fn, endFn: er.fn, ne, inc, star };
   }
   let t = cx.resolveTypeNode(vd.type, scope);
   if (t.name === "auto") t = deduceAuto(cx, t, elem, vd);

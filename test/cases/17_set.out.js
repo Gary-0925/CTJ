@@ -250,10 +250,12 @@ class std_pair_std_Rb_tree_const_iterator_int_bool {
   __init_std_pair_std_Rb_tree_const_iterator_int_bool(...$a) {
     if ($a.length >= 1 && $a.length <= 1 && ($a[0] !== null && typeof $a[0] === "object" && $a[0].a[$a[0].i] instanceof std_pair_std_Rb_tree_const_iterator_int_bool)) {
       this.first = ($a[0] && $a[0].a ? $a[0].a[$a[0].i] : $a[0]).first;
+      this.first.ctj_a = this; this.first.ctj_i = "first";
       this.second = ($a[0] && $a[0].a ? $a[0].a[$a[0].i] : $a[0]).second;
     }
     else if ($a.length >= 2 && $a.length <= 2 && ($a[0] !== null && typeof $a[0] === "object" && $a[0].a[$a[0].i] instanceof std_Rb_tree_iterator_int) && ($a[1] === null || typeof $a[1] === "object")) {
       this.first = new std_Rb_tree_const_iterator_int(std_forward_1_std_Rb_tree_iterator_int($a[0]));
+      this.first.ctj_a = this; this.first.ctj_i = "first";
       this.second = ($a[1]).a[($a[1]).i];
     }
     else { throw new Error("no matching constructor"); }
@@ -856,10 +858,12 @@ class std_pair_std_Rb_tree_iterator_int_bool {
   __init_std_pair_std_Rb_tree_iterator_int_bool(...$a) {
     if ($a.length >= 2 && $a.length <= 2 && ($a[0] !== null && typeof $a[0] === "object" && $a[0].a[$a[0].i] instanceof std_Rb_tree_iterator_int) && ($a[1] === null || typeof $a[1] === "object")) {
       this.first = new std_Rb_tree_iterator_int($a[0]);
+      this.first.ctj_a = this; this.first.ctj_i = "first";
       this.second = ($a[1]).a[($a[1]).i];
     }
     else if ($a.length >= 1 && $a.length <= 1 && ($a[0] !== null && typeof $a[0] === "object" && $a[0].a[$a[0].i] instanceof std_pair_std_Rb_tree_iterator_int_bool)) {
       this.first = ($a[0] && $a[0].a ? $a[0].a[$a[0].i] : $a[0]).first;
+      this.first.ctj_a = this; this.first.ctj_i = "first";
       this.second = ($a[0] && $a[0].a ? $a[0].a[$a[0].i] : $a[0]).second;
     }
     else { throw new Error("no matching constructor"); }
@@ -1595,7 +1599,7 @@ class gnu_cxx_new_allocator_std_Rb_tree_node_int {
   max_size__c() {
     return (Math.trunc(((-(1)) >>> 0) / 32));
   }
-  construct(__p, __args_0) {
+  construct__rv(__p, __args_0) {
     (__p.a[__p.i] = new std_Rb_tree_node_int(std_forward_1_int(__args_0)), __p.a[__p.i].ctj_a = __p.a, __p.a[__p.i].ctj_i = __p.i, {a: __p.a, i: __p.i});
   }
 }
@@ -1620,7 +1624,9 @@ class std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int_Rb_tre
   }
   __init_std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int_Rb_tree_impl_std_less_int_value1(...$a) {
     this._M_key_compare = new std_less_int();
+    this._M_key_compare.ctj_a = this; this._M_key_compare.ctj_i = "_M_key_compare";
     this._M_header = new std_Rb_tree_node_base();
+    this._M_header.ctj_a = this; this._M_header.ctj_i = "_M_header";
     this._M_node_count = 0;
     this._M_initialize();
   }
@@ -1641,6 +1647,7 @@ class std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int {
   }
   __init_std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int(...$a) {
     this._M_impl = new std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int_Rb_tree_impl_std_less_int_value1();
+    this._M_impl.ctj_a = this; this._M_impl.ctj_i = "_M_impl";
   }
   __dtor() {
   }
@@ -1719,28 +1726,28 @@ class std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int {
   size__c() {
     return this._M_impl._M_node_count;
   }
-  _M_insert_unique(__v) {
+  _M_insert_unique__rv(__v) {
     let $t13;
     let __res = new std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P({a: [new std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P({a: [this._M_get_insert_unique_pos((($t13 = new std_Identity_int(), $t13)).op_call__c(__v))], i: 0})], i: 0});
     if (__res.second) {
-      return new std_pair_std_Rb_tree_iterator_int_bool({a: [new std_Rb_tree_iterator_int({a: [this._M_insert_((__res.first ? {a: __res.first.a, i: __res.first.i} : null), (__res.second ? {a: __res.second.a, i: __res.second.i} : null), std_forward_1_int(__v))], i: 0})], i: 0}, {a: [true], i: 0});
+      return new std_pair_std_Rb_tree_iterator_int_bool({a: [new std_Rb_tree_iterator_int({a: [this._M_insert___rv((__res.first ? {a: __res.first.a, i: __res.first.i} : null), (__res.second ? {a: __res.second.a, i: __res.second.i} : null), std_forward_1_int(__v))], i: 0})], i: 0}, {a: [true], i: 0});
     }
     return new std_pair_std_Rb_tree_iterator_int_bool({a: [new std_Rb_tree_iterator_int((__res.first ? {a: __res.first.a, i: __res.first.i} : null))], i: 0}, {a: [false], i: 0});
   }
-  _M_insert_(__x, __p, __v) {
+  _M_insert___rv(__x, __p, __v) {
     let $t14, $t15, $t16, $t17;
     let __insert_left = (((__x !== null) || ($t15 = ($t14 = this._M_end(), $t14), (__p === $t15 || (__p && $t15 && __p.a === $t15.a && __p.i === $t15.i)))) || this._M_impl._M_key_compare.op_call__c((($t16 = new std_Identity_int(), $t16)).op_call__c(__v), std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int._S_key((__p ? {a: __p.a, i: __p.i} : null))));
-    let __z = ($t17 = this._M_create_node(std_forward_1_int(__v)), $t17 ? {a: $t17.a, i: $t17.i} : null);
+    let __z = ($t17 = this._M_create_node__rv(std_forward_1_int(__v)), $t17 ? {a: $t17.a, i: $t17.i} : null);
     std_Rb_tree_insert_and_rebalance(__insert_left, (__z ? {a: __z.a, i: __z.i} : null), (__p ? {a: __p.a, i: __p.i} : null), {a: this._M_impl, i: "_M_header"});
     ++this._M_impl._M_node_count;
     return new std_Rb_tree_iterator_int((__z ? {a: __z.a, i: __z.i} : null));
   }
-  _M_create_node(__args_0) {
+  _M_create_node__rv(__args_0) {
     let $t18;
     let __tmp = ($t18 = this._M_get_node(), $t18 ? {a: $t18.a, i: $t18.i} : null);
     if (true) {
        {
-        std_allocator_traits_std_allocator_std_Rb_tree_node_int.construct(this._M_get_Node_allocator(), (__tmp ? {a: __tmp.a, i: __tmp.i} : null), std_forward_1_int(__args_0));
+        std_allocator_traits_std_allocator_std_Rb_tree_node_int.construct__rv(this._M_get_Node_allocator(), (__tmp ? {a: __tmp.a, i: __tmp.i} : null), std_forward_1_int(__args_0));
       }
     }
     if (false) {
@@ -1758,6 +1765,7 @@ class std_set_int_std_less_int_std_allocator_int {
   }
   __init_std_set_int_std_less_int_std_allocator_int(...$a) {
     this._M_t = new std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int();
+    this._M_t.ctj_a = this; this._M_t.ctj_i = "_M_t";
   }
   __dtor() {
   }
@@ -1765,7 +1773,7 @@ class std_set_int_std_less_int_std_allocator_int {
     return this._M_t.size__c();
   }
   insert(__x) {
-    let __p = new std_pair_std_Rb_tree_iterator_int_bool({a: [new std_pair_std_Rb_tree_iterator_int_bool({a: [this._M_t._M_insert_unique(__x)], i: 0})], i: 0});
+    let __p = new std_pair_std_Rb_tree_iterator_int_bool({a: [new std_pair_std_Rb_tree_iterator_int_bool({a: [this._M_t._M_insert_unique__rv(__x)], i: 0})], i: 0});
     return new std_pair_std_Rb_tree_const_iterator_int_bool({a: __p, i: "first"}, {a: __p, i: "second"});
   }
 }
@@ -2387,11 +2395,11 @@ class std_declval_protector_int {
 class std_allocator_traits_std_allocator_std_Rb_tree_node_int {
   __dtor() {
   }
-  static construct(__a, __p, __args_0) {
-    std_allocator_traits_std_allocator_std_Rb_tree_node_int._S_construct(__a, (__p ? {a: __p.a, i: __p.i} : null), std_forward_1_int(__args_0));
+  static construct__rv(__a, __p, __args_0) {
+    std_allocator_traits_std_allocator_std_Rb_tree_node_int._S_construct__rv(__a, (__p ? {a: __p.a, i: __p.i} : null), std_forward_1_int(__args_0));
   }
-  static _S_construct(__a, __p, __args_0) {
-    (__a.a[__a.i]).construct((__p ? {a: __p.a, i: __p.i} : null), std_forward_1_int(__args_0));
+  static _S_construct__rv(__a, __p, __args_0) {
+    (__a.a[__a.i]).construct__rv((__p ? {a: __p.a, i: __p.i} : null), std_forward_1_int(__args_0));
   }
 }
 class std_allocator_traits_std_allocator_std_Rb_tree_node_int_construct_helper_std_Rb_tree_node_int_int {

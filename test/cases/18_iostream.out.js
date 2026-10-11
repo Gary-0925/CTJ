@@ -316,6 +316,7 @@ class std_basic_string_char_std_char_traits_char_std_allocator_char {
   }
   __init_std_basic_string_char_std_char_traits_char_std_allocator_char(...$a) {
     this._M_dataplus = new std_basic_string_char_std_char_traits_char_std_allocator_char_Alloc_hider();
+    this._M_dataplus.ctj_a = this; this._M_dataplus.ctj_i = "_M_dataplus";
   }
   __dtor() {
   }
@@ -348,7 +349,7 @@ class std_char_traits_wchar_t {
   }
   static copy(__s1, __s2, __n) {
     let $t1;
-    return ($t1 = wmemcpy((__s1 ? {a: __s1.a, i: __s1.i} : null), (__s2 ? {a: __s2.a, i: __s2.i} : null), __n), $t1 ? {a: $t1.a, i: $t1.i} : null);
+    return ($t1 = wmemcpy((__s1 ? {a: __s1.a, i: __s1.i} : null), (__s2 ? {a: __s2.a, i: __s2.i} : null), Math.trunc((__n) / 4)), $t1 ? {a: $t1.a, i: $t1.i} : null);
   }
   static to_char_type(__c) {
     return __c.a[__c.i];
@@ -413,6 +414,7 @@ class std_basic_string_wchar_t_std_char_traits_wchar_t_std_allocator_wchar_t {
   }
   __init_std_basic_string_wchar_t_std_char_traits_wchar_t_std_allocator_wchar_t(...$a) {
     this._M_dataplus = new std_basic_string_wchar_t_std_char_traits_wchar_t_std_allocator_wchar_t_Alloc_hider();
+    this._M_dataplus.ctj_a = this; this._M_dataplus.ctj_i = "_M_dataplus";
   }
   __dtor() {
   }
@@ -491,6 +493,7 @@ class std_basic_string_char16_t_std_char_traits_char16_t_std_allocator_char16_t 
   }
   __init_std_basic_string_char16_t_std_char_traits_char16_t_std_allocator_char16_t(...$a) {
     this._M_dataplus = new std_basic_string_char16_t_std_char_traits_char16_t_std_allocator_char16_t_Alloc_hider();
+    this._M_dataplus.ctj_a = this; this._M_dataplus.ctj_i = "_M_dataplus";
   }
   __dtor() {
   }
@@ -569,6 +572,7 @@ class std_basic_string_char32_t_std_char_traits_char32_t_std_allocator_char32_t 
   }
   __init_std_basic_string_char32_t_std_char_traits_char32_t_std_allocator_char32_t(...$a) {
     this._M_dataplus = new std_basic_string_char32_t_std_char_traits_char32_t_std_allocator_char32_t_Alloc_hider();
+    this._M_dataplus.ctj_a = this; this._M_dataplus.ctj_i = "_M_dataplus";
   }
   __dtor() {
   }
@@ -681,12 +685,22 @@ class std_ios_base {
     this._M_streambuf_state = 0;
     this._M_callbacks = null;
     this._M_word_zero = new std_ios_base_Words();
+    this._M_word_zero.ctj_a = this; this._M_word_zero.ctj_i = "_M_word_zero";
     this._M_local_word = [];
     this._M_word_size = 0;
     this._M_word = null;
     this._M_ios_locale = new std_locale();
+    this._M_ios_locale.ctj_a = this; this._M_ios_locale.ctj_i = "_M_ios_locale";
   }
   __dtor() {
+  }
+  flags__c() {
+    return this._M_flags;
+  }
+  flags(__fmtfl) {
+    let __old = this._M_flags;
+    this._M_flags = __fmtfl;
+    return __old;
   }
   static boolalpha = 1;
   static dec = 2;
@@ -731,6 +745,7 @@ class std_ios_base_Callback_list {
   __init_std_ios_base_Callback_list(...$a) {
     this._M_next = null;
     this._M_fn = new std_ios_base();
+    this._M_fn.ctj_a = this; this._M_fn.ctj_i = "_M_fn";
     this._M_index = 0;
     this._M_refcount = 0;
   }
@@ -867,6 +882,7 @@ class std_basic_streambuf_char_std_char_traits_char {
     this._M_out_cur = null;
     this._M_out_end = null;
     this._M_buf_locale = new std_locale();
+    this._M_buf_locale.ctj_a = this; this._M_buf_locale.ctj_i = "_M_buf_locale";
   }
   __dtor() {
   }
@@ -1069,6 +1085,7 @@ class std_basic_streambuf_wchar_t_std_char_traits_wchar_t {
     this._M_out_cur = null;
     this._M_out_end = null;
     this._M_buf_locale = new std_locale();
+    this._M_buf_locale.ctj_a = this; this._M_buf_locale.ctj_i = "_M_buf_locale";
   }
   __dtor() {
   }
@@ -1220,6 +1237,7 @@ class std_fpos_class_3 {
   __init_std_fpos_class_3(...$a) {
     this._M_off = $a[0];
     this._M_state = new class_3();
+    this._M_state.ctj_a = this; this._M_state.ctj_i = "_M_state";
   }
   __dtor() {
   }
@@ -1247,6 +1265,12 @@ class std_ostreambuf_iterator_char_std_char_traits_char extends std_iterator_std
   __dtor() {
     std_iterator_std_output_iterator_tag_void_void_void_void.prototype.__dtor.call(this);
   }
+  op_assign(o) {
+    this.__assign_std_iterator_std_output_iterator_tag_void_void_void_void.call(this, $p0);
+    this._M_sbuf = (((o.a[o.i])._M_sbuf) ? {a: ((o.a[o.i])._M_sbuf).a, i: ((o.a[o.i])._M_sbuf).i} : null);
+    this._M_failed = (o.a[o.i])._M_failed;
+    return {a: [this], i: 0};
+  }
 }
 class std_num_put_char_std_ostreambuf_iterator_char_std_char_traits_char extends std_locale_facet {
   constructor(...$a) {
@@ -1270,6 +1294,14 @@ class std_num_put_char_std_ostreambuf_iterator_char_std_char_traits_char extends
     }
     else if ($a.length >= 4 && $a.length <= 4 && $a[0] instanceof std_ostreambuf_iterator_char_std_char_traits_char && ($a[1] !== null && typeof $a[1] === "object" && $a[1].a[$a[1].i] instanceof std_ios_base) && (typeof $a[2] === "number" || typeof $a[2] === "boolean") && (typeof $a[3] === "number" || typeof $a[3] === "boolean")) {
       return new std_ostreambuf_iterator_char_std_char_traits_char({a: [this._M_insert_int__c($a[0], $a[1], $a[2], $a[3])], i: 0});
+    }
+    else if ($a.length >= 4 && $a.length <= 4 && $a[0] instanceof std_ostreambuf_iterator_char_std_char_traits_char && ($a[1] !== null && typeof $a[1] === "object" && $a[1].a[$a[1].i] instanceof std_ios_base) && (typeof $a[2] === "number" || typeof $a[2] === "boolean") && ($a[3] === null || typeof $a[3] === "object")) {
+      let __flags = (($a[1]).a[($a[1]).i]).flags__c();
+      let __fmt = (~((std_ios_base.basefield | std_ios_base.uppercase)));
+      (($a[1]).a[($a[1]).i]).flags(((__flags & __fmt) | (std_ios_base.hex | std_ios_base.showbase)));
+      ($a[0]).op_assign({a: [new std_ostreambuf_iterator_char_std_char_traits_char({a: [this._M_insert_int__c($a[0], $a[1], $a[2], ($a[3] >>> 0))], i: 0})], i: 0});
+      (($a[1]).a[($a[1]).i]).flags(__flags);
+      return $a[0];
     }
     else { throw new Error("no matching overload"); }
   }
@@ -1297,6 +1329,12 @@ class std_istreambuf_iterator_char_std_char_traits_char extends std_iterator_std
   }
   __dtor() {
     std_iterator_std_input_iterator_tag_char_long_long_char_P_char.prototype.__dtor.call(this);
+  }
+  op_assign(o) {
+    this.__assign_std_iterator_std_input_iterator_tag_char_long_long_char_P_char.call(this, $p0);
+    this._M_sbuf = (((o.a[o.i])._M_sbuf) ? {a: ((o.a[o.i])._M_sbuf).a, i: ((o.a[o.i])._M_sbuf).i} : null);
+    this._M_c = (o.a[o.i])._M_c;
+    return {a: [this], i: 0};
   }
 }
 class std_num_get_char_std_istreambuf_iterator_char_std_char_traits_char extends std_locale_facet {
@@ -1327,6 +1365,15 @@ class std_num_get_char_std_istreambuf_iterator_char_std_char_traits_char extends
     }
     else if ($a.length >= 5 && $a.length <= 5 && $a[0] instanceof std_istreambuf_iterator_char_std_char_traits_char && $a[1] instanceof std_istreambuf_iterator_char_std_char_traits_char && ($a[2] !== null && typeof $a[2] === "object" && $a[2].a[$a[2].i] instanceof std_ios_base) && ($a[3] === null || typeof $a[3] === "object") && ($a[4] === null || typeof $a[4] === "object")) {
       return new std_istreambuf_iterator_char_std_char_traits_char({a: [this._M_extract_int__c($a[0], $a[1], $a[2], $a[3], $a[4])], i: 0});
+    }
+    else if ($a.length >= 5 && $a.length <= 5 && $a[0] instanceof std_istreambuf_iterator_char_std_char_traits_char && $a[1] instanceof std_istreambuf_iterator_char_std_char_traits_char && ($a[2] !== null && typeof $a[2] === "object" && $a[2].a[$a[2].i] instanceof std_ios_base) && ($a[3] === null || typeof $a[3] === "object") && ($a[4] === null || typeof $a[4] === "object")) {
+      let __fmt = (($a[2]).a[($a[2]).i]).flags__c();
+      (($a[2]).a[($a[2]).i]).flags(((__fmt & (~std_ios_base.basefield)) | std_ios_base.hex));
+      let __ul = {v: 0};
+      ($a[0]).op_assign({a: [new std_istreambuf_iterator_char_std_char_traits_char({a: [this._M_extract_int__c($a[0], $a[1], $a[2], $a[3], {a: __ul, i: "v"})], i: 0})], i: 0});
+      (($a[2]).a[($a[2]).i]).flags(__fmt);
+      ($a[4]).a[($a[4]).i] = (__ul.v ? {a: __ul.v.a, i: __ul.v.i} : null);
+      return $a[0];
     }
     else { throw new Error("no matching overload"); }
   }
@@ -1430,6 +1477,12 @@ class std_ostreambuf_iterator_wchar_t_std_char_traits_wchar_t extends std_iterat
   __dtor() {
     std_iterator_std_output_iterator_tag_void_void_void_void.prototype.__dtor.call(this);
   }
+  op_assign(o) {
+    this.__assign_std_iterator_std_output_iterator_tag_void_void_void_void.call(this, $p0);
+    this._M_sbuf = (((o.a[o.i])._M_sbuf) ? {a: ((o.a[o.i])._M_sbuf).a, i: ((o.a[o.i])._M_sbuf).i} : null);
+    this._M_failed = (o.a[o.i])._M_failed;
+    return {a: [this], i: 0};
+  }
 }
 class std_num_put_wchar_t_std_ostreambuf_iterator_wchar_t_std_char_traits_wchar_t extends std_locale_facet {
   constructor(...$a) {
@@ -1453,6 +1506,14 @@ class std_num_put_wchar_t_std_ostreambuf_iterator_wchar_t_std_char_traits_wchar_
     }
     else if ($a.length >= 4 && $a.length <= 4 && $a[0] instanceof std_ostreambuf_iterator_wchar_t_std_char_traits_wchar_t && ($a[1] !== null && typeof $a[1] === "object" && $a[1].a[$a[1].i] instanceof std_ios_base) && (typeof $a[2] === "number" || typeof $a[2] === "boolean") && (typeof $a[3] === "number" || typeof $a[3] === "boolean")) {
       return new std_ostreambuf_iterator_wchar_t_std_char_traits_wchar_t({a: [this._M_insert_int__c($a[0], $a[1], $a[2], $a[3])], i: 0});
+    }
+    else if ($a.length >= 4 && $a.length <= 4 && $a[0] instanceof std_ostreambuf_iterator_wchar_t_std_char_traits_wchar_t && ($a[1] !== null && typeof $a[1] === "object" && $a[1].a[$a[1].i] instanceof std_ios_base) && (typeof $a[2] === "number" || typeof $a[2] === "boolean") && ($a[3] === null || typeof $a[3] === "object")) {
+      let __flags = (($a[1]).a[($a[1]).i]).flags__c();
+      let __fmt = (~((std_ios_base.basefield | std_ios_base.uppercase)));
+      (($a[1]).a[($a[1]).i]).flags(((__flags & __fmt) | (std_ios_base.hex | std_ios_base.showbase)));
+      ($a[0]).op_assign({a: [new std_ostreambuf_iterator_wchar_t_std_char_traits_wchar_t({a: [this._M_insert_int__c($a[0], $a[1], $a[2], ($a[3] >>> 0))], i: 0})], i: 0});
+      (($a[1]).a[($a[1]).i]).flags(__flags);
+      return $a[0];
     }
     else { throw new Error("no matching overload"); }
   }
@@ -1480,6 +1541,12 @@ class std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t extends std_iterat
   }
   __dtor() {
     std_iterator_std_input_iterator_tag_wchar_t_long_long_wchar_t_P_wchar_t.prototype.__dtor.call(this);
+  }
+  op_assign(o) {
+    this.__assign_std_iterator_std_input_iterator_tag_wchar_t_long_long_wchar_t_P_wchar_t.call(this, $p0);
+    this._M_sbuf = (((o.a[o.i])._M_sbuf) ? {a: ((o.a[o.i])._M_sbuf).a, i: ((o.a[o.i])._M_sbuf).i} : null);
+    this._M_c = (o.a[o.i])._M_c;
+    return {a: [this], i: 0};
   }
 }
 class std_num_get_wchar_t_std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t extends std_locale_facet {
@@ -1511,9 +1578,22 @@ class std_num_get_wchar_t_std_istreambuf_iterator_wchar_t_std_char_traits_wchar_
     else if ($a.length >= 5 && $a.length <= 5 && $a[0] instanceof std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t && $a[1] instanceof std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t && ($a[2] !== null && typeof $a[2] === "object" && $a[2].a[$a[2].i] instanceof std_ios_base) && ($a[3] === null || typeof $a[3] === "object") && ($a[4] === null || typeof $a[4] === "object")) {
       return new std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t({a: [this._M_extract_int__c($a[0], $a[1], $a[2], $a[3], $a[4])], i: 0});
     }
+    else if ($a.length >= 5 && $a.length <= 5 && $a[0] instanceof std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t && $a[1] instanceof std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t && ($a[2] !== null && typeof $a[2] === "object" && $a[2].a[$a[2].i] instanceof std_ios_base) && ($a[3] === null || typeof $a[3] === "object") && ($a[4] === null || typeof $a[4] === "object")) {
+      let __fmt = (($a[2]).a[($a[2]).i]).flags__c();
+      (($a[2]).a[($a[2]).i]).flags(((__fmt & (~std_ios_base.basefield)) | std_ios_base.hex));
+      let __ul = {v: 0};
+      ($a[0]).op_assign({a: [new std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t({a: [this._M_extract_int__c($a[0], $a[1], $a[2], $a[3], {a: __ul, i: "v"})], i: 0})], i: 0});
+      (($a[2]).a[($a[2]).i]).flags(__fmt);
+      ($a[4]).a[($a[4]).i] = (__ul.v ? {a: __ul.v.a, i: __ul.v.i} : null);
+      return $a[0];
+    }
     else { throw new Error("no matching overload"); }
   }
   static id = new std_num_get_wchar_t_std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t();
+}
+class gnu_cxx_conditional_type_value1_unsigned_long_unsigned_long_long {
+  __dtor() {
+  }
 }
 function wmemcpy(...$a) { throw new Error("unresolved external: wmemcpy"); }
 function main() {

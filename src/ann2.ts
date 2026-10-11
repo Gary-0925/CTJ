@@ -272,7 +272,7 @@ function typeOfUnary(cx: Cx, e: UnaryExpr, scope: Scope): CppType {
   const at = typeOf(cx, e.arg, scope);
   const ann = cx.getAnn(e);
   if (e.op === "*") {
-    if (isClassVal(cx, at)) {
+    if (classValFq(cx, at)) {
       const r = findOperator(cx, "*", { t: at, e: e.arg }, null, scope, e);
       if (!r) cx.fail("no operator* ", e);
       ann.call = r.fn;
@@ -312,7 +312,7 @@ function typeOfUnary(cx: Cx, e: UnaryExpr, scope: Scope): CppType {
   }
   if (e.op === "!" ) return CppType.basic("bool");
   if (e.op === "++" || e.op === "--") {
-    if (isClassVal(cx, at)) {
+    if (classValFq(cx, at)) {
       const r = findOperator(cx, e.op, { t: at, e: e.arg }, null, scope, e, e.postfix);
       if (!r) cx.fail(`no ${e.op}`, e);
       ann.call = r.fn;
@@ -322,7 +322,7 @@ function typeOfUnary(cx: Cx, e: UnaryExpr, scope: Scope): CppType {
     return at;
   }
   if (e.op === "+" || e.op === "-") {
-    if (isClassVal(cx, at)) {
+    if (classValFq(cx, at)) {
       const r = findOperator(cx, e.op, { t: at, e: e.arg }, null, scope, e);
       if (!r) cx.fail(`no ${e.op}`, e);
       ann.call = r.fn;
@@ -332,7 +332,7 @@ function typeOfUnary(cx: Cx, e: UnaryExpr, scope: Scope): CppType {
     return promoteUnary(cx, at);
   }
   if (e.op === "~") {
-    if (isClassVal(cx, at)) {
+    if (classValFq(cx, at)) {
       const r = findOperator(cx, "~", { t: at, e: e.arg }, null, scope, e);
       if (!r) cx.fail("no operator~", e);
       ann.call = r.fn;
@@ -411,7 +411,10 @@ function typeOfAssign(cx: Cx, e: AssignExpr, scope: Scope): CppType {
   const lt = typeOf(cx, e.l, scope);
   const rt = typeOf(cx, e.r, scope);
   const ann = cx.getAnn(e);
-  if (isClassVal(cx, lt)) {
+  // A reference to a class is the object itself: "__i += __n" on an iterator
+  // reference calls the class's own operator+= (stl_iterator_base_funcs.h).
+  const classRef = lt.ref !== "" && !lt.ptr && !lt.dims.length && !lt.isFunc && cx.classes.has(cx.stripAll(lt));
+  if (isClassVal(cx, lt) || classRef) {
     const r = findOperator(cx, e.op, { t: lt, e: e.l }, { t: rt, e: e.r }, scope, e);
     if (!r && e.op === "=" && rt.name === "__initlist") {
       const items = (e.r as InitListExpr).items.map(x => ({ t: typeOf(cx, x, scope), e: x }));
@@ -616,8 +619,11 @@ function resolveCallExpr(cx: Cx, e: CallExpr, scope: Scope): CppType {
     cx.getAnn(fn).sym = sym;
     if (!sym) {
       const nm = (fn as IdExpr).parts.map(s => s.n).join("::");
-      if ((fn as IdExpr).parts.length === 1 && (fn as IdExpr).parts[0].n.startsWith("__builtin_")) {
-        return builtinCall(cx, e, (fn as IdExpr).parts[0].n, argTs, scope);
+      const bname = (fn as IdExpr).parts.length === 1 ? (fn as IdExpr).parts[0].n : "";
+      // The compiler's own builtins are declared nowhere: the numeric ones
+      // (__builtin_popcount, ...) and the type traits (__is_trivial, ...).
+      if (bname.startsWith("__builtin_") || bname.startsWith("__is_")) {
+        return builtinCall(cx, e, bname, argTs, scope);
       }
       cx.fail(`unknown function '${nm}'`, fn);
     }
@@ -1055,6 +1061,12 @@ function deduceOne(cx: Cx, tn: TypeNode, t: CppType, env: Map<string, CppType>, 
     }
     if (!env.has(first)) {
       const c = keepRef ? copyType(t) : noRef(t);
+      // An array passed to a by-value parameter decays to a pointer, exactly as
+      // it does in the language: sort(a, a + n) deduces _RAIter as int*.
+      if (!keepRef && !tn.dims.length && c.dims.length) {
+        c.ptr = c.ptr + 1;
+        c.dims = [];
+      }
       if (tn.ptr > 0) c.ptr = Math.max(0, t.ptr - tn.ptr);
       env.set(first, c);
     }
@@ -1196,7 +1208,20 @@ export function matchScore(cx: Cx, p: CppType, a: CppType, e: Expr | null, scope
   if (e && e.kind === "lit" && (e as LitExpr).lkind === "int" && parseNumber((e as LitExpr).value) === 0 && p.ptr > 0) {
     return { s: 70, conv: null };
   }
-  if (p.core().key() === a.core().key()) return { s: 90, conv: null };
+  if (p.core().key() === a.core().key()) {
+    // A reference of one kind does not bind to a reference of the other: an
+    // rvalue cannot be a "T&", so "merge(list&)" delegating with
+    // "merge(std::move(__x))" reaches "merge(list&&)" and "set(int&)"
+    // delegating with "set(1)" reaches "set(int&&)"; and an lvalue cannot be
+    // a "T&&", so "a.set(z)" reaches "set(int&)". Both still convert, at a
+    // lower rank, so the headers that pass a move or an lvalue where only one
+    // of the two exists keep working.
+    if (e && ((p.ref === "&" && !p.cnst && !isLvalueExpr(cx, e))
+      || (p.ref === "&&" && !p.cnst && isLvalueExpr(cx, e)))) {
+      return { s: 85, conv: null };
+    }
+    return { s: 90, conv: null };
+  }
   const pn = coreName(p);
   const an = coreName(a);
   if (a.dims.length && !a.isBox() && p.ptr > 0 && pn === an && p.ptr === a.ptr + 1) {
@@ -1329,8 +1354,8 @@ export function findOperator(cx: Cx, op: string, l: { t: CppType; e: Expr } | nu
     } catch (er) {
     }
   };
-  if (l && isClassVal(cx, l.t)) {
-    const fq = cx.stripAll(l.t);
+  const fq = l ? classValFq(cx, l.t) : "";
+  if (l && fq) {
     const m = cx.lookupMember(fq, key, new Set());
     const tmpls: TmplInfo[] = [];
     for (const tm of cx.tmplsOf(fq + "::" + key)) if (!tmpls.includes(tm)) tmpls.push(tm);
@@ -1427,6 +1452,15 @@ export function isOstreamLike(cx: Cx, t: CppType): boolean {
 export function isClassVal(cx: Cx, t: CppType): boolean {
   if (t.isBox() || t.dims.length > 0 || t.isFunc) return false;
   return cx.classes.has(cx.stripAll(t));
+}
+
+// The name of the class an operand is, reading through a reference: an
+// operator written on a reference to a class ("__i += __n" on an iterator
+// reference) is the class's own operator, "const _Iterator&" included.
+export function classValFq(cx: Cx, t: CppType): string {
+  if (t.ptr > 0 || t.dims.length > 0 || t.isFunc) return "";
+  const fq = cx.stripAll(t);
+  return cx.classes.has(fq) ? fq : "";
 }
 
 export function isClassBox(cx: Cx, t: CppType): boolean {
