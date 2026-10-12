@@ -2660,7 +2660,6 @@ class JsGen {
       }
       return `(${tpl})`;
     }
-    if (name === "__ctj_php") return "undefined";
     if (name.startsWith("__is_") || name.startsWith("__has_")) {
       const a = this.cx.getAnn(e).call as { builtin: string; value?: number } | null;
       return String(a && typeof a.value === "number" ? a.value : 0);

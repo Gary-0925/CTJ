@@ -2,10 +2,10 @@
 //
 // Output does not go through streambuf or locale.  basic_ostream::_M_put
 // hands the value, the kind of the value and the format state of the stream
-// to a formatter written in the target language, __ctj_js for JavaScript and
-// __ctj_php for PHP.  The two formatters are the macros below; the code they
-// contain goes into the output unchanged, so they use single quotes only and
-// no backslashes (a newline is String.fromCharCode(10) / PHP_EOL).
+// to a formatter written in the target language, __ctj_js.  The formatter is
+// the macro below; the code it contains goes into the output unchanged, so it
+// uses single quotes only and no backslashes (a newline is
+// String.fromCharCode(10)).
 //
 // Kinds passed to _M_put:
 //   0 int (32 bit)   1 unsigned int (32 bit)   2 unsigned long (64 bit)
@@ -24,7 +24,6 @@
 
 #define _CTJ_OUT_JS "(function(k,v,s,n,f,w,p,c,fd){var t='',pad=false,base=((f&74)===8)?16:(((f&74)===64)?8:10),j,g,nl=String.fromCharCode(10);function str(q,m){if(q===null||q===undefined)return '';var a=(q.a!==undefined)?q.a:q,i=(q.a!==undefined)?(q.i|0):0,r='',e,x;if(typeof a==='string')return m<0?a:a.slice(0,m);for(e=0;m<0||e<m;e++){x=a[i+e];if(x===undefined||x===null||(m<0&&x===0))break;r+=(typeof x==='number')?String.fromCharCode(x&255):String(x);}return r;}function gfmt(x,q){if(x!==x)return 'nan';if(x===Infinity)return 'inf';if(x===-Infinity)return '-inf';q=q>0?q:1;var e=x.toExponential(q-1),ix=e.indexOf('e'),X=parseInt(e.slice(ix+1),10),r,m;if(X<-4||X>=q){m=e.slice(0,ix);if(m.indexOf('.')>=0){while(m.charAt(m.length-1)==='0')m=m.slice(0,-1);if(m.charAt(m.length-1)==='.')m=m.slice(0,-1);}r=m+'e'+(X<0?'-':'+')+(Math.abs(X)<10?'0':'')+Math.abs(X);}else{r=x.toFixed(q-1-X);if(r.indexOf('.')>=0){while(r.charAt(r.length-1)==='0')r=r.slice(0,-1);if(r.charAt(r.length-1)==='.')r=r.slice(0,-1);}}return r;}if(k===6){t=(f&1)?(v?'true':'false'):(v?'1':'0');pad=true;}else if(k===4){t=gfmt(v,p);pad=true;}else if(k===5){t=String.fromCharCode(v&255);pad=true;}else if(k===7){t=str(s,n);pad=true;}else if(k===8){t=String.fromCharCode(v&255);}else if(k===10){t=str(s,n);}else if(k<=3){if(k>=2){if(base===10)t=(k===2&&v<0)?BigInt.asUintN(64,BigInt(Math.trunc(v))).toString():String(v);else t=BigInt.asUintN(64,BigInt(Math.trunc(v))).toString(base);}else{if(k===1)v=v>>>0;t=(base===10)?String(v):(v<0?(v>>>0):v).toString(base);}pad=true;}if(pad&&w>t.length){var fc=String.fromCharCode(c||32),pd=fc.repeat(w-t.length);t=(f&32)?t+pd:pd+t;}if(typeof process!=='undefined'&&process&&process.stdout){if(t)((fd===2&&process.stderr)?process.stderr:process.stdout).write(t);return;}g=globalThis;g.__ctjpend=(g.__ctjpend||'')+t;while((j=g.__ctjpend.indexOf(nl))>=0){console.log(g.__ctjpend.slice(0,j));g.__ctjpend=g.__ctjpend.slice(j+1);}})($1,$2,$3,$4,$5,$6,$7,$8,$9)"
 
-#define _CTJ_OUT_PHP "(function($k,$v,$s,$n,$f,$w,$p,$c,$fd){$t='';$pad=false;$b=(($f&74)==8)?16:((($f&74)==64)?8:10);$str=function($q,$m){if(is_string($q))return $m<0?$q:substr($q,0,$m);if(!is_array($q))return '';$h=array_key_exists('a',$q);$a=($h&&is_array($q['a']))?$q['a']:$q;$i=$h?(int)$q['i']:0;$r='';for($e=0;$m<0||$e<$m;$e++){if(!array_key_exists($i+$e,$a))break;$x=$a[$i+$e];if($x===null||($m<0&&$x===0))break;$r.=is_int($x)?chr($x&255):(string)$x;}return $r;};$g=function($x,$q){if(is_nan($x))return 'nan';if(is_infinite($x))return $x<0?'-inf':'inf';$q=$q>0?$q:1;$e=sprintf('%.'.($q-1).'e',$x);$ix=strpos($e,'e');$X=(int)substr($e,$ix+1);if($X<-4||$X>=$q){$m=substr($e,0,$ix);if(strpos($m,'.')!==false){$m=rtrim(rtrim($m,'0'),'.');}$r=$m.'e'.($X<0?'-':'+').(abs($X)<10?'0':'').abs($X);}else{$r=sprintf('%.'.max(0,$q-1-$X).'f',$x);if(strpos($r,'.')!==false){$r=rtrim(rtrim($r,'0'),'.');}}return $r;};if($k==6){$t=($f&1)?($v?'true':'false'):($v?'1':'0');$pad=true;}elseif($k==4){$t=$g($v,$p);$pad=true;}elseif($k==5){$t=chr($v&255);$pad=true;}elseif($k==7){$t=$str($s,$n);$pad=true;}elseif($k==8){$t=chr($v&255);}elseif($k==10){$t=$str($s,$n);}elseif($k<=3){$v=(int)$v;if($k==1||($b!=10&&$k==0))$v=$v&0xFFFFFFFF;if($b==10)$t=($k==2&&$v<0)?sprintf('%u',$v):(string)$v;else $t=sprintf($b==16?'%x':'%o',$v);$pad=true;}if($pad&&$w>strlen($t)){$fc=$c?chr($c&255):' ';$pd=str_repeat($fc,$w-strlen($t));$t=($f&32)?$t.$pd:$pd.$t;}if($k!=9){if($fd==2&&defined('STDERR'))fwrite(STDERR,$t);else echo $t;}})($1,$2,$3,$4,$5,$6,$7,$8,$9)"
 
 namespace std {
 
@@ -53,8 +52,6 @@ namespace std {
       {
         __ctj_js(_CTJ_OUT_JS, __k, __v, __s, __n, this->_M_flags, this->_M_width,
                  this->_M_precision, this->_M_fill, this->_M_fd);
-        __ctj_php(_CTJ_OUT_PHP, __k, __v, __s, __n, this->_M_flags, this->_M_width,
-                  this->_M_precision, this->_M_fill, this->_M_fd);
         this->_M_width = 0;
       }
 
@@ -125,6 +122,5 @@ namespace std {
 }
 
 #undef _CTJ_OUT_JS
-#undef _CTJ_OUT_PHP
 
 #endif /* _CTJ_OSTREAM */

@@ -43,20 +43,9 @@ const JS_RESERVED = new Set([
   "arguments", "eval", "undefined", "NaN", "Infinity",
 ]);
 
-const PHP_RESERVED = new Set([
-  "int", "float", "string", "bool", "true", "false", "null", "void", "iterable",
-  "object", "mixed", "numeric", "resource", "array", "callable", "self",
-  "parent", "static", "parent", "class", "function", "echo", "print",
-]);
-
 export function safeJsName(name: string): string {
   if (JS_RESERVED.has(name)) return name + "_";
   return name.replace(/[^A-Za-z0-9_$]/g, "_");
-}
-
-export function safePhpName(name: string): string {
-  if (PHP_RESERVED.has(name)) return name + "_";
-  return name.replace(/[^A-Za-z0-9_]/g, "_");
 }
 
 export function joinScope(parts: string[]): string {
@@ -68,10 +57,6 @@ export function joinScope(parts: string[]): string {
 export function escapeJsString(s: string): string {
   return s.replace(/\\/g, "\\\\").replace(/"/g, "\\\"").replace(/\n/g, "\\n")
     .replace(/\r/g, "\\r").replace(/\t/g, "\\t");
-}
-
-export function escapePhpString(s: string): string {
-  return s.replace(/\\/g, "\\\\").replace(/'/g, "\\'");
 }
 
 export function mapGet<K, V>(m: Map<K, V>, k: K): V | undefined {

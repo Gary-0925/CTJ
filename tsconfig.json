@@ -25,7 +25,6 @@
     "src/ann2.ts",
     "src/ann3.ts",
     "src/js.ts",
-    "src/php.ts",
     "src/api.ts"
   ]
 }

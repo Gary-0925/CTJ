@@ -1,7 +1,6 @@
 namespace CTJ {
 
 export interface TranspileOptions {
-  target: "js" | "php";
   headers?: Record<string, string>;
   defines?: Record<string, string>;
 }
@@ -26,7 +25,7 @@ export function transpile(source: string, options: TranspileOptions): TranspileR
   const tu = parser.parseTU();
   const cx = new Cx();
   analyzeAll(cx, tu);
-  const code = options.target === "php" ? emitPhp(cx) : emitJs(cx);
+  const code = emitJs(cx);
   return { code, warnings: [...pres.warnings, ...cx.warnings] };
 }
 

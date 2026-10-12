@@ -1209,7 +1209,7 @@ export class Cx {
   }
 
   lookupBuiltin(name: string): Sym | null {
-    if (name === "__ctj_js" || name === "__ctj_php") return { k: "builtin", name };
+    if (name === "__ctj_js") return { k: "builtin", name };
     return null;
   }
 

@@ -4,7 +4,7 @@
 // transpiled.  This replacement keeps only the format state of a stream (the
 // flags, the width, the precision and the fill character), with the same flag
 // values as libstdc++.  Output itself is written by <ostream>, through
-// __ctj_js / __ctj_php, so that no compiler code has to know about streams.
+// __ctj_js, so that no compiler code has to know about streams.
 #ifndef _CTJ_BITS_IOS_BASE_H
 #define _CTJ_BITS_IOS_BASE_H 1
 

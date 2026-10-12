@@ -1,15 +1,10 @@
 // <istream> for CTJ: the input stream classes.  Like <ostream>, the reading
 // itself is written in the target language: the characters come from
-// __ctj_js / __ctj_php, so the transpiler knows nothing about streams.
+// __ctj_js, so the transpiler knows nothing about streams.
 //
-// The input text is taken from, in order: globalThis.__ctjin (the playground
-// sets it, as {s: text, p: 0}); on Node, standard input; in PHP, STDIN.  The
-// reader only ever moves forward through that text.
-//
-// Each primitive is written as _CTJ_IN(JS, PHP).  __ctj_js("1") is a true
-// value in JavaScript and null in PHP (where __ctj_js emits null), so the
-// conditional picks the branch of the target being generated: the other
-// branch is never evaluated.
+// The input text is taken from globalThis.__ctjin (the playground sets it, as
+// {s: text, p: 0}); on Node, from standard input.  The reader only ever moves
+// forward through that text.
 #ifndef _CTJ_ISTREAM
 #define _CTJ_ISTREAM 1
 
@@ -17,20 +12,15 @@
 #include <ostream>
 #include <string>
 
-#define _CTJ_IN(JS, PHP) (__ctj_js("1") ? __ctj_js(JS) : __ctj_php(PHP))
-
 // The character code at the read position, or -1 at the end of the input.
 #define _CTJ_JS_PEEK "(function(){var q=(globalThis.__ctjin||(globalThis.__ctjin={s:(typeof require==='function'?require('fs').readFileSync(0,'utf8'):''),p:0}));return q.p<q.s.length?q.s.charCodeAt(q.p):-1})()"
-#define _CTJ_PHP_PEEK "(function(){$q=&$GLOBALS['__ctjin'];if($q===null)$q=['s'=>(defined('STDIN')?stream_get_contents(STDIN):''),'p'=>0];return $q['p']<strlen($q['s'])?ord($q['s'][$q['p']]):-1;})()"
 
 // The same, consuming the character.
 #define _CTJ_JS_GET "(function(){var q=(globalThis.__ctjin||(globalThis.__ctjin={s:(typeof require==='function'?require('fs').readFileSync(0,'utf8'):''),p:0}));return q.p<q.s.length?q.s.charCodeAt(q.p++):-1})()"
-#define _CTJ_PHP_GET "(function(){$q=&$GLOBALS['__ctjin'];if($q===null)$q=['s'=>(defined('STDIN')?stream_get_contents(STDIN):''),'p'=>0];return $q['p']<strlen($q['s'])?ord($q['s'][$q['p']++]):-1;})()"
 
 // Skips white space, then reads a run of non-white-space characters as a
 // floating-point number.  NaN, and nothing consumed, if the run is not one.
 #define _CTJ_JS_TOK "(function(){var q=(globalThis.__ctjin||(globalThis.__ctjin={s:(typeof require==='function'?require('fs').readFileSync(0,'utf8'):''),p:0})),s=q.s,e,t;function w(c){return c===32||(c>=9&&c<=13)}while(q.p<s.length&&w(s.charCodeAt(q.p)))q.p++;e=q.p;while(e<s.length&&!w(s.charCodeAt(e)))e++;t=s.slice(q.p,e);if(!/^[+-]?([0-9]+[.]?[0-9]*|[.][0-9]+)([eE][+-]?[0-9]+)?$/.test(t))return NaN;q.p=e;return Number(t)})()"
-#define _CTJ_PHP_TOK "(function(){$q=&$GLOBALS['__ctjin'];if($q===null)$q=['s'=>(defined('STDIN')?stream_get_contents(STDIN):''),'p'=>0];$s=$q['s'];$w=function($c){return $c===32||($c>=9&&$c<=13);};while($q['p']<strlen($s)&&$w(ord($s[$q['p']])))$q['p']++;$e=$q['p'];while($e<strlen($s)&&!$w(ord($s[$e])))$e++;$t=substr($s,$q['p'],$e-$q['p']);if(!preg_match('/^[+-]?([0-9]+[.]?[0-9]*|[.][0-9]+)([eE][+-]?[0-9]+)?$/',$t))return NAN;$q['p']=$e;return floatval($t);})()"
 
 namespace std {
 
@@ -65,11 +55,11 @@ namespace std {
 
       // The character at the read position, or -1 at the end of the input.
       // _M_peek_eof also sets eofbit there.
-      int _M_peek() { return _CTJ_IN(_CTJ_JS_PEEK, _CTJ_PHP_PEEK); }
+      int _M_peek() { return __ctj_js(_CTJ_JS_PEEK); }
       int _M_peek_eof() { int __c = _M_peek(); if (__c < 0) setstate(eofbit); return __c; }
 
       // Consumes one character and returns it, or -1 at the end of the input.
-      int _M_get() { return _CTJ_IN(_CTJ_JS_GET, _CTJ_PHP_GET); }
+      int _M_get() { return __ctj_js(_CTJ_JS_GET); }
 
       void _M_skip_space() {
         int __c = _M_peek_eof();
@@ -106,7 +96,7 @@ namespace std {
       double _M_read_double() {
         _M_skip_space();
         if (_M_peek_eof() < 0) { setstate(failbit); return 0; }
-        double __v = _CTJ_IN(_CTJ_JS_TOK, _CTJ_PHP_TOK);
+        double __v = __ctj_js(_CTJ_JS_TOK);
         if (__v != __v) { setstate(failbit); return 0; }
         return __v;
       }

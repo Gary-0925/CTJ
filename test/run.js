@@ -22,7 +22,7 @@ for (const f of files) {
   const expFile = path.join(dir, name + ".txt");
   const expected = norm(fs.existsSync(expFile) ? fs.readFileSync(expFile, "utf8") : "");
   try {
-    const r = CTJ.transpile(src, { target: "js", headers: headers });
+    const r = CTJ.transpile(src, { headers: headers });
     const jsFile = path.join(dir, name + ".out.js");
     const prev = fs.existsSync(jsFile) ? fs.readFileSync(jsFile, "utf8") : "";
     if (norm(prev) !== norm(r.code)) fs.writeFileSync(jsFile, r.code);
