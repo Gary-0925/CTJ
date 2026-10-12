@@ -1,3 +1,5 @@
+// Statement- and declaration-level annotation pass: the entry point analyzeAll,
+// function bodies, variable initializers, lambdas, and name mangling.
 namespace CTJ {
 
 export function analyzeAll(cx: Cx, tu: TranslationUnit): void {
@@ -29,7 +31,7 @@ export function analyzeAll(cx: Cx, tu: TranslationUnit): void {
   finalizeMangling(cx);
 }
 
-function finalizeFields(cx: Cx): void {
+export function finalizeFields(cx: Cx): void {
   for (const cls of cx.classes.values()) {
     if (!cls.complete || !cls.referenced) continue;
     for (const [name, fd] of cls.fields) {
@@ -65,7 +67,7 @@ function finalizeFields(cx: Cx): void {
   }
 }
 
-function doExplicitInst(cx: Cx, d: Decl, scope: Scope): void {
+export function doExplicitInst(cx: Cx, d: Decl, scope: Scope): void {
   if (!d) return;
   if (d.kind === "class") {
     const args = d.specArgs.map(a => cx.resolveTypeNode(a, scope));
@@ -87,7 +89,7 @@ function doExplicitInst(cx: Cx, d: Decl, scope: Scope): void {
   }
 }
 
-function analyzeGlobalVar(cx: Cx, v: VarInfo): void {
+export function analyzeGlobalVar(cx: Cx, v: VarInfo): void {
   if (v.typeCache) return;
   let t = cx.resolveTypeNode(v.decl.type, v.scope);
   if (t.name === "auto") {
@@ -103,7 +105,7 @@ function analyzeGlobalVar(cx: Cx, v: VarInfo): void {
   annotateVarInit(cx, v, v.scope);
 }
 
-function deduceAuto(cx: Cx, declT: CppType, initT: CppType, t: At): CppType {
+export function deduceAuto(cx: Cx, declT: CppType, initT: CppType, t: At): CppType {
   void cx;
   const core = new CppType(initT.name);
   core.segs = initT.segs;
@@ -128,12 +130,12 @@ function deduceAuto(cx: Cx, declT: CppType, initT: CppType, t: At): CppType {
   return out;
 }
 
-function analyzeFunc(cx: Cx, fn: FuncInfo): void {
+export function analyzeFunc(cx: Cx, fn: FuncInfo): void {
   fn.analyzed = true;
   if (!fn.decl.body || fn.isDelete) return;
   analyzeFuncBody(cx, fn);}
 
-function analyzeFuncBody(cx: Cx, fn: FuncInfo): void {
+export function analyzeFuncBody(cx: Cx, fn: FuncInfo): void {
   if (!fn.decl.body) return;
   const scope = cx.snapScope(fn.scope);
   scope.fn = fn;
@@ -166,7 +168,7 @@ function analyzeFuncBody(cx: Cx, fn: FuncInfo): void {
   }
 }
 
-function annotateCtorInit(cx: Cx, fn: FuncInfo, c: CtorInit, scope: Scope): void {
+export function annotateCtorInit(cx: Cx, fn: FuncInfo, c: CtorInit, scope: Scope): void {
   const cls = cx.classes.get(fn.cls);
   if (!cls) cx.fail("constructor initializer outside class", c);
   const name = c.name.map(s => s.n).join("::");
@@ -194,7 +196,7 @@ function annotateCtorInit(cx: Cx, fn: FuncInfo, c: CtorInit, scope: Scope): void
   cx.fail(`'${name}' is neither base nor member of '${fn.cls}'`, c);
 }
 
-function annotateFieldInit(cx: Cx, cls: ClsInfo, short: string, ft: CppType, args: Expr[], argTs: { t: CppType; e: Expr }[], t: At, scope: Scope): void {
+export function annotateFieldInit(cx: Cx, cls: ClsInfo, short: string, ft: CppType, args: Expr[], argTs: { t: CppType; e: Expr }[], t: At, scope: Scope): void {
   void cls;
   void short;
   if (cx.classes.has(cx.stripAll(ft)) && !ft.isBox() && !ft.dims.length) {
@@ -357,17 +359,17 @@ export function annotateStmt(cx: Cx, s: Stmt, scope: Scope): void {
   }
 }
 
-function annotateCond(cx: Cx, c: Expr | VarDecl, scope: Scope): void {
+export function annotateCond(cx: Cx, c: Expr | VarDecl, scope: Scope): void {
   if ((c as VarDecl).kind === "var") annotateLocalVar(cx, c as VarDecl, scope);
   else typeOf(cx, c as Expr, scope);
 }
 
 // The condition of if, while, do and for is a contextual conversion to bool.
-function markCond(cx: Cx, c: Expr | VarDecl | null): void {
+export function markCond(cx: Cx, c: Expr | VarDecl | null): void {
   if (c && (c as VarDecl).kind !== "var") markBoolConv(cx, c as Expr);
 }
 
-function annotateDecl(cx: Cx, d: Decl, scope: Scope): void {
+export function annotateDecl(cx: Cx, d: Decl, scope: Scope): void {
   switch (d.kind) {
     case "var": annotateLocalVar(cx, d, scope); return;
     case "func":
@@ -380,7 +382,7 @@ function annotateDecl(cx: Cx, d: Decl, scope: Scope): void {
   }
 }
 
-function annotateRangeVar(cx: Cx, rf: RangeFor, rt: CppType, scope: Scope): void {
+export function annotateRangeVar(cx: Cx, rf: RangeFor, rt: CppType, scope: Scope): void {
   const vd = rf.vdecl;
   let elem: CppType;
   if (rt.dims.length) {
@@ -474,7 +476,7 @@ function annotateRangeVar(cx: Cx, rf: RangeFor, rt: CppType, scope: Scope): void
   last(scope.locals).set(name, v);
 }
 
-function annotateCatchVar(cx: Cx, vd: VarDecl, scope: Scope): void {
+export function annotateCatchVar(cx: Cx, vd: VarDecl, scope: Scope): void {
   const t = cx.resolveTypeNode(vd.type, scope);
   const name = vd.name.length ? last(vd.name).n : "$ex";
   const v: VarInfo = {
@@ -488,7 +490,7 @@ function annotateCatchVar(cx: Cx, vd: VarDecl, scope: Scope): void {
   if (name) last(scope.locals).set(name, v);
 }
 
-function annotateLocalVar(cx: Cx, vd: VarDecl, scope: Scope): void {
+export function annotateLocalVar(cx: Cx, vd: VarDecl, scope: Scope): void {
   if (vd.type.func && vd.name.length) {
     cx.fail(`function type variable '${last(vd.name).n}' needs initializer`, vd);
   }
@@ -537,7 +539,7 @@ function annotateLocalVar(cx: Cx, vd: VarDecl, scope: Scope): void {
   void isDirectMulti;
 }
 
-function annotateVarInit(cx: Cx, v: VarInfo, scope: Scope): void {
+export function annotateVarInit(cx: Cx, v: VarInfo, scope: Scope): void {
   const vd = v.decl;
   const t = v.typeCache as CppType;
   const clsFq = !t.isBox() && !t.dims.length && !t.isFunc ? cx.stripAll(t) : "";
@@ -649,7 +651,7 @@ function annotateVarInit(cx: Cx, v: VarInfo, scope: Scope): void {
   }
 }
 
-function initListType(cx: Cx, items: { t: CppType }[], t: At): CppType {
+export function initListType(cx: Cx, items: { t: CppType }[], t: At): CppType {
   void cx;
   void t;
   const ty = CppType.basic("__initlist");
@@ -659,7 +661,7 @@ function initListType(cx: Cx, items: { t: CppType }[], t: At): CppType {
   return ty;
 }
 
-function sameCore(a: CppType, b: CppType): boolean {
+export function sameCore(a: CppType, b: CppType): boolean {
   return a.key() === b.key() || (a.core().key() === b.core().key());
 }
 
@@ -687,11 +689,11 @@ export function boxArg(cx: Cx, param: CppType, arg: { t: CppType; e: Expr }, sco
 // A variable a reference binds to needs exactly the storage its address
 // needs: the reference stands in for the object, and a write through it has to
 // land in the object itself.
-function markRef(cx: Cx, e: Expr): void {
+export function markRef(cx: Cx, e: Expr): void {
   markBoxed(cx, e);
 }
 
-function markBoxed(cx: Cx, e: Expr): void {
+export function markBoxed(cx: Cx, e: Expr): void {
   let cur = e;
   while (cur.kind === "cast") cur = cur.arg;
   if (cur.kind === "id") {
@@ -717,12 +719,12 @@ function markBoxed(cx: Cx, e: Expr): void {
   }
 }
 
-function safeName(n: string): string {
+export function safeName(n: string): string {
   if (!n) return "$v";
   return safeJsName(n);
 }
 
-function finalizeMangling(cx: Cx): void {
+export function finalizeMangling(cx: Cx): void {
   for (const [fq, list] of cx.funcs) {
     if (list.length <= 1 && !list[0].fromTmpl) {
       if (!list[0].mangled) list[0].mangled = mangleType(fq);
@@ -743,11 +745,116 @@ function finalizeMangling(cx: Cx): void {
   }
 }
 
-function mangleSig(t: CppType): string {
+export function mangleSig(t: CppType): string {
   let s = t.key();
   s = s.replace(/\*/g, "P").replace(/&/g, "R").replace(/\[/g, "A").replace(/\]/g, "");
   s = s.replace(/[^A-Za-z0-9]/g, "_").replace(/_+/g, "_").replace(/^_|_$/g, "");
   return s || "v";
 }
 
+export let lambdaCount = 0;
+
+export function analyzeLambda(cx: Cx, e: LambdaExpr, scope: Scope): CppType {
+  const fq = "$lambda_" + (lambdaCount++);
+  const emptyCls: ClassDecl = {
+    kind: "class", name: fq, cls: "struct", bases: [], members: [],
+    isDeclOnly: false, specArgs: [], isPartialSpec: false, file: e.file, line: e.line,
+  };
+  const cls = cx.blankCls(fq, fq, emptyCls, scope);
+  cls.complete = true;
+  cls.isLambda = true;
+  cls.mangled = fq;
+  cx.classes.set(fq, cls);
+  const decl: FuncDecl = {
+    kind: "func", name: [qseg("operator")], ret: e.ret, params: e.params,
+    body: [{ kind: "compound", stmts: e.body, file: e.file, line: e.line }],
+    flags: e.mutable ? [] : ["const"], op: "()", ctorInit: [],
+    isCtor: false, isDtor: false, isConv: false, isDefault: false,
+    isDelete: false, trailing: null, file: e.file, line: e.line,
+  };
+  const fn = cx.addMethod(cls, "operator()", decl, scope);
+  fn.analyzed = true;
+  const sub = cx.snapScope(scope);
+  sub.fn = fn;
+  sub.locals.push(new Map());
+  const outer = new Set<VarInfo>();
+  for (const layer of scope.locals) {
+    for (const [k, v] of layer) {
+      if (!sub.locals[0].has(k)) sub.locals[0].set(k, v);
+      outer.add(v);
+    }
+  }
+  const params = cx.funcParams(fn);
+  params.forEach((p, i) => {
+    const node = decl.params[i];
+    const nm = p.name || "$p" + i;
+    const v: VarInfo = {
+      fq: fq + "::" + nm, short: nm, mangled: safeJsName(nm),
+      decl: {
+        kind: "var", name: [qseg(nm)], type: node ? node.type : typeNode([]),
+        init: null, directInit: null, flags: [], bitfield: null, isParam: true, file: e.file, line: e.line,
+      },
+      scope: sub, typeCache: p.type, storage: isBoxedVar(p.type) ? "box" : "plain",
+      isGlobal: false, isStatic: false, isParam: true, isField: false, lifted: false, referenced: true,
+    };
+    if (node) cx.getAnn(node).var = v;
+    sub.locals[0].set(nm, v);
+  });
+  for (const s of e.body) annotateStmt(cx, s, sub);
+  const used = new Set<VarInfo>();
+  for (const s of e.body) collectOuterIds(cx, s, outer, used);
+  const caps: { name: string; mode: string; v: VarInfo }[] = [];
+  for (const v of used) {
+    if (v.isGlobal) continue;
+    let mode = "";
+    const ex = e.captures.find(c => c.name === v.short);
+    if (ex) mode = ex.mode;
+    else if (e.defCapture === "=" || e.defCapture === "&") mode = e.defCapture;
+    else cx.fail(`'${v.short}' is not captured`, e);
+    caps.push({ name: v.short, mode, v });
+  }
+  if (usesThis(e)) caps.push({ name: "this", mode: "this", v: null as unknown as VarInfo });
+  cx.getAnn(e).caps = caps;
+  if (!e.ret) {
+    fn.retCache = sub.returns.length ? sub.returns[0] : CppType.basic("void");
+  } else {
+    fn.retCache = cx.resolveTypeNode(e.ret, scope);
+  }
+  return classType(cls);
+}
+
+export function usesThis(e: LambdaExpr): boolean {
+  let found = false;
+  const walk = (x: unknown): void => {
+    if (found || !x || typeof x !== "object") return;
+    if ((x as Expr).kind === "this") {
+      found = true;
+      return;
+    }
+    for (const k of Object.keys(x)) {
+      const v = (x as Record<string, unknown>)[k];
+      if (Array.isArray(v)) {
+        for (const u of v) walk(u);
+      } else if (v && typeof v === "object") walk(v);
+    }
+  };
+  for (const s of e.body) walk(s);
+  return found;
+}
+
+export function collectOuterIds(cx: Cx, s: Stmt, outer: Set<VarInfo>, used: Set<VarInfo>): void {
+  const walk = (x: unknown): void => {
+    if (!x || typeof x !== "object") return;
+    const a = cx.ann.get(x as object);
+    if (a && a.sym && a.sym.k === "var" && outer.has(a.sym.v)) used.add(a.sym.v);
+    for (const k of Object.keys(x)) {
+      if (k === "type" || k === "ret" || k === "trailing") continue;
+      const v = (x as Record<string, unknown>)[k];
+      if (Array.isArray(v)) {
+        for (const u of v) walk(u);
+      } else if (v && typeof v === "object") walk(v);
+    }
+  };
+  walk(s);
+}
 }

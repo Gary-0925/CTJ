@@ -1,0 +1,798 @@
+// Type of an expression (typeOf) and the type predicates and promotions used
+// by the annotation pass.
+namespace CTJ {
+
+export function typeOf(cx: Cx, e: Expr, scope: Scope): CppType {
+  const cached = cx.ann.get(e);
+  if (cached && cached.t) return cached.t;
+  const t = typeOfInner(cx, e, scope);
+  cx.getAnn(e).t = t;
+  return t;
+}
+
+export function typeOfInner(cx: Cx, e: Expr, scope: Scope): CppType {
+  switch (e.kind) {
+    case "lit": return litTypeOf(cx, e);
+    case "id": return typeOfId(cx, e, scope);
+    case "this": {
+      if (!scope.cls) cx.fail("'this' outside class", e);
+      const t = classType(cx.classes.get(scope.cls.fq) as ClsInfo);
+      t.ptr = 1;
+      return t;
+    }
+    case "call": return resolveCallExpr(cx, e, scope);
+    case "index": return typeOfIndex(cx, e, scope);
+    case "member": return typeOfMember(cx, e, scope);
+    case "unary": return typeOfUnary(cx, e, scope);
+    case "binary": return typeOfBinary(cx, e, scope);
+    case "assign": return typeOfAssign(cx, e, scope);
+    case "cond": {
+      typeOf(cx, e.c, scope);
+      markBoolConv(cx, e.c);
+      const a = typeOf(cx, e.a, scope);
+      const b = typeOf(cx, e.b, scope);
+      if (a.key() === b.key()) return a;
+      const p = promote(cx, a, b);
+      if (p) return p;
+      return a;
+    }
+    case "new": return typeOfNew(cx, e, scope);
+    case "delete": {
+      typeOf(cx, e.arg, scope);
+      return CppType.basic("void");
+    }
+    case "cast": return typeOfCast(cx, e, scope);
+    case "sizeof": {
+      if (e.packName) cx.fail("sizeof... outside template", e);
+      if (e.isType && e.type) cx.resolveTypeNode(e.type, scope);
+      if (e.expr) typeOf(cx, e.expr, scope);
+      return CppType.basic("unsigned long");
+    }
+    case "typeid": {
+      if (e.isType && e.type) cx.resolveTypeNode(e.type, scope);
+      if (e.expr) typeOf(cx, e.expr, scope);
+      return CppType.basic("__typeinfo");
+    }
+    case "lambda": return analyzeLambda(cx, e, scope);
+    case "initlist": {
+      const items = e.items.map(x => ({ t: typeOf(cx, x, scope) }));
+      const ty = CppType.basic("__initlist");
+      if (items.length) ty.ret = items[0].t;
+      return ty;
+    }
+    case "stmtexpr": {
+      scope.locals.push(new Map());
+      try {
+        let t = CppType.basic("void");
+        for (const s of e.stmts) {
+          if (s.kind === "expr") t = typeOf(cx, (s as ExprStmt).expr, scope);
+          else annotateStmt(cx, s, scope);
+        }
+        return t;
+      } finally {
+        scope.locals.pop();
+      }
+    }
+    case "noexcept": return CppType.basic("bool");
+  }
+}
+
+export function classType(cls: ClsInfo): CppType {
+  const t = new CppType(cls.fq);
+  t.segs = [{ n: cls.fromTmpl || cls.fq, a: cls.instArgs.slice() }];
+  return t;
+}
+
+export function litTypeOf(cx: Cx, e: LitExpr): CppType {
+  void cx;
+  if (e.lkind === "bool") return CppType.basic("bool");
+  if (e.lkind === "null") return CppType.basic("__null");
+  if (e.lkind === "char") return CppType.basic("char");
+  if (e.lkind === "string") {
+    const t = CppType.basic("char");
+    t.dims = [parseCString(e.value).length + 1];
+    return t;
+  }
+  const v = e.value.replace(/'/g, "");
+  const m = v.match(/^(.+?)([uUlLfF]+)$/);
+  const suf = (m ? m[2] : "").toLowerCase();
+  const num = m ? m[1] : v;
+  const isHex = /^0[xX]/.test(num);
+  const isFloat = !isHex && /[.eEpP]/.test(num);
+  if (isFloat) {
+    if (suf.includes("f")) return CppType.basic("float");
+    if (suf.includes("l")) return CppType.basic("long double");
+    return CppType.basic("double");
+  }
+  const un = suf.includes("u");
+  const longs = (suf.match(/l/g) || []).length;
+  if (longs >= 2) return CppType.basic(un ? "unsigned long long" : "long long");
+  if (longs === 1) return CppType.basic(un ? "unsigned long" : "long");
+  return CppType.basic(un ? "unsigned int" : "int");
+}
+
+export function typeOfId(cx: Cx, e: IdExpr, scope: Scope): CppType {
+  const sym = cx.resolveSym(e.parts, e.global, scope);
+  const ann = cx.getAnn(e);
+  ann.sym = sym;
+  if (!sym) { cx.fail(`unknown name '${e.parts.map(s => s.n).join("::")}'`, e); }
+  const s = sym as Sym;
+  if (s.k === "var") {
+    cx.markVar(s.v);
+    ann.needsThis = s.v.isField && !s.v.isStatic && e.parts.length === 1;
+    if (s.v.isField) {
+      const owner = s.v.fq.slice(0, s.v.fq.lastIndexOf("::"));
+      const cls = cx.classes.get(owner);
+      if (cls) return cx.fieldType(cls, s.v.short);
+    }
+    return cx.varType(s.v);
+  }
+  if (s.k === "func") {
+    for (const f of s.fns) cx.markFunc(f);
+    return funcSig(cx, s.fns[0]);
+  }
+  if (s.k === "class") {
+    ann.isType = true;
+    cx.markCls(s.cls.fq);
+    return classType(s.cls);
+  }
+  if (s.k === "enum") {
+    ann.isType = true;
+    s.e.referenced = true;
+    const t = new CppType(s.e.fq);
+    t.segs = [{ n: s.e.fq, a: [] }];
+    return t;
+  }
+  if (s.k === "typedef") {
+    ann.isType = true;
+    return cx.expandTypedef(s.fq, new Set());
+  }
+  if (s.k === "tmpl") {
+    if (s.t.kind === "func") {
+      // std::endl is a function template used as a value; the call site's
+      // expected function-pointer type instantiates it.
+      const t = new CppType("__overload");
+      t.isFunc = true;
+      t.ptr = 1;
+      return t;
+    }
+    ann.isType = true;
+    return CppType.basic("__template");
+  }
+  if (s.k === "enumval") {
+    s.e.referenced = true;
+    const t = new CppType(s.e.fq);
+    t.segs = [{ n: s.e.fq, a: [] }];
+    return t;
+  }
+  cx.fail(`'${e.parts.map(x => x.n).join("::")}' is not a value`, e);
+}
+
+export function funcSig(cx: Cx, f: FuncInfo): CppType {
+  const t = new CppType("__func");
+  t.isFunc = true;
+  t.ret = cx.funcRet(f);
+  const ps = cx.funcParams(f);
+  t.funcParams = ps.filter(p => !p.variadic).map(p => p.type);
+  t.funcVariadic = ps.some(p => p.variadic);
+  t.ptr = 1;
+  return t;
+}
+
+export function typeOfIndex(cx: Cx, e: IndexExpr, scope: Scope): CppType {
+  const at = noRef(typeOf(cx, e.arr, scope));
+  const it = typeOf(cx, e.idx, scope);
+  void it;
+  if (isClassVal(cx, at)) {
+    const m = cx.lookupMember(cx.stripAll(at), "operator[]", new Set());
+    if (!m.methods) cx.fail("no operator[] ", e);
+    const r = resolveOverload(cx, m.methods, [], [{ t: typeOf(cx, e.idx, scope), e: e.idx }], scope, e, undefined, at.cnst);
+    cx.getAnn(e).call = r.fn;
+    cx.getAnn(e).convs = r.convs;
+    return cx.funcRet(r.fn);
+  }
+  if (at.dims.length) {
+    const t = new CppType(at.name);
+    t.segs = at.segs;
+    t.ptr = at.ptr;
+    t.dims = at.dims.slice(1);
+    return t;
+  }
+  if (at.ptr > 0) {
+    const t = new CppType(at.name);
+    t.segs = at.segs;
+    t.ptr = at.ptr - 1;
+    t.dims = at.dims.slice();
+    return t;
+  }
+  cx.fail("subscript on non-array", e);
+}
+
+// obj.Base::member — Base is looked up in the object's class (typedefs and
+// injected base names of the enclosing class), then in the current scope.
+export function resolveQualClass(cx: Cx, qual: QSeg[], objClsFq: string, scope: Scope, t: At): string {
+  const objCls = cx.classes.get(objClsFq);
+  const trySym = (sc: Scope): string | null => {
+    const qs = cx.resolveSym(qual, false, sc);
+    if (!qs) return null;
+    if (qs.k === "class") return qs.cls.fq;
+    if (qs.k === "typedef") {
+      try {
+        const ty = cx.expandTypedef(qs.fq, new Set());
+        const fq = cx.stripAll(ty);
+        if (fq) {
+          cx.markCls(fq);
+          if (cx.classes.has(fq)) return fq;
+          return fq;
+        }
+      } catch { /* not a class typedef */ }
+    }
+    return null;
+  };
+  let fq = objCls ? trySym(cx.memberScope(objCls)) : null;
+  if (!fq) fq = trySym(scope);
+  if (!fq) cx.fail(`unknown class '${qual.map(s => s.n).join("::")}'`, t);
+  return fq as string;
+}
+
+export function typeOfMember(cx: Cx, e: MemberExpr, scope: Scope): CppType {
+  const ot = typeOf(cx, e.obj, scope);
+  const ann = cx.getAnn(e);
+  let objT = ot;
+  if (e.arrow && objT.ptr === 0 && !objT.isFunc && isClassVal(cx, objT)) {
+    objT = applyArrow(cx, e, objT, scope);
+  }
+  const clsFq = classOf(cx, objT);
+  if (!clsFq) cx.fail(`no member '${e.field}'`, e);
+  let lookupFq = clsFq;
+  if (e.qual.length) lookupFq = resolveQualClass(cx, e.qual, clsFq, scope, e);
+  const m = cx.lookupMember(lookupFq, e.field, new Set());
+  if (m.field) {
+    const cls = cx.classes.get(m.owner) as ClsInfo;
+    ann.sym = { k: "var", v: cx.fieldVar(cls, e.field, cls.fields.get(e.field) as VarDecl) };
+    return cx.fieldType(cls, e.field);
+  }
+  if (m.methods) cx.fail(`method '${e.field}' without call`, e);
+  cx.fail(`'${clsFq}' has no member '${e.field}'`, e);
+}
+
+export function applyArrow(cx: Cx, e: MemberExpr, objT: CppType, scope: Scope): CppType {
+  const ann = cx.getAnn(e);
+  let cur = objT;
+  for (let i = 0; i < 8; i++) {
+    if (!isClassVal(cx, cur)) break;
+    const m = cx.lookupMember(cx.stripAll(cur), "operator->", new Set());
+    if (!m.methods) break;
+    const r = resolveOverload(cx, m.methods, [], [], scope, e, undefined, cur.cnst);
+    if (!ann.arrowCall) ann.arrowCall = r.fn;
+    cur = cx.funcRet(r.fn);
+  }
+  return cur;
+}
+
+export function typeOfUnary(cx: Cx, e: UnaryExpr, scope: Scope): CppType {
+  if (e.op === "...") cx.fail("pack expansion outside template", e);
+  const at = typeOf(cx, e.arg, scope);
+  const ann = cx.getAnn(e);
+  if (e.op === "*") {
+    if (classValFq(cx, at)) {
+      const r = findOperator(cx, "*", { t: at, e: e.arg }, null, scope, e);
+      if (!r) cx.fail("no operator* ", e);
+      ann.call = r.fn;
+      ann.convs = r.convs;
+      return cx.funcRet(r.fn);
+    }
+    if (at.isFunc) return at;
+    // A reference to a pointer (int*& r) is dereferenced like the pointer it
+    // refers to; a reference to a plain object keeps its type.
+    if (at.ref !== "" && at.ptr === 0) {
+      const t = new CppType(at.name);
+      t.segs = at.segs;
+      t.ptr = at.ptr;
+      t.dims = at.dims.slice();
+      return t;
+    }
+    if (at.ptr > 0) {
+      const t = new CppType(at.name);
+      t.segs = at.segs;
+      t.ptr = at.ptr - 1;
+      t.dims = at.dims.slice();
+      return t;
+    }
+    if (at.dims.length) {
+      const t = new CppType(at.name);
+      t.segs = at.segs;
+      t.dims = at.dims.slice(1);
+      return t;
+    }
+    cx.fail("indirection on non-pointer", e);
+  }
+  if (e.op === "&") {
+    const t = new CppType(at.name);
+    t.segs = at.segs;
+    t.ptr = at.ptr + 1;
+    t.dims = at.dims.slice();
+    markBoxedOf(cx, e.arg);
+    return t;
+  }
+  if (e.op === "!" ) { markBoolConv(cx, e.arg); return CppType.basic("bool"); }
+  if (e.op === "++" || e.op === "--") {
+    if (classValFq(cx, at)) {
+      const r = findOperator(cx, e.op, { t: at, e: e.arg }, null, scope, e, e.postfix);
+      if (!r) cx.fail(`no ${e.op}`, e);
+      ann.call = r.fn;
+      ann.convs = r.convs;
+      return cx.funcRet(r.fn);
+    }
+    return at;
+  }
+  if (e.op === "+" || e.op === "-") {
+    if (classValFq(cx, at)) {
+      const r = findOperator(cx, e.op, { t: at, e: e.arg }, null, scope, e);
+      if (!r) cx.fail(`no ${e.op}`, e);
+      ann.call = r.fn;
+      ann.convs = r.convs;
+      return cx.funcRet(r.fn);
+    }
+    return promoteUnary(cx, at);
+  }
+  if (e.op === "~") {
+    if (classValFq(cx, at)) {
+      const r = findOperator(cx, "~", { t: at, e: e.arg }, null, scope, e);
+      if (!r) cx.fail("no operator~", e);
+      ann.call = r.fn;
+      ann.convs = r.convs;
+      return cx.funcRet(r.fn);
+    }
+    return promoteUnary(cx, at);
+  }
+  cx.fail(`bad unary '${e.op}'`, e);
+}
+
+export function typeOfBinary(cx: Cx, e: BinaryExpr, scope: Scope): CppType {
+  const rawL = typeOf(cx, e.l, scope);
+  const ann = cx.getAnn(e);
+  const rawR = typeOf(cx, e.r, scope);
+  if (e.op === ",") return rawR;
+  // Outside a plain assignment an lvalue of reference type behaves as the type
+  // it refers to; only the assignment needs to know it writes through one.
+  const lt = e.op === "=" ? rawL : rawL.core();
+  const rt = e.op === "=" ? rawR : rawR.core();
+  const lop = isClassVal(cx, lt) || isClassBox(cx, lt);
+  const rop = isClassVal(cx, rt) || isClassBox(cx, rt);
+  if ((lop || rop) && e.op !== "&&" && e.op !== "||") {
+    const r = findOperator(cx, e.op, { t: lt, e: e.l }, { t: rt, e: e.r }, scope, e);
+    if (r) {
+      ann.call = r.fn;
+      ann.convs = r.convs;
+      markOperatorRefs(cx, r.fn, [e.l, e.r]);
+      return cx.funcRet(r.fn);
+    }
+  }
+  if ((lop || rop) && (e.op === "&&" || e.op === "||")) {
+    const r = findOperator(cx, e.op, { t: lt, e: e.l }, { t: rt, e: e.r }, scope, e);
+    if (r) {
+      ann.call = r.fn;
+      ann.convs = r.convs;
+      return cx.funcRet(r.fn);
+    }
+    markBoolConv(cx, e.l);
+    markBoolConv(cx, e.r);
+    return CppType.basic("bool");
+  }
+  if (e.op === "&&" || e.op === "||") return CppType.basic("bool");
+  if (e.op === "==" || e.op === "!=" || e.op === "<" || e.op === ">" || e.op === "<=" || e.op === ">=" || e.op === "<=>") {
+    return CppType.basic("bool");
+  }
+  if (e.op === "<<" || e.op === ">>") {
+    const p = promote(cx, lt, rt);
+    if (p) return p;
+    cx.fail(`bad operands to '${e.op}'`, e);
+  }
+  const lDec = lt.dims.length && !lt.isBox() ? decayed(lt) : lt;
+  const rDec = rt.dims.length && !rt.isBox() ? decayed(rt) : rt;
+  // An enumerator counts as the integer it is, so a pointer steps by it.
+  if (lDec.ptr > 0 && isIntegralish(cx, rt) && (e.op === "+" || e.op === "-")) return lDec;
+  if (rDec.ptr > 0 && isIntegralish(cx, lt) && e.op === "+") return rDec;
+  // Two pointers into the same array differ by a number of elements.
+  if (lDec.ptr > 0 && rDec.ptr > 0 && e.op === "-") return CppType.basic("long");
+  if (lDec.ptr > 0 && rDec.ptr > 0 && e.op === "-") return CppType.basic("long");
+  const p = promote(cx, lt, rt);
+  if (p) return p;
+  cx.fail(`bad operands to '${e.op}'`, e);
+}
+
+export function decayed(t: CppType): CppType {
+  const r = new CppType(t.name);
+  r.segs = t.segs;
+  r.ptr = t.ptr + 1;
+  return r;
+}
+
+export function typeOfAssign(cx: Cx, e: AssignExpr, scope: Scope): CppType {
+  const lt = typeOf(cx, e.l, scope);
+  const rt = typeOf(cx, e.r, scope);
+  const ann = cx.getAnn(e);
+  // A reference to a class is the object itself: "__i += __n" on an iterator
+  // reference calls the class's own operator+= (stl_iterator_base_funcs.h).
+  const classRef = lt.ref !== "" && !lt.ptr && !lt.dims.length && !lt.isFunc && cx.classes.has(cx.stripAll(lt));
+  if (isClassVal(cx, lt) || classRef) {
+    const r = findOperator(cx, e.op, { t: lt, e: e.l }, { t: rt, e: e.r }, scope, e);
+    // A braced list is assigned to an "initializer_list" object the way it is
+    // initialized: the object is the array of its elements, so the assignment
+    // stores that array and no "operator=" of the class is called.
+    const ilList = e.op === "=" && rt.name === "__initlist" && initListElemOf(cx, lt) !== null;
+    if (ilList || (!r && e.op === "=" && rt.name === "__initlist")) {
+      const items = (e.r as InitListExpr).items.map(x => ({ t: typeOf(cx, x, scope), e: x }));
+      const cr = resolveInitCtor(cx, cx.stripAll(lt), items.length ? [{ t: rt, e: e.r }] : [], scope, e);
+      ann.initCall = cr.fn;
+      ann.convs = cr.convs;
+      const ar = findOperator(cx, "=", { t: lt, e: e.l }, { t: lt, e: e.r }, scope, e);
+      if (!ar) cx.fail("no operator=", e);
+      ann.call = ar.fn;
+      return cx.funcRet(ar.fn);
+    }
+    if (!r) cx.fail(`no ${e.op}`, e);
+    ann.call = (r as { fn: FuncInfo }).fn;
+    ann.convs = (r as { convs: ({ kind: string; fn: FuncInfo } | null)[] }).convs;
+    return cx.funcRet((r as { fn: FuncInfo }).fn);
+  }
+  if (e.op !== "=") {
+    const p = promote(cx, lt, rt);
+    if (!p && !(lt.ptr > 0 && isIntegralish(cx, rt))) cx.fail(`bad operands to '${e.op}'`, e);
+    return lt;
+  }
+  // Storing through a reference is a plain write; only a pointer target needs
+  // the value on the right to live in a box.
+  if (lt.ptr > 0 && !rt.isBox() && !rt.dims.length && rt.name !== "__null") markBoxedOf(cx, e.r);
+  const m = matchScore(cx, lt, rt, e.r, scope, true);
+  if (m.s < 0) cx.fail("cannot convert in assignment", e);
+  ann.conv = m.conv;
+  return lt;
+}
+
+export function typeOfNew(cx: Cx, e: NewExpr, scope: Scope): CppType {
+  for (const p of e.placement) typeOf(cx, p, scope);
+  const t = cx.resolveTypeNode(e.type, scope);
+  const ann = cx.getAnn(e);
+  const clsFq = !t.isBox() && !t.dims.length && !t.isFunc ? cx.stripAll(t) : "";
+  if (t.name === "void" && !t.ptr) cx.fail("new void", e);
+  if (clsFq && cx.classes.has(clsFq)) {
+    const cls = cx.classes.get(clsFq) as ClsInfo;
+    for (const fns of cls.methods.values()) {
+      for (const f of fns) {
+        if (f.isPure) cx.fail(`new abstract class '${clsFq}'`, e);
+      }
+    }
+  }
+  if (e.isArray) {
+    if (e.args.length) cx.fail("new array with initializer", e);
+    // The element count is an ordinary expression, so "new _Tp[__n]" needs the
+    // names in it annotated like any other argument.
+    for (const d of e.type.dims) typeOf(cx, d, scope);
+    if (clsFq && cx.classes.has(clsFq)) {
+      const r = resolveCtor(cx, clsFq, [], scope, e, true);
+      ann.call = r.fn;
+    }
+  } else if (clsFq && cx.classes.has(clsFq)) {
+    const argTs = e.args.map(x => ({ t: typeOf(cx, x, scope), e: x }));
+    const r = resolveInitCtor(cx, clsFq, argTs, scope, e);
+    ann.call = r.fn;
+    ann.convs = r.convs;
+  } else {
+    if (e.args.length > 1) cx.fail("too many initializers", e);
+    if (e.args.length) {
+      const it = typeOf(cx, e.args[0], scope);
+      boxArg(cx, t, { t: it, e: e.args[0] }, scope, e);
+    }
+  }
+  const bt = new CppType(t.name);
+  bt.segs = t.segs;
+  bt.ptr = t.ptr + 1;
+  bt.dims = [];
+  return bt;
+}
+
+export function typeOfCast(cx: Cx, e: CastExpr, scope: Scope): CppType {
+  if (!e.type) cx.fail("bad cast", e);
+  const target = cx.resolveTypeNode(e.type as TypeNode, scope);
+  const st = typeOf(cx, e.arg, scope);
+  const ann = cx.getAnn(e);
+  const kind = e.ckind;
+  if (target.name === "void" && !target.ptr) return target;
+  const tn = coreName(target);
+  const sn = coreName(st);
+  // References to classes still denote that class (static_cast<Facet&>(x)).
+  const tCls = target.ptr === 0 && !target.dims.length && !target.isFunc && cx.classes.has(cx.stripAll(target));
+  const sCls = st.ptr === 0 && !st.dims.length && !st.isFunc && cx.classes.has(cx.stripAll(st));
+  // "size_type()" and "P()" have no argument to convert: they value- or
+  // default-construct the target.
+  if (e.arg.kind === "initlist" && !(e.arg as InitListExpr).items.length
+    && (kind === "cstyle" || kind === "static_cast" || kind === "functional")) {
+    if (tCls) {
+      const r = resolveInitCtor(cx, cx.stripAll(target), [], scope, e);
+      ann.call = r.fn;
+      ann.convs = r.convs;
+    }
+    return target;
+  }
+  if (kind === "dynamic_cast") {
+    // dynamic_cast is a runtime check on a pointer or reference.  The target
+    // class may not have been instantiated yet (e.g. use_facet<num_put>).
+    if (target.ptr > 0 || target.ref || tCls) return target;
+    cx.fail("bad dynamic_cast", e);
+  }
+  if (kind === "const_cast") {
+    if (tn === sn || (tCls && sCls && cx.stripAll(target) === cx.stripAll(st))) return target;
+    cx.fail("bad const_cast", e);
+  }
+  // "reinterpret_cast<const volatile char&>(__r)" (std::__addressof) is the
+  // same object seen as a different type.  A reference is one box either way,
+  // so nothing is constructed -- not even when the object is a class one.
+  if (kind === "reinterpret_cast" && target.ref !== "" && st.ref !== "") return target;
+  if (tCls && sCls) {
+    const tf = cx.stripAll(target);
+    const sf = cx.stripAll(st);
+    if (tf === sf || isDerived(cx, sf, tf) || isDerived(cx, tf, sf)) return target;
+    const r = resolveCtor(cx, tf, [{ t: st, e: e.arg }], scope, e, kind !== "static_cast");
+    ann.call = r.fn;
+    ann.convs = r.convs;
+    return target;
+  }
+  if (tCls && !sCls) {
+    // A functional cast with no argument, such as "P()", is default construction.
+    const r = resolveInitCtor(cx, cx.stripAll(target), [{ t: st, e: e.arg }], scope, e);
+    ann.call = r.fn;
+    ann.convs = r.convs;
+    return target;
+  }
+  if (sCls && !tCls) {
+    if (target.ptr > 0 || target.isFunc) cx.fail("cannot cast class to pointer", e);
+    const c = findConversion(cx, st, target, scope);
+    if (!c) cx.fail("no conversion", e);
+    ann.conv = c;
+    return target;
+  }
+  if (target.ptr > 0 && st.ptr > 0) return target;
+  if (target.isFunc && st.isFunc) return target;
+  // A pointer and an integer of the same width are the storage either way, so
+  // the cast reads through it.  The libstdc++ traits for unusual character
+  // types write exactly that in bodies that are never instantiated for them.
+  if (target.ptr > 0 && st.ptr === 0 && (kind === "cstyle" || kind === "reinterpret_cast" || kind === "static_cast")) {
+    cx.warn("integer to pointer cast is unchecked", e);
+    return target;
+  }
+  if (target.ptr === 0 && st.ptr > 0 && (kind === "cstyle" || kind === "reinterpret_cast" || kind === "static_cast")) {
+    cx.warn("pointer to integer cast is unchecked", e);
+    return target;
+  }
+  if (isNumericish(cx, target) && isNumericish(cx, st)) return target;
+  if (tn === "__null" || sn === "__null") return target;
+  // Only the reference qualification differs, as in "static_cast<_Tp&&>(__t)":
+  // the value denoted is the same one, so there is nothing to convert.
+  if (st.ptr === target.ptr && noRef(st).key() === noRef(target).key()) return target;
+  // "reinterpret_cast<const volatile char&>(__r)" gives the same storage a
+  // different type. A reference is one box either way, so nothing is built.
+  if (st.ref !== "" && target.ref !== "" && (kind === "reinterpret_cast" || kind === "cstyle")) return target;
+  cx.fail(`cannot cast`, e);
+}
+
+export function valueOfType(t: CppType): number {
+  return parseInt(t.name.replace("__value", "") || "0", 10);
+}
+
+export function noRef(t: CppType): CppType {
+  const c = new CppType(t.name);
+  c.segs = t.segs;
+  c.ptr = t.ptr;
+  c.dims = t.dims.slice();
+  c.isFunc = t.isFunc;
+  c.ret = t.ret;
+  c.funcParams = t.funcParams;
+  c.funcVariadic = t.funcVariadic;
+  return c;
+}
+
+export function copyType(t: CppType): CppType {
+  const c = noRef(t);
+  c.ref = t.ref;
+  c.cnst = t.cnst;
+  return c;
+}
+
+export function isLvalueExpr(cx: Cx, e: Expr): boolean {
+  switch (e.kind) {
+    case "id":
+    case "member":
+    case "index":
+    case "this":
+      return true;
+    case "unary":
+      return e.op === "*" || ((e.op === "++" || e.op === "--") && !e.postfix);
+    case "cast":
+      return isLvalueExpr(cx, e.arg);
+    case "call":
+    case "binary":
+    case "assign": {
+      const t = cx.getAnn(e).t as CppType | undefined;
+      return !!t && t.ref === "&";
+    }
+    default:
+      return false;
+  }
+}
+
+export function isDerived(cx: Cx, from: string, to: string): boolean {
+  if (from === to) return true;
+  const seen = new Set<string>();
+  const queue = [from];
+  while (queue.length) {
+    const cur = queue.shift() as string;
+    if (cur === to) return true;
+    if (seen.has(cur)) continue;
+    seen.add(cur);
+    const cls = cx.classes.get(cur);
+    if (!cls) continue;
+    for (const b of cls.bases) queue.push(b.fq);
+  }
+  return false;
+}
+
+export function coreName(t: CppType): string {
+  if (!t.segs.length) return t.name;
+  return last(t.segs).n;
+}
+
+export function isClassVal(cx: Cx, t: CppType): boolean {
+  if (t.isBox() || t.dims.length > 0 || t.isFunc) return false;
+  return cx.classes.has(cx.stripAll(t));
+}
+
+// The name of the class an operand is, reading through a reference: an
+// operator written on a reference to a class ("__i += __n" on an iterator
+// reference) is the class's own operator, "const _Iterator&" included.
+export function classValFq(cx: Cx, t: CppType): string {
+  if (t.ptr > 0 || t.dims.length > 0 || t.isFunc) return "";
+  const fq = cx.stripAll(t);
+  return cx.classes.has(fq) ? fq : "";
+}
+
+export function isClassBox(cx: Cx, t: CppType): boolean {
+  if (!t.isBox() || t.dims.length > 0 || t.isFunc) return false;
+  return cx.classes.has(cx.stripAll(t));
+}
+
+export function classOf(cx: Cx, t: CppType): string {
+  if (t.isFunc) return "";
+  const fq = cx.stripAll(t);
+  if (cx.classes.has(fq)) return fq;
+  return "";
+}
+
+export function isIntegerish(cx: Cx, t: CppType): boolean {
+  void cx;
+  const c = t.ref ? noRef(t) : t;
+  return !c.isBox() && !c.dims.length && !c.isFunc && isIntegerName(coreName(c));
+}
+
+// An integer, or an enumeration whose value is one.
+export function isIntegralish(cx: Cx, t: CppType): boolean {
+  const c = t.ref ? noRef(t) : t;
+  if (c.isBox() || c.dims.length || c.isFunc) return false;
+  return isIntegerName(coreName(c)) || cx.enums.has(cx.stripAll(c));
+}
+
+export function isNumericish(cx: Cx, t: CppType): boolean {
+  const c = t.ref ? noRef(t) : t;
+  if (c.isBox() || c.dims.length || c.isFunc) return false;
+  return isNumericName(coreName(c)) || cx.enums.has(cx.stripAll(c));
+}
+
+export function promoteUnary(cx: Cx, t: CppType): CppType {
+  void cx;
+  const n = coreName(t);
+  if (["bool", "char", "signed char", "unsigned char", "short", "unsigned short"].includes(n)) {
+    return CppType.basic("int");
+  }
+  if (isNumericName(n)) return CppType.basic(n);
+  if (cx.enums.has(cx.stripAll(t))) return CppType.basic("int");
+  return CppType.basic(n);
+}
+
+export function promote(cx: Cx, a: CppType, b: CppType): CppType | null {
+  a = noRef(a);
+  b = noRef(b);
+  const an = coreName(a);
+  const bn = coreName(b);
+  const ae = cx.enums.has(cx.stripAll(a));
+  const be = cx.enums.has(cx.stripAll(b));
+  if ((!isNumericName(an) && !ae) || (!isNumericName(bn) && !be)) return null;
+  if (a.ptr > 0 || b.ptr > 0 || a.isBox() || b.isBox()) return null;
+  if (a.dims.length || b.dims.length) return null;
+  const rank = (n: string, isEnum: boolean): number => {
+    if (isEnum) return 5;
+    switch (n) {
+      case "long double": return 14;
+      case "double": return 13;
+      case "float": return 12;
+      case "unsigned long long": return 11;
+      case "long long": return 10;
+      case "unsigned long": return 9;
+      case "long": return 8;
+      case "unsigned int": return 7;
+      case "int": return 6;
+      default: return 5;
+    }
+  };
+  const r = Math.max(rank(an, ae), rank(bn, be));
+  const names = ["", "", "", "", "", "int", "int", "unsigned int", "long", "unsigned long", "long long", "unsigned long long", "float", "double", "long double"];
+  return CppType.basic(names[r]);
+}
+
+export function markBoxedOf(cx: Cx, e: Expr): void {
+  let cur = e;
+  while (cur.kind === "cast") cur = cur.arg;
+  if (cur.kind === "id") {
+    const s = cx.getAnn(cur).sym;
+    // A field is stored in its object, so it has no boxing convention of its own.
+    if (s && s.k === "var" && !s.v.isField) {
+      if (s.v.storage === "plain") s.v.storage = "boxed";
+      else if (s.v.storage === "box" && !(s.v.typeCache && s.v.typeCache.ref)) s.v.storage = "bbox";
+    }
+    return;
+  }
+  if (cur.kind === "member") {
+    // Taking the address of a field through a pointer or reference does not
+    // box the pointer itself — it already names the object.
+    const ot = cx.getAnn(cur.obj).t as CppType | undefined;
+    if (ot && ot.isBox()) return;
+    markBoxedOf(cx, cur.obj);
+    return;
+  }
+  if (cur.kind === "index") {
+    markBoxedOf(cx, cur.arr);
+    return;
+  }
+}
+
+// A class and everything it derives from.
+export function eachCls(cx: Cx, fq: string, seen: Set<string>, fn: (c: ClsInfo) => boolean): boolean {
+  if (seen.has(fq)) return true;
+  seen.add(fq);
+  const c = cx.classes.get(fq);
+  if (!c) return true;
+  if (!fn(c)) return false;
+  for (const b of c.bases) if (!eachCls(cx, b.fq, seen, fn)) return false;
+  return true;
+}
+
+export function hasVirtualMethod(cx: Cx, fq: string, pure: boolean): boolean {
+  let found = false;
+  eachCls(cx, fq, new Set(), c => {
+    for (const list of c.methods.values()) {
+      for (const f of list) {
+        if (f.isVirtual && (!pure || f.isPure)) { found = true; return false; }
+      }
+    }
+    return true;
+  });
+  return found;
+}
+
+// Scalars, enums and the classes built only out of them: what the layout
+// traits ask about, judged from the shape that was collected.
+export function isPlainType(cx: Cx, t: CppType, seen: Set<string>): boolean {
+  const c = cx.classes.get(t.name);
+  if (!c) return true;
+  if (seen.has(t.name)) return true;
+  seen.add(t.name);
+  if (c.isUnion) return true;
+  if (hasVirtualMethod(cx, c.fq, false)) return false;
+  for (const n of c.fields.keys()) {
+    if (c.fieldStatic.has(n)) continue;
+    const ft = cx.fieldType(c, n);
+    if (ft.ptr === 0 && ft.ref === "" && !isPlainType(cx, ft, seen)) return false;
+  }
+  return true;
+}
+}

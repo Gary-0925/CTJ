@@ -21,9 +21,14 @@
     "src/stmt.ts",
     "src/sem.ts",
     "src/subst.ts",
-    "src/ann.ts",
-    "src/ann2.ts",
-    "src/ann3.ts",
+    "src/analyze.ts",
+    "src/types.ts",
+    "src/calls.ts",
+    "src/ctors.ts",
+    "src/conversions.ts",
+    "src/deduction.ts",
+    "src/consteval.ts",
+    "src/builtins.ts",
     "src/js.ts",
     "src/api.ts"
   ]
