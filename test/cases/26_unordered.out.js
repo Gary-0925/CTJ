@@ -494,7 +494,7 @@ class std_basic_string_char_std_char_traits_char_std_allocator_char {
     else if ($a.length >= 1 && $a.length <= 1 && ($a[0] !== null && typeof $a[0] === "object" && !Array.isArray($a[0]) && $a[0].a !== undefined && $a[0].i !== undefined && $a[0].a[$a[0].i] instanceof std_basic_string_char_std_char_traits_char_std_allocator_char)) {
       this._M_dataplus = new std_basic_string_char_std_char_traits_char_std_allocator_char_Alloc_hider({a: ($a[0]).a[($a[0]).i], i: "_M_dataplus"});
       this._M_dataplus.ctj_a = this; this._M_dataplus.ctj_i = "_M_dataplus";
-      (($a[0]).a[($a[0]).i])._M_data(($t10 = std_basic_string_char_std_char_traits_char_std_allocator_char._S_construct(0, 0, {a: [new std_allocator_char({a: [this.get_allocator__c()], i: 0})], i: 0}), $t10 ? {a: $t10.a, i: $t10.i} : null));
+      (($a[0]).a[($a[0]).i])._M_data(($t10 = std_basic_string_char_std_char_traits_char_std_allocator_char._S_construct(0, 0, {a: [this.get_allocator__c()], i: 0}), $t10 ? {a: $t10.a, i: $t10.i} : null));
     }
     else if ($a.length >= 0 && $a.length <= 0) {
       this._M_dataplus = new std_basic_string_char_std_char_traits_char_std_allocator_char_Alloc_hider(($t11 = std_basic_string_char_std_char_traits_char_std_allocator_char._S_construct(0, 0, {a: [new std_allocator_char()], i: 0}), $t11 ? {a: $t11.a, i: $t11.i} : null), {a: [new std_allocator_char()], i: 0});
@@ -4176,7 +4176,7 @@ class std_detail_Map_base_std_basic_string_char_std_char_traits_char_std_allocat
     if ((!__p)) {
        {
         __p = ($t63 = (__h.a[__h.i])._M_allocate_node__rv({a: std_piecewise_construct, i: "v"}, {a: [new std_tuple_std_basic_string_char_std_char_traits_char_std_allocator_char_R(__k)], i: 0}, {a: [new std_tuple()], i: 0}), $t63 ? {a: $t63.a, i: $t63.i} : null);
-        return {a: ($t65 = (($t64 = new std_detail_Node_iterator_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_value0_value1({a: [(__h.a[__h.i])._M_insert_unique_node(__n, __code, (__p ? {a: __p.a, i: __p.i} : null))], i: 0}), $t64)).op_arrow__c(), $t65.a[$t65.i]), i: "second"};
+        return {a: ($t65 = (($t64 = (__h.a[__h.i])._M_insert_unique_node(__n, __code, (__p ? {a: __p.a, i: __p.i} : null)), $t64)).op_arrow__c(), $t65.a[$t65.i]), i: "second"};
       }
     }
     return {a: (__p.a[__p.i])._M_v, i: "second"};
@@ -5608,7 +5608,7 @@ class std_detail_Insert_base_int_int_std_allocator_int_std_detail_Identity_std_e
   }
   insert(__v) {
     let __h = this._M_conjure_hashtable();
-    return new std_pair_std_detail_Node_iterator_int_value1_value0_bool({a: [(__h.a[__h.i])._M_insert__rv(__v, new std_integral_constant_bool_value1())], i: 0});
+    return (__h.a[__h.i])._M_insert__rv(__v, new std_integral_constant_bool_value1());
   }
 }
 class std_detail_Insert_int_int_std_allocator_int_std_detail_Identity_std_equal_to_int_std_hash_int_std_detail_Mod_range_hashing_std_detail_Default_ranged_hash_std_detail_Prime_rehash_policy_std_detail_Hashtable_traits_value0_value1_value1_value1_value1 extends std_detail_Insert_base_int_int_std_allocator_int_std_detail_Identity_std_equal_to_int_std_hash_int_std_detail_Mod_range_hashing_std_detail_Default_ranged_hash_std_detail_Prime_rehash_policy_std_detail_Hashtable_traits_value0_value1_value1 {
@@ -7023,7 +7023,7 @@ class std_Hashtable_std_basic_string_char_std_char_traits_char_std_allocator_cha
   _M_insert_unique_node(__bkt, __code, __node) {
     let $t100;
     let __saved_state = {a: [this._M_rehash_policy._M_state__c()], i: 0};
-    let __do_rehash = new std_pair_bool_unsigned_long_long({a: [new std_pair_bool_unsigned_long_long({a: [this._M_rehash_policy._M_need_rehash__c(this._M_bucket_count, this._M_element_count, 1)], i: 0})], i: 0});
+    let __do_rehash = this._M_rehash_policy._M_need_rehash__c(this._M_bucket_count, this._M_element_count, 1);
     if (true) {
        {
         if (__do_rehash.first) {
@@ -7155,10 +7155,10 @@ class std_unordered_map_std_basic_string_char_std_char_traits_char_std_allocator
     return this._M_h.size__c();
   }
   begin() {
-    return new std_detail_Node_iterator_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_value0_value1({a: [this._M_h.begin()], i: 0});
+    return this._M_h.begin();
   }
   end() {
-    return new std_detail_Node_iterator_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_value0_value1({a: [this._M_h.end()], i: 0});
+    return this._M_h.end();
   }
   count__c(__x) {
     return this._M_h.count__c(__x);
@@ -7860,7 +7860,7 @@ class std_Hashtable_int_int_std_allocator_int_std_detail_Identity_std_equal_to_i
   _M_insert_unique_node(__bkt, __code, __node) {
     let $t133;
     let __saved_state = {a: [this._M_rehash_policy._M_state__c()], i: 0};
-    let __do_rehash = new std_pair_bool_unsigned_long_long({a: [new std_pair_bool_unsigned_long_long({a: [this._M_rehash_policy._M_need_rehash__c(this._M_bucket_count, this._M_element_count, 1)], i: 0})], i: 0});
+    let __do_rehash = this._M_rehash_policy._M_need_rehash__c(this._M_bucket_count, this._M_element_count, 1);
     if (true) {
        {
         if (__do_rehash.first) {
@@ -7934,10 +7934,10 @@ class std_Hashtable_int_int_std_allocator_int_std_detail_Identity_std_equal_to_i
     let __bkt = this._M_bucket_index__c(__k, __code);
     let __n = {v: ($t143 = this._M_find_node__c(__bkt, __k, __code), $t143 ? {a: $t143.a, i: $t143.i} : null)};
     if (__n.v) {
-      return new std_pair_std_detail_Node_iterator_int_value1_value0_bool({a: [std_make_pair_std_detail_Node_iterator_int_value1_value0_bool({a: [new std_detail_Node_iterator_int_value1_value0((__n.v ? {a: __n.v.a, i: __n.v.i} : null))], i: 0}, {a: [false], i: 0})], i: 0});
+      return std_make_pair_std_detail_Node_iterator_int_value1_value0_bool({a: [new std_detail_Node_iterator_int_value1_value0((__n.v ? {a: __n.v.a, i: __n.v.i} : null))], i: 0}, {a: [false], i: 0});
     }
     __n.v = ($t144 = this._M_allocate_node__rv(std_forward_1_int(__v)), $t144 ? {a: $t144.a, i: $t144.i} : null);
-    return new std_pair_std_detail_Node_iterator_int_value1_value0_bool({a: [std_make_pair_std_detail_Node_iterator_int_value1_value0_bool({a: [new std_detail_Node_iterator_int_value1_value0({a: [this._M_insert_unique_node(__bkt, __code, (__n.v ? {a: __n.v.a, i: __n.v.i} : null))], i: 0})], i: 0}, {a: [true], i: 0})], i: 0});
+    return std_make_pair_std_detail_Node_iterator_int_value1_value0_bool({a: [this._M_insert_unique_node(__bkt, __code, (__n.v ? {a: __n.v.a, i: __n.v.i} : null))], i: 0}, {a: [true], i: 0});
   }
   _M_allocate_node__rv(__args_0) {
     let $t145, $t146, $t147, $t148;
@@ -8004,13 +8004,13 @@ class std_unordered_set_int_std_hash_int_std_equal_to_int_std_allocator_int exte
     return this._M_h.size__c();
   }
   begin() {
-    return new std_detail_Node_iterator_int_value1_value0({a: [this._M_h.begin()], i: 0});
+    return this._M_h.begin();
   }
   end() {
-    return new std_detail_Node_iterator_int_value1_value0({a: [this._M_h.end()], i: 0});
+    return this._M_h.end();
   }
   insert(__x) {
-    return new std_pair_std_detail_Node_iterator_int_value1_value0_bool({a: [this._M_h.insert(__x)], i: 0});
+    return this._M_h.insert(__x);
   }
   count__c(__x) {
     return this._M_h.count__c(__x);
@@ -9013,24 +9013,24 @@ class std_num_put_char_std_ostreambuf_iterator_char_std_char_traits_char extends
   }
   do_put__c(...$a) {
     if ($a.length >= 4 && $a.length <= 4 && $a[0] instanceof std_ostreambuf_iterator_char_std_char_traits_char && ($a[1] !== null && typeof $a[1] === "object" && !Array.isArray($a[1]) && $a[1].a !== undefined && $a[1].i !== undefined && $a[1].a[$a[1].i] instanceof std_ios_base) && (typeof $a[2] === "number" || typeof $a[2] === "boolean") && (typeof $a[3] === "number" || typeof $a[3] === "boolean")) {
-      return new std_ostreambuf_iterator_char_std_char_traits_char({a: [this._M_insert_int__c($a[0], $a[1], $a[2], $a[3])], i: 0});
+      return this._M_insert_int__c(new std_ostreambuf_iterator_char_std_char_traits_char({a: [$a[0]], i: 0}), $a[1], $a[2], $a[3]);
     }
     else if ($a.length >= 4 && $a.length <= 4 && $a[0] instanceof std_ostreambuf_iterator_char_std_char_traits_char && ($a[1] !== null && typeof $a[1] === "object" && !Array.isArray($a[1]) && $a[1].a !== undefined && $a[1].i !== undefined && $a[1].a[$a[1].i] instanceof std_ios_base) && (typeof $a[2] === "number" || typeof $a[2] === "boolean") && (typeof $a[3] === "number" || typeof $a[3] === "boolean")) {
-      return new std_ostreambuf_iterator_char_std_char_traits_char({a: [this._M_insert_int__c($a[0], $a[1], $a[2], $a[3])], i: 0});
+      return this._M_insert_int__c(new std_ostreambuf_iterator_char_std_char_traits_char({a: [$a[0]], i: 0}), $a[1], $a[2], $a[3]);
     }
     else if ($a.length >= 4 && $a.length <= 4 && $a[0] instanceof std_ostreambuf_iterator_char_std_char_traits_char && ($a[1] !== null && typeof $a[1] === "object" && !Array.isArray($a[1]) && $a[1].a !== undefined && $a[1].i !== undefined && $a[1].a[$a[1].i] instanceof std_ios_base) && (typeof $a[2] === "number" || typeof $a[2] === "boolean") && (typeof $a[3] === "number" || typeof $a[3] === "boolean")) {
-      return new std_ostreambuf_iterator_char_std_char_traits_char({a: [this._M_insert_int__c($a[0], $a[1], $a[2], $a[3])], i: 0});
+      return this._M_insert_int__c(new std_ostreambuf_iterator_char_std_char_traits_char({a: [$a[0]], i: 0}), $a[1], $a[2], $a[3]);
     }
     else if ($a.length >= 4 && $a.length <= 4 && $a[0] instanceof std_ostreambuf_iterator_char_std_char_traits_char && ($a[1] !== null && typeof $a[1] === "object" && !Array.isArray($a[1]) && $a[1].a !== undefined && $a[1].i !== undefined && $a[1].a[$a[1].i] instanceof std_ios_base) && (typeof $a[2] === "number" || typeof $a[2] === "boolean") && (typeof $a[3] === "number" || typeof $a[3] === "boolean")) {
-      return new std_ostreambuf_iterator_char_std_char_traits_char({a: [this._M_insert_int__c($a[0], $a[1], $a[2], $a[3])], i: 0});
+      return this._M_insert_int__c(new std_ostreambuf_iterator_char_std_char_traits_char({a: [$a[0]], i: 0}), $a[1], $a[2], $a[3]);
     }
     else if ($a.length >= 4 && $a.length <= 4 && $a[0] instanceof std_ostreambuf_iterator_char_std_char_traits_char && ($a[1] !== null && typeof $a[1] === "object" && !Array.isArray($a[1]) && $a[1].a !== undefined && $a[1].i !== undefined && $a[1].a[$a[1].i] instanceof std_ios_base) && (typeof $a[2] === "number" || typeof $a[2] === "boolean") && ($a[3] === null || typeof $a[3] === "object")) {
       let __flags = (($a[1]).a[($a[1]).i]).flags__c();
       let __fmt = (~((std_ios_base.basefield | std_ios_base.uppercase)));
       (($a[1]).a[($a[1]).i]).flags(((__flags & __fmt) | (std_ios_base.hex | std_ios_base.showbase)));
-      ($a[0]).op_assign({a: [new std_ostreambuf_iterator_char_std_char_traits_char({a: [this._M_insert_int__c($a[0], $a[1], $a[2], ($a[3] >>> 0))], i: 0})], i: 0});
+      ($a[0]).op_assign({a: [this._M_insert_int__c(new std_ostreambuf_iterator_char_std_char_traits_char({a: [$a[0]], i: 0}), $a[1], $a[2], ($a[3] >>> 0))], i: 0});
       (($a[1]).a[($a[1]).i]).flags(__flags);
-      return $a[0];
+      return new std_ostreambuf_iterator_char_std_char_traits_char({a: [$a[0]], i: 0});
     }
     else { throw new Error("no matching overload"); }
   }
@@ -9078,31 +9078,31 @@ class std_num_get_char_std_istreambuf_iterator_char_std_char_traits_char extends
   }
   do_get__c(...$a) {
     if ($a.length >= 5 && $a.length <= 5 && $a[0] instanceof std_istreambuf_iterator_char_std_char_traits_char && $a[1] instanceof std_istreambuf_iterator_char_std_char_traits_char && ($a[2] !== null && typeof $a[2] === "object" && !Array.isArray($a[2]) && $a[2].a !== undefined && $a[2].i !== undefined && $a[2].a[$a[2].i] instanceof std_ios_base) && ($a[3] === null || typeof $a[3] === "object") && ($a[4] === null || typeof $a[4] === "object")) {
-      return new std_istreambuf_iterator_char_std_char_traits_char({a: [this._M_extract_int__c($a[0], $a[1], $a[2], $a[3], $a[4])], i: 0});
+      return this._M_extract_int__c(new std_istreambuf_iterator_char_std_char_traits_char({a: [$a[0]], i: 0}), new std_istreambuf_iterator_char_std_char_traits_char({a: [$a[1]], i: 0}), $a[2], $a[3], $a[4]);
     }
     else if ($a.length >= 5 && $a.length <= 5 && $a[0] instanceof std_istreambuf_iterator_char_std_char_traits_char && $a[1] instanceof std_istreambuf_iterator_char_std_char_traits_char && ($a[2] !== null && typeof $a[2] === "object" && !Array.isArray($a[2]) && $a[2].a !== undefined && $a[2].i !== undefined && $a[2].a[$a[2].i] instanceof std_ios_base) && ($a[3] === null || typeof $a[3] === "object") && ($a[4] === null || typeof $a[4] === "object")) {
-      return new std_istreambuf_iterator_char_std_char_traits_char({a: [this._M_extract_int__c($a[0], $a[1], $a[2], $a[3], $a[4])], i: 0});
+      return this._M_extract_int__c(new std_istreambuf_iterator_char_std_char_traits_char({a: [$a[0]], i: 0}), new std_istreambuf_iterator_char_std_char_traits_char({a: [$a[1]], i: 0}), $a[2], $a[3], $a[4]);
     }
     else if ($a.length >= 5 && $a.length <= 5 && $a[0] instanceof std_istreambuf_iterator_char_std_char_traits_char && $a[1] instanceof std_istreambuf_iterator_char_std_char_traits_char && ($a[2] !== null && typeof $a[2] === "object" && !Array.isArray($a[2]) && $a[2].a !== undefined && $a[2].i !== undefined && $a[2].a[$a[2].i] instanceof std_ios_base) && ($a[3] === null || typeof $a[3] === "object") && ($a[4] === null || typeof $a[4] === "object")) {
-      return new std_istreambuf_iterator_char_std_char_traits_char({a: [this._M_extract_int__c($a[0], $a[1], $a[2], $a[3], $a[4])], i: 0});
+      return this._M_extract_int__c(new std_istreambuf_iterator_char_std_char_traits_char({a: [$a[0]], i: 0}), new std_istreambuf_iterator_char_std_char_traits_char({a: [$a[1]], i: 0}), $a[2], $a[3], $a[4]);
     }
     else if ($a.length >= 5 && $a.length <= 5 && $a[0] instanceof std_istreambuf_iterator_char_std_char_traits_char && $a[1] instanceof std_istreambuf_iterator_char_std_char_traits_char && ($a[2] !== null && typeof $a[2] === "object" && !Array.isArray($a[2]) && $a[2].a !== undefined && $a[2].i !== undefined && $a[2].a[$a[2].i] instanceof std_ios_base) && ($a[3] === null || typeof $a[3] === "object") && ($a[4] === null || typeof $a[4] === "object")) {
-      return new std_istreambuf_iterator_char_std_char_traits_char({a: [this._M_extract_int__c($a[0], $a[1], $a[2], $a[3], $a[4])], i: 0});
+      return this._M_extract_int__c(new std_istreambuf_iterator_char_std_char_traits_char({a: [$a[0]], i: 0}), new std_istreambuf_iterator_char_std_char_traits_char({a: [$a[1]], i: 0}), $a[2], $a[3], $a[4]);
     }
     else if ($a.length >= 5 && $a.length <= 5 && $a[0] instanceof std_istreambuf_iterator_char_std_char_traits_char && $a[1] instanceof std_istreambuf_iterator_char_std_char_traits_char && ($a[2] !== null && typeof $a[2] === "object" && !Array.isArray($a[2]) && $a[2].a !== undefined && $a[2].i !== undefined && $a[2].a[$a[2].i] instanceof std_ios_base) && ($a[3] === null || typeof $a[3] === "object") && ($a[4] === null || typeof $a[4] === "object")) {
-      return new std_istreambuf_iterator_char_std_char_traits_char({a: [this._M_extract_int__c($a[0], $a[1], $a[2], $a[3], $a[4])], i: 0});
+      return this._M_extract_int__c(new std_istreambuf_iterator_char_std_char_traits_char({a: [$a[0]], i: 0}), new std_istreambuf_iterator_char_std_char_traits_char({a: [$a[1]], i: 0}), $a[2], $a[3], $a[4]);
     }
     else if ($a.length >= 5 && $a.length <= 5 && $a[0] instanceof std_istreambuf_iterator_char_std_char_traits_char && $a[1] instanceof std_istreambuf_iterator_char_std_char_traits_char && ($a[2] !== null && typeof $a[2] === "object" && !Array.isArray($a[2]) && $a[2].a !== undefined && $a[2].i !== undefined && $a[2].a[$a[2].i] instanceof std_ios_base) && ($a[3] === null || typeof $a[3] === "object") && ($a[4] === null || typeof $a[4] === "object")) {
-      return new std_istreambuf_iterator_char_std_char_traits_char({a: [this._M_extract_int__c($a[0], $a[1], $a[2], $a[3], $a[4])], i: 0});
+      return this._M_extract_int__c(new std_istreambuf_iterator_char_std_char_traits_char({a: [$a[0]], i: 0}), new std_istreambuf_iterator_char_std_char_traits_char({a: [$a[1]], i: 0}), $a[2], $a[3], $a[4]);
     }
     else if ($a.length >= 5 && $a.length <= 5 && $a[0] instanceof std_istreambuf_iterator_char_std_char_traits_char && $a[1] instanceof std_istreambuf_iterator_char_std_char_traits_char && ($a[2] !== null && typeof $a[2] === "object" && !Array.isArray($a[2]) && $a[2].a !== undefined && $a[2].i !== undefined && $a[2].a[$a[2].i] instanceof std_ios_base) && ($a[3] === null || typeof $a[3] === "object") && ($a[4] === null || typeof $a[4] === "object")) {
       let __fmt = (($a[2]).a[($a[2]).i]).flags__c();
       (($a[2]).a[($a[2]).i]).flags(((__fmt & (~std_ios_base.basefield)) | std_ios_base.hex));
       let __ul = {v: 0};
-      ($a[0]).op_assign({a: [new std_istreambuf_iterator_char_std_char_traits_char({a: [this._M_extract_int__c($a[0], $a[1], $a[2], $a[3], {a: __ul, i: "v"})], i: 0})], i: 0});
+      ($a[0]).op_assign({a: [this._M_extract_int__c(new std_istreambuf_iterator_char_std_char_traits_char({a: [$a[0]], i: 0}), new std_istreambuf_iterator_char_std_char_traits_char({a: [$a[1]], i: 0}), $a[2], $a[3], {a: __ul, i: "v"})], i: 0});
       (($a[2]).a[($a[2]).i]).flags(__fmt);
       ($a[4]).a[($a[4]).i] = (__ul.v ? {a: __ul.v.a, i: __ul.v.i} : null);
-      return $a[0];
+      return new std_istreambuf_iterator_char_std_char_traits_char({a: [$a[0]], i: 0});
     }
     else { throw new Error("no matching overload"); }
   }
@@ -9227,24 +9227,24 @@ class std_num_put_wchar_t_std_ostreambuf_iterator_wchar_t_std_char_traits_wchar_
   }
   do_put__c(...$a) {
     if ($a.length >= 4 && $a.length <= 4 && $a[0] instanceof std_ostreambuf_iterator_wchar_t_std_char_traits_wchar_t && ($a[1] !== null && typeof $a[1] === "object" && !Array.isArray($a[1]) && $a[1].a !== undefined && $a[1].i !== undefined && $a[1].a[$a[1].i] instanceof std_ios_base) && (typeof $a[2] === "number" || typeof $a[2] === "boolean") && (typeof $a[3] === "number" || typeof $a[3] === "boolean")) {
-      return new std_ostreambuf_iterator_wchar_t_std_char_traits_wchar_t({a: [this._M_insert_int__c($a[0], $a[1], $a[2], $a[3])], i: 0});
+      return this._M_insert_int__c(new std_ostreambuf_iterator_wchar_t_std_char_traits_wchar_t({a: [$a[0]], i: 0}), $a[1], $a[2], $a[3]);
     }
     else if ($a.length >= 4 && $a.length <= 4 && $a[0] instanceof std_ostreambuf_iterator_wchar_t_std_char_traits_wchar_t && ($a[1] !== null && typeof $a[1] === "object" && !Array.isArray($a[1]) && $a[1].a !== undefined && $a[1].i !== undefined && $a[1].a[$a[1].i] instanceof std_ios_base) && (typeof $a[2] === "number" || typeof $a[2] === "boolean") && (typeof $a[3] === "number" || typeof $a[3] === "boolean")) {
-      return new std_ostreambuf_iterator_wchar_t_std_char_traits_wchar_t({a: [this._M_insert_int__c($a[0], $a[1], $a[2], $a[3])], i: 0});
+      return this._M_insert_int__c(new std_ostreambuf_iterator_wchar_t_std_char_traits_wchar_t({a: [$a[0]], i: 0}), $a[1], $a[2], $a[3]);
     }
     else if ($a.length >= 4 && $a.length <= 4 && $a[0] instanceof std_ostreambuf_iterator_wchar_t_std_char_traits_wchar_t && ($a[1] !== null && typeof $a[1] === "object" && !Array.isArray($a[1]) && $a[1].a !== undefined && $a[1].i !== undefined && $a[1].a[$a[1].i] instanceof std_ios_base) && (typeof $a[2] === "number" || typeof $a[2] === "boolean") && (typeof $a[3] === "number" || typeof $a[3] === "boolean")) {
-      return new std_ostreambuf_iterator_wchar_t_std_char_traits_wchar_t({a: [this._M_insert_int__c($a[0], $a[1], $a[2], $a[3])], i: 0});
+      return this._M_insert_int__c(new std_ostreambuf_iterator_wchar_t_std_char_traits_wchar_t({a: [$a[0]], i: 0}), $a[1], $a[2], $a[3]);
     }
     else if ($a.length >= 4 && $a.length <= 4 && $a[0] instanceof std_ostreambuf_iterator_wchar_t_std_char_traits_wchar_t && ($a[1] !== null && typeof $a[1] === "object" && !Array.isArray($a[1]) && $a[1].a !== undefined && $a[1].i !== undefined && $a[1].a[$a[1].i] instanceof std_ios_base) && (typeof $a[2] === "number" || typeof $a[2] === "boolean") && (typeof $a[3] === "number" || typeof $a[3] === "boolean")) {
-      return new std_ostreambuf_iterator_wchar_t_std_char_traits_wchar_t({a: [this._M_insert_int__c($a[0], $a[1], $a[2], $a[3])], i: 0});
+      return this._M_insert_int__c(new std_ostreambuf_iterator_wchar_t_std_char_traits_wchar_t({a: [$a[0]], i: 0}), $a[1], $a[2], $a[3]);
     }
     else if ($a.length >= 4 && $a.length <= 4 && $a[0] instanceof std_ostreambuf_iterator_wchar_t_std_char_traits_wchar_t && ($a[1] !== null && typeof $a[1] === "object" && !Array.isArray($a[1]) && $a[1].a !== undefined && $a[1].i !== undefined && $a[1].a[$a[1].i] instanceof std_ios_base) && (typeof $a[2] === "number" || typeof $a[2] === "boolean") && ($a[3] === null || typeof $a[3] === "object")) {
       let __flags = (($a[1]).a[($a[1]).i]).flags__c();
       let __fmt = (~((std_ios_base.basefield | std_ios_base.uppercase)));
       (($a[1]).a[($a[1]).i]).flags(((__flags & __fmt) | (std_ios_base.hex | std_ios_base.showbase)));
-      ($a[0]).op_assign({a: [new std_ostreambuf_iterator_wchar_t_std_char_traits_wchar_t({a: [this._M_insert_int__c($a[0], $a[1], $a[2], ($a[3] >>> 0))], i: 0})], i: 0});
+      ($a[0]).op_assign({a: [this._M_insert_int__c(new std_ostreambuf_iterator_wchar_t_std_char_traits_wchar_t({a: [$a[0]], i: 0}), $a[1], $a[2], ($a[3] >>> 0))], i: 0});
       (($a[1]).a[($a[1]).i]).flags(__flags);
-      return $a[0];
+      return new std_ostreambuf_iterator_wchar_t_std_char_traits_wchar_t({a: [$a[0]], i: 0});
     }
     else { throw new Error("no matching overload"); }
   }
@@ -9292,31 +9292,31 @@ class std_num_get_wchar_t_std_istreambuf_iterator_wchar_t_std_char_traits_wchar_
   }
   do_get__c(...$a) {
     if ($a.length >= 5 && $a.length <= 5 && $a[0] instanceof std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t && $a[1] instanceof std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t && ($a[2] !== null && typeof $a[2] === "object" && !Array.isArray($a[2]) && $a[2].a !== undefined && $a[2].i !== undefined && $a[2].a[$a[2].i] instanceof std_ios_base) && ($a[3] === null || typeof $a[3] === "object") && ($a[4] === null || typeof $a[4] === "object")) {
-      return new std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t({a: [this._M_extract_int__c($a[0], $a[1], $a[2], $a[3], $a[4])], i: 0});
+      return this._M_extract_int__c(new std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t({a: [$a[0]], i: 0}), new std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t({a: [$a[1]], i: 0}), $a[2], $a[3], $a[4]);
     }
     else if ($a.length >= 5 && $a.length <= 5 && $a[0] instanceof std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t && $a[1] instanceof std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t && ($a[2] !== null && typeof $a[2] === "object" && !Array.isArray($a[2]) && $a[2].a !== undefined && $a[2].i !== undefined && $a[2].a[$a[2].i] instanceof std_ios_base) && ($a[3] === null || typeof $a[3] === "object") && ($a[4] === null || typeof $a[4] === "object")) {
-      return new std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t({a: [this._M_extract_int__c($a[0], $a[1], $a[2], $a[3], $a[4])], i: 0});
+      return this._M_extract_int__c(new std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t({a: [$a[0]], i: 0}), new std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t({a: [$a[1]], i: 0}), $a[2], $a[3], $a[4]);
     }
     else if ($a.length >= 5 && $a.length <= 5 && $a[0] instanceof std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t && $a[1] instanceof std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t && ($a[2] !== null && typeof $a[2] === "object" && !Array.isArray($a[2]) && $a[2].a !== undefined && $a[2].i !== undefined && $a[2].a[$a[2].i] instanceof std_ios_base) && ($a[3] === null || typeof $a[3] === "object") && ($a[4] === null || typeof $a[4] === "object")) {
-      return new std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t({a: [this._M_extract_int__c($a[0], $a[1], $a[2], $a[3], $a[4])], i: 0});
+      return this._M_extract_int__c(new std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t({a: [$a[0]], i: 0}), new std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t({a: [$a[1]], i: 0}), $a[2], $a[3], $a[4]);
     }
     else if ($a.length >= 5 && $a.length <= 5 && $a[0] instanceof std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t && $a[1] instanceof std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t && ($a[2] !== null && typeof $a[2] === "object" && !Array.isArray($a[2]) && $a[2].a !== undefined && $a[2].i !== undefined && $a[2].a[$a[2].i] instanceof std_ios_base) && ($a[3] === null || typeof $a[3] === "object") && ($a[4] === null || typeof $a[4] === "object")) {
-      return new std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t({a: [this._M_extract_int__c($a[0], $a[1], $a[2], $a[3], $a[4])], i: 0});
+      return this._M_extract_int__c(new std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t({a: [$a[0]], i: 0}), new std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t({a: [$a[1]], i: 0}), $a[2], $a[3], $a[4]);
     }
     else if ($a.length >= 5 && $a.length <= 5 && $a[0] instanceof std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t && $a[1] instanceof std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t && ($a[2] !== null && typeof $a[2] === "object" && !Array.isArray($a[2]) && $a[2].a !== undefined && $a[2].i !== undefined && $a[2].a[$a[2].i] instanceof std_ios_base) && ($a[3] === null || typeof $a[3] === "object") && ($a[4] === null || typeof $a[4] === "object")) {
-      return new std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t({a: [this._M_extract_int__c($a[0], $a[1], $a[2], $a[3], $a[4])], i: 0});
+      return this._M_extract_int__c(new std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t({a: [$a[0]], i: 0}), new std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t({a: [$a[1]], i: 0}), $a[2], $a[3], $a[4]);
     }
     else if ($a.length >= 5 && $a.length <= 5 && $a[0] instanceof std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t && $a[1] instanceof std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t && ($a[2] !== null && typeof $a[2] === "object" && !Array.isArray($a[2]) && $a[2].a !== undefined && $a[2].i !== undefined && $a[2].a[$a[2].i] instanceof std_ios_base) && ($a[3] === null || typeof $a[3] === "object") && ($a[4] === null || typeof $a[4] === "object")) {
-      return new std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t({a: [this._M_extract_int__c($a[0], $a[1], $a[2], $a[3], $a[4])], i: 0});
+      return this._M_extract_int__c(new std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t({a: [$a[0]], i: 0}), new std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t({a: [$a[1]], i: 0}), $a[2], $a[3], $a[4]);
     }
     else if ($a.length >= 5 && $a.length <= 5 && $a[0] instanceof std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t && $a[1] instanceof std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t && ($a[2] !== null && typeof $a[2] === "object" && !Array.isArray($a[2]) && $a[2].a !== undefined && $a[2].i !== undefined && $a[2].a[$a[2].i] instanceof std_ios_base) && ($a[3] === null || typeof $a[3] === "object") && ($a[4] === null || typeof $a[4] === "object")) {
       let __fmt = (($a[2]).a[($a[2]).i]).flags__c();
       (($a[2]).a[($a[2]).i]).flags(((__fmt & (~std_ios_base.basefield)) | std_ios_base.hex));
       let __ul = {v: 0};
-      ($a[0]).op_assign({a: [new std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t({a: [this._M_extract_int__c($a[0], $a[1], $a[2], $a[3], {a: __ul, i: "v"})], i: 0})], i: 0});
+      ($a[0]).op_assign({a: [this._M_extract_int__c(new std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t({a: [$a[0]], i: 0}), new std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t({a: [$a[1]], i: 0}), $a[2], $a[3], {a: __ul, i: "v"})], i: 0});
       (($a[2]).a[($a[2]).i]).flags(__fmt);
       ($a[4]).a[($a[4]).i] = (__ul.v ? {a: __ul.v.a, i: __ul.v.i} : null);
-      return $a[0];
+      return new std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t({a: [$a[0]], i: 0});
     }
     else { throw new Error("no matching overload"); }
   }
@@ -9345,9 +9345,9 @@ function main() {
   }
   (__ctj_write("\n"), std_cout);
   let s = new std_unordered_set_int_std_hash_int_std_equal_to_int_std_allocator_int(10, {a: [new std_hash_int()], i: 0}, {a: [new std_equal_to_int()], i: 0}, {a: [new std_allocator_int()], i: 0});
-  new std_pair_std_detail_Node_iterator_int_value1_value0_bool({a: [s.insert({a: [5], i: 0})], i: 0});
-  new std_pair_std_detail_Node_iterator_int_value1_value0_bool({a: [s.insert({a: [6], i: 0})], i: 0});
-  new std_pair_std_detail_Node_iterator_int_value1_value0_bool({a: [s.insert({a: [5], i: 0})], i: 0});
+  s.insert({a: [5], i: 0});
+  s.insert({a: [6], i: 0});
+  s.insert({a: [5], i: 0});
   ($t164 = ($t163 = ($t162 = (__ctj_write(__ctj_fmt(s.size__c())), std_cout), __ctj_write(__ctj_fmt([32, 0])), $t162), __ctj_write(__ctj_fmt(s.count__c({a: [6], i: 0}))), $t163), __ctj_write("\n"), $t164);
   for (let $b1 = new std_detail_Node_iterator_int_value1_value0({a: [s.begin()], i: 0}), $e1 = new std_detail_Node_iterator_int_value1_value0({a: [s.end()], i: 0}); std_detail_operator_int_value0({a: [$b1], i: 0}, {a: [$e1], i: 0}); $b1.op_inc()) {
     let x = ($b1.op_mul__c()).a[($b1.op_mul__c()).i];

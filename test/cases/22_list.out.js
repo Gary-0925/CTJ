@@ -255,25 +255,25 @@ class std_list_int_std_allocator_int extends std_List_base_int_std_allocator_int
     return (this._M_impl._M_node._M_next === ({a: this._M_impl, i: "_M_node"}) || (this._M_impl._M_node._M_next && ({a: this._M_impl, i: "_M_node"}) && this._M_impl._M_node._M_next.a === ({a: this._M_impl, i: "_M_node"}).a && this._M_impl._M_node._M_next.i === ({a: this._M_impl, i: "_M_node"}).i));
   }
   size__c() {
-    return std_distance_std_List_iterator_int(new std_List_iterator_int({a: [this.begin()], i: 0}), new std_List_iterator_int({a: [this.end()], i: 0}));
+    return std_distance_std_List_iterator_int(this.begin(), this.end());
   }
   front() {
     let $t4;
-    return (($t4 = new std_List_iterator_int({a: [this.begin()], i: 0}), $t4)).op_mul__c();
+    return (($t4 = this.begin(), $t4)).op_mul__c();
   }
   back() {
-    let __tmp = new std_List_iterator_int({a: [new std_List_iterator_int({a: [this.end()], i: 0})], i: 0});
+    let __tmp = this.end();
     __tmp.op_dec();
     return __tmp.op_mul__c();
   }
   push_front(__x) {
-    this._M_insert__rv(new std_List_iterator_int({a: [this.begin()], i: 0}), __x);
+    this._M_insert__rv(this.begin(), __x);
   }
   pop_front() {
-    this._M_erase(new std_List_iterator_int({a: [this.begin()], i: 0}));
+    this._M_erase(this.begin());
   }
   push_back(__x) {
-    this._M_insert__rv(new std_List_iterator_int({a: [this.end()], i: 0}), __x);
+    this._M_insert__rv(this.end(), __x);
   }
   clear() {
     std_List_base_int_std_allocator_int.prototype._M_clear.call(this);
@@ -283,17 +283,17 @@ class std_list_int_std_allocator_int extends std_List_base_int_std_allocator_int
     if ((!((__x.a[__x.i]).empty__c()))) {
        {
         this._M_check_equal_allocators(__x);
-        this._M_transfer(__position, new std_List_iterator_int({a: [(__x.a[__x.i]).begin()], i: 0}), new std_List_iterator_int({a: [(__x.a[__x.i]).end()], i: 0}));
+        this._M_transfer(new std_List_iterator_int({a: [__position], i: 0}), (__x.a[__x.i]).begin(), (__x.a[__x.i]).end());
       }
     }
   }
   splice(__position, __x) {
-    this.splice__rv(__position, std_move_std_list_int_std_allocator_int(__x));
+    this.splice__rv(new std_List_iterator_int({a: [__position], i: 0}), std_move_std_list_int_std_allocator_int(__x));
   }
   remove(__value) {
     let $t5, $t6, $t7, $t8;
-    let __first = new std_List_iterator_int({a: [new std_List_iterator_int({a: [this.begin()], i: 0})], i: 0});
-    let __last = new std_List_iterator_int({a: [new std_List_iterator_int({a: [this.end()], i: 0})], i: 0});
+    let __first = this.begin();
+    let __last = this.end();
     let __extra = new std_List_iterator_int({a: [__last], i: 0});
     while (__first.op_ne__c({a: [__last], i: 0})) {
        {
@@ -302,7 +302,7 @@ class std_list_int_std_allocator_int extends std_List_base_int_std_allocator_int
         if (((__first.op_mul__c()).a[(__first.op_mul__c()).i] === __value.a[__value.i])) {
            {
             if (($t7 = ($t5 = std_addressof_int(__first.op_mul__c()), $t5), $t8 = ($t6 = std_addressof_int(__value), $t6), (!($t7 === $t8 || ($t7 && $t8 && $t7.a === $t8.a && $t7.i === $t8.i))))) {
-              this._M_erase(__first);
+              this._M_erase(new std_List_iterator_int({a: [__first], i: 0}));
             }
             else {
               __extra.op_assign({a: [__first], i: 0});
@@ -313,7 +313,7 @@ class std_list_int_std_allocator_int extends std_List_base_int_std_allocator_int
       }
     }
     if (__extra.op_ne__c({a: [__last], i: 0})) {
-      this._M_erase(__extra);
+      this._M_erase(new std_List_iterator_int({a: [__extra], i: 0}));
     }
   }
   reverse() {
@@ -532,7 +532,7 @@ function main() {
   (console.log((($t13 = a.v.front(), $t13.a[$t13.i])), (($t14 = a.v.back(), $t14.a[$t14.i])), (a.v.size__c())));
   let b = new std_list_int_std_allocator_int();
   b.push_back({a: [7], i: 0});
-  b.splice(new std_List_iterator_int({a: [b.end()], i: 0}), {a: a, i: "v"});
+  b.splice(b.end(), {a: a, i: "v"});
   s = 0;
   for (let $b4 = new std_List_iterator_int({a: [b.begin()], i: 0}), $e4 = new std_List_iterator_int({a: [b.end()], i: 0}); $b4.op_ne__c({a: [$e4], i: 0}); $b4.op_inc()) {
     let x = ($b4.op_mul__c()).a[($b4.op_mul__c()).i];
@@ -545,7 +545,7 @@ function main() {
 }
 function std_distance_std_List_iterator_int(__first, __last) {
   __first = {v: __first};
-  return std_distance_std_List_iterator_int_72(__first.v, __last, new std_bidirectional_iterator_tag({a: [std_iterator_category_std_List_iterator_int({a: __first, i: "v"})], i: 0}));
+  return std_distance_std_List_iterator_int_72(new std_List_iterator_int({a: __first, i: "v"}), new std_List_iterator_int({a: [__last], i: 0}), std_iterator_category_std_List_iterator_int({a: __first, i: "v"}));
 }
 function std_addressof_int(__r) {
   return (__r ? {a: __r.a, i: __r.i} : null);

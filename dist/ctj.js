@@ -12180,6 +12180,11 @@ var CTJ;
                     // "vector<int> v{1, 2, 3}" resolves the initializer-list constructor
                     // while annotating the list itself, not the declaration.
                     const ca = vd.init.kind === "initlist" ? this.cx.getAnn(vd.init) : a;
+                    // The object a temporary of the same class is becomes the variable, as
+                    // it does in the original: no copy is made of it.
+                    if (vd.init.kind !== "initlist" && this.cx.stripAll(this.cx.getAnn(vd.init).t) === fcls && this.prvalue(vd.init)) {
+                        return this.ex(vd.init);
+                    }
                     if (ca.call) {
                         const items = vd.init.kind === "initlist" ? vd.init.items : [vd.init];
                         return this.ctorExpr(cn, ca.call, items, ca.convs, t);
@@ -13102,7 +13107,70 @@ var CTJ;
             if (CTJ.isIntegerName(CTJ.coreName(p)) && at && (CTJ.coreName(at) === "float" || CTJ.coreName(at) === "double")) {
                 return `Math.trunc(${this.ex(x)})`;
             }
+            // A class parameter passed by value is a copy of the argument: the callee
+            // writes through its own object, and the caller's stays as it was.
+            if (!pB && !p.isFunc && at && !at.isBox() && !at.isFunc && !at.dims.length) {
+                const pfq = this.cx.stripAll(p);
+                if (pfq === this.cx.stripAll(at) && this.cx.classes.has(pfq) && !CTJ.initListElemOf(this.cx, p) &&
+                    !this.prvalue(x) && !this.cx.classes.get(pfq).isLambda) {
+                    return `new ${this.cx.classes.get(pfq).mangled}(${this.exBox(x)})`;
+                }
+            }
             return this.ex(x);
+        }
+        // Whether an expression is a temporary rather than an object in some named
+        // storage: passing a temporary by value gives the callee its own object
+        // already, while a name has to be copied for it.
+        prvalue(x) {
+            const t = this.cx.getAnn(x).t;
+            if (t && (t.ref !== "" || t.ptr > 0 || t.dims.length || t.isFunc))
+                return false;
+            switch (x.kind) {
+                case "lit":
+                case "call":
+                case "cast":
+                case "binary":
+                case "cond":
+                case "lambda":
+                case "new":
+                case "stmtexpr":
+                case "sizeof":
+                case "typeid":
+                    return true;
+                case "unary": {
+                    const u = x;
+                    return u.op !== "*" && u.op !== "&" && !u.postfix;
+                }
+                default:
+                    return false;
+            }
+        }
+        // Whether an expression is an object of its own: a temporary, or an object
+        // only this function can name.  A member, what a pointer points at, or an
+        // object the caller shares lives in someone else's storage.
+        freshValue(x) {
+            const t = this.cx.getAnn(x).t;
+            if (t && (t.ref !== "" || t.ptr > 0 || t.dims.length || t.isFunc))
+                return false;
+            switch (x.kind) {
+                case "call":
+                case "cast":
+                case "binary":
+                case "cond":
+                case "lambda":
+                case "new":
+                case "stmtexpr":
+                    return true;
+                case "id": {
+                    const s = this.cx.getAnn(x).sym;
+                    if (!s || s.k !== "var")
+                        return false;
+                    const v = s.v;
+                    return !v.isParam && !v.isField && !v.isStatic && !v.isGlobal;
+                }
+                default:
+                    return false;
+            }
         }
         returnEx(s, x) {
             const a = this.cx.getAnn(s);
@@ -13120,6 +13188,17 @@ var CTJ;
             const ret = this.cx.funcRet(scopeFn);
             if (ret.name === "void")
                 return this.ex(x);
+            // The value a function hands back is an object of its own, as the return
+            // of the original is: what the function does not own is copied out.
+            const rfq = !ret.isBox() && !ret.dims.length && !ret.isFunc ? this.cx.stripAll(ret) : "";
+            if (rfq && this.cx.classes.has(rfq) && this.cx.getAnn(x).t) {
+                const afq = this.cx.stripAll(this.cx.getAnn(x).t);
+                // The object a local or a temporary is becomes the value handed back;
+                // anything else is copied into one.
+                if (afq === rfq) {
+                    return this.freshValue(x) ? this.ex(x) : `new ${this.cx.classes.get(rfq).mangled}(${this.exBox(x)})`;
+                }
+            }
             return this.argFor(ret, x, null);
         }
         curFn() {
@@ -13309,11 +13388,9 @@ var CTJ;
             else {
                 s = `${this.paren(this.objOf(e.fn))}.${methodJsName(fn)}(${aa.join(", ")})`;
             }
-            if (a.copyCtor) {
-                const ret = this.cx.funcRet(fn);
-                const cn = this.cx.classes.get(this.cx.stripAll(ret)).mangled;
-                s = `new ${cn}(${this.copyArg(s, ret)})`;
-            }
+            // The object a call returns is the call's own temporary: the callee hands
+            // a value of its own back (a local, or a copy it made of what it does not
+            // own), so no copy is made here.
             return s;
         }
         exBuiltin(name, e) {
@@ -13450,13 +13527,7 @@ var CTJ;
                 const ps = this.cx.funcParams(fn);
                 const o = this.objOf(e.arr);
                 const aa = this.argFor(ps[0].type, e.idx, a.convs[0] || null);
-                let s = `${this.paren(o)}.${methodJsName(fn)}(${aa})`;
-                if (a.copyCtor) {
-                    const ret = this.cx.funcRet(fn);
-                    const cn = this.cx.classes.get(this.cx.stripAll(ret)).mangled;
-                    s = `new ${cn}(${this.copyArg(s, ret)})`;
-                }
-                return s;
+                return `${this.paren(o)}.${methodJsName(fn)}(${aa})`;
             }
             const at = this.cx.getAnn(e.arr).t;
             if (at.ptr > 0) {
@@ -13588,22 +13659,10 @@ var CTJ;
                 if (fn.isMethod) {
                     const o = this.objOf(e.l);
                     const aa = this.argFor(ps[0].type, e.r, a.convs[0] || null);
-                    let s = `${this.paren(o)}.${methodJsName(fn)}(${aa})`;
-                    if (a.copyCtor) {
-                        const ret = this.cx.funcRet(fn);
-                        const cn = this.cx.classes.get(this.cx.stripAll(ret)).mangled;
-                        s = `new ${cn}(${this.copyArg(s, ret)})`;
-                    }
-                    return s;
+                    return `${this.paren(o)}.${methodJsName(fn)}(${aa})`;
                 }
                 const aa = [this.argFor(ps[0].type, e.l, a.convs[0] || null), this.argFor(ps[1].type, e.r, a.convs[1] || null)];
-                let s = `${fn.mangled}(${aa.join(", ")})`;
-                if (a.copyCtor) {
-                    const ret = this.cx.funcRet(fn);
-                    const cn = this.cx.classes.get(this.cx.stripAll(ret)).mangled;
-                    s = `new ${cn}(${this.copyArg(s, ret)})`;
-                }
-                return s;
+                return `${fn.mangled}(${aa.join(", ")})`;
             }
             const lt = this.cx.getAnn(e.l).t;
             const rt = this.cx.getAnn(e.r).t;
@@ -16625,4 +16684,4 @@ var CTJ;
     g["CTJ"] = CTJ;
 })();
 
-CTJ.version = "fd32477 2026-10-12 05:53:50Z";
+CTJ.version = "3afd5c7 2026-10-12 06:02:02Z";

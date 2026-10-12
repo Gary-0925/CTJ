@@ -4072,7 +4072,7 @@ class std_Iter_base_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_i
   __dtor() {
   }
   static _S_base(__it) {
-    return __it;
+    return new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [__it], i: 0});
   }
 }
 class std_Miter_base_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int extends std_Iter_base_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int_value0 {
@@ -4216,24 +4216,24 @@ class std_num_put_char_std_ostreambuf_iterator_char_std_char_traits_char extends
   }
   do_put__c(...$a) {
     if ($a.length >= 4 && $a.length <= 4 && $a[0] instanceof std_ostreambuf_iterator_char_std_char_traits_char && ($a[1] !== null && typeof $a[1] === "object" && !Array.isArray($a[1]) && $a[1].a !== undefined && $a[1].i !== undefined && $a[1].a[$a[1].i] instanceof std_ios_base) && (typeof $a[2] === "number" || typeof $a[2] === "boolean") && (typeof $a[3] === "number" || typeof $a[3] === "boolean")) {
-      return new std_ostreambuf_iterator_char_std_char_traits_char({a: [this._M_insert_int__c($a[0], $a[1], $a[2], $a[3])], i: 0});
+      return this._M_insert_int__c(new std_ostreambuf_iterator_char_std_char_traits_char({a: [$a[0]], i: 0}), $a[1], $a[2], $a[3]);
     }
     else if ($a.length >= 4 && $a.length <= 4 && $a[0] instanceof std_ostreambuf_iterator_char_std_char_traits_char && ($a[1] !== null && typeof $a[1] === "object" && !Array.isArray($a[1]) && $a[1].a !== undefined && $a[1].i !== undefined && $a[1].a[$a[1].i] instanceof std_ios_base) && (typeof $a[2] === "number" || typeof $a[2] === "boolean") && (typeof $a[3] === "number" || typeof $a[3] === "boolean")) {
-      return new std_ostreambuf_iterator_char_std_char_traits_char({a: [this._M_insert_int__c($a[0], $a[1], $a[2], $a[3])], i: 0});
+      return this._M_insert_int__c(new std_ostreambuf_iterator_char_std_char_traits_char({a: [$a[0]], i: 0}), $a[1], $a[2], $a[3]);
     }
     else if ($a.length >= 4 && $a.length <= 4 && $a[0] instanceof std_ostreambuf_iterator_char_std_char_traits_char && ($a[1] !== null && typeof $a[1] === "object" && !Array.isArray($a[1]) && $a[1].a !== undefined && $a[1].i !== undefined && $a[1].a[$a[1].i] instanceof std_ios_base) && (typeof $a[2] === "number" || typeof $a[2] === "boolean") && (typeof $a[3] === "number" || typeof $a[3] === "boolean")) {
-      return new std_ostreambuf_iterator_char_std_char_traits_char({a: [this._M_insert_int__c($a[0], $a[1], $a[2], $a[3])], i: 0});
+      return this._M_insert_int__c(new std_ostreambuf_iterator_char_std_char_traits_char({a: [$a[0]], i: 0}), $a[1], $a[2], $a[3]);
     }
     else if ($a.length >= 4 && $a.length <= 4 && $a[0] instanceof std_ostreambuf_iterator_char_std_char_traits_char && ($a[1] !== null && typeof $a[1] === "object" && !Array.isArray($a[1]) && $a[1].a !== undefined && $a[1].i !== undefined && $a[1].a[$a[1].i] instanceof std_ios_base) && (typeof $a[2] === "number" || typeof $a[2] === "boolean") && (typeof $a[3] === "number" || typeof $a[3] === "boolean")) {
-      return new std_ostreambuf_iterator_char_std_char_traits_char({a: [this._M_insert_int__c($a[0], $a[1], $a[2], $a[3])], i: 0});
+      return this._M_insert_int__c(new std_ostreambuf_iterator_char_std_char_traits_char({a: [$a[0]], i: 0}), $a[1], $a[2], $a[3]);
     }
     else if ($a.length >= 4 && $a.length <= 4 && $a[0] instanceof std_ostreambuf_iterator_char_std_char_traits_char && ($a[1] !== null && typeof $a[1] === "object" && !Array.isArray($a[1]) && $a[1].a !== undefined && $a[1].i !== undefined && $a[1].a[$a[1].i] instanceof std_ios_base) && (typeof $a[2] === "number" || typeof $a[2] === "boolean") && ($a[3] === null || typeof $a[3] === "object")) {
       let __flags = (($a[1]).a[($a[1]).i]).flags__c();
       let __fmt = (~((std_ios_base.basefield | std_ios_base.uppercase)));
       (($a[1]).a[($a[1]).i]).flags(((__flags & __fmt) | (std_ios_base.hex | std_ios_base.showbase)));
-      ($a[0]).op_assign({a: [new std_ostreambuf_iterator_char_std_char_traits_char({a: [this._M_insert_int__c($a[0], $a[1], $a[2], ($a[3] >>> 0))], i: 0})], i: 0});
+      ($a[0]).op_assign({a: [this._M_insert_int__c(new std_ostreambuf_iterator_char_std_char_traits_char({a: [$a[0]], i: 0}), $a[1], $a[2], ($a[3] >>> 0))], i: 0});
       (($a[1]).a[($a[1]).i]).flags(__flags);
-      return $a[0];
+      return new std_ostreambuf_iterator_char_std_char_traits_char({a: [$a[0]], i: 0});
     }
     else { throw new Error("no matching overload"); }
   }
@@ -4281,31 +4281,31 @@ class std_num_get_char_std_istreambuf_iterator_char_std_char_traits_char extends
   }
   do_get__c(...$a) {
     if ($a.length >= 5 && $a.length <= 5 && $a[0] instanceof std_istreambuf_iterator_char_std_char_traits_char && $a[1] instanceof std_istreambuf_iterator_char_std_char_traits_char && ($a[2] !== null && typeof $a[2] === "object" && !Array.isArray($a[2]) && $a[2].a !== undefined && $a[2].i !== undefined && $a[2].a[$a[2].i] instanceof std_ios_base) && ($a[3] === null || typeof $a[3] === "object") && ($a[4] === null || typeof $a[4] === "object")) {
-      return new std_istreambuf_iterator_char_std_char_traits_char({a: [this._M_extract_int__c($a[0], $a[1], $a[2], $a[3], $a[4])], i: 0});
+      return this._M_extract_int__c(new std_istreambuf_iterator_char_std_char_traits_char({a: [$a[0]], i: 0}), new std_istreambuf_iterator_char_std_char_traits_char({a: [$a[1]], i: 0}), $a[2], $a[3], $a[4]);
     }
     else if ($a.length >= 5 && $a.length <= 5 && $a[0] instanceof std_istreambuf_iterator_char_std_char_traits_char && $a[1] instanceof std_istreambuf_iterator_char_std_char_traits_char && ($a[2] !== null && typeof $a[2] === "object" && !Array.isArray($a[2]) && $a[2].a !== undefined && $a[2].i !== undefined && $a[2].a[$a[2].i] instanceof std_ios_base) && ($a[3] === null || typeof $a[3] === "object") && ($a[4] === null || typeof $a[4] === "object")) {
-      return new std_istreambuf_iterator_char_std_char_traits_char({a: [this._M_extract_int__c($a[0], $a[1], $a[2], $a[3], $a[4])], i: 0});
+      return this._M_extract_int__c(new std_istreambuf_iterator_char_std_char_traits_char({a: [$a[0]], i: 0}), new std_istreambuf_iterator_char_std_char_traits_char({a: [$a[1]], i: 0}), $a[2], $a[3], $a[4]);
     }
     else if ($a.length >= 5 && $a.length <= 5 && $a[0] instanceof std_istreambuf_iterator_char_std_char_traits_char && $a[1] instanceof std_istreambuf_iterator_char_std_char_traits_char && ($a[2] !== null && typeof $a[2] === "object" && !Array.isArray($a[2]) && $a[2].a !== undefined && $a[2].i !== undefined && $a[2].a[$a[2].i] instanceof std_ios_base) && ($a[3] === null || typeof $a[3] === "object") && ($a[4] === null || typeof $a[4] === "object")) {
-      return new std_istreambuf_iterator_char_std_char_traits_char({a: [this._M_extract_int__c($a[0], $a[1], $a[2], $a[3], $a[4])], i: 0});
+      return this._M_extract_int__c(new std_istreambuf_iterator_char_std_char_traits_char({a: [$a[0]], i: 0}), new std_istreambuf_iterator_char_std_char_traits_char({a: [$a[1]], i: 0}), $a[2], $a[3], $a[4]);
     }
     else if ($a.length >= 5 && $a.length <= 5 && $a[0] instanceof std_istreambuf_iterator_char_std_char_traits_char && $a[1] instanceof std_istreambuf_iterator_char_std_char_traits_char && ($a[2] !== null && typeof $a[2] === "object" && !Array.isArray($a[2]) && $a[2].a !== undefined && $a[2].i !== undefined && $a[2].a[$a[2].i] instanceof std_ios_base) && ($a[3] === null || typeof $a[3] === "object") && ($a[4] === null || typeof $a[4] === "object")) {
-      return new std_istreambuf_iterator_char_std_char_traits_char({a: [this._M_extract_int__c($a[0], $a[1], $a[2], $a[3], $a[4])], i: 0});
+      return this._M_extract_int__c(new std_istreambuf_iterator_char_std_char_traits_char({a: [$a[0]], i: 0}), new std_istreambuf_iterator_char_std_char_traits_char({a: [$a[1]], i: 0}), $a[2], $a[3], $a[4]);
     }
     else if ($a.length >= 5 && $a.length <= 5 && $a[0] instanceof std_istreambuf_iterator_char_std_char_traits_char && $a[1] instanceof std_istreambuf_iterator_char_std_char_traits_char && ($a[2] !== null && typeof $a[2] === "object" && !Array.isArray($a[2]) && $a[2].a !== undefined && $a[2].i !== undefined && $a[2].a[$a[2].i] instanceof std_ios_base) && ($a[3] === null || typeof $a[3] === "object") && ($a[4] === null || typeof $a[4] === "object")) {
-      return new std_istreambuf_iterator_char_std_char_traits_char({a: [this._M_extract_int__c($a[0], $a[1], $a[2], $a[3], $a[4])], i: 0});
+      return this._M_extract_int__c(new std_istreambuf_iterator_char_std_char_traits_char({a: [$a[0]], i: 0}), new std_istreambuf_iterator_char_std_char_traits_char({a: [$a[1]], i: 0}), $a[2], $a[3], $a[4]);
     }
     else if ($a.length >= 5 && $a.length <= 5 && $a[0] instanceof std_istreambuf_iterator_char_std_char_traits_char && $a[1] instanceof std_istreambuf_iterator_char_std_char_traits_char && ($a[2] !== null && typeof $a[2] === "object" && !Array.isArray($a[2]) && $a[2].a !== undefined && $a[2].i !== undefined && $a[2].a[$a[2].i] instanceof std_ios_base) && ($a[3] === null || typeof $a[3] === "object") && ($a[4] === null || typeof $a[4] === "object")) {
-      return new std_istreambuf_iterator_char_std_char_traits_char({a: [this._M_extract_int__c($a[0], $a[1], $a[2], $a[3], $a[4])], i: 0});
+      return this._M_extract_int__c(new std_istreambuf_iterator_char_std_char_traits_char({a: [$a[0]], i: 0}), new std_istreambuf_iterator_char_std_char_traits_char({a: [$a[1]], i: 0}), $a[2], $a[3], $a[4]);
     }
     else if ($a.length >= 5 && $a.length <= 5 && $a[0] instanceof std_istreambuf_iterator_char_std_char_traits_char && $a[1] instanceof std_istreambuf_iterator_char_std_char_traits_char && ($a[2] !== null && typeof $a[2] === "object" && !Array.isArray($a[2]) && $a[2].a !== undefined && $a[2].i !== undefined && $a[2].a[$a[2].i] instanceof std_ios_base) && ($a[3] === null || typeof $a[3] === "object") && ($a[4] === null || typeof $a[4] === "object")) {
       let __fmt = (($a[2]).a[($a[2]).i]).flags__c();
       (($a[2]).a[($a[2]).i]).flags(((__fmt & (~std_ios_base.basefield)) | std_ios_base.hex));
       let __ul = {v: 0};
-      ($a[0]).op_assign({a: [new std_istreambuf_iterator_char_std_char_traits_char({a: [this._M_extract_int__c($a[0], $a[1], $a[2], $a[3], {a: __ul, i: "v"})], i: 0})], i: 0});
+      ($a[0]).op_assign({a: [this._M_extract_int__c(new std_istreambuf_iterator_char_std_char_traits_char({a: [$a[0]], i: 0}), new std_istreambuf_iterator_char_std_char_traits_char({a: [$a[1]], i: 0}), $a[2], $a[3], {a: __ul, i: "v"})], i: 0});
       (($a[2]).a[($a[2]).i]).flags(__fmt);
       ($a[4]).a[($a[4]).i] = (__ul.v ? {a: __ul.v.a, i: __ul.v.i} : null);
-      return $a[0];
+      return new std_istreambuf_iterator_char_std_char_traits_char({a: [$a[0]], i: 0});
     }
     else { throw new Error("no matching overload"); }
   }
@@ -4430,24 +4430,24 @@ class std_num_put_wchar_t_std_ostreambuf_iterator_wchar_t_std_char_traits_wchar_
   }
   do_put__c(...$a) {
     if ($a.length >= 4 && $a.length <= 4 && $a[0] instanceof std_ostreambuf_iterator_wchar_t_std_char_traits_wchar_t && ($a[1] !== null && typeof $a[1] === "object" && !Array.isArray($a[1]) && $a[1].a !== undefined && $a[1].i !== undefined && $a[1].a[$a[1].i] instanceof std_ios_base) && (typeof $a[2] === "number" || typeof $a[2] === "boolean") && (typeof $a[3] === "number" || typeof $a[3] === "boolean")) {
-      return new std_ostreambuf_iterator_wchar_t_std_char_traits_wchar_t({a: [this._M_insert_int__c($a[0], $a[1], $a[2], $a[3])], i: 0});
+      return this._M_insert_int__c(new std_ostreambuf_iterator_wchar_t_std_char_traits_wchar_t({a: [$a[0]], i: 0}), $a[1], $a[2], $a[3]);
     }
     else if ($a.length >= 4 && $a.length <= 4 && $a[0] instanceof std_ostreambuf_iterator_wchar_t_std_char_traits_wchar_t && ($a[1] !== null && typeof $a[1] === "object" && !Array.isArray($a[1]) && $a[1].a !== undefined && $a[1].i !== undefined && $a[1].a[$a[1].i] instanceof std_ios_base) && (typeof $a[2] === "number" || typeof $a[2] === "boolean") && (typeof $a[3] === "number" || typeof $a[3] === "boolean")) {
-      return new std_ostreambuf_iterator_wchar_t_std_char_traits_wchar_t({a: [this._M_insert_int__c($a[0], $a[1], $a[2], $a[3])], i: 0});
+      return this._M_insert_int__c(new std_ostreambuf_iterator_wchar_t_std_char_traits_wchar_t({a: [$a[0]], i: 0}), $a[1], $a[2], $a[3]);
     }
     else if ($a.length >= 4 && $a.length <= 4 && $a[0] instanceof std_ostreambuf_iterator_wchar_t_std_char_traits_wchar_t && ($a[1] !== null && typeof $a[1] === "object" && !Array.isArray($a[1]) && $a[1].a !== undefined && $a[1].i !== undefined && $a[1].a[$a[1].i] instanceof std_ios_base) && (typeof $a[2] === "number" || typeof $a[2] === "boolean") && (typeof $a[3] === "number" || typeof $a[3] === "boolean")) {
-      return new std_ostreambuf_iterator_wchar_t_std_char_traits_wchar_t({a: [this._M_insert_int__c($a[0], $a[1], $a[2], $a[3])], i: 0});
+      return this._M_insert_int__c(new std_ostreambuf_iterator_wchar_t_std_char_traits_wchar_t({a: [$a[0]], i: 0}), $a[1], $a[2], $a[3]);
     }
     else if ($a.length >= 4 && $a.length <= 4 && $a[0] instanceof std_ostreambuf_iterator_wchar_t_std_char_traits_wchar_t && ($a[1] !== null && typeof $a[1] === "object" && !Array.isArray($a[1]) && $a[1].a !== undefined && $a[1].i !== undefined && $a[1].a[$a[1].i] instanceof std_ios_base) && (typeof $a[2] === "number" || typeof $a[2] === "boolean") && (typeof $a[3] === "number" || typeof $a[3] === "boolean")) {
-      return new std_ostreambuf_iterator_wchar_t_std_char_traits_wchar_t({a: [this._M_insert_int__c($a[0], $a[1], $a[2], $a[3])], i: 0});
+      return this._M_insert_int__c(new std_ostreambuf_iterator_wchar_t_std_char_traits_wchar_t({a: [$a[0]], i: 0}), $a[1], $a[2], $a[3]);
     }
     else if ($a.length >= 4 && $a.length <= 4 && $a[0] instanceof std_ostreambuf_iterator_wchar_t_std_char_traits_wchar_t && ($a[1] !== null && typeof $a[1] === "object" && !Array.isArray($a[1]) && $a[1].a !== undefined && $a[1].i !== undefined && $a[1].a[$a[1].i] instanceof std_ios_base) && (typeof $a[2] === "number" || typeof $a[2] === "boolean") && ($a[3] === null || typeof $a[3] === "object")) {
       let __flags = (($a[1]).a[($a[1]).i]).flags__c();
       let __fmt = (~((std_ios_base.basefield | std_ios_base.uppercase)));
       (($a[1]).a[($a[1]).i]).flags(((__flags & __fmt) | (std_ios_base.hex | std_ios_base.showbase)));
-      ($a[0]).op_assign({a: [new std_ostreambuf_iterator_wchar_t_std_char_traits_wchar_t({a: [this._M_insert_int__c($a[0], $a[1], $a[2], ($a[3] >>> 0))], i: 0})], i: 0});
+      ($a[0]).op_assign({a: [this._M_insert_int__c(new std_ostreambuf_iterator_wchar_t_std_char_traits_wchar_t({a: [$a[0]], i: 0}), $a[1], $a[2], ($a[3] >>> 0))], i: 0});
       (($a[1]).a[($a[1]).i]).flags(__flags);
-      return $a[0];
+      return new std_ostreambuf_iterator_wchar_t_std_char_traits_wchar_t({a: [$a[0]], i: 0});
     }
     else { throw new Error("no matching overload"); }
   }
@@ -4495,31 +4495,31 @@ class std_num_get_wchar_t_std_istreambuf_iterator_wchar_t_std_char_traits_wchar_
   }
   do_get__c(...$a) {
     if ($a.length >= 5 && $a.length <= 5 && $a[0] instanceof std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t && $a[1] instanceof std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t && ($a[2] !== null && typeof $a[2] === "object" && !Array.isArray($a[2]) && $a[2].a !== undefined && $a[2].i !== undefined && $a[2].a[$a[2].i] instanceof std_ios_base) && ($a[3] === null || typeof $a[3] === "object") && ($a[4] === null || typeof $a[4] === "object")) {
-      return new std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t({a: [this._M_extract_int__c($a[0], $a[1], $a[2], $a[3], $a[4])], i: 0});
+      return this._M_extract_int__c(new std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t({a: [$a[0]], i: 0}), new std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t({a: [$a[1]], i: 0}), $a[2], $a[3], $a[4]);
     }
     else if ($a.length >= 5 && $a.length <= 5 && $a[0] instanceof std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t && $a[1] instanceof std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t && ($a[2] !== null && typeof $a[2] === "object" && !Array.isArray($a[2]) && $a[2].a !== undefined && $a[2].i !== undefined && $a[2].a[$a[2].i] instanceof std_ios_base) && ($a[3] === null || typeof $a[3] === "object") && ($a[4] === null || typeof $a[4] === "object")) {
-      return new std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t({a: [this._M_extract_int__c($a[0], $a[1], $a[2], $a[3], $a[4])], i: 0});
+      return this._M_extract_int__c(new std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t({a: [$a[0]], i: 0}), new std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t({a: [$a[1]], i: 0}), $a[2], $a[3], $a[4]);
     }
     else if ($a.length >= 5 && $a.length <= 5 && $a[0] instanceof std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t && $a[1] instanceof std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t && ($a[2] !== null && typeof $a[2] === "object" && !Array.isArray($a[2]) && $a[2].a !== undefined && $a[2].i !== undefined && $a[2].a[$a[2].i] instanceof std_ios_base) && ($a[3] === null || typeof $a[3] === "object") && ($a[4] === null || typeof $a[4] === "object")) {
-      return new std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t({a: [this._M_extract_int__c($a[0], $a[1], $a[2], $a[3], $a[4])], i: 0});
+      return this._M_extract_int__c(new std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t({a: [$a[0]], i: 0}), new std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t({a: [$a[1]], i: 0}), $a[2], $a[3], $a[4]);
     }
     else if ($a.length >= 5 && $a.length <= 5 && $a[0] instanceof std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t && $a[1] instanceof std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t && ($a[2] !== null && typeof $a[2] === "object" && !Array.isArray($a[2]) && $a[2].a !== undefined && $a[2].i !== undefined && $a[2].a[$a[2].i] instanceof std_ios_base) && ($a[3] === null || typeof $a[3] === "object") && ($a[4] === null || typeof $a[4] === "object")) {
-      return new std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t({a: [this._M_extract_int__c($a[0], $a[1], $a[2], $a[3], $a[4])], i: 0});
+      return this._M_extract_int__c(new std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t({a: [$a[0]], i: 0}), new std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t({a: [$a[1]], i: 0}), $a[2], $a[3], $a[4]);
     }
     else if ($a.length >= 5 && $a.length <= 5 && $a[0] instanceof std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t && $a[1] instanceof std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t && ($a[2] !== null && typeof $a[2] === "object" && !Array.isArray($a[2]) && $a[2].a !== undefined && $a[2].i !== undefined && $a[2].a[$a[2].i] instanceof std_ios_base) && ($a[3] === null || typeof $a[3] === "object") && ($a[4] === null || typeof $a[4] === "object")) {
-      return new std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t({a: [this._M_extract_int__c($a[0], $a[1], $a[2], $a[3], $a[4])], i: 0});
+      return this._M_extract_int__c(new std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t({a: [$a[0]], i: 0}), new std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t({a: [$a[1]], i: 0}), $a[2], $a[3], $a[4]);
     }
     else if ($a.length >= 5 && $a.length <= 5 && $a[0] instanceof std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t && $a[1] instanceof std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t && ($a[2] !== null && typeof $a[2] === "object" && !Array.isArray($a[2]) && $a[2].a !== undefined && $a[2].i !== undefined && $a[2].a[$a[2].i] instanceof std_ios_base) && ($a[3] === null || typeof $a[3] === "object") && ($a[4] === null || typeof $a[4] === "object")) {
-      return new std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t({a: [this._M_extract_int__c($a[0], $a[1], $a[2], $a[3], $a[4])], i: 0});
+      return this._M_extract_int__c(new std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t({a: [$a[0]], i: 0}), new std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t({a: [$a[1]], i: 0}), $a[2], $a[3], $a[4]);
     }
     else if ($a.length >= 5 && $a.length <= 5 && $a[0] instanceof std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t && $a[1] instanceof std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t && ($a[2] !== null && typeof $a[2] === "object" && !Array.isArray($a[2]) && $a[2].a !== undefined && $a[2].i !== undefined && $a[2].a[$a[2].i] instanceof std_ios_base) && ($a[3] === null || typeof $a[3] === "object") && ($a[4] === null || typeof $a[4] === "object")) {
       let __fmt = (($a[2]).a[($a[2]).i]).flags__c();
       (($a[2]).a[($a[2]).i]).flags(((__fmt & (~std_ios_base.basefield)) | std_ios_base.hex));
       let __ul = {v: 0};
-      ($a[0]).op_assign({a: [new std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t({a: [this._M_extract_int__c($a[0], $a[1], $a[2], $a[3], {a: __ul, i: "v"})], i: 0})], i: 0});
+      ($a[0]).op_assign({a: [this._M_extract_int__c(new std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t({a: [$a[0]], i: 0}), new std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t({a: [$a[1]], i: 0}), $a[2], $a[3], {a: __ul, i: "v"})], i: 0});
       (($a[2]).a[($a[2]).i]).flags(__fmt);
       ($a[4]).a[($a[4]).i] = (__ul.v ? {a: __ul.v.a, i: __ul.v.i} : null);
-      return $a[0];
+      return new std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t({a: [$a[0]], i: 0});
     }
     else { throw new Error("no matching overload"); }
   }
@@ -4589,18 +4589,18 @@ function main() {
   v.push_back({a: [4], i: 0});
   v.push_back({a: [1], i: 0});
   v.push_back({a: [5], i: 0});
-  std_sort_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int(new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [v.begin()], i: 0}), new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [v.end()], i: 0}));
+  std_sort_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int(v.begin(), v.end());
   let s = 0;
   for (let $b0 = new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [v.begin()], i: 0}), $e0 = new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [v.end()], i: 0}); gnu_cxx_operator_int_P_int_P_std_vector_int_std_allocator_int({a: [$b0], i: 0}, {a: [$e0], i: 0}); $b0.op_inc()) {
     let x = ($b0.op_mul__c()).a[($b0.op_mul__c()).i];
     s = ((s * 10) + x);
   }
   ($t54 = (__ctj_write(__ctj_fmt(s)), std_cout), __ctj_write("\n"), $t54);
-  ($t61 = ($t60 = ($t59 = (__ctj_write(__ctj_fmt(($t57 = (($t58 = new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [std_max_element_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int(new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [v.begin()], i: 0}), new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [v.end()], i: 0}))], i: 0}), $t58)).op_mul__c(), $t57.a[$t57.i]))), std_cout), __ctj_write(__ctj_fmt([32, 0])), $t59), __ctj_write(__ctj_fmt(($t55 = (($t56 = new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [std_min_element_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int(new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [v.begin()], i: 0}), new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [v.end()], i: 0}))], i: 0}), $t56)).op_mul__c(), $t55.a[$t55.i]))), $t60), __ctj_write("\n"), $t61);
-  ($t62 = (__ctj_write(__ctj_fmt(std_accumulate_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int_int(new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [v.begin()], i: 0}), new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [v.end()], i: 0}), 0))), std_cout), __ctj_write("\n"), $t62);
-  ($t67 = ($t66 = ($t65 = (__ctj_write(__ctj_fmt(std_count_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int_int(new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [v.begin()], i: 0}), new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [v.end()], i: 0}), {a: [1], i: 0}))), std_cout), __ctj_write(__ctj_fmt([32, 0])), $t65), __ctj_write(__ctj_fmt(($t63 = (($t64 = new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [std_lower_bound_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int_int(new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [v.begin()], i: 0}), new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [v.end()], i: 0}), {a: [4], i: 0})], i: 0}), $t64)).op_mul__c(), $t63.a[$t63.i]))), $t66), __ctj_write("\n"), $t67);
-  ($t68 = (__ctj_write(__ctj_fmt((std_binary_search_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int_int(new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [v.begin()], i: 0}), new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [v.end()], i: 0}), {a: [3], i: 0}) ? 1 : 0))), std_cout), __ctj_write("\n"), $t68);
-  std_reverse_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int(new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [v.begin()], i: 0}), new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [v.end()], i: 0}));
+  ($t61 = ($t60 = ($t59 = (__ctj_write(__ctj_fmt(($t57 = (($t58 = std_max_element_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int(v.begin(), v.end()), $t58)).op_mul__c(), $t57.a[$t57.i]))), std_cout), __ctj_write(__ctj_fmt([32, 0])), $t59), __ctj_write(__ctj_fmt(($t55 = (($t56 = std_min_element_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int(v.begin(), v.end()), $t56)).op_mul__c(), $t55.a[$t55.i]))), $t60), __ctj_write("\n"), $t61);
+  ($t62 = (__ctj_write(__ctj_fmt(std_accumulate_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int_int(v.begin(), v.end(), 0))), std_cout), __ctj_write("\n"), $t62);
+  ($t67 = ($t66 = ($t65 = (__ctj_write(__ctj_fmt(std_count_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int_int(v.begin(), v.end(), {a: [1], i: 0}))), std_cout), __ctj_write(__ctj_fmt([32, 0])), $t65), __ctj_write(__ctj_fmt(($t63 = (($t64 = std_lower_bound_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int_int(v.begin(), v.end(), {a: [4], i: 0}), $t64)).op_mul__c(), $t63.a[$t63.i]))), $t66), __ctj_write("\n"), $t67);
+  ($t68 = (__ctj_write(__ctj_fmt((std_binary_search_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int_int(v.begin(), v.end(), {a: [3], i: 0}) ? 1 : 0))), std_cout), __ctj_write("\n"), $t68);
+  std_reverse_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int(v.begin(), v.end());
   let t = 0;
   for (let $b1 = new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [v.begin()], i: 0}), $e1 = new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [v.end()], i: 0}); gnu_cxx_operator_int_P_int_P_std_vector_int_std_allocator_int({a: [$b1], i: 0}, {a: [$e1], i: 0}); $b1.op_inc()) {
     let y = $b1.op_mul__c();
@@ -4628,8 +4628,8 @@ function std_min_long(__a, __b) {
 function std_sort_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int(__first, __last) {
   if (gnu_cxx_operator_int_P_int_P_std_vector_int_std_allocator_int({a: [__first], i: 0}, {a: [__last], i: 0})) {
      {
-      std_introsort_loop_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int_long(__first, __last, (std_lg__long(gnu_cxx_operator_int_P_int_P_std_vector_int_std_allocator_int_883({a: [__last], i: 0}, {a: [__first], i: 0})) * 2));
-      std_final_insertion_sort_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int(__first, __last);
+      std_introsort_loop_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int_long(new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [__first], i: 0}), new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [__last], i: 0}), (std_lg__long(gnu_cxx_operator_int_P_int_P_std_vector_int_std_allocator_int_883({a: [__last], i: 0}, {a: [__first], i: 0})) * 2));
+      std_final_insertion_sort_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int(new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [__first], i: 0}), new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [__last], i: 0}));
     }
   }
 }
@@ -4647,7 +4647,7 @@ function gnu_cxx_operator_int_P_int_P_std_vector_int_std_allocator_int(__lhs, __
 }
 function std_max_element_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int(__first, __last) {
   if (gnu_cxx_operator_int_P_int_P_std_vector_int_std_allocator_int_804({a: [__first], i: 0}, {a: [__last], i: 0})) {
-    return __first;
+    return new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [__first], i: 0});
   }
   let __result = new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [__first], i: 0});
   while (gnu_cxx_operator_int_P_int_P_std_vector_int_std_allocator_int(__first.op_inc(), {a: [__last], i: 0})) {
@@ -4659,7 +4659,7 @@ function std_max_element_gnu_cxx_normal_iterator_int_P_std_vector_int_std_alloca
 }
 function std_min_element_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int(__first, __last) {
   if (gnu_cxx_operator_int_P_int_P_std_vector_int_std_allocator_int_804({a: [__first], i: 0}, {a: [__last], i: 0})) {
-    return __first;
+    return new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [__first], i: 0});
   }
   let __result = new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [__first], i: 0});
   while (gnu_cxx_operator_int_P_int_P_std_vector_int_std_allocator_int(__first.op_inc(), {a: [__last], i: 0})) {
@@ -4685,7 +4685,7 @@ function std_count_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_in
   return __n;
 }
 function std_lower_bound_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int_int(__first, __last, __val) {
-  let __len = std_distance_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int(__first, __last);
+  let __len = std_distance_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int(new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [__first], i: 0}), new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [__last], i: 0}));
   while ((__len > 0)) {
      {
       let __half = (__len >> 1);
@@ -4703,15 +4703,15 @@ function std_lower_bound_gnu_cxx_normal_iterator_int_P_std_vector_int_std_alloca
       }
     }
   }
-  return __first;
+  return new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [__first], i: 0});
 }
 function std_binary_search_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int_int(__first, __last, __val) {
-  let __i = new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [std_lower_bound_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int_int(__first, __last, __val)], i: 0})], i: 0});
+  let __i = std_lower_bound_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int_int(new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [__first], i: 0}), new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [__last], i: 0}), __val);
   return (gnu_cxx_operator_int_P_int_P_std_vector_int_std_allocator_int({a: [__i], i: 0}, {a: [__last], i: 0}) && (!((__val.a[__val.i] < (__i.op_mul__c()).a[(__i.op_mul__c()).i]))));
 }
 function std_reverse_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int(__first, __last) {
   __first = {v: __first};
-  std_reverse_1_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int(__first.v, __last, new std_random_access_iterator_tag({a: [std_iterator_category_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: __first, i: "v"})], i: 0}));
+  std_reverse_1_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int(new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: __first, i: "v"}), new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [__last], i: 0}), std_iterator_category_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: __first, i: "v"}));
 }
 function gnu_cxx_operator_int_P_int_P_std_vector_int_std_allocator_int_883(__lhs, __rhs) {
   let $t83, $t84, $t85, $t86, $t87, $t88;
@@ -4722,13 +4722,13 @@ function std_introsort_loop_gnu_cxx_normal_iterator_int_P_std_vector_int_std_all
      {
       if ((__depth_limit === 0)) {
          {
-          std_partial_sort_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int(__first, __last, __last);
+          std_partial_sort_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int(new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [__first], i: 0}), new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [__last], i: 0}), new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [__last], i: 0}));
           return;
         }
       }
       --__depth_limit;
-      let __cut = new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [std_unguarded_partition_pivot_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int(__first, __last)], i: 0})], i: 0});
-      std_introsort_loop_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int_long(__cut, __last, __depth_limit);
+      let __cut = std_unguarded_partition_pivot_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int(new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [__first], i: 0}), new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [__last], i: 0}));
+      std_introsort_loop_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int_long(new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [__cut], i: 0}), new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [__last], i: 0}), __depth_limit);
       __last.op_assign({a: [__cut], i: 0});
     }
   }
@@ -4753,12 +4753,12 @@ function std_introsort_loop_int_P_long(__first, __last, __depth_limit) {
 function std_final_insertion_sort_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int(__first, __last) {
   if ((gnu_cxx_operator_int_P_int_P_std_vector_int_std_allocator_int_883({a: [__last], i: 0}, {a: [__first], i: 0}) > 16)) {
      {
-      std_insertion_sort_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int(__first, __first.op_add__c({a: [16], i: 0}));
-      std_unguarded_insertion_sort_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int(__first.op_add__c({a: [16], i: 0}), __last);
+      std_insertion_sort_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int(new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [__first], i: 0}), __first.op_add__c({a: [16], i: 0}));
+      std_unguarded_insertion_sort_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int(__first.op_add__c({a: [16], i: 0}), new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [__last], i: 0}));
     }
   }
   else {
-    std_insertion_sort_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int(__first, __last);
+    std_insertion_sort_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int(new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [__first], i: 0}), new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [__last], i: 0}));
   }
 }
 function std_final_insertion_sort_int_P(__first, __last) {
@@ -4779,11 +4779,11 @@ function gnu_cxx_operator_int_P_int_P_std_vector_int_std_allocator_int_804(__lhs
 }
 function std_distance_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int(__first, __last) {
   __first = {v: __first};
-  return std_distance_1_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int(__first.v, __last, new std_random_access_iterator_tag({a: [std_iterator_category_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: __first, i: "v"})], i: 0}));
+  return std_distance_1_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int(new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: __first, i: "v"}), new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [__last], i: 0}), std_iterator_category_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: __first, i: "v"}));
 }
 function std_advance_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int_long(__i, __n) {
   let __d = __n;
-  std_advance_2_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int_long(__i, __d, new std_random_access_iterator_tag({a: [std_iterator_category_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int(__i)], i: 0}));
+  std_advance_2_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int_long(__i, __d, std_iterator_category_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int(__i));
 }
 function std_iterator_category_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int($p0) {
   return new std_random_access_iterator_tag();
@@ -4795,7 +4795,7 @@ function std_reverse_1_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocato
   __last.op_dec();
   while (gnu_cxx_operator_int_P_int_P_std_vector_int_std_allocator_int_829({a: [__first], i: 0}, {a: [__last], i: 0})) {
      {
-      std_iter_swap_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int(__first, __last);
+      std_iter_swap_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int(new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [__first], i: 0}), new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [__last], i: 0}));
       __first.op_inc();
       __last.op_dec();
     }
@@ -4806,7 +4806,7 @@ function std_forward_1_int(__t) {
 }
 function std_uninitialized_move_if_noexcept_a_int_P_int_P_std_allocator_int(__first, __last, __result, __alloc) {
   let $t98;
-  return ($t98 = std_uninitialized_copy_a_std_move_iterator_int_P_int_P_std_allocator_int(new std_move_iterator_int_P({a: [std_make_move_if_noexcept_iterator_int_P_std_move_iterator_int_P((__first ? {a: __first.a, i: __first.i} : null))], i: 0}), new std_move_iterator_int_P({a: [std_make_move_if_noexcept_iterator_int_P_std_move_iterator_int_P((__last ? {a: __last.a, i: __last.i} : null))], i: 0}), (__result ? {a: __result.a, i: __result.i} : null), __alloc), $t98 ? {a: $t98.a, i: $t98.i} : null);
+  return ($t98 = std_uninitialized_copy_a_std_move_iterator_int_P_int_P_std_allocator_int(std_make_move_if_noexcept_iterator_int_P_std_move_iterator_int_P((__first ? {a: __first.a, i: __first.i} : null)), std_make_move_if_noexcept_iterator_int_P_std_move_iterator_int_P((__last ? {a: __last.a, i: __last.i} : null)), (__result ? {a: __result.a, i: __result.i} : null), __alloc), $t98 ? {a: $t98.a, i: $t98.i} : null);
 }
 function std_Destroy_2_int_P_std_allocator_int(__first, __last, __alloc) {
   let $t99;
@@ -4815,17 +4815,17 @@ function std_Destroy_2_int_P_std_allocator_int(__first, __last, __alloc) {
   }
 }
 function std_partial_sort_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int(__first, __middle, __last) {
-  std_heap_select_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int(__first, __middle, __last);
-  std_sort_heap_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int(__first, __middle);
+  std_heap_select_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int(new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [__first], i: 0}), new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [__middle], i: 0}), new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [__last], i: 0}));
+  std_sort_heap_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int(new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [__first], i: 0}), new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [__middle], i: 0}));
 }
 function std_partial_sort_int_P(__first, __middle, __last) {
   std_heap_select_int_P((__first ? {a: __first.a, i: __first.i} : null), (__middle ? {a: __middle.a, i: __middle.i} : null), (__last ? {a: __last.a, i: __last.i} : null));
   std_sort_heap_int_P((__first ? {a: __first.a, i: __first.i} : null), (__middle ? {a: __middle.a, i: __middle.i} : null));
 }
 function std_unguarded_partition_pivot_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int(__first, __last) {
-  let __mid = new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [__first.op_add__c({a: [(Math.trunc(gnu_cxx_operator_int_P_int_P_std_vector_int_std_allocator_int_883({a: [__last], i: 0}, {a: [__first], i: 0}) / 2))], i: 0})], i: 0});
-  std_move_median_first_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int(__first, __mid, __last.op_sub__c({a: [1], i: 0}));
-  return new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [std_unguarded_partition_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int_int(__first.op_add__c({a: [1], i: 0}), __last, __first.op_mul__c())], i: 0});
+  let __mid = __first.op_add__c({a: [(Math.trunc(gnu_cxx_operator_int_P_int_P_std_vector_int_std_allocator_int_883({a: [__last], i: 0}, {a: [__first], i: 0}) / 2))], i: 0});
+  std_move_median_first_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int(new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [__first], i: 0}), new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [__mid], i: 0}), __last.op_sub__c({a: [1], i: 0}));
+  return std_unguarded_partition_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int_int(__first.op_add__c({a: [1], i: 0}), new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [__last], i: 0}), __first.op_mul__c());
 }
 function std_unguarded_partition_pivot_int_P(__first, __last) {
   let $t100, $t101, $t102, $t103;
@@ -4838,17 +4838,17 @@ function std_insertion_sort_gnu_cxx_normal_iterator_int_P_std_vector_int_std_all
   if (gnu_cxx_operator_int_P_int_P_std_vector_int_std_allocator_int_804({a: [__first], i: 0}, {a: [__last], i: 0})) {
     return;
   }
-  for (let __i = new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [__first.op_add__c({a: [1], i: 0})], i: 0}); gnu_cxx_operator_int_P_int_P_std_vector_int_std_allocator_int({a: [__i], i: 0}, {a: [__last], i: 0}); __i.op_inc()) {
+  for (let __i = __first.op_add__c({a: [1], i: 0}); gnu_cxx_operator_int_P_int_P_std_vector_int_std_allocator_int({a: [__i], i: 0}, {a: [__last], i: 0}); __i.op_inc()) {
      {
       if (((__i.op_mul__c()).a[(__i.op_mul__c()).i] < (__first.op_mul__c()).a[(__first.op_mul__c()).i])) {
          {
           let __val = {v: ($t104 = std_move_int(__i.op_mul__c()), $t104.a[$t104.i])};
-          new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [std_move_backward_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int(__first, __i, __i.op_add__c({a: [1], i: 0}))], i: 0});
+          std_move_backward_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int(new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [__first], i: 0}), new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [__i], i: 0}), __i.op_add__c({a: [1], i: 0}));
           ($t105 = __first.op_mul__c(), $t105.a[$t105.i] = ($t106 = std_move_int({a: __val, i: "v"}), $t106.a[$t106.i]));
         }
       }
       else {
-        std_unguarded_linear_insert_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int(__i);
+        std_unguarded_linear_insert_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int(new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [__i], i: 0}));
       }
     }
   }
@@ -4875,7 +4875,7 @@ function std_insertion_sort_int_P(__first, __last) {
 }
 function std_unguarded_insertion_sort_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int(__first, __last) {
   for (let __i = new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [__first], i: 0}); gnu_cxx_operator_int_P_int_P_std_vector_int_std_allocator_int({a: [__i], i: 0}, {a: [__last], i: 0}); __i.op_inc()) {
-    std_unguarded_linear_insert_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int(__i);
+    std_unguarded_linear_insert_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int(new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [__i], i: 0}));
   }
 }
 function std_unguarded_insertion_sort_int_P(__first, __last) {
@@ -4935,10 +4935,10 @@ function std_addressof_int(__r) {
   return (__r ? {a: __r.a, i: __r.i} : null);
 }
 function std_heap_select_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int(__first, __middle, __last) {
-  std_make_heap_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int(__first, __middle);
+  std_make_heap_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int(new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [__first], i: 0}), new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [__middle], i: 0}));
   for (let __i = new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [__middle], i: 0}); gnu_cxx_operator_int_P_int_P_std_vector_int_std_allocator_int_829({a: [__i], i: 0}, {a: [__last], i: 0}); __i.op_inc()) {
     if (((__i.op_mul__c()).a[(__i.op_mul__c()).i] < (__first.op_mul__c()).a[(__first.op_mul__c()).i])) {
-      std_pop_heap_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int(__first, __middle, __i);
+      std_pop_heap_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int(new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [__first], i: 0}), new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [__middle], i: 0}), new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [__i], i: 0}));
     }
   }
 }
@@ -4954,7 +4954,7 @@ function std_sort_heap_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocato
   while ((gnu_cxx_operator_int_P_int_P_std_vector_int_std_allocator_int_883({a: [__last], i: 0}, {a: [__first], i: 0}) > 1)) {
      {
       __last.op_dec();
-      std_pop_heap_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int(__first, __last, __last);
+      std_pop_heap_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int(new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [__first], i: 0}), new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [__last], i: 0}), new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [__last], i: 0}));
     }
   }
 }
@@ -4970,11 +4970,11 @@ function std_move_median_first_gnu_cxx_normal_iterator_int_P_std_vector_int_std_
   if (((__a.op_mul__c()).a[(__a.op_mul__c()).i] < (__b.op_mul__c()).a[(__b.op_mul__c()).i])) {
      {
       if (((__b.op_mul__c()).a[(__b.op_mul__c()).i] < (__c.op_mul__c()).a[(__c.op_mul__c()).i])) {
-        std_iter_swap_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int(__a, __b);
+        std_iter_swap_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int(new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [__a], i: 0}), new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [__b], i: 0}));
       }
       else {
         if (((__a.op_mul__c()).a[(__a.op_mul__c()).i] < (__c.op_mul__c()).a[(__c.op_mul__c()).i])) {
-          std_iter_swap_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int(__a, __c);
+          std_iter_swap_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int(new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [__a], i: 0}), new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [__c], i: 0}));
         }
       }
     }
@@ -4985,10 +4985,10 @@ function std_move_median_first_gnu_cxx_normal_iterator_int_P_std_vector_int_std_
     }
     else {
       if (((__b.op_mul__c()).a[(__b.op_mul__c()).i] < (__c.op_mul__c()).a[(__c.op_mul__c()).i])) {
-        std_iter_swap_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int(__a, __c);
+        std_iter_swap_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int(new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [__a], i: 0}), new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [__c], i: 0}));
       }
       else {
-        std_iter_swap_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int(__a, __b);
+        std_iter_swap_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int(new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [__a], i: 0}), new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [__b], i: 0}));
       }
     }
   }
@@ -5031,9 +5031,9 @@ function std_unguarded_partition_gnu_cxx_normal_iterator_int_P_std_vector_int_st
         __last.op_dec();
       }
       if ((!(gnu_cxx_operator_int_P_int_P_std_vector_int_std_allocator_int_829({a: [__first], i: 0}, {a: [__last], i: 0})))) {
-        return __first;
+        return new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [__first], i: 0});
       }
-      std_iter_swap_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int(__first, __last);
+      std_iter_swap_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int(new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [__first], i: 0}), new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [__last], i: 0}));
       __first.op_inc();
     }
   }
@@ -5060,7 +5060,7 @@ function std_move_int(__t) {
   return __t;
 }
 function std_move_backward_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int(__first, __last, __result) {
-  return new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [std_copy_move_backward_a2_value1_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int(new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [std_miter_base_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int(__first)], i: 0}), new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [std_miter_base_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int(__last)], i: 0}), __result)], i: 0});
+  return std_copy_move_backward_a2_value1_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int(std_miter_base_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int(new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [__first], i: 0})), std_miter_base_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int(new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [__last], i: 0})), new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [__result], i: 0}));
 }
 function std_move_backward_int_P_int_P(__first, __last, __result) {
   let $t118, $t119, $t120;
@@ -5104,7 +5104,7 @@ function std_make_heap_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocato
   while (true) {
      {
       let __value = {v: ($t129 = std_move_int((($t130 = __first.op_add__c({a: [__parent], i: 0}), $t130)).op_mul__c()), $t129.a[$t129.i])};
-      std_adjust_heap_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int_long_int(__first, __parent, __len, ($t131 = std_move_int({a: __value, i: "v"}), $t131.a[$t131.i]));
+      std_adjust_heap_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int_long_int(new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [__first], i: 0}), __parent, __len, ($t131 = std_move_int({a: __value, i: "v"}), $t131.a[$t131.i]));
       if ((__parent === 0)) {
         return;
       }
@@ -5134,7 +5134,7 @@ function std_pop_heap_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator
   let $t134, $t135, $t136, $t137;
   let __value = {v: ($t134 = std_move_int(__result.op_mul__c()), $t134.a[$t134.i])};
   ($t135 = __result.op_mul__c(), $t135.a[$t135.i] = ($t136 = std_move_int(__first.op_mul__c()), $t136.a[$t136.i]));
-  std_adjust_heap_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int_long_int(__first, 0, gnu_cxx_operator_int_P_int_P_std_vector_int_std_allocator_int_883({a: [__last], i: 0}, {a: [__first], i: 0}), ($t137 = std_move_int({a: __value, i: "v"}), $t137.a[$t137.i]));
+  std_adjust_heap_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int_long_int(new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [__first], i: 0}), 0, gnu_cxx_operator_int_P_int_P_std_vector_int_std_allocator_int_883({a: [__last], i: 0}, {a: [__first], i: 0}), ($t137 = std_move_int({a: __value, i: "v"}), $t137.a[$t137.i]));
 }
 function std_pop_heap_int_P(__first, __last, __result) {
   let $t138, $t139, $t140;
@@ -5143,7 +5143,7 @@ function std_pop_heap_int_P(__first, __last, __result) {
   std_adjust_heap_int_P_long_int((__first ? {a: __first.a, i: __first.i} : null), 0, ((__last ? __last.i : 0) - (__first ? __first.i : 0)), ($t140 = std_move_int({a: __value, i: "v"}), $t140.a[$t140.i]));
 }
 function std_miter_base_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int(__it) {
-  return new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [std_Iter_base_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int_value0._S_base(__it)], i: 0});
+  return std_Iter_base_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int_value0._S_base(new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [__it], i: 0}));
 }
 function std_miter_base_int_P(__it) {
   let $t141;
@@ -5151,7 +5151,7 @@ function std_miter_base_int_P(__it) {
 }
 function std_copy_move_backward_a2_value1_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int(__first, __last, __result) {
   let $t142, $t143, $t144;
-  return new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [std_copy_move_backward_a_value1_int_P_int_P(($t142 = std_niter_base_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int(__first), $t142 ? {a: $t142.a, i: $t142.i} : null), ($t143 = std_niter_base_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int(__last), $t143 ? {a: $t143.a, i: $t143.i} : null), ($t144 = std_niter_base_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int(__result), $t144 ? {a: $t144.a, i: $t144.i} : null))], i: 0});
+  return new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [std_copy_move_backward_a_value1_int_P_int_P(($t142 = std_niter_base_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int(new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [__first], i: 0})), $t142 ? {a: $t142.a, i: $t142.i} : null), ($t143 = std_niter_base_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int(new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [__last], i: 0})), $t143 ? {a: $t143.a, i: $t143.i} : null), ($t144 = std_niter_base_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int(new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [__result], i: 0})), $t144 ? {a: $t144.a, i: $t144.i} : null))], i: 0});
 }
 function std_copy_move_backward_a2_value1_int_P_int_P(__first, __last, __result) {
   let $t145, $t146, $t147, $t148;
@@ -5179,7 +5179,7 @@ function std_adjust_heap_gnu_cxx_normal_iterator_int_P_std_vector_int_std_alloca
       __holeIndex = (__secondChild - 1);
     }
   }
-  std_push_heap_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int_long_int(__first, __holeIndex, __topIndex, ($t161 = std_move_int({a: __value, i: "v"}), $t161.a[$t161.i]));
+  std_push_heap_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int_long_int(new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [__first], i: 0}), __holeIndex, __topIndex, ($t161 = std_move_int({a: __value, i: "v"}), $t161.a[$t161.i]));
 }
 function std_adjust_heap_int_P_long_int(__first, __holeIndex, __len, __value) {
   let $t162, $t163, $t164, $t165, $t166, $t167, $t168;
@@ -5207,7 +5207,7 @@ function std_adjust_heap_int_P_long_int(__first, __holeIndex, __len, __value) {
 }
 function std_niter_base_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int(__it) {
   let $t169;
-  return ($t169 = std_Iter_base_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int_value1._S_base(__it), $t169 ? {a: $t169.a, i: $t169.i} : null);
+  return ($t169 = std_Iter_base_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int_value1._S_base(new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [__it], i: 0})), $t169 ? {a: $t169.a, i: $t169.i} : null);
 }
 function std_niter_base_int_P(__it) {
   let $t170;

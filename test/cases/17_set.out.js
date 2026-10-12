@@ -2274,10 +2274,10 @@ class std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int {
         __x = ($t12 = (__comp ? std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int._S_left((__x ? {a: __x.a, i: __x.i} : null)) : std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int._S_right((__x ? {a: __x.a, i: __x.i} : null))), $t12 ? {a: $t12.a, i: $t12.i} : null);
       }
     }
-    let __j = new std_Rb_tree_iterator_int({a: [new std_Rb_tree_iterator_int((__y ? {a: __y.a, i: __y.i} : null))], i: 0});
+    let __j = new std_Rb_tree_iterator_int((__y ? {a: __y.a, i: __y.i} : null));
     if (__comp) {
        {
-        if (__j.op_eq__c({a: [new std_Rb_tree_iterator_int({a: [this.begin()], i: 0})], i: 0})) {
+        if (__j.op_eq__c({a: [this.begin()], i: 0})) {
           return new std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P({a: [__x], i: 0}, {a: [__y], i: 0});
         }
         else {
@@ -2298,9 +2298,9 @@ class std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int {
   }
   _M_insert_unique__rv(__v) {
     let $t13;
-    let __res = new std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P({a: [new std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P({a: [this._M_get_insert_unique_pos((($t13 = new std_Identity_int(), $t13)).op_call__c(__v))], i: 0})], i: 0});
+    let __res = this._M_get_insert_unique_pos((($t13 = new std_Identity_int(), $t13)).op_call__c(__v));
     if (__res.second) {
-      return new std_pair_std_Rb_tree_iterator_int_bool({a: [new std_Rb_tree_iterator_int({a: [this._M_insert___rv((__res.first ? {a: __res.first.a, i: __res.first.i} : null), (__res.second ? {a: __res.second.a, i: __res.second.i} : null), std_forward_1_int(__v))], i: 0})], i: 0}, {a: [true], i: 0});
+      return new std_pair_std_Rb_tree_iterator_int_bool({a: [this._M_insert___rv((__res.first ? {a: __res.first.a, i: __res.first.i} : null), (__res.second ? {a: __res.second.a, i: __res.second.i} : null), std_forward_1_int(__v))], i: 0}, {a: [true], i: 0});
     }
     return new std_pair_std_Rb_tree_iterator_int_bool({a: [new std_Rb_tree_iterator_int((__res.first ? {a: __res.first.a, i: __res.first.i} : null))], i: 0}, {a: [false], i: 0});
   }
@@ -2343,7 +2343,7 @@ class std_set_int_std_less_int_std_allocator_int {
     return this._M_t.size__c();
   }
   insert(__x) {
-    let __p = new std_pair_std_Rb_tree_iterator_int_bool({a: [new std_pair_std_Rb_tree_iterator_int_bool({a: [this._M_t._M_insert_unique__rv(__x)], i: 0})], i: 0});
+    let __p = this._M_t._M_insert_unique__rv(__x);
     return new std_pair_std_Rb_tree_const_iterator_int_bool({a: __p, i: "first"}, {a: __p, i: "second"});
   }
 }
@@ -4075,9 +4075,9 @@ function std_Rb_tree_decrement__std_Rb_tree_node_baseP(...$a) { var x=$a[0]; if(
 function std_Rb_tree_insert_and_rebalance(...$a) { var left=$a[0],x=$a[1],p=$a[2],h=$a[3];var xn=x.a[x.i],pn=p.a[p.i],hn=h.a[h.i];xn._M_parent={a:p.a,i:p.i};xn._M_left=null;xn._M_right=null;xn._M_color=0;if(left){pn._M_left={a:x.a,i:x.i};if(_ctj_peq(p,h)){hn._M_parent={a:x.a,i:x.i};hn._M_right={a:x.a,i:x.i};}else if(_ctj_peq(p,hn._M_left)) hn._M_left={a:x.a,i:x.i};}else{pn._M_right={a:x.a,i:x.i};if(_ctj_peq(p,hn._M_right)) hn._M_right={a:x.a,i:x.i};}if(hn._M_parent){var r=hn._M_parent.a[hn._M_parent.i];if(r) r._M_color=1;} }
 function main() {
   let s = new std_set_int_std_less_int_std_allocator_int();
-  new std_pair_std_Rb_tree_const_iterator_int_bool({a: [s.insert({a: [1], i: 0})], i: 0});
-  new std_pair_std_Rb_tree_const_iterator_int_bool({a: [s.insert({a: [2], i: 0})], i: 0});
-  new std_pair_std_Rb_tree_const_iterator_int_bool({a: [s.insert({a: [2], i: 0})], i: 0});
+  s.insert({a: [1], i: 0});
+  s.insert({a: [2], i: 0});
+  s.insert({a: [2], i: 0});
   (console.log((s.size__c())));
   return 0;
 }
