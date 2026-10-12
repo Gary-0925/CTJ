@@ -24,6 +24,11 @@ namespace std {
     static const int right = 0x80;
     static const int adjustfield = 0xb0;
 
+    // Output is always written straight through, so there is no separate
+    // C stdio buffer to synchronize with: this only answers the call, with
+    // libstdc++'s initial answer (true).
+    static bool sync_with_stdio(bool __sync = true) { return true; }
+
     // Format state.  _M_fill is a character code.
     int _M_flags;
     int _M_width;
@@ -46,6 +51,10 @@ namespace std {
     int fill() const { return _M_fill; }
     int fill(int __c) { int __old = _M_fill; _M_fill = __c; return __old; }
   };
+
+  // libstdc++'s std::ios is basic_ios<char>.  Here the format state lives in
+  // ios_base, so the name refers to that class.
+  typedef ios_base ios;
 
   // A flag manipulator such as std::hex or std::setiosflags: the bits in
   // _M_mask are replaced by _M_value.

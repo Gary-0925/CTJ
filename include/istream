@@ -4,6 +4,7 @@
 #define _CTJ_ISTREAM 1
 
 #include <ios>
+#include <ostream>
 
 namespace std {
 
@@ -14,7 +15,15 @@ namespace std {
       typedef _CharT char_type;
       typedef _Traits traits_type;
 
-      explicit basic_istream(int __fd = 0) : ios_base() { }
+      explicit basic_istream(int __fd = 0) : ios_base(), _M_tie(0) { }
+
+      // The stream tied to this one (flushed before input in libstdc++).  Input
+      // never happens here, so the tie is only remembered.
+      ostream* tie() const { return _M_tie; }
+      ostream* tie(ostream* __tie) { ostream* __old = _M_tie; _M_tie = __tie; return __old; }
+
+    private:
+      ostream* _M_tie;
     };
 
   typedef basic_istream<char> istream;
