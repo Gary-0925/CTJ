@@ -2160,22 +2160,22 @@ class std_vector_std_basic_string_char_std_char_traits_char_std_allocator_char_s
     }
   }
   _M_emplace_back_aux__rv(__args_0) {
-    let $t63, $t64, $t65, $t66;
+    let $t63, $t64, $t65, $t66, $t67;
     let __len = this._M_check_len__c((1 >>> 0), {a: [118, 101, 99, 116, 111, 114, 58, 58, 95, 77, 95, 101, 109, 112, 108, 97, 99, 101, 95, 98, 97, 99, 107, 95, 97, 117, 120, 0], i: 0});
-    let __new_start = this._M_allocate(__len);
-    let __new_finish = __new_start;
+    let __new_start = ($t63 = this._M_allocate(__len), $t63 ? {a: $t63.a, i: $t63.i} : null);
+    let __new_finish = (__new_start ? {a: __new_start.a, i: __new_start.i} : null);
     if (true) {
        {
-        gnu_cxx_alloc_traits_std_allocator_std_basic_string_char_std_char_traits_char_std_allocator_char.construct({a: this, i: "_M_impl"}, ($t63 = ({a: (__new_start ? __new_start.a : null), i: (__new_start ? __new_start.i : 0) + (this.size__c())}), $t63 ? {a: $t63.a, i: $t63.i} : null), std_forward_1_std_basic_string_char_std_char_traits_char_std_allocator_char(__args_0));
+        gnu_cxx_alloc_traits_std_allocator_std_basic_string_char_std_char_traits_char_std_allocator_char.construct({a: this, i: "_M_impl"}, ($t64 = ({a: (__new_start ? __new_start.a : null), i: (__new_start ? __new_start.i : 0) + (this.size__c())}), $t64 ? {a: $t64.a, i: $t64.i} : null), std_forward_1_std_basic_string_char_std_char_traits_char_std_allocator_char(__args_0));
         __new_finish = null;
-        __new_finish = ($t64 = std_uninitialized_move_if_noexcept_a_std_basic_string_char_std_char_traits_char_std_allocator_char_P_std_basic_string_char_std_char_traits_char_std_allocator_char_P_std_allocator_std_basic_string_char_std_char_traits_char_std_allocator_char((this._M_impl._M_start ? {a: this._M_impl._M_start.a, i: this._M_impl._M_start.i} : null), (this._M_impl._M_finish ? {a: this._M_impl._M_finish.a, i: this._M_impl._M_finish.i} : null), (__new_start ? {a: __new_start.a, i: __new_start.i} : null), this._M_get_Tp_allocator()), $t64 ? {a: $t64.a, i: $t64.i} : null);
+        __new_finish = ($t65 = std_uninitialized_move_if_noexcept_a_std_basic_string_char_std_char_traits_char_std_allocator_char_P_std_basic_string_char_std_char_traits_char_std_allocator_char_P_std_allocator_std_basic_string_char_std_char_traits_char_std_allocator_char((this._M_impl._M_start ? {a: this._M_impl._M_start.a, i: this._M_impl._M_start.i} : null), (this._M_impl._M_finish ? {a: this._M_impl._M_finish.a, i: this._M_impl._M_finish.i} : null), (__new_start ? {a: __new_start.a, i: __new_start.i} : null), this._M_get_Tp_allocator()), $t65 ? {a: $t65.a, i: $t65.i} : null);
         ++__new_finish.i;
       }
     }
     if (false) {
        {
         if ((!__new_finish)) {
-          gnu_cxx_alloc_traits_std_allocator_std_basic_string_char_std_char_traits_char_std_allocator_char.destroy({a: this, i: "_M_impl"}, ($t65 = ({a: (__new_start ? __new_start.a : null), i: (__new_start ? __new_start.i : 0) + (this.size__c())}), $t65 ? {a: $t65.a, i: $t65.i} : null));
+          gnu_cxx_alloc_traits_std_allocator_std_basic_string_char_std_char_traits_char_std_allocator_char.destroy({a: this, i: "_M_impl"}, ($t66 = ({a: (__new_start ? __new_start.a : null), i: (__new_start ? __new_start.i : 0) + (this.size__c())}), $t66 ? {a: $t66.a, i: $t66.i} : null));
         }
         else {
           std_Destroy_2_std_basic_string_char_std_char_traits_char_std_allocator_char_P_std_allocator_std_basic_string_char_std_char_traits_char_std_allocator_char((__new_start ? {a: __new_start.a, i: __new_start.i} : null), (__new_finish ? {a: __new_finish.a, i: __new_finish.i} : null), this._M_get_Tp_allocator());
@@ -2187,7 +2187,7 @@ class std_vector_std_basic_string_char_std_char_traits_char_std_allocator_char_s
     this._M_deallocate((this._M_impl._M_start ? {a: this._M_impl._M_start.a, i: this._M_impl._M_start.i} : null), ((this._M_impl._M_end_of_storage ? this._M_impl._M_end_of_storage.i : 0) - (this._M_impl._M_start ? this._M_impl._M_start.i : 0)));
     this._M_impl._M_start = (__new_start ? {a: __new_start.a, i: __new_start.i} : null);
     this._M_impl._M_finish = (__new_finish ? {a: __new_finish.a, i: __new_finish.i} : null);
-    this._M_impl._M_end_of_storage = ($t66 = ({a: (__new_start ? __new_start.a : null), i: (__new_start ? __new_start.i : 0) + (__len)}), $t66 ? {a: $t66.a, i: $t66.i} : null);
+    this._M_impl._M_end_of_storage = ($t67 = ({a: (__new_start ? __new_start.a : null), i: (__new_start ? __new_start.i : 0) + (__len)}), $t67 ? {a: $t67.a, i: $t67.i} : null);
   }
 }
 class gnu_cxx_alloc_traits_std_allocator_std_basic_string_char_std_char_traits_char_std_allocator_char {
@@ -2233,8 +2233,8 @@ class std_initializer_list_std_basic_string_char_std_char_traits_char_std_alloca
     return (this._M_array ? {a: this._M_array.a, i: this._M_array.i} : null);
   }
   end__c() {
-    let $t67, $t68, $t69;
-    return ($t69 = ($t68 = ($t67 = this.begin__c(), $t67), ({a: ($t68 ? $t68.a : null), i: ($t68 ? $t68.i : 0) + (this.size__c())})), $t69 ? {a: $t69.a, i: $t69.i} : null);
+    let $t68, $t69, $t70;
+    return ($t70 = ($t69 = ($t68 = this.begin__c(), $t68), ({a: ($t69 ? $t69.a : null), i: ($t69 ? $t69.i : 0) + (this.size__c())})), $t70 ? {a: $t70.a, i: $t70.i} : null);
   }
 }
 class std_initializer_list_char {
@@ -2290,7 +2290,7 @@ class std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int
     this.__init_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int(...$a);
   }
   __init_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int(...$a) {
-    let $t70;
+    let $t71;
     if ($a.length >= 1 && $a.length <= 1 && ($a[0] !== null && typeof $a[0] === "object" && !Array.isArray($a[0]) && $a[0].a !== undefined && $a[0].i !== undefined && $a[0].a[$a[0].i] instanceof std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int)) {
       this.first = ($a[0] && $a[0].a ? $a[0].a[$a[0].i] : $a[0]).first;
       this.first.ctj_a = this; this.first.ctj_i = "first";
@@ -2302,7 +2302,7 @@ class std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int
       this.second = 0;
     }
     else if ($a.length >= 2 && $a.length <= 2 && ($a[0] === null || typeof $a[0] === "object") && ($a[1] === null || typeof $a[1] === "object")) {
-      this.first = new std_basic_string_char_std_char_traits_char_std_allocator_char(($t70 = std_forward_1_char_P($a[0]), $t70 ? {a: $t70.a, i: $t70.i} : null), {a: [new std_allocator_char()], i: 0});
+      this.first = new std_basic_string_char_std_char_traits_char_std_allocator_char(($t71 = std_forward_1_char_P($a[0]), $t71 ? {a: $t71.a, i: $t71.i} : null), {a: [new std_allocator_char()], i: 0});
       this.first.ctj_a = this; this.first.ctj_i = "first";
       this.second = ($a[1]).a[($a[1]).i];
     }
@@ -2351,8 +2351,8 @@ class std_initializer_list_std_pair_std_basic_string_char_std_char_traits_char_s
     return (this._M_array ? {a: this._M_array.a, i: this._M_array.i} : null);
   }
   end__c() {
-    let $t71, $t72, $t73;
-    return ($t73 = ($t72 = ($t71 = this.begin__c(), $t71), ({a: ($t72 ? $t72.a : null), i: ($t72 ? $t72.i : 0) + (this.size__c())})), $t73 ? {a: $t73.a, i: $t73.i} : null);
+    let $t72, $t73, $t74;
+    return ($t74 = ($t73 = ($t72 = this.begin__c(), $t72), ({a: ($t73 ? $t73.a : null), i: ($t73 ? $t73.i : 0) + (this.size__c())})), $t74 ? {a: $t74.a, i: $t74.i} : null);
   }
 }
 class std_remove_cv_char_P {
@@ -2881,13 +2881,13 @@ class std_Rb_tree_iterator_std_pair_std_basic_string_char_std_char_traits_char_s
     return {a: this._M_node.a[this._M_node.i], i: "_M_value_field"};
   }
   op_inc() {
-    let $t74;
-    this._M_node = ($t74 = std_Rb_tree_increment__std_Rb_tree_node_baseP((this._M_node ? {a: this._M_node.a, i: this._M_node.i} : null)), $t74 ? {a: $t74.a, i: $t74.i} : null);
+    let $t75;
+    this._M_node = ($t75 = std_Rb_tree_increment__std_Rb_tree_node_baseP((this._M_node ? {a: this._M_node.a, i: this._M_node.i} : null)), $t75 ? {a: $t75.a, i: $t75.i} : null);
     return {a: [this], i: 0};
   }
   op_dec() {
-    let $t75;
-    this._M_node = ($t75 = std_Rb_tree_decrement__std_Rb_tree_node_baseP((this._M_node ? {a: this._M_node.a, i: this._M_node.i} : null)), $t75 ? {a: $t75.a, i: $t75.i} : null);
+    let $t76;
+    this._M_node = ($t76 = std_Rb_tree_decrement__std_Rb_tree_node_baseP((this._M_node ? {a: this._M_node.a, i: this._M_node.i} : null)), $t76 ? {a: $t76.a, i: $t76.i} : null);
     return {a: [this], i: 0};
   }
   op_eq__c(__x) {
@@ -2953,11 +2953,11 @@ class gnu_cxx_new_allocator_int {
   __dtor() {
   }
   allocate(__n, $p1 = {a: [0], i: 0}) {
-    let $t76;
+    let $t77;
     if ((__n > this.max_size__c())) {
       std_throw_bad_alloc();
     }
-    return ($t76 = operatornew__unsigned_long_long((__n * 4)), $t76 ? {a: $t76.a, i: $t76.i} : null);
+    return ($t77 = operatornew__unsigned_long_long((__n * 4)), $t77 ? {a: $t77.a, i: $t77.i} : null);
   }
   deallocate(__p, $p1) {
     operatordelete__voidP((__p ? {a: __p.a, i: __p.i} : null));
@@ -2966,8 +2966,8 @@ class gnu_cxx_new_allocator_int {
     return (Math.trunc(((-(1)) >>> 0) / 4));
   }
   construct__rv(__p, __args_0) {
-    let $t77;
-    (__p.a[__p.i] = ($t77 = std_forward_1_int(__args_0), $t77.a[$t77.i]));
+    let $t78;
+    (__p.a[__p.i] = ($t78 = std_forward_1_int(__args_0), $t78.a[$t78.i]));
   }
   destroy(__p) {
     void 0;
@@ -3008,8 +3008,8 @@ class std_initializer_list_int {
     return (this._M_array ? {a: this._M_array.a, i: this._M_array.i} : null);
   }
   end__c() {
-    let $t78, $t79, $t80;
-    return ($t80 = ($t79 = ($t78 = this.begin__c(), $t78), ({a: ($t79 ? $t79.a : null), i: ($t79 ? $t79.i : 0) + (this.size__c())})), $t80 ? {a: $t80.a, i: $t80.i} : null);
+    let $t79, $t80, $t81;
+    return ($t81 = ($t80 = ($t79 = this.begin__c(), $t79), ({a: ($t80 ? $t80.a : null), i: ($t80 ? $t80.i : 0) + (this.size__c())})), $t81 ? {a: $t81.a, i: $t81.i} : null);
   }
 }
 class std_unary_function_int_int {
@@ -3063,8 +3063,8 @@ class std_Rb_tree_const_iterator_int {
     return {a: this._M_node.a[this._M_node.i], i: "_M_value_field"};
   }
   op_inc() {
-    let $t81;
-    this._M_node = ($t81 = std_Rb_tree_increment__std_Rb_tree_node_baseP((this._M_node ? {a: this._M_node.a, i: this._M_node.i} : null)), $t81 ? {a: $t81.a, i: $t81.i} : null);
+    let $t82;
+    this._M_node = ($t82 = std_Rb_tree_increment__std_Rb_tree_node_baseP((this._M_node ? {a: this._M_node.a, i: this._M_node.i} : null)), $t82 ? {a: $t82.a, i: $t82.i} : null);
     return {a: [this], i: 0};
   }
   op_ne__c(__x) {
@@ -3078,8 +3078,8 @@ class std_Rb_tree_node_int extends std_Rb_tree_node_base {
     this.__init_std_Rb_tree_node_int(...$a);
   }
   __init_std_Rb_tree_node_int(...$a) {
-    let $t82;
-    this._M_value_field = ($t82 = std_forward_1_int($a[0]), $t82.a[$t82.i]);
+    let $t83;
+    this._M_value_field = ($t83 = std_forward_1_int($a[0]), $t83.a[$t83.i]);
   }
   __dtor() {
     std_Rb_tree_node_base.prototype.__dtor.call(this);
@@ -3105,13 +3105,13 @@ class std_Rb_tree_iterator_int {
   __dtor() {
   }
   op_inc() {
-    let $t83;
-    this._M_node = ($t83 = std_Rb_tree_increment__std_Rb_tree_node_baseP((this._M_node ? {a: this._M_node.a, i: this._M_node.i} : null)), $t83 ? {a: $t83.a, i: $t83.i} : null);
+    let $t84;
+    this._M_node = ($t84 = std_Rb_tree_increment__std_Rb_tree_node_baseP((this._M_node ? {a: this._M_node.a, i: this._M_node.i} : null)), $t84 ? {a: $t84.a, i: $t84.i} : null);
     return {a: [this], i: 0};
   }
   op_dec() {
-    let $t84;
-    this._M_node = ($t84 = std_Rb_tree_decrement__std_Rb_tree_node_baseP((this._M_node ? {a: this._M_node.a, i: this._M_node.i} : null)), $t84 ? {a: $t84.a, i: $t84.i} : null);
+    let $t85;
+    this._M_node = ($t85 = std_Rb_tree_decrement__std_Rb_tree_node_baseP((this._M_node ? {a: this._M_node.a, i: this._M_node.i} : null)), $t85 ? {a: $t85.a, i: $t85.i} : null);
     return {a: [this], i: 0};
   }
   op_eq__c(__x) {
@@ -3184,8 +3184,8 @@ class std_Vector_base_int_std_allocator_int {
     return {a: this, i: "_M_impl"};
   }
   _M_allocate(__n) {
-    let $t85;
-    return ($t85 = ((__n !== 0) ? this._M_impl.allocate(__n, {a: [0], i: 0}) : 0), $t85 ? {a: $t85.a, i: $t85.i} : null);
+    let $t86;
+    return ($t86 = ((__n !== 0) ? this._M_impl.allocate(__n, {a: [0], i: 0}) : 0), $t86 ? {a: $t86.a, i: $t86.i} : null);
   }
   _M_deallocate(__p, __n) {
     if (__p) {
@@ -3193,10 +3193,10 @@ class std_Vector_base_int_std_allocator_int {
     }
   }
   _M_create_storage(__n) {
-    let $t86, $t87;
-    this._M_impl._M_start = ($t86 = this._M_allocate(__n), $t86 ? {a: $t86.a, i: $t86.i} : null);
+    let $t87, $t88;
+    this._M_impl._M_start = ($t87 = this._M_allocate(__n), $t87 ? {a: $t87.a, i: $t87.i} : null);
     this._M_impl._M_finish = (this._M_impl._M_start ? {a: this._M_impl._M_start.a, i: this._M_impl._M_start.i} : null);
-    this._M_impl._M_end_of_storage = ($t87 = ({a: (this._M_impl._M_start ? this._M_impl._M_start.a : null), i: (this._M_impl._M_start ? this._M_impl._M_start.i : 0) + (__n)}), $t87 ? {a: $t87.a, i: $t87.i} : null);
+    this._M_impl._M_end_of_storage = ($t88 = ({a: (this._M_impl._M_start ? this._M_impl._M_start.a : null), i: (this._M_impl._M_start ? this._M_impl._M_start.i : 0) + (__n)}), $t88 ? {a: $t88.a, i: $t88.i} : null);
   }
 }
 class std_vector_int_std_allocator_int extends std_Vector_base_int_std_allocator_int {
@@ -3205,14 +3205,14 @@ class std_vector_int_std_allocator_int extends std_Vector_base_int_std_allocator
     this.__init_std_vector_int_std_allocator_int(...$a);
   }
   __init_std_vector_int_std_allocator_int(...$a) {
-    let $t88, $t89, $t90;
+    let $t89, $t90, $t91;
     if ($a.length >= 1 && $a.length <= 1 && ($a[0] !== null && typeof $a[0] === "object" && !Array.isArray($a[0]) && $a[0].a !== undefined && $a[0].i !== undefined && $a[0].a[$a[0].i] instanceof std_vector_int_std_allocator_int) && !((($a[0] && $a[0].a !== undefined && $a[0].i !== undefined && !Array.isArray($a[0].a)) ? $a[0].a[$a[0].i] : $a[0]) instanceof std_initializer_list_int)) {
-      this._M_impl._M_finish = ($t88 = std_uninitialized_copy_a_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int_int_P_std_allocator_int((($a[0]).a[($a[0]).i]).begin__c(), (($a[0]).a[($a[0]).i]).end__c(), (this._M_impl._M_start ? {a: this._M_impl._M_start.a, i: this._M_impl._M_start.i} : null), this._M_get_Tp_allocator()), $t88 ? {a: $t88.a, i: $t88.i} : null);
+      this._M_impl._M_finish = ($t89 = std_uninitialized_copy_a_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int_int_P_std_allocator_int((($a[0]).a[($a[0]).i]).begin__c(), (($a[0]).a[($a[0]).i]).end__c(), (this._M_impl._M_start ? {a: this._M_impl._M_start.a, i: this._M_impl._M_start.i} : null), this._M_get_Tp_allocator()), $t89 ? {a: $t89.a, i: $t89.i} : null);
     }
     else if ($a.length >= 1 && $a.length <= 1 && ($a[0] !== null && typeof $a[0] === "object" && !Array.isArray($a[0]) && $a[0].a !== undefined && $a[0].i !== undefined && $a[0].a[$a[0].i] instanceof std_vector_int_std_allocator_int) && !((($a[0] && $a[0].a !== undefined && $a[0].i !== undefined && !Array.isArray($a[0].a)) ? $a[0].a[$a[0].i] : $a[0]) instanceof std_initializer_list_int)) {
     }
     else if ($a.length >= 1 && $a.length <= 2 && Array.isArray($a[0]) && ($a.length <= 1 || ($a[1] !== null && typeof $a[1] === "object" && !Array.isArray($a[1]) && $a[1].a !== undefined && $a[1].i !== undefined && $a[1].a[$a[1].i] instanceof std_allocator_int))) {
-      this._M_range_initialize(($t89 = ({a: $a[0], i: 0}), $t89 ? {a: $t89.a, i: $t89.i} : null), ($t90 = ({a: $a[0], i: ($a[0]).length}), $t90 ? {a: $t90.a, i: $t90.i} : null), new std_random_access_iterator_tag());
+      this._M_range_initialize(($t90 = ({a: $a[0], i: 0}), $t90 ? {a: $t90.a, i: $t90.i} : null), ($t91 = ({a: $a[0], i: ($a[0]).length}), $t91 ? {a: $t91.a, i: $t91.i} : null), new std_random_access_iterator_tag());
     }
     else { throw new Error("no matching constructor"); }
   }
@@ -3236,12 +3236,12 @@ class std_vector_int_std_allocator_int extends std_Vector_base_int_std_allocator
     return ({a: (this._M_impl._M_start ? this._M_impl._M_start.a : null), i: (this._M_impl._M_start ? this._M_impl._M_start.i : 0) + (__n)});
   }
   _M_check_len__c(__n, __s) {
-    let $t91;
+    let $t92;
     __n = {v: __n};
     if (((this.max_size__c() - this.size__c()) < __n.v)) {
       std_throw_length_error((__s ? {a: __s.a, i: __s.i} : null));
     }
-    let __len = (this.size__c() + ($t91 = std_max_unsigned_long_long({a: [this.size__c()], i: 0}, {a: __n, i: "v"}), $t91.a[$t91.i]));
+    let __len = (this.size__c() + ($t92 = std_max_unsigned_long_long({a: [this.size__c()], i: 0}, {a: __n, i: "v"}), $t92.a[$t92.i]));
     return (((__len < this.size__c()) || (__len > this.max_size__c())) ? this.max_size__c() : __len);
   }
   _M_range_initialize(__first, __last, $p2) {
@@ -3261,22 +3261,22 @@ class std_vector_int_std_allocator_int extends std_Vector_base_int_std_allocator
     }
   }
   _M_emplace_back_aux__rv(__args_0) {
-    let $t92, $t93, $t94, $t95;
+    let $t93, $t94, $t95, $t96, $t97;
     let __len = this._M_check_len__c((1 >>> 0), {a: [118, 101, 99, 116, 111, 114, 58, 58, 95, 77, 95, 101, 109, 112, 108, 97, 99, 101, 95, 98, 97, 99, 107, 95, 97, 117, 120, 0], i: 0});
-    let __new_start = this._M_allocate(__len);
-    let __new_finish = __new_start;
+    let __new_start = ($t93 = this._M_allocate(__len), $t93 ? {a: $t93.a, i: $t93.i} : null);
+    let __new_finish = (__new_start ? {a: __new_start.a, i: __new_start.i} : null);
     if (true) {
        {
-        gnu_cxx_alloc_traits_std_allocator_int.construct({a: this, i: "_M_impl"}, ($t92 = ({a: (__new_start ? __new_start.a : null), i: (__new_start ? __new_start.i : 0) + (this.size__c())}), $t92 ? {a: $t92.a, i: $t92.i} : null), std_forward_1_int(__args_0));
+        gnu_cxx_alloc_traits_std_allocator_int.construct({a: this, i: "_M_impl"}, ($t94 = ({a: (__new_start ? __new_start.a : null), i: (__new_start ? __new_start.i : 0) + (this.size__c())}), $t94 ? {a: $t94.a, i: $t94.i} : null), std_forward_1_int(__args_0));
         __new_finish = null;
-        __new_finish = ($t93 = std_uninitialized_move_if_noexcept_a_int_P_int_P_std_allocator_int((this._M_impl._M_start ? {a: this._M_impl._M_start.a, i: this._M_impl._M_start.i} : null), (this._M_impl._M_finish ? {a: this._M_impl._M_finish.a, i: this._M_impl._M_finish.i} : null), (__new_start ? {a: __new_start.a, i: __new_start.i} : null), this._M_get_Tp_allocator()), $t93 ? {a: $t93.a, i: $t93.i} : null);
+        __new_finish = ($t95 = std_uninitialized_move_if_noexcept_a_int_P_int_P_std_allocator_int((this._M_impl._M_start ? {a: this._M_impl._M_start.a, i: this._M_impl._M_start.i} : null), (this._M_impl._M_finish ? {a: this._M_impl._M_finish.a, i: this._M_impl._M_finish.i} : null), (__new_start ? {a: __new_start.a, i: __new_start.i} : null), this._M_get_Tp_allocator()), $t95 ? {a: $t95.a, i: $t95.i} : null);
         ++__new_finish.i;
       }
     }
     if (false) {
        {
         if ((!__new_finish)) {
-          gnu_cxx_alloc_traits_std_allocator_int.destroy({a: this, i: "_M_impl"}, ($t94 = ({a: (__new_start ? __new_start.a : null), i: (__new_start ? __new_start.i : 0) + (this.size__c())}), $t94 ? {a: $t94.a, i: $t94.i} : null));
+          gnu_cxx_alloc_traits_std_allocator_int.destroy({a: this, i: "_M_impl"}, ($t96 = ({a: (__new_start ? __new_start.a : null), i: (__new_start ? __new_start.i : 0) + (this.size__c())}), $t96 ? {a: $t96.a, i: $t96.i} : null));
         }
         else {
           std_Destroy_2_int_P_std_allocator_int((__new_start ? {a: __new_start.a, i: __new_start.i} : null), (__new_finish ? {a: __new_finish.a, i: __new_finish.i} : null), this._M_get_Tp_allocator());
@@ -3288,7 +3288,7 @@ class std_vector_int_std_allocator_int extends std_Vector_base_int_std_allocator
     this._M_deallocate((this._M_impl._M_start ? {a: this._M_impl._M_start.a, i: this._M_impl._M_start.i} : null), ((this._M_impl._M_end_of_storage ? this._M_impl._M_end_of_storage.i : 0) - (this._M_impl._M_start ? this._M_impl._M_start.i : 0)));
     this._M_impl._M_start = (__new_start ? {a: __new_start.a, i: __new_start.i} : null);
     this._M_impl._M_finish = (__new_finish ? {a: __new_finish.a, i: __new_finish.i} : null);
-    this._M_impl._M_end_of_storage = ($t95 = ({a: (__new_start ? __new_start.a : null), i: (__new_start ? __new_start.i : 0) + (__len)}), $t95 ? {a: $t95.a, i: $t95.i} : null);
+    this._M_impl._M_end_of_storage = ($t97 = ({a: (__new_start ? __new_start.a : null), i: (__new_start ? __new_start.i : 0) + (__len)}), $t97 ? {a: $t97.a, i: $t97.i} : null);
   }
 }
 class gnu_cxx_alloc_traits_std_allocator_int {
@@ -3322,11 +3322,11 @@ class gnu_cxx_new_allocator_std_vector_int_std_allocator_int {
   __dtor() {
   }
   allocate(__n, $p1 = {a: [0], i: 0}) {
-    let $t96;
+    let $t98;
     if ((__n > this.max_size__c())) {
       std_throw_bad_alloc();
     }
-    return ($t96 = operatornew__unsigned_long_long((__n * 25)), $t96 ? {a: $t96.a, i: $t96.i} : null);
+    return ($t98 = operatornew__unsigned_long_long((__n * 25)), $t98 ? {a: $t98.a, i: $t98.i} : null);
   }
   deallocate(__p, $p1) {
     operatordelete__voidP((__p ? {a: __p.a, i: __p.i} : null));
@@ -3397,8 +3397,8 @@ class std_Vector_base_std_vector_int_std_allocator_int_std_allocator_std_vector_
     return {a: this, i: "_M_impl"};
   }
   _M_allocate(__n) {
-    let $t97;
-    return ($t97 = ((__n !== 0) ? this._M_impl.allocate(__n, {a: [0], i: 0}) : 0), $t97 ? {a: $t97.a, i: $t97.i} : null);
+    let $t99;
+    return ($t99 = ((__n !== 0) ? this._M_impl.allocate(__n, {a: [0], i: 0}) : 0), $t99 ? {a: $t99.a, i: $t99.i} : null);
   }
   _M_deallocate(__p, __n) {
     if (__p) {
@@ -3412,8 +3412,8 @@ class std_vector_std_vector_int_std_allocator_int_std_allocator_std_vector_int_s
     this.__init_std_vector_std_vector_int_std_allocator_int_std_allocator_std_vector_int_std_allocator_int(...$a);
   }
   __init_std_vector_std_vector_int_std_allocator_int_std_allocator_std_vector_int_std_allocator_int(...$a) {
-    let $t98, $t99;
-    this._M_range_initialize(($t98 = ({a: $a[0], i: 0}), $t98 ? {a: $t98.a, i: $t98.i} : null), ($t99 = ({a: $a[0], i: ($a[0]).length}), $t99 ? {a: $t99.a, i: $t99.i} : null), new std_random_access_iterator_tag());
+    let $t100, $t101;
+    this._M_range_initialize(($t100 = ({a: $a[0], i: 0}), $t100 ? {a: $t100.a, i: $t100.i} : null), ($t101 = ({a: $a[0], i: ($a[0]).length}), $t101 ? {a: $t101.a, i: $t101.i} : null), new std_random_access_iterator_tag());
   }
   __dtor() {
     std_Vector_base_std_vector_int_std_allocator_int_std_allocator_std_vector_int_std_allocator_int.prototype.__dtor.call(this);
@@ -3428,12 +3428,12 @@ class std_vector_std_vector_int_std_allocator_int_std_allocator_std_vector_int_s
     return ({a: (this._M_impl._M_start ? this._M_impl._M_start.a : null), i: (this._M_impl._M_start ? this._M_impl._M_start.i : 0) + (__n)});
   }
   _M_check_len__c(__n, __s) {
-    let $t100;
+    let $t102;
     __n = {v: __n};
     if (((this.max_size__c() - this.size__c()) < __n.v)) {
       std_throw_length_error((__s ? {a: __s.a, i: __s.i} : null));
     }
-    let __len = (this.size__c() + ($t100 = std_max_unsigned_long_long({a: [this.size__c()], i: 0}, {a: __n, i: "v"}), $t100.a[$t100.i]));
+    let __len = (this.size__c() + ($t102 = std_max_unsigned_long_long({a: [this.size__c()], i: 0}, {a: __n, i: "v"}), $t102.a[$t102.i]));
     return (((__len < this.size__c()) || (__len > this.max_size__c())) ? this.max_size__c() : __len);
   }
   _M_range_initialize(__first, __last, $p2) {
@@ -3453,22 +3453,22 @@ class std_vector_std_vector_int_std_allocator_int_std_allocator_std_vector_int_s
     }
   }
   _M_emplace_back_aux__rv(__args_0) {
-    let $t101, $t102, $t103, $t104;
+    let $t103, $t104, $t105, $t106, $t107;
     let __len = this._M_check_len__c((1 >>> 0), {a: [118, 101, 99, 116, 111, 114, 58, 58, 95, 77, 95, 101, 109, 112, 108, 97, 99, 101, 95, 98, 97, 99, 107, 95, 97, 117, 120, 0], i: 0});
-    let __new_start = this._M_allocate(__len);
-    let __new_finish = __new_start;
+    let __new_start = ($t103 = this._M_allocate(__len), $t103 ? {a: $t103.a, i: $t103.i} : null);
+    let __new_finish = (__new_start ? {a: __new_start.a, i: __new_start.i} : null);
     if (true) {
        {
-        gnu_cxx_alloc_traits_std_allocator_std_vector_int_std_allocator_int.construct({a: this, i: "_M_impl"}, ($t101 = ({a: (__new_start ? __new_start.a : null), i: (__new_start ? __new_start.i : 0) + (this.size__c())}), $t101 ? {a: $t101.a, i: $t101.i} : null), std_forward_1_std_vector_int_std_allocator_int(__args_0));
+        gnu_cxx_alloc_traits_std_allocator_std_vector_int_std_allocator_int.construct({a: this, i: "_M_impl"}, ($t104 = ({a: (__new_start ? __new_start.a : null), i: (__new_start ? __new_start.i : 0) + (this.size__c())}), $t104 ? {a: $t104.a, i: $t104.i} : null), std_forward_1_std_vector_int_std_allocator_int(__args_0));
         __new_finish = null;
-        __new_finish = ($t102 = std_uninitialized_move_if_noexcept_a_std_vector_int_std_allocator_int_P_std_vector_int_std_allocator_int_P_std_allocator_std_vector_int_std_allocator_int((this._M_impl._M_start ? {a: this._M_impl._M_start.a, i: this._M_impl._M_start.i} : null), (this._M_impl._M_finish ? {a: this._M_impl._M_finish.a, i: this._M_impl._M_finish.i} : null), (__new_start ? {a: __new_start.a, i: __new_start.i} : null), this._M_get_Tp_allocator()), $t102 ? {a: $t102.a, i: $t102.i} : null);
+        __new_finish = ($t105 = std_uninitialized_move_if_noexcept_a_std_vector_int_std_allocator_int_P_std_vector_int_std_allocator_int_P_std_allocator_std_vector_int_std_allocator_int((this._M_impl._M_start ? {a: this._M_impl._M_start.a, i: this._M_impl._M_start.i} : null), (this._M_impl._M_finish ? {a: this._M_impl._M_finish.a, i: this._M_impl._M_finish.i} : null), (__new_start ? {a: __new_start.a, i: __new_start.i} : null), this._M_get_Tp_allocator()), $t105 ? {a: $t105.a, i: $t105.i} : null);
         ++__new_finish.i;
       }
     }
     if (false) {
        {
         if ((!__new_finish)) {
-          gnu_cxx_alloc_traits_std_allocator_std_vector_int_std_allocator_int.destroy({a: this, i: "_M_impl"}, ($t103 = ({a: (__new_start ? __new_start.a : null), i: (__new_start ? __new_start.i : 0) + (this.size__c())}), $t103 ? {a: $t103.a, i: $t103.i} : null));
+          gnu_cxx_alloc_traits_std_allocator_std_vector_int_std_allocator_int.destroy({a: this, i: "_M_impl"}, ($t106 = ({a: (__new_start ? __new_start.a : null), i: (__new_start ? __new_start.i : 0) + (this.size__c())}), $t106 ? {a: $t106.a, i: $t106.i} : null));
         }
         else {
           std_Destroy_2_std_vector_int_std_allocator_int_P_std_allocator_std_vector_int_std_allocator_int((__new_start ? {a: __new_start.a, i: __new_start.i} : null), (__new_finish ? {a: __new_finish.a, i: __new_finish.i} : null), this._M_get_Tp_allocator());
@@ -3480,7 +3480,7 @@ class std_vector_std_vector_int_std_allocator_int_std_allocator_std_vector_int_s
     this._M_deallocate((this._M_impl._M_start ? {a: this._M_impl._M_start.a, i: this._M_impl._M_start.i} : null), ((this._M_impl._M_end_of_storage ? this._M_impl._M_end_of_storage.i : 0) - (this._M_impl._M_start ? this._M_impl._M_start.i : 0)));
     this._M_impl._M_start = (__new_start ? {a: __new_start.a, i: __new_start.i} : null);
     this._M_impl._M_finish = (__new_finish ? {a: __new_finish.a, i: __new_finish.i} : null);
-    this._M_impl._M_end_of_storage = ($t104 = ({a: (__new_start ? __new_start.a : null), i: (__new_start ? __new_start.i : 0) + (__len)}), $t104 ? {a: $t104.a, i: $t104.i} : null);
+    this._M_impl._M_end_of_storage = ($t107 = ({a: (__new_start ? __new_start.a : null), i: (__new_start ? __new_start.i : 0) + (__len)}), $t107 ? {a: $t107.a, i: $t107.i} : null);
   }
 }
 class gnu_cxx_alloc_traits_std_allocator_std_vector_int_std_allocator_int {
@@ -3526,8 +3526,8 @@ class std_initializer_list_std_vector_int_std_allocator_int {
     return (this._M_array ? {a: this._M_array.a, i: this._M_array.i} : null);
   }
   end__c() {
-    let $t105, $t106, $t107;
-    return ($t107 = ($t106 = ($t105 = this.begin__c(), $t105), ({a: ($t106 ? $t106.a : null), i: ($t106 ? $t106.i : 0) + (this.size__c())})), $t107 ? {a: $t107.a, i: $t107.i} : null);
+    let $t108, $t109, $t110;
+    return ($t110 = ($t109 = ($t108 = this.begin__c(), $t108), ({a: ($t109 ? $t109.a : null), i: ($t109 ? $t109.i : 0) + (this.size__c())})), $t110 ? {a: $t110.a, i: $t110.i} : null);
   }
 }
 class std_pair_std_Rb_tree_iterator_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_bool {
@@ -3602,11 +3602,11 @@ class gnu_cxx_new_allocator_std_Rb_tree_node_std_pair_std_basic_string_char_std_
   __dtor() {
   }
   allocate(__n, $p1 = {a: [0], i: 0}) {
-    let $t108;
+    let $t111;
     if ((__n > this.max_size__c())) {
       std_throw_bad_alloc();
     }
-    return ($t108 = operatornew__unsigned_long_long((__n * 41)), $t108 ? {a: $t108.a, i: $t108.i} : null);
+    return ($t111 = operatornew__unsigned_long_long((__n * 41)), $t111 ? {a: $t111.a, i: $t111.i} : null);
   }
   deallocate(__p, $p1) {
     operatordelete__voidP((__p ? {a: __p.a, i: __p.i} : null));
@@ -3695,8 +3695,8 @@ class std_Rb_tree_std_basic_string_char_std_char_traits_char_std_allocator_char_
     return {a: this, i: "_M_impl"};
   }
   _M_get_node() {
-    let $t109;
-    return ($t109 = gnu_cxx_new_allocator_std_Rb_tree_node_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int.prototype.allocate.call(this._M_impl, 1, {a: [0], i: 0}), $t109 ? {a: $t109.a, i: $t109.i} : null);
+    let $t112;
+    return ($t112 = gnu_cxx_new_allocator_std_Rb_tree_node_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int.prototype.allocate.call(this._M_impl, 1, {a: [0], i: 0}), $t112 ? {a: $t112.a, i: $t112.i} : null);
   }
   _M_put_node(__p) {
     gnu_cxx_new_allocator_std_Rb_tree_node_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int.prototype.deallocate.call(this._M_impl, (__p ? {a: __p.a, i: __p.i} : null), 1);
@@ -3723,12 +3723,12 @@ class std_Rb_tree_std_basic_string_char_std_char_traits_char_std_allocator_char_
     else { throw new Error("no matching overload"); }
   }
   static _S_key(...$a) {
-    let $t110, $t111;
+    let $t113, $t114;
     if ($a.length >= 1 && $a.length <= 1 && ($a[0] === null || typeof $a[0] === "object")) {
-      return (($t110 = new std_Select1st_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int(), $t110)).op_call__c(std_Rb_tree_std_basic_string_char_std_char_traits_char_std_allocator_char_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_std_Select1st_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_std_less_std_basic_string_char_std_char_traits_char_std_allocator_char_std_allocator_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int._S_value((($a[0]) ? {a: ($a[0]).a, i: ($a[0]).i} : null)));
+      return (($t113 = new std_Select1st_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int(), $t113)).op_call__c(std_Rb_tree_std_basic_string_char_std_char_traits_char_std_allocator_char_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_std_Select1st_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_std_less_std_basic_string_char_std_char_traits_char_std_allocator_char_std_allocator_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int._S_value((($a[0]) ? {a: ($a[0]).a, i: ($a[0]).i} : null)));
     }
     else if ($a.length >= 1 && $a.length <= 1 && ($a[0] === null || typeof $a[0] === "object")) {
-      return (($t111 = new std_Select1st_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int(), $t111)).op_call__c(std_Rb_tree_std_basic_string_char_std_char_traits_char_std_allocator_char_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_std_Select1st_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_std_less_std_basic_string_char_std_char_traits_char_std_allocator_char_std_allocator_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int._S_value((($a[0]) ? {a: ($a[0]).a, i: ($a[0]).i} : null)));
+      return (($t114 = new std_Select1st_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int(), $t114)).op_call__c(std_Rb_tree_std_basic_string_char_std_char_traits_char_std_allocator_char_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_std_Select1st_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_std_less_std_basic_string_char_std_char_traits_char_std_allocator_char_std_allocator_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int._S_value((($a[0]) ? {a: ($a[0]).a, i: ($a[0]).i} : null)));
     }
     else { throw new Error("no matching overload"); }
   }
@@ -3739,15 +3739,15 @@ class std_Rb_tree_std_basic_string_char_std_char_traits_char_std_allocator_char_
     return (((__x.a[__x.i])._M_right) ? {a: ((__x.a[__x.i])._M_right).a, i: ((__x.a[__x.i])._M_right).i} : null);
   }
   _M_get_insert_unique_pos(__k) {
-    let $t112, $t113, $t114;
-    let __x = ($t112 = this._M_begin(), $t112 ? {a: $t112.a, i: $t112.i} : null);
-    let __y = ($t113 = this._M_end(), $t113 ? {a: $t113.a, i: $t113.i} : null);
+    let $t115, $t116, $t117;
+    let __x = ($t115 = this._M_begin(), $t115 ? {a: $t115.a, i: $t115.i} : null);
+    let __y = ($t116 = this._M_end(), $t116 ? {a: $t116.a, i: $t116.i} : null);
     let __comp = true;
     while ((__x !== null)) {
        {
         __y = (__x ? {a: __x.a, i: __x.i} : null);
         __comp = this._M_impl._M_key_compare.op_call__c(__k, std_Rb_tree_std_basic_string_char_std_char_traits_char_std_allocator_char_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_std_Select1st_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_std_less_std_basic_string_char_std_char_traits_char_std_allocator_char_std_allocator_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int._S_key((__x ? {a: __x.a, i: __x.i} : null)));
-        __x = ($t114 = (__comp ? std_Rb_tree_std_basic_string_char_std_char_traits_char_std_allocator_char_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_std_Select1st_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_std_less_std_basic_string_char_std_char_traits_char_std_allocator_char_std_allocator_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int._S_left((__x ? {a: __x.a, i: __x.i} : null)) : std_Rb_tree_std_basic_string_char_std_char_traits_char_std_allocator_char_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_std_Select1st_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_std_less_std_basic_string_char_std_char_traits_char_std_allocator_char_std_allocator_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int._S_right((__x ? {a: __x.a, i: __x.i} : null))), $t114 ? {a: $t114.a, i: $t114.i} : null);
+        __x = ($t117 = (__comp ? std_Rb_tree_std_basic_string_char_std_char_traits_char_std_allocator_char_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_std_Select1st_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_std_less_std_basic_string_char_std_char_traits_char_std_allocator_char_std_allocator_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int._S_left((__x ? {a: __x.a, i: __x.i} : null)) : std_Rb_tree_std_basic_string_char_std_char_traits_char_std_allocator_char_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_std_Select1st_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_std_less_std_basic_string_char_std_char_traits_char_std_allocator_char_std_allocator_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int._S_right((__x ? {a: __x.a, i: __x.i} : null))), $t117 ? {a: $t117.a, i: $t117.i} : null);
       }
     }
     let __j = new std_Rb_tree_iterator_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int((__y ? {a: __y.a, i: __y.i} : null));
@@ -3767,11 +3767,11 @@ class std_Rb_tree_std_basic_string_char_std_char_traits_char_std_allocator_char_
     return new std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P({a: __j, i: "_M_node"}, {a: [null], i: 0});
   }
   _M_get_insert_hint_unique_pos(__position, __k) {
-    let $t115, $t116, $t117, $t118, $t119, $t120, $t121, $t122, $t123, $t124, $t125, $t126;
+    let $t118, $t119, $t120, $t121, $t122, $t123, $t124, $t125, $t126, $t127, $t128, $t129;
     let __pos = __position._M_const_cast__c();
-    if (($t116 = ($t115 = this._M_end(), $t115), (__pos._M_node === $t116 || (__pos._M_node && $t116 && __pos._M_node.a === $t116.a && __pos._M_node.i === $t116.i)))) {
+    if (($t119 = ($t118 = this._M_end(), $t118), (__pos._M_node === $t119 || (__pos._M_node && $t119 && __pos._M_node.a === $t119.a && __pos._M_node.i === $t119.i)))) {
        {
-        if (((this.size__c() > 0) && this._M_impl._M_key_compare.op_call__c(std_Rb_tree_std_basic_string_char_std_char_traits_char_std_allocator_char_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_std_Select1st_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_std_less_std_basic_string_char_std_char_traits_char_std_allocator_char_std_allocator_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int._S_key(($t117 = this._M_rightmost(), $t118 = ($t117 ? $t117.a[$t117.i] : null), $t118 && $t118.a !== undefined ? {a: $t118.a, i: $t118.i} : $t118)), __k))) {
+        if (((this.size__c() > 0) && this._M_impl._M_key_compare.op_call__c(std_Rb_tree_std_basic_string_char_std_char_traits_char_std_allocator_char_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_std_Select1st_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_std_less_std_basic_string_char_std_char_traits_char_std_allocator_char_std_allocator_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int._S_key(($t120 = this._M_rightmost(), $t121 = ($t120 ? $t120.a[$t120.i] : null), $t121 && $t121.a !== undefined ? {a: $t121.a, i: $t121.i} : $t121)), __k))) {
           return new std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P({a: [null], i: 0}, this._M_rightmost());
         }
         else {
@@ -3783,11 +3783,11 @@ class std_Rb_tree_std_basic_string_char_std_char_traits_char_std_allocator_char_
       if (this._M_impl._M_key_compare.op_call__c(__k, std_Rb_tree_std_basic_string_char_std_char_traits_char_std_allocator_char_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_std_Select1st_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_std_less_std_basic_string_char_std_char_traits_char_std_allocator_char_std_allocator_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int._S_key((__pos._M_node ? {a: __pos._M_node.a, i: __pos._M_node.i} : null)))) {
          {
           let __before = new std_Rb_tree_iterator_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int({a: [__pos], i: 0});
-          if (($t120 = (($t119 = this._M_leftmost(), $t119) ? (($t119 = this._M_leftmost(), $t119)).a[(($t119 = this._M_leftmost(), $t119)).i] : null), (__pos._M_node === $t120 || (__pos._M_node && $t120 && __pos._M_node.a === $t120.a && __pos._M_node.i === $t120.i)))) {
+          if (($t123 = (($t122 = this._M_leftmost(), $t122) ? (($t122 = this._M_leftmost(), $t122)).a[(($t122 = this._M_leftmost(), $t122)).i] : null), (__pos._M_node === $t123 || (__pos._M_node && $t123 && __pos._M_node.a === $t123.a && __pos._M_node.i === $t123.i)))) {
             return new std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P(this._M_leftmost(), this._M_leftmost());
           }
           else {
-            if (this._M_impl._M_key_compare.op_call__c(std_Rb_tree_std_basic_string_char_std_char_traits_char_std_allocator_char_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_std_Select1st_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_std_less_std_basic_string_char_std_char_traits_char_std_allocator_char_std_allocator_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int._S_key(($t122 = (($t121 = __before.op_dec(), $t121.a[$t121.i]))._M_node, $t122 ? {a: $t122.a, i: $t122.i} : null)), __k)) {
+            if (this._M_impl._M_key_compare.op_call__c(std_Rb_tree_std_basic_string_char_std_char_traits_char_std_allocator_char_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_std_Select1st_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_std_less_std_basic_string_char_std_char_traits_char_std_allocator_char_std_allocator_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int._S_key(($t125 = (($t124 = __before.op_dec(), $t124.a[$t124.i]))._M_node, $t125 ? {a: $t125.a, i: $t125.i} : null)), __k)) {
                {
                 if ((std_Rb_tree_std_basic_string_char_std_char_traits_char_std_allocator_char_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_std_Select1st_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_std_less_std_basic_string_char_std_char_traits_char_std_allocator_char_std_allocator_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int._S_right((__before._M_node ? {a: __before._M_node.a, i: __before._M_node.i} : null)) === null)) {
                   return new std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P({a: [null], i: 0}, {a: __before, i: "_M_node"});
@@ -3807,11 +3807,11 @@ class std_Rb_tree_std_basic_string_char_std_char_traits_char_std_allocator_char_
         if (this._M_impl._M_key_compare.op_call__c(std_Rb_tree_std_basic_string_char_std_char_traits_char_std_allocator_char_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_std_Select1st_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_std_less_std_basic_string_char_std_char_traits_char_std_allocator_char_std_allocator_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int._S_key((__pos._M_node ? {a: __pos._M_node.a, i: __pos._M_node.i} : null)), __k)) {
            {
             let __after = new std_Rb_tree_iterator_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int({a: [__pos], i: 0});
-            if (($t124 = (($t123 = this._M_rightmost(), $t123) ? (($t123 = this._M_rightmost(), $t123)).a[(($t123 = this._M_rightmost(), $t123)).i] : null), (__pos._M_node === $t124 || (__pos._M_node && $t124 && __pos._M_node.a === $t124.a && __pos._M_node.i === $t124.i)))) {
+            if (($t127 = (($t126 = this._M_rightmost(), $t126) ? (($t126 = this._M_rightmost(), $t126)).a[(($t126 = this._M_rightmost(), $t126)).i] : null), (__pos._M_node === $t127 || (__pos._M_node && $t127 && __pos._M_node.a === $t127.a && __pos._M_node.i === $t127.i)))) {
               return new std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P({a: [null], i: 0}, this._M_rightmost());
             }
             else {
-              if (this._M_impl._M_key_compare.op_call__c(__k, std_Rb_tree_std_basic_string_char_std_char_traits_char_std_allocator_char_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_std_Select1st_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_std_less_std_basic_string_char_std_char_traits_char_std_allocator_char_std_allocator_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int._S_key(($t126 = (($t125 = __after.op_inc(), $t125.a[$t125.i]))._M_node, $t126 ? {a: $t126.a, i: $t126.i} : null)))) {
+              if (this._M_impl._M_key_compare.op_call__c(__k, std_Rb_tree_std_basic_string_char_std_char_traits_char_std_allocator_char_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_std_Select1st_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_std_less_std_basic_string_char_std_char_traits_char_std_allocator_char_std_allocator_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int._S_key(($t129 = (($t128 = __after.op_inc(), $t128.a[$t128.i]))._M_node, $t129 ? {a: $t129.a, i: $t129.i} : null)))) {
                  {
                   if ((std_Rb_tree_std_basic_string_char_std_char_traits_char_std_allocator_char_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_std_Select1st_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_std_less_std_basic_string_char_std_char_traits_char_std_allocator_char_std_allocator_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int._S_right((__pos._M_node ? {a: __pos._M_node.a, i: __pos._M_node.i} : null)) === null)) {
                     return new std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P({a: [null], i: 0}, {a: __pos, i: "_M_node"});
@@ -3848,24 +3848,24 @@ class std_Rb_tree_std_basic_string_char_std_char_traits_char_std_allocator_char_
     }
   }
   _M_insert_unique___rv(__position, __v) {
-    let $t127;
-    let __res = this._M_get_insert_hint_unique_pos(new std_Rb_tree_const_iterator_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int({a: [__position], i: 0}), (($t127 = new std_Select1st_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int(), $t127)).op_call__c(__v));
+    let $t130;
+    let __res = this._M_get_insert_hint_unique_pos(new std_Rb_tree_const_iterator_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int({a: [__position], i: 0}), (($t130 = new std_Select1st_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int(), $t130)).op_call__c(__v));
     if (__res.second) {
       return this._M_insert___rv((__res.first ? {a: __res.first.a, i: __res.first.i} : null), (__res.second ? {a: __res.second.a, i: __res.second.i} : null), std_forward_1_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int(__v));
     }
     return new std_Rb_tree_iterator_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int((__res.first ? {a: __res.first.a, i: __res.first.i} : null));
   }
   _M_insert___rv(__x, __p, __v) {
-    let $t128, $t129, $t130, $t131;
-    let __insert_left = (((__x !== null) || ($t129 = ($t128 = this._M_end(), $t128), (__p === $t129 || (__p && $t129 && __p.a === $t129.a && __p.i === $t129.i)))) || this._M_impl._M_key_compare.op_call__c((($t130 = new std_Select1st_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int(), $t130)).op_call__c(__v), std_Rb_tree_std_basic_string_char_std_char_traits_char_std_allocator_char_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_std_Select1st_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_std_less_std_basic_string_char_std_char_traits_char_std_allocator_char_std_allocator_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int._S_key((__p ? {a: __p.a, i: __p.i} : null))));
-    let __z = ($t131 = this._M_create_node__rv(std_forward_1_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int(__v)), $t131 ? {a: $t131.a, i: $t131.i} : null);
+    let $t131, $t132, $t133, $t134;
+    let __insert_left = (((__x !== null) || ($t132 = ($t131 = this._M_end(), $t131), (__p === $t132 || (__p && $t132 && __p.a === $t132.a && __p.i === $t132.i)))) || this._M_impl._M_key_compare.op_call__c((($t133 = new std_Select1st_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int(), $t133)).op_call__c(__v), std_Rb_tree_std_basic_string_char_std_char_traits_char_std_allocator_char_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_std_Select1st_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_std_less_std_basic_string_char_std_char_traits_char_std_allocator_char_std_allocator_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int._S_key((__p ? {a: __p.a, i: __p.i} : null))));
+    let __z = ($t134 = this._M_create_node__rv(std_forward_1_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int(__v)), $t134 ? {a: $t134.a, i: $t134.i} : null);
     std_Rb_tree_insert_and_rebalance(__insert_left, (__z ? {a: __z.a, i: __z.i} : null), (__p ? {a: __p.a, i: __p.i} : null), {a: this._M_impl, i: "_M_header"});
     ++this._M_impl._M_node_count;
     return new std_Rb_tree_iterator_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int((__z ? {a: __z.a, i: __z.i} : null));
   }
   _M_create_node__rv(__args_0) {
-    let $t132;
-    let __tmp = ($t132 = this._M_get_node(), $t132 ? {a: $t132.a, i: $t132.i} : null);
+    let $t135;
+    let __tmp = ($t135 = this._M_get_node(), $t135 ? {a: $t135.a, i: $t135.i} : null);
     if (true) {
        {
         std_allocator_traits_std_allocator_std_Rb_tree_node_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int.construct__rv(this._M_get_Node_allocator(), (__tmp ? {a: __tmp.a, i: __tmp.i} : null), std_forward_1_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int(__args_0));
@@ -3885,10 +3885,10 @@ class std_map_std_basic_string_char_std_char_traits_char_std_allocator_char_int_
     this.__init_std_map_std_basic_string_char_std_char_traits_char_std_allocator_char_int_std_less_std_basic_string_char_std_char_traits_char_std_allocator_char_std_allocator_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int(...$a);
   }
   __init_std_map_std_basic_string_char_std_char_traits_char_std_allocator_char_int_std_less_std_basic_string_char_std_char_traits_char_std_allocator_char_std_allocator_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int(...$a) {
-    let $t133, $t134;
+    let $t136, $t137;
     this._M_t = new std_Rb_tree_std_basic_string_char_std_char_traits_char_std_allocator_char_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_std_Select1st_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_std_less_std_basic_string_char_std_char_traits_char_std_allocator_char_std_allocator_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int(($a[1] === undefined ? ({a: [new std_less_std_basic_string_char_std_char_traits_char_std_allocator_char()], i: 0}) : $a[1]), {a: [(($a[2] === undefined ? ({a: [new std_allocator_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int()], i: 0}) : $a[2])).a[(($a[2] === undefined ? ({a: [new std_allocator_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int()], i: 0}) : $a[2])).i]], i: 0});
     this._M_t.ctj_a = this; this._M_t.ctj_i = "_M_t";
-    this._M_t._M_insert_unique(($t133 = ({a: $a[0], i: 0}), $t133 ? {a: $t133.a, i: $t133.i} : null), ($t134 = ({a: $a[0], i: ($a[0]).length}), $t134 ? {a: $t134.a, i: $t134.i} : null));
+    this._M_t._M_insert_unique(($t136 = ({a: $a[0], i: 0}), $t136 ? {a: $t136.a, i: $t136.i} : null), ($t137 = ({a: $a[0], i: ($a[0]).length}), $t137 ? {a: $t137.a, i: $t137.i} : null));
   }
   __dtor() {
   }
@@ -3933,11 +3933,11 @@ class gnu_cxx_new_allocator_std_Rb_tree_node_int {
   __dtor() {
   }
   allocate(__n, $p1 = {a: [0], i: 0}) {
-    let $t135;
+    let $t138;
     if ((__n > this.max_size__c())) {
       std_throw_bad_alloc();
     }
-    return ($t135 = operatornew__unsigned_long_long((__n * 32)), $t135 ? {a: $t135.a, i: $t135.i} : null);
+    return ($t138 = operatornew__unsigned_long_long((__n * 32)), $t138 ? {a: $t138.a, i: $t138.i} : null);
   }
   deallocate(__p, $p1) {
     operatordelete__voidP((__p ? {a: __p.a, i: __p.i} : null));
@@ -4026,8 +4026,8 @@ class std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int {
     return {a: this, i: "_M_impl"};
   }
   _M_get_node() {
-    let $t136;
-    return ($t136 = gnu_cxx_new_allocator_std_Rb_tree_node_int.prototype.allocate.call(this._M_impl, 1, {a: [0], i: 0}), $t136 ? {a: $t136.a, i: $t136.i} : null);
+    let $t139;
+    return ($t139 = gnu_cxx_new_allocator_std_Rb_tree_node_int.prototype.allocate.call(this._M_impl, 1, {a: [0], i: 0}), $t139 ? {a: $t139.a, i: $t139.i} : null);
   }
   _M_put_node(__p) {
     gnu_cxx_new_allocator_std_Rb_tree_node_int.prototype.deallocate.call(this._M_impl, (__p ? {a: __p.a, i: __p.i} : null), 1);
@@ -4054,12 +4054,12 @@ class std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int {
     else { throw new Error("no matching overload"); }
   }
   static _S_key(...$a) {
-    let $t137, $t138;
+    let $t140, $t141;
     if ($a.length >= 1 && $a.length <= 1 && ($a[0] === null || typeof $a[0] === "object")) {
-      return (($t137 = new std_Identity_int(), $t137)).op_call__c(std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int._S_value((($a[0]) ? {a: ($a[0]).a, i: ($a[0]).i} : null)));
+      return (($t140 = new std_Identity_int(), $t140)).op_call__c(std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int._S_value((($a[0]) ? {a: ($a[0]).a, i: ($a[0]).i} : null)));
     }
     else if ($a.length >= 1 && $a.length <= 1 && ($a[0] === null || typeof $a[0] === "object")) {
-      return (($t138 = new std_Identity_int(), $t138)).op_call__c(std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int._S_value((($a[0]) ? {a: ($a[0]).a, i: ($a[0]).i} : null)));
+      return (($t141 = new std_Identity_int(), $t141)).op_call__c(std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int._S_value((($a[0]) ? {a: ($a[0]).a, i: ($a[0]).i} : null)));
     }
     else { throw new Error("no matching overload"); }
   }
@@ -4070,15 +4070,15 @@ class std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int {
     return (((__x.a[__x.i])._M_right) ? {a: ((__x.a[__x.i])._M_right).a, i: ((__x.a[__x.i])._M_right).i} : null);
   }
   _M_get_insert_unique_pos(__k) {
-    let $t139, $t140, $t141;
-    let __x = ($t139 = this._M_begin(), $t139 ? {a: $t139.a, i: $t139.i} : null);
-    let __y = ($t140 = this._M_end(), $t140 ? {a: $t140.a, i: $t140.i} : null);
+    let $t142, $t143, $t144;
+    let __x = ($t142 = this._M_begin(), $t142 ? {a: $t142.a, i: $t142.i} : null);
+    let __y = ($t143 = this._M_end(), $t143 ? {a: $t143.a, i: $t143.i} : null);
     let __comp = true;
     while ((__x !== null)) {
        {
         __y = (__x ? {a: __x.a, i: __x.i} : null);
         __comp = this._M_impl._M_key_compare.op_call__c(__k, std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int._S_key((__x ? {a: __x.a, i: __x.i} : null)));
-        __x = ($t141 = (__comp ? std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int._S_left((__x ? {a: __x.a, i: __x.i} : null)) : std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int._S_right((__x ? {a: __x.a, i: __x.i} : null))), $t141 ? {a: $t141.a, i: $t141.i} : null);
+        __x = ($t144 = (__comp ? std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int._S_left((__x ? {a: __x.a, i: __x.i} : null)) : std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int._S_right((__x ? {a: __x.a, i: __x.i} : null))), $t144 ? {a: $t144.a, i: $t144.i} : null);
       }
     }
     let __j = new std_Rb_tree_iterator_int((__y ? {a: __y.a, i: __y.i} : null));
@@ -4098,11 +4098,11 @@ class std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int {
     return new std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P({a: __j, i: "_M_node"}, {a: [null], i: 0});
   }
   _M_get_insert_hint_unique_pos(__position, __k) {
-    let $t142, $t143, $t144, $t145, $t146, $t147, $t148, $t149, $t150, $t151, $t152, $t153;
+    let $t145, $t146, $t147, $t148, $t149, $t150, $t151, $t152, $t153, $t154, $t155, $t156;
     let __pos = __position._M_const_cast__c();
-    if (($t143 = ($t142 = this._M_end(), $t142), (__pos._M_node === $t143 || (__pos._M_node && $t143 && __pos._M_node.a === $t143.a && __pos._M_node.i === $t143.i)))) {
+    if (($t146 = ($t145 = this._M_end(), $t145), (__pos._M_node === $t146 || (__pos._M_node && $t146 && __pos._M_node.a === $t146.a && __pos._M_node.i === $t146.i)))) {
        {
-        if (((this.size__c() > 0) && this._M_impl._M_key_compare.op_call__c(std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int._S_key(($t144 = this._M_rightmost(), $t145 = ($t144 ? $t144.a[$t144.i] : null), $t145 && $t145.a !== undefined ? {a: $t145.a, i: $t145.i} : $t145)), __k))) {
+        if (((this.size__c() > 0) && this._M_impl._M_key_compare.op_call__c(std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int._S_key(($t147 = this._M_rightmost(), $t148 = ($t147 ? $t147.a[$t147.i] : null), $t148 && $t148.a !== undefined ? {a: $t148.a, i: $t148.i} : $t148)), __k))) {
           return new std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P({a: [null], i: 0}, this._M_rightmost());
         }
         else {
@@ -4114,11 +4114,11 @@ class std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int {
       if (this._M_impl._M_key_compare.op_call__c(__k, std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int._S_key((__pos._M_node ? {a: __pos._M_node.a, i: __pos._M_node.i} : null)))) {
          {
           let __before = new std_Rb_tree_iterator_int({a: [__pos], i: 0});
-          if (($t147 = (($t146 = this._M_leftmost(), $t146) ? (($t146 = this._M_leftmost(), $t146)).a[(($t146 = this._M_leftmost(), $t146)).i] : null), (__pos._M_node === $t147 || (__pos._M_node && $t147 && __pos._M_node.a === $t147.a && __pos._M_node.i === $t147.i)))) {
+          if (($t150 = (($t149 = this._M_leftmost(), $t149) ? (($t149 = this._M_leftmost(), $t149)).a[(($t149 = this._M_leftmost(), $t149)).i] : null), (__pos._M_node === $t150 || (__pos._M_node && $t150 && __pos._M_node.a === $t150.a && __pos._M_node.i === $t150.i)))) {
             return new std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P(this._M_leftmost(), this._M_leftmost());
           }
           else {
-            if (this._M_impl._M_key_compare.op_call__c(std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int._S_key(($t149 = (($t148 = __before.op_dec(), $t148.a[$t148.i]))._M_node, $t149 ? {a: $t149.a, i: $t149.i} : null)), __k)) {
+            if (this._M_impl._M_key_compare.op_call__c(std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int._S_key(($t152 = (($t151 = __before.op_dec(), $t151.a[$t151.i]))._M_node, $t152 ? {a: $t152.a, i: $t152.i} : null)), __k)) {
                {
                 if ((std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int._S_right((__before._M_node ? {a: __before._M_node.a, i: __before._M_node.i} : null)) === null)) {
                   return new std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P({a: [null], i: 0}, {a: __before, i: "_M_node"});
@@ -4138,11 +4138,11 @@ class std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int {
         if (this._M_impl._M_key_compare.op_call__c(std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int._S_key((__pos._M_node ? {a: __pos._M_node.a, i: __pos._M_node.i} : null)), __k)) {
            {
             let __after = new std_Rb_tree_iterator_int({a: [__pos], i: 0});
-            if (($t151 = (($t150 = this._M_rightmost(), $t150) ? (($t150 = this._M_rightmost(), $t150)).a[(($t150 = this._M_rightmost(), $t150)).i] : null), (__pos._M_node === $t151 || (__pos._M_node && $t151 && __pos._M_node.a === $t151.a && __pos._M_node.i === $t151.i)))) {
+            if (($t154 = (($t153 = this._M_rightmost(), $t153) ? (($t153 = this._M_rightmost(), $t153)).a[(($t153 = this._M_rightmost(), $t153)).i] : null), (__pos._M_node === $t154 || (__pos._M_node && $t154 && __pos._M_node.a === $t154.a && __pos._M_node.i === $t154.i)))) {
               return new std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P({a: [null], i: 0}, this._M_rightmost());
             }
             else {
-              if (this._M_impl._M_key_compare.op_call__c(__k, std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int._S_key(($t153 = (($t152 = __after.op_inc(), $t152.a[$t152.i]))._M_node, $t153 ? {a: $t153.a, i: $t153.i} : null)))) {
+              if (this._M_impl._M_key_compare.op_call__c(__k, std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int._S_key(($t156 = (($t155 = __after.op_inc(), $t155.a[$t155.i]))._M_node, $t156 ? {a: $t156.a, i: $t156.i} : null)))) {
                  {
                   if ((std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int._S_right((__pos._M_node ? {a: __pos._M_node.a, i: __pos._M_node.i} : null)) === null)) {
                     return new std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P({a: [null], i: 0}, {a: __pos, i: "_M_node"});
@@ -4179,24 +4179,24 @@ class std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int {
     }
   }
   _M_insert_unique___rv(__position, __v) {
-    let $t154;
-    let __res = this._M_get_insert_hint_unique_pos(new std_Rb_tree_const_iterator_int({a: [__position], i: 0}), (($t154 = new std_Identity_int(), $t154)).op_call__c(__v));
+    let $t157;
+    let __res = this._M_get_insert_hint_unique_pos(new std_Rb_tree_const_iterator_int({a: [__position], i: 0}), (($t157 = new std_Identity_int(), $t157)).op_call__c(__v));
     if (__res.second) {
       return this._M_insert___rv((__res.first ? {a: __res.first.a, i: __res.first.i} : null), (__res.second ? {a: __res.second.a, i: __res.second.i} : null), std_forward_1_int(__v));
     }
     return new std_Rb_tree_iterator_int((__res.first ? {a: __res.first.a, i: __res.first.i} : null));
   }
   _M_insert___rv(__x, __p, __v) {
-    let $t155, $t156, $t157, $t158;
-    let __insert_left = (((__x !== null) || ($t156 = ($t155 = this._M_end(), $t155), (__p === $t156 || (__p && $t156 && __p.a === $t156.a && __p.i === $t156.i)))) || this._M_impl._M_key_compare.op_call__c((($t157 = new std_Identity_int(), $t157)).op_call__c(__v), std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int._S_key((__p ? {a: __p.a, i: __p.i} : null))));
-    let __z = ($t158 = this._M_create_node__rv(std_forward_1_int(__v)), $t158 ? {a: $t158.a, i: $t158.i} : null);
+    let $t158, $t159, $t160, $t161;
+    let __insert_left = (((__x !== null) || ($t159 = ($t158 = this._M_end(), $t158), (__p === $t159 || (__p && $t159 && __p.a === $t159.a && __p.i === $t159.i)))) || this._M_impl._M_key_compare.op_call__c((($t160 = new std_Identity_int(), $t160)).op_call__c(__v), std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int._S_key((__p ? {a: __p.a, i: __p.i} : null))));
+    let __z = ($t161 = this._M_create_node__rv(std_forward_1_int(__v)), $t161 ? {a: $t161.a, i: $t161.i} : null);
     std_Rb_tree_insert_and_rebalance(__insert_left, (__z ? {a: __z.a, i: __z.i} : null), (__p ? {a: __p.a, i: __p.i} : null), {a: this._M_impl, i: "_M_header"});
     ++this._M_impl._M_node_count;
     return new std_Rb_tree_iterator_int((__z ? {a: __z.a, i: __z.i} : null));
   }
   _M_create_node__rv(__args_0) {
-    let $t159;
-    let __tmp = ($t159 = this._M_get_node(), $t159 ? {a: $t159.a, i: $t159.i} : null);
+    let $t162;
+    let __tmp = ($t162 = this._M_get_node(), $t162 ? {a: $t162.a, i: $t162.i} : null);
     if (true) {
        {
         std_allocator_traits_std_allocator_std_Rb_tree_node_int.construct__rv(this._M_get_Node_allocator(), (__tmp ? {a: __tmp.a, i: __tmp.i} : null), std_forward_1_int(__args_0));
@@ -4216,10 +4216,10 @@ class std_set_int_std_less_int_std_allocator_int {
     this.__init_std_set_int_std_less_int_std_allocator_int(...$a);
   }
   __init_std_set_int_std_less_int_std_allocator_int(...$a) {
-    let $t160, $t161;
+    let $t163, $t164;
     this._M_t = new std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int(($a[1] === undefined ? ({a: [new std_less_int()], i: 0}) : $a[1]), {a: [(($a[2] === undefined ? ({a: [new std_allocator_int()], i: 0}) : $a[2])).a[(($a[2] === undefined ? ({a: [new std_allocator_int()], i: 0}) : $a[2])).i]], i: 0});
     this._M_t.ctj_a = this; this._M_t.ctj_i = "_M_t";
-    this._M_t._M_insert_unique(($t160 = ({a: $a[0], i: 0}), $t160 ? {a: $t160.a, i: $t160.i} : null), ($t161 = ({a: $a[0], i: ($a[0]).length}), $t161 ? {a: $t161.a, i: $t161.i} : null));
+    this._M_t._M_insert_unique(($t163 = ({a: $a[0], i: 0}), $t163 ? {a: $t163.a, i: $t163.i} : null), ($t164 = ({a: $a[0], i: ($a[0]).length}), $t164 ? {a: $t164.a, i: $t164.i} : null));
   }
   __dtor() {
   }
@@ -4247,7 +4247,7 @@ class std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P {
     this.__init_std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P(...$a);
   }
   __init_std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P(...$a) {
-    let $t162, $t163, $t164, $t165, $t166, $t167, $t168, $t169;
+    let $t165, $t166, $t167, $t168, $t169, $t170, $t171, $t172;
     if ($a.length >= 1 && $a.length <= 1 && ($a[0] !== null && typeof $a[0] === "object" && !Array.isArray($a[0]) && $a[0].a !== undefined && $a[0].i !== undefined && $a[0].a[$a[0].i] instanceof std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P)) {
       this.first = ($a[0] && $a[0].a ? $a[0].a[$a[0].i] : $a[0]).first;
       this.second = ($a[0] && $a[0].a ? $a[0].a[$a[0].i] : $a[0]).second;
@@ -4257,12 +4257,12 @@ class std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P {
       this.second = ((($a[1]).a[($a[1]).i]) ? {a: (($a[1]).a[($a[1]).i]).a, i: (($a[1]).a[($a[1]).i]).i} : null);
     }
     else if ($a.length >= 2 && $a.length <= 2 && ($a[0] === null || typeof $a[0] === "object") && ($a[1] === null || typeof $a[1] === "object")) {
-      this.first = ($t162 = std_forward_1_std_Rb_tree_node_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_P($a[0]), $t163 = ($t162 ? $t162.a[$t162.i] : null), $t163 && $t163.a !== undefined ? {a: $t163.a, i: $t163.i} : $t163);
-      this.second = ($t164 = std_forward_1_std_Rb_tree_node_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_P($a[1]), $t165 = ($t164 ? $t164.a[$t164.i] : null), $t165 && $t165.a !== undefined ? {a: $t165.a, i: $t165.i} : $t165);
+      this.first = ($t165 = std_forward_1_std_Rb_tree_node_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_P($a[0]), $t166 = ($t165 ? $t165.a[$t165.i] : null), $t166 && $t166.a !== undefined ? {a: $t166.a, i: $t166.i} : $t166);
+      this.second = ($t167 = std_forward_1_std_Rb_tree_node_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_P($a[1]), $t168 = ($t167 ? $t167.a[$t167.i] : null), $t168 && $t168.a !== undefined ? {a: $t168.a, i: $t168.i} : $t168);
     }
     else if ($a.length >= 2 && $a.length <= 2 && ($a[0] === null || typeof $a[0] === "object") && ($a[1] === null || typeof $a[1] === "object")) {
-      this.first = ($t166 = std_forward_1_std_Rb_tree_node_int_P($a[0]), $t167 = ($t166 ? $t166.a[$t166.i] : null), $t167 && $t167.a !== undefined ? {a: $t167.a, i: $t167.i} : $t167);
-      this.second = ($t168 = std_forward_1_std_Rb_tree_node_int_P($a[1]), $t169 = ($t168 ? $t168.a[$t168.i] : null), $t169 && $t169.a !== undefined ? {a: $t169.a, i: $t169.i} : $t169);
+      this.first = ($t169 = std_forward_1_std_Rb_tree_node_int_P($a[0]), $t170 = ($t169 ? $t169.a[$t169.i] : null), $t170 && $t170.a !== undefined ? {a: $t170.a, i: $t170.i} : $t170);
+      this.second = ($t171 = std_forward_1_std_Rb_tree_node_int_P($a[1]), $t172 = ($t171 ? $t171.a[$t171.i] : null), $t172 && $t172.a !== undefined ? {a: $t172.a, i: $t172.i} : $t172);
     }
     else { throw new Error("no matching constructor"); }
   }
@@ -6307,9 +6307,9 @@ class std_move_iterator_std_basic_string_char_std_char_traits_char_std_allocator
     this.__init_std_move_iterator_std_basic_string_char_std_char_traits_char_std_allocator_char_P(...$a);
   }
   __init_std_move_iterator_std_basic_string_char_std_char_traits_char_std_allocator_char_P(...$a) {
-    let $t170;
+    let $t173;
     if ($a.length >= 1 && $a.length <= 1 && ($a[0] !== null && typeof $a[0] === "object" && !Array.isArray($a[0]) && $a[0].a !== undefined && $a[0].i !== undefined && $a[0].a[$a[0].i] instanceof std_move_iterator_std_basic_string_char_std_char_traits_char_std_allocator_char_P)) {
-      this._M_current = ($t170 = (($a[0]).a[($a[0]).i]).base__c(), $t170 ? {a: $t170.a, i: $t170.i} : null);
+      this._M_current = ($t173 = (($a[0]).a[($a[0]).i]).base__c(), $t173 ? {a: $t173.a, i: $t173.i} : null);
     }
     else if ($a.length >= 1 && $a.length <= 1 && ($a[0] === null || typeof $a[0] === "object")) {
       this._M_current = (($a[0]) ? {a: ($a[0]).a, i: ($a[0]).i} : null);
@@ -10635,9 +10635,9 @@ class std_move_iterator_std_vector_int_std_allocator_int_P {
     this.__init_std_move_iterator_std_vector_int_std_allocator_int_P(...$a);
   }
   __init_std_move_iterator_std_vector_int_std_allocator_int_P(...$a) {
-    let $t171;
+    let $t174;
     if ($a.length >= 1 && $a.length <= 1 && ($a[0] !== null && typeof $a[0] === "object" && !Array.isArray($a[0]) && $a[0].a !== undefined && $a[0].i !== undefined && $a[0].a[$a[0].i] instanceof std_move_iterator_std_vector_int_std_allocator_int_P)) {
-      this._M_current = ($t171 = (($a[0]).a[($a[0]).i]).base__c(), $t171 ? {a: $t171.a, i: $t171.i} : null);
+      this._M_current = ($t174 = (($a[0]).a[($a[0]).i]).base__c(), $t174 ? {a: $t174.a, i: $t174.i} : null);
     }
     else if ($a.length >= 1 && $a.length <= 1 && ($a[0] === null || typeof $a[0] === "object")) {
       this._M_current = (($a[0]) ? {a: ($a[0]).a, i: ($a[0]).i} : null);
@@ -11972,9 +11972,9 @@ class std_move_iterator_int_P {
     this.__init_std_move_iterator_int_P(...$a);
   }
   __init_std_move_iterator_int_P(...$a) {
-    let $t172;
+    let $t175;
     if ($a.length >= 1 && $a.length <= 1 && ($a[0] !== null && typeof $a[0] === "object" && !Array.isArray($a[0]) && $a[0].a !== undefined && $a[0].i !== undefined && $a[0].a[$a[0].i] instanceof std_move_iterator_int_P)) {
-      this._M_current = ($t172 = (($a[0]).a[($a[0]).i]).base__c(), $t172 ? {a: $t172.a, i: $t172.i} : null);
+      this._M_current = ($t175 = (($a[0]).a[($a[0]).i]).base__c(), $t175 ? {a: $t175.a, i: $t175.i} : null);
     }
     else if ($a.length >= 1 && $a.length <= 1 && ($a[0] === null || typeof $a[0] === "object")) {
       this._M_current = (($a[0]) ? {a: ($a[0]).a, i: ($a[0]).i} : null);
@@ -12328,9 +12328,9 @@ class gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int {
     this.__init_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int(...$a);
   }
   __init_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int(...$a) {
-    let $t173, $t174;
+    let $t176, $t177;
     if ($a.length >= 1 && $a.length <= 1 && ($a[0] !== null && typeof $a[0] === "object" && !Array.isArray($a[0]) && $a[0].a !== undefined && $a[0].i !== undefined && $a[0].a[$a[0].i] instanceof gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int)) {
-      this._M_current = ($t173 = (($a[0]).a[($a[0]).i]).base__c(), $t174 = ($t173 ? $t173.a[$t173.i] : null), $t174 && $t174.a !== undefined ? {a: $t174.a, i: $t174.i} : $t174);
+      this._M_current = ($t176 = (($a[0]).a[($a[0]).i]).base__c(), $t177 = ($t176 ? $t176.a[$t176.i] : null), $t177 && $t177.a !== undefined ? {a: $t177.a, i: $t177.i} : $t177);
     }
     else if ($a.length >= 1 && $a.length <= 1 && ($a[0] === null || typeof $a[0] === "object")) {
       this._M_current = ((($a[0]).a[($a[0]).i]) ? {a: (($a[0]).a[($a[0]).i]).a, i: (($a[0]).a[($a[0]).i]).i} : null);
@@ -12799,22 +12799,22 @@ function gnu_cxx_exchange_and_add_dispatch(__mem, __val) {
   return gnu_cxx_exchange_and_add_single((__mem ? {a: __mem.a, i: __mem.i} : null), __val);
 }
 function std_swap_int_P(__a, __b) {
-  let $t175, $t176, $t177, $t178, $t179, $t180;
-  let __tmp = {v: ($t175 = std_move_int_P(__a), $t176 = ($t175 ? $t175.a[$t175.i] : null), $t176 && $t176.a !== undefined ? {a: $t176.a, i: $t176.i} : $t176)};
-  __a.a[__a.i] = ($t177 = std_move_int_P(__b), $t178 = ($t177 ? $t177.a[$t177.i] : null), $t178 && $t178.a !== undefined ? {a: $t178.a, i: $t178.i} : $t178);
-  __b.a[__b.i] = ($t179 = std_move_int_P({a: __tmp, i: "v"}), $t180 = ($t179 ? $t179.a[$t179.i] : null), $t180 && $t180.a !== undefined ? {a: $t180.a, i: $t180.i} : $t180);
+  let $t178, $t179, $t180, $t181, $t182, $t183;
+  let __tmp = {v: ($t178 = std_move_int_P(__a), $t179 = ($t178 ? $t178.a[$t178.i] : null), $t179 && $t179.a !== undefined ? {a: $t179.a, i: $t179.i} : $t179)};
+  __a.a[__a.i] = ($t180 = std_move_int_P(__b), $t181 = ($t180 ? $t180.a[$t180.i] : null), $t181 && $t181.a !== undefined ? {a: $t181.a, i: $t181.i} : $t181);
+  __b.a[__b.i] = ($t182 = std_move_int_P({a: __tmp, i: "v"}), $t183 = ($t182 ? $t182.a[$t182.i] : null), $t183 && $t183.a !== undefined ? {a: $t183.a, i: $t183.i} : $t183);
 }
 function std_Rb_tree_increment__std_Rb_tree_node_baseP(...$a) { var x=$a[0]; if(!x) return null; var n=x.a[x.i]; if(n._M_right){ x=n._M_right; n=x.a[x.i]; while(n._M_left){ x=n._M_left; n=x.a[x.i]; } return {a:x.a,i:x.i}; } var y=n._M_parent; while(y){ var p=y.a[y.i]; if(!_ctj_peq(x,p._M_right)) break; x=y; n=p; y=n._M_parent; } n=x.a[x.i]; if(!n._M_right||!_ctj_peq(n._M_right,y)) x=y; return x?{a:x.a,i:x.i}:null; }
 function std_Rb_tree_decrement__std_Rb_tree_node_baseP(...$a) { var x=$a[0]; if(!x) return null; var n=x.a[x.i]; var yp=n._M_parent&&n._M_parent.a[n._M_parent.i]; if(n._M_color===0&&yp&&yp._M_parent&&_ctj_peq(yp._M_parent,x)){ x=n._M_right; return x?{a:x.a,i:x.i}:null; } if(n._M_left){ x=n._M_left; n=x.a[x.i]; while(n._M_right){ x=n._M_right; n=x.a[x.i]; } return {a:x.a,i:x.i}; } var y=n._M_parent; while(y){ var p=y.a[y.i]; if(!_ctj_peq(x,p._M_left)) break; x=y; n=p; y=n._M_parent; } return y?{a:y.a,i:y.i}:null; }
 function std_Rb_tree_insert_and_rebalance(...$a) { var left=$a[0],x=$a[1],p=$a[2],h=$a[3];var xn=x.a[x.i],pn=p.a[p.i],hn=h.a[h.i];xn._M_parent={a:p.a,i:p.i};xn._M_left=null;xn._M_right=null;xn._M_color=0;if(left){pn._M_left={a:x.a,i:x.i};if(_ctj_peq(p,h)){hn._M_parent={a:x.a,i:x.i};hn._M_right={a:x.a,i:x.i};}else if(_ctj_peq(p,hn._M_left)) hn._M_left={a:x.a,i:x.i};}else{pn._M_right={a:x.a,i:x.i};if(_ctj_peq(p,hn._M_right)) hn._M_right={a:x.a,i:x.i};}if(hn._M_parent){var r=hn._M_parent.a[hn._M_parent.i];if(r) r._M_color=1;} }
 function main() {
-  let $t181, $t182, $t183, $t184, $t185, $t186, $t187, $t188, $t189, $t190, $t191, $t192, $t193, $t194;
+  let $t184, $t185, $t186, $t187, $t188, $t189, $t190, $t191, $t192, $t193, $t194, $t195, $t196, $t197;
   let v = new std_vector_std_basic_string_char_std_char_traits_char_std_allocator_char_std_allocator_std_basic_string_char_std_char_traits_char_std_allocator_char([new std_basic_string_char_std_char_traits_char_std_allocator_char({a: [97, 0], i: 0}), new std_basic_string_char_std_char_traits_char_std_allocator_char({a: [98, 98, 0], i: 0})], {a: [new std_allocator_std_basic_string_char_std_char_traits_char_std_allocator_char()], i: 0});
-  ($t183 = ($t182 = ($t181 = (__ctj_write(__ctj_fmt(v.size__c())), std_cout), __ctj_write(__ctj_fmt([32, 0])), $t181), __ctj_write(__ctj_fmt(v.op_index(1))), $t182), __ctj_write("\n"), $t183);
+  ($t186 = ($t185 = ($t184 = (__ctj_write(__ctj_fmt(v.size__c())), std_cout), __ctj_write(__ctj_fmt([32, 0])), $t184), __ctj_write(__ctj_fmt(v.op_index(1))), $t185), __ctj_write("\n"), $t186);
   let m = new std_map_std_basic_string_char_std_char_traits_char_std_allocator_char_int_std_less_std_basic_string_char_std_char_traits_char_std_allocator_char_std_allocator_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int([new std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int({a: [120, 0], i: 0}, {a: [1], i: 0}), new std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int({a: [121, 0], i: 0}, {a: [2], i: 0})], {a: [new std_less_std_basic_string_char_std_char_traits_char_std_allocator_char()], i: 0}, {a: [new std_allocator_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int()], i: 0});
   for (let $b0 = new std_Rb_tree_iterator_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int({a: [m.begin()], i: 0}), $e0 = new std_Rb_tree_iterator_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int({a: [m.end()], i: 0}); $b0.op_ne__c({a: [$e0], i: 0}); $b0.op_inc()) {
     let kv = $b0.op_mul__c();
-    ($t186 = ($t185 = ($t184 = (__ctj_write(__ctj_fmt((kv.a[kv.i]).first)), std_cout), __ctj_write(__ctj_fmt([58, 0])), $t184), __ctj_write(__ctj_fmt((kv.a[kv.i]).second)), $t185), __ctj_write(__ctj_fmt([32, 0])), $t186);
+    ($t189 = ($t188 = ($t187 = (__ctj_write(__ctj_fmt((kv.a[kv.i]).first)), std_cout), __ctj_write(__ctj_fmt([58, 0])), $t187), __ctj_write(__ctj_fmt((kv.a[kv.i]).second)), $t188), __ctj_write(__ctj_fmt([32, 0])), $t189);
   }
   (__ctj_write("\n"), std_cout);
   let s = new std_set_int_std_less_int_std_allocator_int([5, 6, 5], {a: [new std_less_int()], i: 0}, {a: [new std_allocator_int()], i: 0});
@@ -12824,7 +12824,7 @@ function main() {
   }
   (__ctj_write("\n"), std_cout);
   let vv = new std_vector_std_vector_int_std_allocator_int_std_allocator_std_vector_int_std_allocator_int([new std_vector_int_std_allocator_int([1, 2], {a: [new std_allocator_int()], i: 0}), new std_vector_int_std_allocator_int([3], {a: [new std_allocator_int()], i: 0})], {a: [new std_allocator_std_vector_int_std_allocator_int()], i: 0});
-  ($t194 = ($t193 = ($t192 = ($t191 = ($t190 = (__ctj_write(__ctj_fmt(vv.size__c())), std_cout), __ctj_write(__ctj_fmt([32, 0])), $t190), __ctj_write(__ctj_fmt((($t189 = vv.op_index(0), $t189.a[$t189.i])).size__c())), $t191), __ctj_write(__ctj_fmt([32, 0])), $t192), __ctj_write(__ctj_fmt(($t187 = (($t188 = vv.op_index(1), $t188.a[$t188.i])).op_index(0), $t187.a[$t187.i]))), $t193), __ctj_write("\n"), $t194);
+  ($t197 = ($t196 = ($t195 = ($t194 = ($t193 = (__ctj_write(__ctj_fmt(vv.size__c())), std_cout), __ctj_write(__ctj_fmt([32, 0])), $t193), __ctj_write(__ctj_fmt((($t192 = vv.op_index(0), $t192.a[$t192.i])).size__c())), $t194), __ctj_write(__ctj_fmt([32, 0])), $t195), __ctj_write(__ctj_fmt(($t190 = (($t191 = vv.op_index(1), $t191.a[$t191.i])).op_index(0), $t190.a[$t190.i]))), $t196), __ctj_write("\n"), $t197);
 }
 function std_min_long(__a, __b) {
   if ((__b.a[__b.i] < __a.a[__a.i])) {
@@ -12923,33 +12923,33 @@ function std_operator_3_int_P_int_P(__x, __y) {
   return (!(std_operator_3_int_P_int_P_1030(__x, __y)));
 }
 function std_uninitialized_move_if_noexcept_a_std_basic_string_char_std_char_traits_char_std_allocator_char_P_std_basic_string_char_std_char_traits_char_std_allocator_char_P_std_allocator_std_basic_string_char_std_char_traits_char_std_allocator_char(__first, __last, __result, __alloc) {
-  let $t195;
-  return ($t195 = std_uninitialized_copy_a_std_move_iterator_std_basic_string_char_std_char_traits_char_std_allocator_char_P_std_basic_string_char_std_char_traits_char_std_allocator_char_P_std_allocator_std_basic_string_char_std_char_traits_char_std_allocator_char(std_make_move_if_noexcept_iterator_std_basic_string_char_std_char_traits_char_std_allocator_char_P_std_move_iterator_std_basic_string_char_std_char_traits_char_std_allocator_char_P((__first ? {a: __first.a, i: __first.i} : null)), std_make_move_if_noexcept_iterator_std_basic_string_char_std_char_traits_char_std_allocator_char_P_std_move_iterator_std_basic_string_char_std_char_traits_char_std_allocator_char_P((__last ? {a: __last.a, i: __last.i} : null)), (__result ? {a: __result.a, i: __result.i} : null), __alloc), $t195 ? {a: $t195.a, i: $t195.i} : null);
+  let $t198;
+  return ($t198 = std_uninitialized_copy_a_std_move_iterator_std_basic_string_char_std_char_traits_char_std_allocator_char_P_std_basic_string_char_std_char_traits_char_std_allocator_char_P_std_allocator_std_basic_string_char_std_char_traits_char_std_allocator_char(std_make_move_if_noexcept_iterator_std_basic_string_char_std_char_traits_char_std_allocator_char_P_std_move_iterator_std_basic_string_char_std_char_traits_char_std_allocator_char_P((__first ? {a: __first.a, i: __first.i} : null)), std_make_move_if_noexcept_iterator_std_basic_string_char_std_char_traits_char_std_allocator_char_P_std_move_iterator_std_basic_string_char_std_char_traits_char_std_allocator_char_P((__last ? {a: __last.a, i: __last.i} : null)), (__result ? {a: __result.a, i: __result.i} : null), __alloc), $t198 ? {a: $t198.a, i: $t198.i} : null);
 }
 function std_uninitialized_move_if_noexcept_a_std_vector_int_std_allocator_int_P_std_vector_int_std_allocator_int_P_std_allocator_std_vector_int_std_allocator_int(__first, __last, __result, __alloc) {
-  let $t196;
-  return ($t196 = std_uninitialized_copy_a_std_move_iterator_std_vector_int_std_allocator_int_P_std_vector_int_std_allocator_int_P_std_allocator_std_vector_int_std_allocator_int(std_make_move_if_noexcept_iterator_std_vector_int_std_allocator_int_P_std_move_iterator_std_vector_int_std_allocator_int_P((__first ? {a: __first.a, i: __first.i} : null)), std_make_move_if_noexcept_iterator_std_vector_int_std_allocator_int_P_std_move_iterator_std_vector_int_std_allocator_int_P((__last ? {a: __last.a, i: __last.i} : null)), (__result ? {a: __result.a, i: __result.i} : null), __alloc), $t196 ? {a: $t196.a, i: $t196.i} : null);
+  let $t199;
+  return ($t199 = std_uninitialized_copy_a_std_move_iterator_std_vector_int_std_allocator_int_P_std_vector_int_std_allocator_int_P_std_allocator_std_vector_int_std_allocator_int(std_make_move_if_noexcept_iterator_std_vector_int_std_allocator_int_P_std_move_iterator_std_vector_int_std_allocator_int_P((__first ? {a: __first.a, i: __first.i} : null)), std_make_move_if_noexcept_iterator_std_vector_int_std_allocator_int_P_std_move_iterator_std_vector_int_std_allocator_int_P((__last ? {a: __last.a, i: __last.i} : null)), (__result ? {a: __result.a, i: __result.i} : null), __alloc), $t199 ? {a: $t199.a, i: $t199.i} : null);
 }
 function std_uninitialized_move_if_noexcept_a_int_P_int_P_std_allocator_int(__first, __last, __result, __alloc) {
-  let $t197;
-  return ($t197 = std_uninitialized_copy_a_std_move_iterator_int_P_int_P_std_allocator_int(std_make_move_if_noexcept_iterator_int_P_std_move_iterator_int_P((__first ? {a: __first.a, i: __first.i} : null)), std_make_move_if_noexcept_iterator_int_P_std_move_iterator_int_P((__last ? {a: __last.a, i: __last.i} : null)), (__result ? {a: __result.a, i: __result.i} : null), __alloc), $t197 ? {a: $t197.a, i: $t197.i} : null);
+  let $t200;
+  return ($t200 = std_uninitialized_copy_a_std_move_iterator_int_P_int_P_std_allocator_int(std_make_move_if_noexcept_iterator_int_P_std_move_iterator_int_P((__first ? {a: __first.a, i: __first.i} : null)), std_make_move_if_noexcept_iterator_int_P_std_move_iterator_int_P((__last ? {a: __last.a, i: __last.i} : null)), (__result ? {a: __result.a, i: __result.i} : null), __alloc), $t200 ? {a: $t200.a, i: $t200.i} : null);
 }
 function std_Destroy_2_std_basic_string_char_std_char_traits_char_std_allocator_char_P_std_allocator_std_basic_string_char_std_char_traits_char_std_allocator_char(__first, __last, __alloc) {
-  let $t198;
+  let $t201;
   for (; (!(__first === __last || (__first && __last && __first.a === __last.a && __first.i === __last.i))); ++__first.i) {
-    gnu_cxx_alloc_traits_std_allocator_std_basic_string_char_std_char_traits_char_std_allocator_char.destroy(__alloc, ($t198 = std_addressof_std_basic_string_char_std_char_traits_char_std_allocator_char(__first), $t198 ? {a: $t198.a, i: $t198.i} : null));
+    gnu_cxx_alloc_traits_std_allocator_std_basic_string_char_std_char_traits_char_std_allocator_char.destroy(__alloc, ($t201 = std_addressof_std_basic_string_char_std_char_traits_char_std_allocator_char(__first), $t201 ? {a: $t201.a, i: $t201.i} : null));
   }
 }
 function std_Destroy_2_std_vector_int_std_allocator_int_P_std_allocator_std_vector_int_std_allocator_int(__first, __last, __alloc) {
-  let $t199;
+  let $t202;
   for (; (!(__first === __last || (__first && __last && __first.a === __last.a && __first.i === __last.i))); ++__first.i) {
-    gnu_cxx_alloc_traits_std_allocator_std_vector_int_std_allocator_int.destroy(__alloc, ($t199 = std_addressof_std_vector_int_std_allocator_int(__first), $t199 ? {a: $t199.a, i: $t199.i} : null));
+    gnu_cxx_alloc_traits_std_allocator_std_vector_int_std_allocator_int.destroy(__alloc, ($t202 = std_addressof_std_vector_int_std_allocator_int(__first), $t202 ? {a: $t202.a, i: $t202.i} : null));
   }
 }
 function std_Destroy_2_int_P_std_allocator_int(__first, __last, __alloc) {
-  let $t200;
+  let $t203;
   for (; (!(__first === __last || (__first && __last && __first.a === __last.a && __first.i === __last.i))); ++__first.i) {
-    gnu_cxx_alloc_traits_std_allocator_int.destroy(__alloc, ($t200 = std_addressof_int(__first), $t200 ? {a: $t200.a, i: $t200.i} : null));
+    gnu_cxx_alloc_traits_std_allocator_int.destroy(__alloc, ($t203 = std_addressof_int(__first), $t203 ? {a: $t203.a, i: $t203.i} : null));
   }
 }
 function std_max_unsigned_long_long(__a, __b) {
@@ -12968,12 +12968,12 @@ function std_make_move_if_noexcept_iterator_int_P_std_move_iterator_int_P(__i) {
   return new std_move_iterator_int_P((__i ? {a: __i.a, i: __i.i} : null));
 }
 function std_uninitialized_copy_a_std_move_iterator_std_basic_string_char_std_char_traits_char_std_allocator_char_P_std_basic_string_char_std_char_traits_char_std_allocator_char_P_std_allocator_std_basic_string_char_std_char_traits_char_std_allocator_char(__first, __last, __result, __alloc) {
-  let $t201;
+  let $t204;
   let __cur = (__result ? {a: __result.a, i: __result.i} : null);
   if (true) {
      {
       for (; std_operator_3_std_basic_string_char_std_char_traits_char_std_allocator_char_P_std_basic_string_char_std_char_traits_char_std_allocator_char_P({a: [__first], i: 0}, {a: [__last], i: 0}); (__first.op_inc(), ++__cur.i)) {
-        gnu_cxx_alloc_traits_std_allocator_std_basic_string_char_std_char_traits_char_std_allocator_char.construct(__alloc, ($t201 = std_addressof_std_basic_string_char_std_char_traits_char_std_allocator_char(__cur), $t201 ? {a: $t201.a, i: $t201.i} : null), __first.op_mul__c());
+        gnu_cxx_alloc_traits_std_allocator_std_basic_string_char_std_char_traits_char_std_allocator_char.construct(__alloc, ($t204 = std_addressof_std_basic_string_char_std_char_traits_char_std_allocator_char(__cur), $t204 ? {a: $t204.a, i: $t204.i} : null), __first.op_mul__c());
       }
       return (__cur ? {a: __cur.a, i: __cur.i} : null);
     }
@@ -12985,12 +12985,12 @@ function std_uninitialized_copy_a_std_move_iterator_std_basic_string_char_std_ch
   }
 }
 function std_uninitialized_copy_a_std_move_iterator_std_vector_int_std_allocator_int_P_std_vector_int_std_allocator_int_P_std_allocator_std_vector_int_std_allocator_int(__first, __last, __result, __alloc) {
-  let $t202;
+  let $t205;
   let __cur = (__result ? {a: __result.a, i: __result.i} : null);
   if (true) {
      {
       for (; std_operator_3_std_vector_int_std_allocator_int_P_std_vector_int_std_allocator_int_P({a: [__first], i: 0}, {a: [__last], i: 0}); (__first.op_inc(), ++__cur.i)) {
-        gnu_cxx_alloc_traits_std_allocator_std_vector_int_std_allocator_int.construct(__alloc, ($t202 = std_addressof_std_vector_int_std_allocator_int(__cur), $t202 ? {a: $t202.a, i: $t202.i} : null), __first.op_mul__c());
+        gnu_cxx_alloc_traits_std_allocator_std_vector_int_std_allocator_int.construct(__alloc, ($t205 = std_addressof_std_vector_int_std_allocator_int(__cur), $t205 ? {a: $t205.a, i: $t205.i} : null), __first.op_mul__c());
       }
       return (__cur ? {a: __cur.a, i: __cur.i} : null);
     }
@@ -13002,12 +13002,12 @@ function std_uninitialized_copy_a_std_move_iterator_std_vector_int_std_allocator
   }
 }
 function std_uninitialized_copy_a_std_move_iterator_int_P_int_P_std_allocator_int(__first, __last, __result, __alloc) {
-  let $t203;
+  let $t206;
   let __cur = (__result ? {a: __result.a, i: __result.i} : null);
   if (true) {
      {
       for (; std_operator_3_int_P_int_P({a: [__first], i: 0}, {a: [__last], i: 0}); (__first.op_inc(), ++__cur.i)) {
-        gnu_cxx_alloc_traits_std_allocator_int.construct(__alloc, ($t203 = std_addressof_int(__cur), $t203 ? {a: $t203.a, i: $t203.i} : null), __first.op_mul__c());
+        gnu_cxx_alloc_traits_std_allocator_int.construct(__alloc, ($t206 = std_addressof_int(__cur), $t206 ? {a: $t206.a, i: $t206.i} : null), __first.op_mul__c());
       }
       return (__cur ? {a: __cur.a, i: __cur.i} : null);
     }
@@ -13019,12 +13019,12 @@ function std_uninitialized_copy_a_std_move_iterator_int_P_int_P_std_allocator_in
   }
 }
 function std_uninitialized_copy_a_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int_int_P_std_allocator_int(__first, __last, __result, __alloc) {
-  let $t204;
+  let $t207;
   let __cur = (__result ? {a: __result.a, i: __result.i} : null);
   if (true) {
      {
       for (; gnu_cxx_operator_int_P_int_P_std_vector_int_std_allocator_int({a: [__first], i: 0}, {a: [__last], i: 0}); (__first.op_inc(), ++__cur.i)) {
-        gnu_cxx_alloc_traits_std_allocator_int.construct(__alloc, ($t204 = std_addressof_int(__cur), $t204 ? {a: $t204.a, i: $t204.i} : null), __first.op_mul__c());
+        gnu_cxx_alloc_traits_std_allocator_int.construct(__alloc, ($t207 = std_addressof_int(__cur), $t207 ? {a: $t207.a, i: $t207.i} : null), __first.op_mul__c());
       }
       return (__cur ? {a: __cur.a, i: __cur.i} : null);
     }
@@ -13063,20 +13063,20 @@ function std_move_int_P(__t) {
   return __t;
 }
 function std_operator_3_std_basic_string_char_std_char_traits_char_std_allocator_char_P_std_basic_string_char_std_char_traits_char_std_allocator_char_P_1030(__x, __y) {
-  let $t205, $t206, $t207, $t208;
-  return ($t207 = ($t205 = (__x.a[__x.i]).base__c(), $t205), $t208 = ($t206 = (__y.a[__y.i]).base__c(), $t206), ($t207 === $t208 || ($t207 && $t208 && $t207.a === $t208.a && $t207.i === $t208.i)));
+  let $t208, $t209, $t210, $t211;
+  return ($t210 = ($t208 = (__x.a[__x.i]).base__c(), $t208), $t211 = ($t209 = (__y.a[__y.i]).base__c(), $t209), ($t210 === $t211 || ($t210 && $t211 && $t210.a === $t211.a && $t210.i === $t211.i)));
 }
 function std_operator_3_std_vector_int_std_allocator_int_P_std_vector_int_std_allocator_int_P_1030(__x, __y) {
-  let $t209, $t210, $t211, $t212;
-  return ($t211 = ($t209 = (__x.a[__x.i]).base__c(), $t209), $t212 = ($t210 = (__y.a[__y.i]).base__c(), $t210), ($t211 === $t212 || ($t211 && $t212 && $t211.a === $t212.a && $t211.i === $t212.i)));
+  let $t212, $t213, $t214, $t215;
+  return ($t214 = ($t212 = (__x.a[__x.i]).base__c(), $t212), $t215 = ($t213 = (__y.a[__y.i]).base__c(), $t213), ($t214 === $t215 || ($t214 && $t215 && $t214.a === $t215.a && $t214.i === $t215.i)));
 }
 function std_operator_3_int_P_int_P_1030(__x, __y) {
-  let $t213, $t214, $t215, $t216;
-  return ($t215 = ($t213 = (__x.a[__x.i]).base__c(), $t213), $t216 = ($t214 = (__y.a[__y.i]).base__c(), $t214), ($t215 === $t216 || ($t215 && $t216 && $t215.a === $t216.a && $t215.i === $t216.i)));
+  let $t216, $t217, $t218, $t219;
+  return ($t218 = ($t216 = (__x.a[__x.i]).base__c(), $t216), $t219 = ($t217 = (__y.a[__y.i]).base__c(), $t217), ($t218 === $t219 || ($t218 && $t219 && $t218.a === $t219.a && $t218.i === $t219.i)));
 }
 function gnu_cxx_operator_int_P_int_P_std_vector_int_std_allocator_int(__lhs, __rhs) {
-  let $t217, $t218, $t219, $t220, $t221, $t222;
-  return ($t221 = (($t219 = (__lhs.a[__lhs.i]).base__c(), $t219) ? (($t219 = (__lhs.a[__lhs.i]).base__c(), $t219)).a[(($t219 = (__lhs.a[__lhs.i]).base__c(), $t219)).i] : null), $t222 = (($t220 = (__rhs.a[__rhs.i]).base__c(), $t220) ? (($t220 = (__rhs.a[__rhs.i]).base__c(), $t220)).a[(($t220 = (__rhs.a[__rhs.i]).base__c(), $t220)).i] : null), (!($t221 === $t222 || ($t221 && $t222 && $t221.a === $t222.a && $t221.i === $t222.i))));
+  let $t220, $t221, $t222, $t223, $t224, $t225;
+  return ($t224 = (($t222 = (__lhs.a[__lhs.i]).base__c(), $t222) ? (($t222 = (__lhs.a[__lhs.i]).base__c(), $t222)).a[(($t222 = (__lhs.a[__lhs.i]).base__c(), $t222)).i] : null), $t225 = (($t223 = (__rhs.a[__rhs.i]).base__c(), $t223) ? (($t223 = (__rhs.a[__rhs.i]).base__c(), $t223)).a[(($t223 = (__rhs.a[__rhs.i]).base__c(), $t223)).i] : null), (!($t224 === $t225 || ($t224 && $t225 && $t224.a === $t225.a && $t224.i === $t225.i))));
 }
 let std_piecewise_construct = new std_piecewise_construct_t();
 let std_allocator_arg = new std_allocator_arg_t();

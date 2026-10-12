@@ -1622,7 +1622,9 @@ class JsGen {
         const cn = (this.cx.classes.get(fcls) as ClsInfo).mangled as string;
         return this.ctorExpr(cn, a.call as FuncInfo, vd.directInit, a.convs, t);
       }
-      return this.ex(vd.directInit[0]);
+      // The initializer is converted as a value of the variable's type: a
+      // pointer given zero is a null pointer, not the number zero.
+      return this.argFor(t, vd.directInit[0], null);
     }
     if (initListElemOf(this.cx, t)) return "[]";
     if (fcls && this.cx.classes.has(fcls)) {
@@ -3024,12 +3026,22 @@ class JsGen {
       const body = `({a: ${this.parr(b.v[0])}, i: (${l}) + ${this.pidx(b.v[0])}})`;
       return b.pre ? `(${b.pre}, ${body})` : body;
     }
+    // The result of the operation is an "unsigned int", and such a value wraps
+    // at 32 bits: the target language's arithmetic would go on past it.
+    const uwrap = !!a.t && !(a.t as CppType).isBox() && !(a.t as CppType).dims.length &&
+      !(a.t as CppType).isFunc && (a.t as CppType).ptr === 0 && coreName(a.t as CppType) === "unsigned int";
     if (e.op === "<<" || e.op === ">>") {
       if (e.op === ">>" && lt && coreName(lt).startsWith("unsigned")) return `(${l} >>> ${r})`;
+      if (e.op === "<<" && uwrap) return `((${l} << ${r}) >>> 0)`;
       return `(${l} ${e.op} ${r})`;
     }
     if (e.op === "/" && lt && rt && isIntegerName(coreName(lt)) && isIntegerName(coreName(rt))) {
-      return `(Math.trunc(${l} / ${r}))`;
+      const q = `Math.trunc(${l} / ${r})`;
+      return uwrap ? `((${q}) >>> 0)` : `(${q})`;
+    }
+    if (uwrap) {
+      if (e.op === "+" || e.op === "-") return `((${l} ${e.op} ${r}) >>> 0)`;
+      if (e.op === "*") return `((Math.imul(${l}, ${r})) >>> 0)`;
     }
     return `(${l} ${e.op} ${r})`;
   }

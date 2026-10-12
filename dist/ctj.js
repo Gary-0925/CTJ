@@ -12262,7 +12262,9 @@ var CTJ;
                     const cn = this.cx.classes.get(fcls).mangled;
                     return this.ctorExpr(cn, a.call, vd.directInit, a.convs, t);
                 }
-                return this.ex(vd.directInit[0]);
+                // The initializer is converted as a value of the variable's type: a
+                // pointer given zero is a null pointer, not the number zero.
+                return this.argFor(t, vd.directInit[0], null);
             }
             if (CTJ.initListElemOf(this.cx, t))
                 return "[]";
@@ -13812,13 +13814,26 @@ var CTJ;
                 const body = `({a: ${this.parr(b.v[0])}, i: (${l}) + ${this.pidx(b.v[0])}})`;
                 return b.pre ? `(${b.pre}, ${body})` : body;
             }
+            // The result of the operation is an "unsigned int", and such a value wraps
+            // at 32 bits: the target language's arithmetic would go on past it.
+            const uwrap = !!a.t && !a.t.isBox() && !a.t.dims.length &&
+                !a.t.isFunc && a.t.ptr === 0 && CTJ.coreName(a.t) === "unsigned int";
             if (e.op === "<<" || e.op === ">>") {
                 if (e.op === ">>" && lt && CTJ.coreName(lt).startsWith("unsigned"))
                     return `(${l} >>> ${r})`;
+                if (e.op === "<<" && uwrap)
+                    return `((${l} << ${r}) >>> 0)`;
                 return `(${l} ${e.op} ${r})`;
             }
             if (e.op === "/" && lt && rt && CTJ.isIntegerName(CTJ.coreName(lt)) && CTJ.isIntegerName(CTJ.coreName(rt))) {
-                return `(Math.trunc(${l} / ${r}))`;
+                const q = `Math.trunc(${l} / ${r})`;
+                return uwrap ? `((${q}) >>> 0)` : `(${q})`;
+            }
+            if (uwrap) {
+                if (e.op === "+" || e.op === "-")
+                    return `((${l} ${e.op} ${r}) >>> 0)`;
+                if (e.op === "*")
+                    return `((Math.imul(${l}, ${r})) >>> 0)`;
             }
             return `(${l} ${e.op} ${r})`;
         }
@@ -16776,4 +16791,4 @@ var CTJ;
     g["CTJ"] = CTJ;
 })();
 
-CTJ.version = "57bfcd5 2026-10-12 06:20:38Z";
+CTJ.version = "e46bad8 2026-10-12 07:04:39Z";
