@@ -53,7 +53,7 @@ export function annotateListElems(cx: Cx, fn: FuncInfo, il: Expr, scope: Scope):
           cx.getAnn(item).convs = r.convs;
         }
       } catch {
-        /* the emitter reports a value it cannot build */
+        // the emitter reports a value it cannot build
       }
       continue;
     }
@@ -71,7 +71,7 @@ export function annotateListElems(cx: Cx, fn: FuncInfo, il: Expr, scope: Scope):
         for (const c of r.convs) if (c && c.fn) cx.markFunc(c.fn);
       }
     } catch {
-      /* the emitter reports a value it cannot build */
+      // the emitter reports a value it cannot build
     }
   }
 }
@@ -118,9 +118,6 @@ export function setCopyCtor(cx: Cx, e: CallExpr, ret: CppType, scope: Scope): vo
   }
 }
 
-// The constructor of the class p that a braced list of items builds: an
-// initializer_list constructor first, as in C++, otherwise one taking the items.
-// Recorded on the list so that the code generator can build the object.
 // Depth of the resolutions that take a braced list as the one argument of a
 // constructor.  Those consider the initializer_list constructors only, as the
 // first step of list-initialization does: a braced list is not turned into a
@@ -128,6 +125,9 @@ export function setCopyCtor(cx: Cx, e: CallExpr, ret: CppType, scope: Scope): vo
 // takes "{\"x\", 1}").
 export let initListPhase = 0;
 
+// The constructor of the class p that a braced list of items builds: an
+// initializer_list constructor first, as in C++, otherwise one taking the items.
+// Recorded on the list so that the code generator can build the object.
 export function tryInitListCtor(cx: Cx, clsFq: string, args: { t: CppType; e: Expr }[], scope: Scope): { fn: FuncInfo; convs: ({ kind: string; fn: FuncInfo } | null)[] } | null {
   initListPhase++;
   try {

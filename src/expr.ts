@@ -1,3 +1,5 @@
+// Expression parsing by operator precedence, with casts, new/delete, sizeof and
+// function-style casts.
 namespace CTJ {
 
 function precOf(t: Tok): number {

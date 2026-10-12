@@ -1,3 +1,5 @@
+// Preprocessor: #include, #define and conditional compilation, plus the table of
+// built-in headers that the bundled include directory does not carry.
 namespace CTJ {
 
 export interface Macro {

@@ -1,3 +1,5 @@
+// Template substitution: rewrites types, names and expressions with template arguments,
+// including parameter packs.
 namespace CTJ {
 
 export interface SubstEnv {

@@ -1,3 +1,6 @@
+// Parser: the Parser class, the decl-spec and declarator machinery, and the entry
+// point parseTU.  Declarations, expressions and statements are read by decl.ts,
+// expr.ts and stmt.ts.
 namespace CTJ {
 
 export interface PendingBody {

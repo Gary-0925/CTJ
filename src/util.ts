@@ -1,3 +1,5 @@
+// Shared helpers: the compile error type, identifier classification, JavaScript-safe names,
+// string escaping and small collection utilities.
 namespace CTJ {
 
 export class CtxError extends Error {

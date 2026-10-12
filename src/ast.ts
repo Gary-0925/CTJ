@@ -1,3 +1,4 @@
+// AST node types for declarations, type names, expressions and statements.
 namespace CTJ {
 
 export interface At {

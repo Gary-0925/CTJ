@@ -1,3 +1,5 @@
+// Semantic model: the C++ type representation (CppType), scopes and symbols, and Cx,
+// the program state that collects classes, functions and template instantiations.
 namespace CTJ {
 
 export class CppType {
@@ -645,6 +647,10 @@ export class Cx {
     this.addFunc(scope, d.op ? "operator" + d.op : short, d, scope);
   }
 
+  // The kinds of arguments a declaration takes, so that a definition is merged
+  // into the declaration of its own overload rather than into a sibling that
+  // happens to take the same number of them ("merge(list&&)" against
+  // "merge(list&)", which delegates to it).
   methodKey(d: FuncDecl, short: string): string {
     if (d.isCtor) return "#ctor";
     if (d.isDtor) return "#dtor";
@@ -653,10 +659,6 @@ export class Cx {
     return short;
   }
 
-  // The kinds of arguments a declaration takes, so that a definition is merged
-  // into the declaration of its own overload rather than into a sibling that
-  // happens to take the same number of them ("merge(list&&)" against
-  // "merge(list&)", which delegates to it).
   // What tells an out-of-line definition from another overload: the parameters,
   // by type when asked strictly (the name of each is its last segment, so a
   // definition may write "std::size_t" where the declaration wrote "size_t").
@@ -998,7 +1000,6 @@ export class Cx {
     return this.tmplParamSig(t) + "|" + rs;
   }
 
-  // Every template declared under this name, for overload resolution.
   // Every template, overloads included: "tmpls" keeps one entry per name, so
   // scanning it alone would see only the last "operator!=" of a namespace.
   allTmpls(): TmplInfo[] {
@@ -2017,7 +2018,7 @@ export class Cx {
           try {
             typeOf(this, decl.init, this.memberScope(owner));
           } catch {
-            /* the emitter reports a value it cannot evaluate */
+            // the emitter reports a value it cannot evaluate
           }
         }
       } else if (t.kind === "func" && !rest.length) {

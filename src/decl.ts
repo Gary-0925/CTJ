@@ -1,3 +1,5 @@
+// Declaration parsing: classes, enums, namespaces, using-declarations and the members
+// of a class body.
 namespace CTJ {
 
 export interface ClassHead {

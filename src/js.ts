@@ -1,3 +1,4 @@
+// JavaScript code generator: emits the collected program as JavaScript (class JsGen).
 namespace CTJ {
 
 // The bucket counts libstdc++'s unordered containers grow through, from
@@ -765,7 +766,7 @@ class JsGen {
         this.line(`throw new Error("pure virtual called");`);
       } else {
         for (const b of fn.baseAssigns) {
-       
+
           this.line(`this.__assign_${(this.cx.classes.get(b) as ClsInfo).mangled}.call(this, $p0);`);
         }
         this.fnStack.push(fn);

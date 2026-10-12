@@ -1,3 +1,5 @@
+// Statement parsing: compound statements, control flow and declarations that appear
+// inside a function body.
 namespace CTJ {
 
 const DECL_START = new Set([

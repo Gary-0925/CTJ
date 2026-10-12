@@ -1,3 +1,4 @@
+// Lexer: turns C++ source text into tokens (identifiers, literals, operators).
 namespace CTJ {
 
 const OPS3: Record<string, Tok> = {

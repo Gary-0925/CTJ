@@ -1,3 +1,4 @@
+// Token kinds and the token record that the lexer produces and the parser reads.
 namespace CTJ {
 
 export type Tok =

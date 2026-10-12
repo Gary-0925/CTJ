@@ -1,3 +1,5 @@
+// Public API: transpile(source, options) runs the whole pipeline and returns the
+// JavaScript.
 namespace CTJ {
 
 export interface TranspileOptions {
