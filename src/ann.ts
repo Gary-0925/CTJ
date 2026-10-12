@@ -131,7 +131,6 @@ function deduceAuto(cx: Cx, declT: CppType, initT: CppType, t: At): CppType {
 function analyzeFunc(cx: Cx, fn: FuncInfo): void {
   fn.analyzed = true;
   if (!fn.decl.body || fn.isDelete) return;
-  if (ioRuntimeKind(fn)) return;
   analyzeFuncBody(cx, fn);}
 
 function analyzeFuncBody(cx: Cx, fn: FuncInfo): void {

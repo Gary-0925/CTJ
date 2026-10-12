@@ -280,7 +280,9 @@ function typeOfUnary(cx: Cx, e: UnaryExpr, scope: Scope): CppType {
       return cx.funcRet(r.fn);
     }
     if (at.isFunc) return at;
-    if (at.ref !== "") {
+    // A reference to a pointer (int*& r) is dereferenced like the pointer it
+    // refers to; a reference to a plain object keeps its type.
+    if (at.ref !== "" && at.ptr === 0) {
       const t = new CppType(at.name);
       t.segs = at.segs;
       t.ptr = at.ptr;
@@ -347,28 +349,6 @@ function typeOfUnary(cx: Cx, e: UnaryExpr, scope: Scope): CppType {
 function typeOfBinary(cx: Cx, e: BinaryExpr, scope: Scope): CppType {
   const rawL = typeOf(cx, e.l, scope);
   const ann = cx.getAnn(e);
-  // Formatted iostream insertion pulls in locale/num_put/_M_insert. Emit a
-  // builtin write instead of analysing those bodies.
-  if (e.op === "<<" && isOstreamLike(cx, rawL.core())) {
-    if (!streamManipName(e.r)) {
-      const rt = typeOf(cx, e.r, scope);
-      const rc = !rt.isBox() && !rt.isFunc && !rt.dims.length ? String(rt.core().key()) : "";
-      // "cout << hex" and "cout << setw(6)" are calls after all: the first is
-      // a function of the stream, the second an object of its own that knows
-      // how to set the width.  Both hand the stream back, so what is printed
-      // after them is printed the way they asked for.
-      if (rt.isFunc || rc.indexOf("std::_Set") === 0) {
-        const r = findOperator(cx, e.op, { t: rawL, e: e.l }, { t: rt, e: e.r }, scope, e);
-        if (r) {
-          ann.call = r.fn;
-          ann.convs = r.convs;
-          return cx.funcRet(r.fn);
-        }
-      }
-    }
-    ann.call = { builtin: "__ctj_out" };
-    return rawL;
-  }
   const rawR = typeOf(cx, e.r, scope);
   if (e.op === ",") return rawR;
   // Outside a plain assignment an lvalue of reference type behaves as the type
@@ -1015,7 +995,8 @@ function scoreFunc(cx: Cx, f: FuncInfo, args: { t: CppType; e: Expr }[], scope: 
   return { viable: true, score, convs };
 }
 
-// Address of an overloaded function / function template, as in cout << endl:
+// Address of an overloaded function / function template (passed as a
+// function pointer argument):
 // the parameter is a function pointer and the argument names a template.
 function instantiateAddrOf(cx: Cx, e: Expr, p: CppType, scope: Scope): FuncInfo | null {
   if (!p.isFunc) return null;
@@ -1365,12 +1346,6 @@ function isLvalueExpr(cx: Cx, e: Expr): boolean {
 export function matchScore(cx: Cx, p: CppType, a: CppType, e: Expr | null, scope: Scope, allowConv: boolean): MatchResult {
   if (p.name === "__any" || a.name === "__any") return { s: 80, conv: null };
   if (p.key() === a.key()) return { s: 100, conv: null };
-  // An lvalue does not bind to an rvalue reference. Restricted to iostreams
-  // so perfect-forwarding templates keep working.
-  if (p.ref === "&&" && a.ref !== "&&" && e && isLvalueExpr(cx, e)) {
-    const fq = cx.stripAll(p);
-    if (fq.indexOf("basic_ostream") >= 0 || fq.indexOf("basic_istream") >= 0) return NOMATCH;
-  }
   if (a.name === "__null") {
     if (p.ptr > 0 || p.isFunc) return { s: 70, conv: null };
     if (coreName(p) === "bool") return { s: 50, conv: null };
@@ -1626,31 +1601,6 @@ export function isDerived(cx: Cx, from: string, to: string): boolean {
 export function coreName(t: CppType): string {
   if (!t.segs.length) return t.name;
   return last(t.segs).n;
-}
-
-export function streamManipName(e: Expr): string | null {
-  if (e.kind !== "id") return null;
-  const n = last((e as IdExpr).parts).n;
-  if (n === "endl" || n === "flush" || n === "ends") return n;
-  return null;
-}
-
-export function isOstreamLike(cx: Cx, t: CppType): boolean {
-  const fq = cx.stripAll(t);
-  if (!fq) return false;
-  const seen = new Set<string>();
-  const q = [fq];
-  while (q.length) {
-    const cur = q.shift() as string;
-    if (seen.has(cur)) continue;
-    seen.add(cur);
-    const short = cur.split("::").pop() as string;
-    if (cur === "std::ostream" || cur === "std::wostream" || cur.startsWith("std::basic_ostream<")) return true;
-    if (short === "ostream" || short === "wostream" || short.startsWith("basic_ostream<")) return true;
-    const cls = cx.classes.get(cur);
-    if (cls) for (const b of cls.bases) q.push(b.fq);
-  }
-  return false;
 }
 
 export function isClassVal(cx: Cx, t: CppType): boolean {

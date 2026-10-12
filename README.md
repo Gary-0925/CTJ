@@ -81,7 +81,9 @@ npm test                # 运行 test/cases 下的全部用例
 已知限制：
 
 - `#include <algorithm>` 会让解析器在 `bits/random.tcc` 里失去同步，把后面的 `main` 一起吃掉，最后只剩一条 `no main function found`；`<algorithm>` 目前不要用（`std::max`、`std::min` 由 `bits/stl_algobase.h` 提供，随 `<vector>` 一起可用）。另外 `include/` 还缺少 `bits/uniform_int_dist.h`。
-- `<iostream>` 一类头文件会在 `bits/locale_classes.h` 的 `locale::id` 处失败。
+- `<iostream>` 的输出已改为 CTJ 手写的头文件实现（见 `include/ostream`），不再依赖 libstdc++ 原版；`cin`、`<sstream>`、`<fstream>` 仍不支持。
+- PHP 后端不支持按值传递类对象，因此 `std::setw`、`std::setprecision`、`std::setfill`、`std::setbase` 在 PHP 目标下会失败（基线同样失败）。
 - `include/stdio.h` 只声明了 `printf` 一族而没有实现，调用它们会在运行时抛出 `unresolved external`；请用 `__ctj_js` / `__ctj_php` 输出。
-- libstdc++ 的 `iostream` / `locale` 依赖编译好的库文件，无法转译。
+- `cerr` / `clog` 目前与 `cout` 一样写到标准输出；`ostringstream` 不可用。
+- JavaScript 目标下，未以换行结束的最后一行会留在 `globalThis.__ctjpend`，由宿主（如 `index.html` 的 `run()`）负责输出。
 - 转译结果使用 JavaScript 的 `number`，`long long`、`unsigned` 等只保证在 53 位整数范围内语义一致。

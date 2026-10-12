@@ -86,13 +86,6 @@ export function isUnsignedName(n: string): boolean {
     n === "unsigned long" || n === "unsigned long long";
 }
 
-// The 64-bit unsigned types: a JS number cannot hold their range, so they are
-// kept as the signed value and only the printer turns them back into digits.
-export function isWideName(n: string): boolean {
-  return n === "unsigned long" || n === "unsigned long long" || n === "size_t" ||
-    n === "unsigned __int128";
-}
-
 
 // "std::initializer_list<T>" is the array its elements are made of: a value of
 // the type is that array, and the header's own "begin", "end" and "size" are
@@ -2410,40 +2403,6 @@ export class Cx {
 
 export function isBoxedVar(t: CppType): boolean {
   return t.isBox() && !t.isFunc;
-}
-
-// libstdc++ iostreams live in a .cc we do not have (locale, num_put, the
-// sentry). Named methods below are replaced with host stdout instead.
-export function ioRuntimeKind(fn: FuncInfo): string {
-  const cls = fn.cls || "";
-  const short = fn.short;
-  const fq = fn.fq;
-  if (fq.indexOf("__ostream_insert") >= 0) return "sinsert";
-  if (cls.indexOf("::sentry") >= 0) {
-    if (fn.isCtor) return "sentry_ctor";
-    if (fn.isConv || short.indexOf("#conv") === 0 || short === "operator bool") return "sentry_bool";
-    return "noop";
-  }
-  if (cls.indexOf("basic_ostream") >= 0) {
-    if (short === "_M_insert") return "insert";
-    if (short === "put") return "put";
-    if (short === "write") return "write";
-    if (short === "flush") return "flush";
-  }
-  if (cls.indexOf("basic_ios") >= 0) {
-    if (short === "widen" || short === "narrow") return "widen";
-    if (short === "init" || short === "_M_cache_locale") return "noop";
-  }
-  if (cls === "std::ios_base" || /::ios_base$/.test(cls)) {
-    if (fn.isCtor || fn.isDtor || short === "_M_init") return "noop";
-  }
-  if (cls.indexOf("ios_base") >= 0 && /::Init$/.test(cls)) {
-    if (fn.isCtor || fn.isDtor) return "noop";
-  }
-  if ((cls === "std::locale" || /::locale$/.test(cls)) && cls.indexOf("facet") < 0 && cls.indexOf("_Impl") < 0) {
-    if (fn.isCtor || fn.isDtor) return "noop";
-  }
-  return "";
 }
 
 // Pointers and references keep a token of their own: folding every

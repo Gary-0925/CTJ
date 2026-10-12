@@ -405,12 +405,18 @@ function run() {
     log: (...a) => lines.push(a.map(fmtValue).join(" ")),
     error: (...a) => lines.push(a.map(fmtValue).join(" ")),
   };
+  // The transpiled stream code keeps the text of an unfinished line in
+  // globalThis.__ctjpend; it is printed once the program has ended.
+  globalThis.__ctjpend = "";
+  const flushPending = () => { if (globalThis.__ctjpend) lines.push(globalThis.__ctjpend); globalThis.__ctjpend = ""; };
   try {
     new Function("console", lastCode)(shim);
+    flushPending();
     $("out").className = "";
     $("out").textContent = lines.join("\n");
     setStatus("运行完成");
   } catch (err) {
+    flushPending();
     $("out").className = "err";
     $("out").textContent = lines.join("\n") + (lines.length ? "\n" : "") + "运行时错误: " + err.message;
     setStatus("运行出错");

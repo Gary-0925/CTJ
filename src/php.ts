@@ -52,7 +52,6 @@ class PhpGen {
   fnStack: FuncInfo[] = [];
   usedGlobals: Set<string> = new Set();
   needThrow = false;
-  needStreamFmt = false;
 
   constructor(cx: Cx) {
     this.cx = cx;
@@ -60,7 +59,6 @@ class PhpGen {
 
   run(): string {
     this.line(`<?php`);
-    if (this.needsIoHelpers()) this.emitIoHelpers();
     for (const c of this.sortClasses()) {
       if (!c.referenced || c.isLambda) continue;
       this.emitClass(c);
@@ -91,16 +89,9 @@ class PhpGen {
       const args = ps.length >= 3 ? ["0", `["a" => [], "i" => 0]`, "null"] : ps.length === 2 ? ["0", `["a" => [], "i" => 0]`] : ps.length === 1 ? ["0"] : [];
       this.line(`${phpFuncName(main)}(${args.join(", ")});`);
     }
-    if (this.needStreamFmt) this.out.splice(1, 0, this.streamHelper());
     return this.out.join("\n") + "\n";
   }
 
-  streamHelper(): string {
-    return [
-      `function __ctj_fmt($v) { for ($n = 0; $n < 4 && is_array($v) && array_key_exists("a", $v) && array_key_exists("i", $v) && !is_array($v["a"]); $n++) $v = $v["a"][$v["i"]]; if ($v === null) return "0"; if (is_bool($v)) return $v ? "1" : "0"; if (is_int($v) || is_float($v)) return (string)$v; if (is_string($v)) return $v; $a = is_array($v) && array_key_exists("a", $v) ? $v["a"] : (is_array($v) && array_values($v) === $v ? $v : null); $i = is_array($v) && array_key_exists("i", $v) ? $v["i"] : 0; if (is_array($a)) { $s = ""; for ($k = (int)$i; $k < count($a) && $a[$k]; $k++) $s .= chr($a[$k]); return $s; } return (string)$v; }`,
-      `function __ctj_write($s) { echo $s; }`,
-    ].join("\n");
-  }
 
   sortClasses(): ClsInfo[] {
     const cs = [...this.cx.classes.values()].filter(c => c.complete && c.referenced && !c.isLambda);
@@ -605,7 +596,7 @@ class PhpGen {
   }
 
   emitMethod(c: ClsInfo, fns: FuncInfo[]): void {
-    const use = fns.filter(f => f.referenced && ((f.decl.body || []).length || f.decl.flags.includes("pure") || !!ioRuntimeKind(f)));
+    const use = fns.filter(f => f.referenced && ((f.decl.body || []).length || f.decl.flags.includes("pure")));
     if (!use.length) return;
     const groups = new Map<string, FuncInfo[]>();
     for (const f of use) {
@@ -620,11 +611,6 @@ class PhpGen {
     const m = phpMethodName(use[0]);
     const pre = use[0].isStatic ? "static " : "";
     void c;
-    const io = ioRuntimeKind(use[0]);
-    if (io) {
-      this.line(`${pre}function ${m}(...$a) { ${this.ioStubBody(io, true)} }`);
-      return;
-    }
     if (use.length === 1) {
       const fn = use[0];
       const ps = this.cx.funcParams(fn);
@@ -680,72 +666,6 @@ class PhpGen {
     this.line(`}`);
   }
 
-  needsIoHelpers(): boolean {
-    for (const list of this.cx.funcs.values()) {
-      for (const f of list) if (f.referenced && ioRuntimeKind(f)) return true;
-    }
-    for (const c of this.cx.classes.values()) {
-      if (!c.referenced) continue;
-      for (const fns of c.methods.values()) {
-        for (const f of fns) if (f.referenced && ioRuntimeKind(f)) return true;
-      }
-    }
-    return false;
-  }
-
-  emitIoHelpers(): void {
-    this.line(`function _ctj_cstr($p, $n = null) {`);
-    this.line(`  if ($p === null) return "";`);
-    this.line(`  $a = (is_array($p) && array_key_exists("a", $p)) ? $p["a"] : $p;`);
-    this.line(`  $i = (is_array($p) && array_key_exists("i", $p)) ? intval($p["i"]) : 0;`);
-    this.line(`  $lim = ($n === null) ? 1000000000 : intval($n);`);
-    this.line(`  $s = "";`);
-    this.line(`  for ($k = 0; $k < $lim; $k++) {`);
-    this.line(`    if (!isset($a[$i + $k])) break;`);
-    this.line(`    $c = $a[$i + $k];`);
-    this.line(`    if ($c === 0 || $c === null) break;`);
-    this.line(`    $s .= is_int($c) ? chr($c & 255) : strval($c);`);
-    this.line(`  }`);
-    this.line(`  return $s;`);
-    this.line(`}`);
-    this.line(`function _ctj_fmt($v) {`);
-    this.line(`  for ($n = 0; $n < 4 && is_array($v) && array_key_exists("a", $v) && array_key_exists("i", $v) && !is_array($v["a"]); $n++) $v = $v["a"][$v["i"]];`);
-    this.line(`  if ($v === null) return "0";`);
-    this.line(`  if (is_bool($v)) return $v ? "1" : "0";`);
-    this.line(`  if (is_int($v) || is_float($v)) return (string)$v;`);
-    this.line(`  if (is_string($v)) return $v;`);
-    this.line(`  if (is_array($v) && array_key_exists("a", $v)) return _ctj_cstr($v);`);
-    this.line(`  return strval($v);`);
-    this.line(`}`);
-  }
-
-  ioStubBody(kind: string, isMethod: boolean): string {
-    const retThis = isMethod ? "return [\"a\" => [$this], \"i\" => 0];" : "return $a[0];";
-    switch (kind) {
-      case "insert":
-        return `echo _ctj_fmt($a[0]); ${retThis}`;
-      case "put":
-        return `echo is_int($a[0]) ? chr($a[0] & 255) : _ctj_fmt($a[0]); ${retThis}`;
-      case "write":
-        return `echo _ctj_cstr($a[0], $a[1]); ${retThis}`;
-      case "sinsert":
-        return `echo _ctj_cstr($a[1], $a[2]); return $a[0];`;
-      case "flush":
-        return retThis;
-      case "widen":
-        return `return $a[0];`;
-      case "sentry_ctor":
-        return `$this->_M_ok = true;`;
-      case "sentry_bool":
-        return `return 1;`;
-      default:
-        return "";
-    }
-  }
-
-  // The allocation operators are declared by <new> with no body; storage comes
-  // from the target language, and freeing is its business too. A placement
-  // version hands back the pointer it was given.
   allocStub(f: FuncInfo): string | null {
     if (f.fq === "operatornew" || f.fq === "operatornew[]") {
       return this.cx.funcParams(f).length > 1 ? "return $a[1];" : `return ["a" => array_fill(0, $a[0], 0), "i" => 0];`;
@@ -755,11 +675,6 @@ class PhpGen {
   }
 
   emitFunc(f: FuncInfo): void {
-    const io = ioRuntimeKind(f);
-    if (io) {
-      this.line(`function ${phpFuncName(f)}(...$a) { ${this.ioStubBody(io, false)} }`);
-      return;
-    }
     if (!(f.decl.body || []).length) {
       const alloc = this.allocStub(f);
       if (alloc !== null) this.line(`function ${phpFuncName(f)}(...$a) { ${alloc} }`);
@@ -814,10 +729,6 @@ class PhpGen {
 
   emitGlobal(v: VarInfo): void {
     if (!v.referenced && !v.decl.init && !v.decl.directInit) return;
-    if (v.isGlobal && /^(cout|cerr|clog|wcout|wcerr|wclog)$/.test(v.short)) {
-      this.line(`$${v.mangled} = new stdClass();`);
-      return;
-    }
     const t = v.typeCache as CppType;
     if (v.lifted) {
       this.line(`$${v.mangled} = null;`);
@@ -2072,34 +1983,8 @@ class PhpGen {
     return this.ex(e.arg);
   }
 
-  exStreamOut(e: BinaryExpr): string {
-    this.needStreamFmt = true;
-    const manip = streamManipName(e.r);
-    let payload: string;
-    if (manip === "endl") payload = `"\\n"`;
-    else if (manip === "ends") payload = `"\\0"`;
-    else if (manip === "flush") payload = `""`;
-    else {
-      const rt = this.cx.getAnn(e.r).t as CppType | null;
-      const core = rt ? coreName(rt) : "";
-      const rs = this.ex(e.r);
-      if (rt && !rt.ptr && !rt.dims.length && (core === "char" || core === "signed char" || core === "unsigned char" || core === "wchar_t")) {
-        payload = `chr(${rs})`;
-      } else {
-        payload = `__ctj_fmt(${rs})`;
-      }
-    }
-    const l = this.ex(e.l);
-    if (this.isSimple(e.l)) return `(__ctj_write(${payload}), ${l})`;
-    const t = this.tmp();
-    return `(${t} = ${l}, __ctj_write(${payload}), ${t})`;
-  }
-
   exBinary(e: BinaryExpr): string {
     const a = this.cx.getAnn(e);
-    if (a.call && typeof a.call === "object" && "builtin" in (a.call as object)) {
-      return this.exStreamOut(e);
-    }
     if (a.call) {
       const fn = a.call as FuncInfo;
       const ps = this.cx.funcParams(fn);

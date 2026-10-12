@@ -27,6 +27,13 @@ stdio.h stdlib.h string.h time.h unistd.h wchar.h wctype.h x86intrin.h`
 - `stddef.h` 提供 `size_t` / `ptrdiff_t` / `NULL` / `offsetof`。
 - `x86intrin.h` 是空壳：`bits/opt_random.h` 无条件包含它，只需要让包含成功。
 
+## 输出流
+
+`<ostream>`、`<iostream>`、`<ios>`、`<iomanip>`、`<istream>` 为 CTJ 手写，不使用 libstdc++ 原版，
+输出直接在头文件中通过 `__ctj_js` / `__ctj_php` 实现（`include/ostream` 中的 `_CTJ_OUT_JS` / `_CTJ_OUT_PHP`），
+转译器对 `ostream` 没有任何特判。`cout` / `cerr` / `clog` 目前都写到标准输出。
+`cin`、`<sstream>`、`<fstream>` 仍是存根。
+
 ## 增删头文件
 
 直接在目录里添加或修改文件即可，重新 `npm run build` 会刷新 `include.json`。

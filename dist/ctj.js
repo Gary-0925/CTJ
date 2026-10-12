@@ -4222,13 +4222,6 @@ var CTJ;
             n === "unsigned long" || n === "unsigned long long";
     }
     CTJ.isUnsignedName = isUnsignedName;
-    // The 64-bit unsigned types: a JS number cannot hold their range, so they are
-    // kept as the signed value and only the printer turns them back into digits.
-    function isWideName(n) {
-        return n === "unsigned long" || n === "unsigned long long" || n === "size_t" ||
-            n === "unsigned __int128";
-    }
-    CTJ.isWideName = isWideName;
     // "std::initializer_list<T>" is the array its elements are made of: a value of
     // the type is that array, and the header's own "begin", "end" and "size" are
     // answered from it.  The element type comes back for a type naming one of those
@@ -6587,52 +6580,6 @@ var CTJ;
         return t.isBox() && !t.isFunc;
     }
     CTJ.isBoxedVar = isBoxedVar;
-    // libstdc++ iostreams live in a .cc we do not have (locale, num_put, the
-    // sentry). Named methods below are replaced with host stdout instead.
-    function ioRuntimeKind(fn) {
-        const cls = fn.cls || "";
-        const short = fn.short;
-        const fq = fn.fq;
-        if (fq.indexOf("__ostream_insert") >= 0)
-            return "sinsert";
-        if (cls.indexOf("::sentry") >= 0) {
-            if (fn.isCtor)
-                return "sentry_ctor";
-            if (fn.isConv || short.indexOf("#conv") === 0 || short === "operator bool")
-                return "sentry_bool";
-            return "noop";
-        }
-        if (cls.indexOf("basic_ostream") >= 0) {
-            if (short === "_M_insert")
-                return "insert";
-            if (short === "put")
-                return "put";
-            if (short === "write")
-                return "write";
-            if (short === "flush")
-                return "flush";
-        }
-        if (cls.indexOf("basic_ios") >= 0) {
-            if (short === "widen" || short === "narrow")
-                return "widen";
-            if (short === "init" || short === "_M_cache_locale")
-                return "noop";
-        }
-        if (cls === "std::ios_base" || /::ios_base$/.test(cls)) {
-            if (fn.isCtor || fn.isDtor || short === "_M_init")
-                return "noop";
-        }
-        if (cls.indexOf("ios_base") >= 0 && /::Init$/.test(cls)) {
-            if (fn.isCtor || fn.isDtor)
-                return "noop";
-        }
-        if ((cls === "std::locale" || /::locale$/.test(cls)) && cls.indexOf("facet") < 0 && cls.indexOf("_Impl") < 0) {
-            if (fn.isCtor || fn.isDtor)
-                return "noop";
-        }
-        return "";
-    }
-    CTJ.ioRuntimeKind = ioRuntimeKind;
     // Pointers and references keep a token of their own: folding every
     // punctuation into "_" made "T<int&>" and "T<int>" come out as one identifier,
     // which the target language rejects as a duplicate declaration.
@@ -7408,8 +7355,6 @@ var CTJ;
     function analyzeFunc(cx, fn) {
         fn.analyzed = true;
         if (!fn.decl.body || fn.isDelete)
-            return;
-        if (CTJ.ioRuntimeKind(fn))
             return;
         analyzeFuncBody(cx, fn);
     }
@@ -8387,7 +8332,9 @@ var CTJ;
             }
             if (at.isFunc)
                 return at;
-            if (at.ref !== "") {
+            // A reference to a pointer (int*& r) is dereferenced like the pointer it
+            // refers to; a reference to a plain object keeps its type.
+            if (at.ref !== "" && at.ptr === 0) {
                 const t = new CTJ.CppType(at.name);
                 t.segs = at.segs;
                 t.ptr = at.ptr;
@@ -8457,28 +8404,6 @@ var CTJ;
     function typeOfBinary(cx, e, scope) {
         const rawL = typeOf(cx, e.l, scope);
         const ann = cx.getAnn(e);
-        // Formatted iostream insertion pulls in locale/num_put/_M_insert. Emit a
-        // builtin write instead of analysing those bodies.
-        if (e.op === "<<" && isOstreamLike(cx, rawL.core())) {
-            if (!streamManipName(e.r)) {
-                const rt = typeOf(cx, e.r, scope);
-                const rc = !rt.isBox() && !rt.isFunc && !rt.dims.length ? String(rt.core().key()) : "";
-                // "cout << hex" and "cout << setw(6)" are calls after all: the first is
-                // a function of the stream, the second an object of its own that knows
-                // how to set the width.  Both hand the stream back, so what is printed
-                // after them is printed the way they asked for.
-                if (rt.isFunc || rc.indexOf("std::_Set") === 0) {
-                    const r = findOperator(cx, e.op, { t: rawL, e: e.l }, { t: rt, e: e.r }, scope, e);
-                    if (r) {
-                        ann.call = r.fn;
-                        ann.convs = r.convs;
-                        return cx.funcRet(r.fn);
-                    }
-                }
-            }
-            ann.call = { builtin: "__ctj_out" };
-            return rawL;
-        }
         const rawR = typeOf(cx, e.r, scope);
         if (e.op === ",")
             return rawR;
@@ -9208,7 +9133,8 @@ var CTJ;
             score -= 1;
         return { viable: true, score, convs };
     }
-    // Address of an overloaded function / function template, as in cout << endl:
+    // Address of an overloaded function / function template (passed as a
+    // function pointer argument):
     // the parameter is a function pointer and the argument names a template.
     function instantiateAddrOf(cx, e, p, scope) {
         if (!p.isFunc)
@@ -9592,13 +9518,6 @@ var CTJ;
             return { s: 80, conv: null };
         if (p.key() === a.key())
             return { s: 100, conv: null };
-        // An lvalue does not bind to an rvalue reference. Restricted to iostreams
-        // so perfect-forwarding templates keep working.
-        if (p.ref === "&&" && a.ref !== "&&" && e && isLvalueExpr(cx, e)) {
-            const fq = cx.stripAll(p);
-            if (fq.indexOf("basic_ostream") >= 0 || fq.indexOf("basic_istream") >= 0)
-                return NOMATCH;
-        }
         if (a.name === "__null") {
             if (p.ptr > 0 || p.isFunc)
                 return { s: 70, conv: null };
@@ -9910,39 +9829,6 @@ var CTJ;
         return CTJ.last(t.segs).n;
     }
     CTJ.coreName = coreName;
-    function streamManipName(e) {
-        if (e.kind !== "id")
-            return null;
-        const n = CTJ.last(e.parts).n;
-        if (n === "endl" || n === "flush" || n === "ends")
-            return n;
-        return null;
-    }
-    CTJ.streamManipName = streamManipName;
-    function isOstreamLike(cx, t) {
-        const fq = cx.stripAll(t);
-        if (!fq)
-            return false;
-        const seen = new Set();
-        const q = [fq];
-        while (q.length) {
-            const cur = q.shift();
-            if (seen.has(cur))
-                continue;
-            seen.add(cur);
-            const short = cur.split("::").pop();
-            if (cur === "std::ostream" || cur === "std::wostream" || cur.startsWith("std::basic_ostream<"))
-                return true;
-            if (short === "ostream" || short === "wostream" || short.startsWith("basic_ostream<"))
-                return true;
-            const cls = cx.classes.get(cur);
-            if (cls)
-                for (const b of cls.bases)
-                    q.push(b.fq);
-        }
-        return false;
-    }
-    CTJ.isOstreamLike = isOstreamLike;
     function isClassVal(cx, t) {
         if (t.isBox() || t.dims.length > 0 || t.isFunc)
             return false;
@@ -10801,7 +10687,6 @@ var CTJ;
             this.exStack = [];
             this.rangeN = 0;
             this.fnStack = [];
-            this.needStreamFmt = false;
             this.cx = cx;
         }
         run() {
@@ -10810,8 +10695,6 @@ var CTJ;
                 this.line(`const PRIME_BUCKETS = [${PRIME_BUCKETS.join(", ")}];`);
             if (this.needsRbTreeHelpers())
                 this.emitPtrHelpers();
-            if (this.needsIoHelpers())
-                this.emitIoHelpers();
             for (const c of this.sortClasses()) {
                 if (!c.referenced || c.isLambda)
                     continue;
@@ -10841,21 +10724,8 @@ var CTJ;
                 const ps = this.cx.funcParams(main);
                 const args = ps.length >= 3 ? ["0", `{a: [], i: 0}`, "null"] : ps.length === 2 ? ["0", `{a: [], i: 0}`] : ps.length === 1 ? ["0"] : [];
                 this.line(`main(${args.join(", ")});`);
-                if (this.needStreamFmt)
-                    this.line(`__ctj_flush();`);
-            }
-            if (this.needStreamFmt) {
-                this.out.splice(1, 0, this.streamHelper());
             }
             return this.out.join("\n") + "\n";
-        }
-        streamHelper() {
-            return [
-                `var __ctj_obuf = "";`,
-                ...this.fmtHelperLines("__ctj_"),
-                `function __ctj_write(s) { s = String(s); if (typeof process !== "undefined" && process.stdout && process.stdout.write) { process.stdout.write(s); return; } __ctj_obuf += s; for (;;) { var n = __ctj_obuf.indexOf("\\n"); if (n < 0) break; console.log(__ctj_obuf.slice(0, n)); __ctj_obuf = __ctj_obuf.slice(n + 1); } }`,
-                `function __ctj_flush() { if (__ctj_obuf) { console.log(__ctj_obuf); __ctj_obuf = ""; } }`,
-            ].join("\n");
         }
         sortClasses() {
             const cs = [...this.cx.classes.values()].filter(c => c.complete && c.referenced && !c.isLambda);
@@ -11484,7 +11354,7 @@ var CTJ;
             });
         }
         emitMethod(c, fns) {
-            const use = fns.filter(f => f.referenced && ((f.decl.body || []).length || f.decl.flags.includes("pure") || !!CTJ.ioRuntimeKind(f) || !!this.listNodeStub(f) || !!this.hashPolicyStub(f) || !!this.hashBytesStub(f)));
+            const use = fns.filter(f => f.referenced && ((f.decl.body || []).length || f.decl.flags.includes("pure") || !!this.listNodeStub(f) || !!this.hashPolicyStub(f) || !!this.hashBytesStub(f)));
             if (!use.length)
                 return;
             const groups = new Map();
@@ -11501,11 +11371,6 @@ var CTJ;
             void c;
             const m = methodJsName(use[0]);
             const pre = use[0].isStatic ? "static " : "";
-            const io = CTJ.ioRuntimeKind(use[0]);
-            if (io) {
-                this.line(`${pre}${m}(...$a) { ${this.ioStubBody(io, true)} }`);
-                return;
-            }
             const list = this.listNodeStub(use[0]);
             if (list !== null) {
                 this.line(`${pre}${m}(...$a) { ${list} }`);
@@ -11608,110 +11473,6 @@ var CTJ;
                 }
             }
             return false;
-        }
-        needsIoHelpers() {
-            for (const list of this.cx.funcs.values()) {
-                for (const f of list)
-                    if (f.referenced && CTJ.ioRuntimeKind(f))
-                        return true;
-            }
-            for (const c of this.cx.classes.values()) {
-                if (!c.referenced)
-                    continue;
-                for (const fns of c.methods.values()) {
-                    for (const f of fns)
-                        if (f.referenced && CTJ.ioRuntimeKind(f))
-                            return true;
-                }
-            }
-            return false;
-        }
-        // Host stdout for the iostream methods we do not compile.
-        emitIoHelpers() {
-            for (const l of this.fmtHelperLines("_ctj_"))
-                this.line(l);
-        }
-        // The value formatter.  The stream arrives as a reference, i.e. as an "a/i"
-        // box, and the width, the base, the fill character and the precision are read
-        // off the object at the end of the chain; the two runtime shims below need it
-        // under their own prefixes.
-        fmtHelperLines(pfx) {
-            return [
-                `function ${pfx}ios(os) {`,
-                `  for (let n = 0; n < 4 && os && typeof os === "object" && os.a !== undefined; n++) { const x = os.a[os.i]; if (x === null || x === undefined) break; os = x; }`,
-                `  return os;`,
-                `}`,
-                `function ${pfx}fmt_g(x, p) {`,
-                `  let s = x.toPrecision(Math.max(1, Math.min(21, p)));`,
-                `  if (s.indexOf("e") >= 0) {`,
-                `    const m = s.split("e");`,
-                `    s = String(parseFloat(m[0])) + "e" + (m[1][0] === "-" ? "-" : "+") + String(Math.abs(parseInt(m[1], 10))).padStart(2, "0");`,
-                `  } else if (s.indexOf(".") >= 0) s = s.replace(/\\.?0+$/, "");`,
-                `  return s;`,
-                `}`,
-                `function ${pfx}cstr(p, n) {`,
-                `  if (p == null) return "";`,
-                `  const a = (p && p.a !== undefined) ? p.a : p;`,
-                `  const i = (p && p.i !== undefined) ? (p.i | 0) : 0;`,
-                `  const lim = (n == null) ? 1e9 : (n | 0);`,
-                `  let s = "";`,
-                `  for (let k = 0; k < lim; k++) {`,
-                `    const c = a[i + k];`,
-                `    if (c === 0 || c === undefined || c === null) break;`,
-                `    s += typeof c === "number" ? String.fromCharCode(c & 255) : String(c);`,
-                `  }`,
-                `  return s;`,
-                `}`,
-                `function ${pfx}fmt(v, os, u64) {`,
-                `  os = ${pfx}ios(os);`,
-                `  const f = (os && typeof os._M_flags === "number") ? os._M_flags : 0;`,
-                `  const base = (f & 74) === 8 ? 16 : ((f & 74) === 64 ? 8 : 10);`,
-                `  for (let n = 0; n < 4 && v && typeof v === "object" && v.a !== undefined; n++) { const nv = v.a[v.i]; if (nv !== null && typeof nv === "object") { v = nv; continue; } if (!Array.isArray(v.a)) { v = nv; continue; } break; }`,
-                `  if (v !== null && typeof v === "object" && v._M_dataplus !== undefined) v = v._M_dataplus._M_p;`,
-                `  let s;`,
-                `  if (v === null || v === undefined) s = "0";`,
-                `  else if (typeof v === "boolean") s = (f & 1) ? (v ? "true" : "false") : (v ? "1" : "0");`,
-                `  else if (typeof v === "number") {`,
-                `    if (u64 && Number.isInteger(v) && (v < 0 || v === 4294967295)) s = BigInt.asUintN(64, v === 4294967295 ? -1n : BigInt(v)).toString(base);`,
-                `    else if (base !== 10 && Number.isInteger(v)) s = (v < 0 ? (v >>> 0) : v).toString(base);`,
-                `    else if (Number.isInteger(v)) s = String(v);`,
-                `    else s = Number.isFinite(v) ? ${pfx}fmt_g(v, (os && os._M_precision) ? os._M_precision : 6) : String(v);`,
-                `  }`,
-                `  else if (typeof v === "string") s = v;`,
-                `  else if (typeof v === "object") s = ${pfx}cstr(v);`,
-                `  else s = String(v);`,
-                `  const w = (os && typeof os._M_width === "number") ? os._M_width : 0;`,
-                `  if (w > s.length) {`,
-                `    const c = (os && typeof os._M_fill === "number" && os._M_fill) ? String.fromCharCode(os._M_fill) : " ";`,
-                `    s = c.repeat(w - s.length) + s;`,
-                `  }`,
-                `  if (os && typeof os._M_width === "number") os._M_width = 0;`,
-                `  return s;`,
-                `}`,
-            ];
-        }
-        ioStubBody(kind, isMethod) {
-            const retThis = isMethod ? "return {a: [this], i: 0};" : "return $a[0];";
-            switch (kind) {
-                case "insert":
-                    return `process.stdout.write(_ctj_fmt($a[0], $a[0])); ${retThis}`;
-                case "put":
-                    return `process.stdout.write(typeof $a[0] === "number" ? String.fromCharCode($a[0] & 255) : _ctj_fmt($a[0], $a[0])); ${retThis}`;
-                case "write":
-                    return `process.stdout.write(_ctj_cstr($a[0], $a[1])); ${retThis}`;
-                case "sinsert":
-                    return `process.stdout.write(_ctj_cstr($a[1], $a[2])); return $a[0];`;
-                case "flush":
-                    return retThis;
-                case "widen":
-                    return `return $a[0];`;
-                case "sentry_ctor":
-                    return `this._M_ok = true;`;
-                case "sentry_bool":
-                    return `return 1;`;
-                default:
-                    return "";
-            }
         }
         emitPtrHelpers() {
             this.line(`function _ctj_peq(a, b) { return a === b || (!!a && !!b && a.a === b.a && a.i === b.i); }`);
@@ -12042,11 +11803,6 @@ var CTJ;
         }
         emitFunc(f) {
             var _a, _b;
-            const io = CTJ.ioRuntimeKind(f);
-            if (io) {
-                this.line(`function ${f.mangled}(...$a) { ${this.ioStubBody(io, false)} }`);
-                return;
-            }
             if (!(f.decl.body || []).length) {
                 const stub = (_b = (_a = this.allocStub(f)) !== null && _a !== void 0 ? _a : this.rbTreeStub(f)) !== null && _b !== void 0 ? _b : this.hashBytesStub(f);
                 if (stub !== null)
@@ -12128,20 +11884,6 @@ var CTJ;
         emitGlobal(v) {
             if (!v.referenced && !v.decl.init && !v.decl.directInit)
                 return;
-            if (v.isGlobal && /^(cout|cerr|clog|wcout|wcerr|wclog)$/.test(v.short)) {
-                // The standard streams are used by the manipulators, which set the width
-                // and the base on them, so they have to start out as real objects.
-                const st = v.typeCache;
-                const sfq = !st.isBox() && !st.dims.length && !st.isFunc ? this.cx.stripAll(st) : "";
-                if (sfq && this.cx.classes.has(sfq)) {
-                    const scn = this.cx.classes.get(sfq).mangled;
-                    this.line(`let ${v.mangled} = new ${scn}();`);
-                }
-                else {
-                    this.line(`let ${v.mangled} = {};`);
-                }
-                return;
-            }
             const t = v.typeCache;
             if (v.lifted) {
                 this.line(`let ${v.mangled};`);
@@ -13911,46 +13653,8 @@ var CTJ;
                 return `(~${this.paren(this.ex(e.arg))})`;
             return this.ex(e.arg);
         }
-        exStreamOut(e) {
-            this.needStreamFmt = true;
-            const manip = CTJ.streamManipName(e.r);
-            const l = this.ex(e.l);
-            // The stream itself is needed for the field width and the base, and the
-            // temporary it lives in is written before the value is formatted.
-            const simple = this.isSimple(e.l);
-            const os = simple ? l : this.tmp();
-            let payload;
-            if (manip === "endl")
-                payload = `"\\n"`;
-            else if (manip === "ends")
-                payload = `"\\0"`;
-            else if (manip === "flush")
-                payload = `""`;
-            else {
-                const rt = this.cx.getAnn(e.r).t;
-                const core = rt ? CTJ.coreName(rt) : "";
-                // "*it" and a call that hands back an "int&" stand for the value; read
-                // the box before printing it.
-                const rs = this.exVal(e.r);
-                if (rt && !rt.ptr && !rt.dims.length && (core === "char" || core === "signed char" || core === "unsigned char" || core === "wchar_t")) {
-                    payload = `String.fromCharCode(${rs})`;
-                }
-                else {
-                    // A 64-bit unsigned value is held as its signed counterpart, so the
-                    // printer has to be told when to read it back as digits.
-                    const wide = !!rt && !rt.ptr && !rt.dims.length && CTJ.isWideName(CTJ.coreName(rt)) ? ", 1" : "";
-                    payload = `__ctj_fmt(${rs}, ${os}${wide})`;
-                }
-            }
-            if (simple)
-                return `(__ctj_write(${payload}), ${l})`;
-            return `(${os} = ${l}, __ctj_write(${payload}), ${os})`;
-        }
         exBinary(e) {
             const a = this.cx.getAnn(e);
-            if (a.call && typeof a.call === "object" && "builtin" in a.call) {
-                return this.exStreamOut(e);
-            }
             if (a.call) {
                 const fn = a.call;
                 const ps = this.cx.funcParams(fn);
@@ -14399,13 +14103,10 @@ var CTJ;
             this.fnStack = [];
             this.usedGlobals = new Set();
             this.needThrow = false;
-            this.needStreamFmt = false;
             this.cx = cx;
         }
         run() {
             this.line(`<?php`);
-            if (this.needsIoHelpers())
-                this.emitIoHelpers();
             for (const c of this.sortClasses()) {
                 if (!c.referenced || c.isLambda)
                     continue;
@@ -14443,15 +14144,7 @@ var CTJ;
                 const args = ps.length >= 3 ? ["0", `["a" => [], "i" => 0]`, "null"] : ps.length === 2 ? ["0", `["a" => [], "i" => 0]`] : ps.length === 1 ? ["0"] : [];
                 this.line(`${phpFuncName(main)}(${args.join(", ")});`);
             }
-            if (this.needStreamFmt)
-                this.out.splice(1, 0, this.streamHelper());
             return this.out.join("\n") + "\n";
-        }
-        streamHelper() {
-            return [
-                `function __ctj_fmt($v) { for ($n = 0; $n < 4 && is_array($v) && array_key_exists("a", $v) && array_key_exists("i", $v) && !is_array($v["a"]); $n++) $v = $v["a"][$v["i"]]; if ($v === null) return "0"; if (is_bool($v)) return $v ? "1" : "0"; if (is_int($v) || is_float($v)) return (string)$v; if (is_string($v)) return $v; $a = is_array($v) && array_key_exists("a", $v) ? $v["a"] : (is_array($v) && array_values($v) === $v ? $v : null); $i = is_array($v) && array_key_exists("i", $v) ? $v["i"] : 0; if (is_array($a)) { $s = ""; for ($k = (int)$i; $k < count($a) && $a[$k]; $k++) $s .= chr($a[$k]); return $s; } return (string)$v; }`,
-                `function __ctj_write($s) { echo $s; }`,
-            ].join("\n");
         }
         sortClasses() {
             const cs = [...this.cx.classes.values()].filter(c => c.complete && c.referenced && !c.isLambda);
@@ -15011,7 +14704,7 @@ var CTJ;
             this.line(`}`);
         }
         emitMethod(c, fns) {
-            const use = fns.filter(f => f.referenced && ((f.decl.body || []).length || f.decl.flags.includes("pure") || !!CTJ.ioRuntimeKind(f)));
+            const use = fns.filter(f => f.referenced && ((f.decl.body || []).length || f.decl.flags.includes("pure")));
             if (!use.length)
                 return;
             const groups = new Map();
@@ -15028,11 +14721,6 @@ var CTJ;
             const m = phpMethodName(use[0]);
             const pre = use[0].isStatic ? "static " : "";
             void c;
-            const io = CTJ.ioRuntimeKind(use[0]);
-            if (io) {
-                this.line(`${pre}function ${m}(...$a) { ${this.ioStubBody(io, true)} }`);
-                return;
-            }
             if (use.length === 1) {
                 const fn = use[0];
                 const ps = this.cx.funcParams(fn);
@@ -15097,74 +14785,6 @@ var CTJ;
             this.ind = this.ind.slice(0, -2);
             this.line(`}`);
         }
-        needsIoHelpers() {
-            for (const list of this.cx.funcs.values()) {
-                for (const f of list)
-                    if (f.referenced && CTJ.ioRuntimeKind(f))
-                        return true;
-            }
-            for (const c of this.cx.classes.values()) {
-                if (!c.referenced)
-                    continue;
-                for (const fns of c.methods.values()) {
-                    for (const f of fns)
-                        if (f.referenced && CTJ.ioRuntimeKind(f))
-                            return true;
-                }
-            }
-            return false;
-        }
-        emitIoHelpers() {
-            this.line(`function _ctj_cstr($p, $n = null) {`);
-            this.line(`  if ($p === null) return "";`);
-            this.line(`  $a = (is_array($p) && array_key_exists("a", $p)) ? $p["a"] : $p;`);
-            this.line(`  $i = (is_array($p) && array_key_exists("i", $p)) ? intval($p["i"]) : 0;`);
-            this.line(`  $lim = ($n === null) ? 1000000000 : intval($n);`);
-            this.line(`  $s = "";`);
-            this.line(`  for ($k = 0; $k < $lim; $k++) {`);
-            this.line(`    if (!isset($a[$i + $k])) break;`);
-            this.line(`    $c = $a[$i + $k];`);
-            this.line(`    if ($c === 0 || $c === null) break;`);
-            this.line(`    $s .= is_int($c) ? chr($c & 255) : strval($c);`);
-            this.line(`  }`);
-            this.line(`  return $s;`);
-            this.line(`}`);
-            this.line(`function _ctj_fmt($v) {`);
-            this.line(`  for ($n = 0; $n < 4 && is_array($v) && array_key_exists("a", $v) && array_key_exists("i", $v) && !is_array($v["a"]); $n++) $v = $v["a"][$v["i"]];`);
-            this.line(`  if ($v === null) return "0";`);
-            this.line(`  if (is_bool($v)) return $v ? "1" : "0";`);
-            this.line(`  if (is_int($v) || is_float($v)) return (string)$v;`);
-            this.line(`  if (is_string($v)) return $v;`);
-            this.line(`  if (is_array($v) && array_key_exists("a", $v)) return _ctj_cstr($v);`);
-            this.line(`  return strval($v);`);
-            this.line(`}`);
-        }
-        ioStubBody(kind, isMethod) {
-            const retThis = isMethod ? "return [\"a\" => [$this], \"i\" => 0];" : "return $a[0];";
-            switch (kind) {
-                case "insert":
-                    return `echo _ctj_fmt($a[0]); ${retThis}`;
-                case "put":
-                    return `echo is_int($a[0]) ? chr($a[0] & 255) : _ctj_fmt($a[0]); ${retThis}`;
-                case "write":
-                    return `echo _ctj_cstr($a[0], $a[1]); ${retThis}`;
-                case "sinsert":
-                    return `echo _ctj_cstr($a[1], $a[2]); return $a[0];`;
-                case "flush":
-                    return retThis;
-                case "widen":
-                    return `return $a[0];`;
-                case "sentry_ctor":
-                    return `$this->_M_ok = true;`;
-                case "sentry_bool":
-                    return `return 1;`;
-                default:
-                    return "";
-            }
-        }
-        // The allocation operators are declared by <new> with no body; storage comes
-        // from the target language, and freeing is its business too. A placement
-        // version hands back the pointer it was given.
         allocStub(f) {
             if (f.fq === "operatornew" || f.fq === "operatornew[]") {
                 return this.cx.funcParams(f).length > 1 ? "return $a[1];" : `return ["a" => array_fill(0, $a[0], 0), "i" => 0];`;
@@ -15174,11 +14794,6 @@ var CTJ;
             return null;
         }
         emitFunc(f) {
-            const io = CTJ.ioRuntimeKind(f);
-            if (io) {
-                this.line(`function ${phpFuncName(f)}(...$a) { ${this.ioStubBody(io, false)} }`);
-                return;
-            }
             if (!(f.decl.body || []).length) {
                 const alloc = this.allocStub(f);
                 if (alloc !== null)
@@ -15242,10 +14857,6 @@ var CTJ;
         emitGlobal(v) {
             if (!v.referenced && !v.decl.init && !v.decl.directInit)
                 return;
-            if (v.isGlobal && /^(cout|cerr|clog|wcout|wcerr|wclog)$/.test(v.short)) {
-                this.line(`$${v.mangled} = new stdClass();`);
-                return;
-            }
             const t = v.typeCache;
             if (v.lifted) {
                 this.line(`$${v.mangled} = null;`);
@@ -16636,38 +16247,8 @@ var CTJ;
                 return `(~${this.paren(this.ex(e.arg))})`;
             return this.ex(e.arg);
         }
-        exStreamOut(e) {
-            this.needStreamFmt = true;
-            const manip = CTJ.streamManipName(e.r);
-            let payload;
-            if (manip === "endl")
-                payload = `"\\n"`;
-            else if (manip === "ends")
-                payload = `"\\0"`;
-            else if (manip === "flush")
-                payload = `""`;
-            else {
-                const rt = this.cx.getAnn(e.r).t;
-                const core = rt ? CTJ.coreName(rt) : "";
-                const rs = this.ex(e.r);
-                if (rt && !rt.ptr && !rt.dims.length && (core === "char" || core === "signed char" || core === "unsigned char" || core === "wchar_t")) {
-                    payload = `chr(${rs})`;
-                }
-                else {
-                    payload = `__ctj_fmt(${rs})`;
-                }
-            }
-            const l = this.ex(e.l);
-            if (this.isSimple(e.l))
-                return `(__ctj_write(${payload}), ${l})`;
-            const t = this.tmp();
-            return `(${t} = ${l}, __ctj_write(${payload}), ${t})`;
-        }
         exBinary(e) {
             const a = this.cx.getAnn(e);
-            if (a.call && typeof a.call === "object" && "builtin" in a.call) {
-                return this.exStreamOut(e);
-            }
             if (a.call) {
                 const fn = a.call;
                 const ps = this.cx.funcParams(fn);
@@ -17008,4 +16589,4 @@ var CTJ;
     g["CTJ"] = CTJ;
 })();
 
-CTJ.version = "713d310 2026-10-12 07:34:52Z";
+CTJ.version = "774bf99 2026-10-12 10:26:45Z";

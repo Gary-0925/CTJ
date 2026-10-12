@@ -106,7 +106,6 @@ class JsGen {
   exStack: string[] = [];
   rangeN = 0;
   fnStack: FuncInfo[] = [];
-  needStreamFmt = false;
 
   constructor(cx: Cx) {
     this.cx = cx;
@@ -116,7 +115,6 @@ class JsGen {
     this.line(`"use strict";`);
     if (this.needsPrimeBuckets()) this.line(`const PRIME_BUCKETS = [${PRIME_BUCKETS.join(", ")}];`);
     if (this.needsRbTreeHelpers()) this.emitPtrHelpers();
-    if (this.needsIoHelpers()) this.emitIoHelpers();
     for (const c of this.sortClasses()) {
       if (!c.referenced || c.isLambda) continue;
       this.emitClass(c);
@@ -141,22 +139,10 @@ class JsGen {
       const ps = this.cx.funcParams(main);
       const args = ps.length >= 3 ? ["0", `{a: [], i: 0}`, "null"] : ps.length === 2 ? ["0", `{a: [], i: 0}`] : ps.length === 1 ? ["0"] : [];
       this.line(`main(${args.join(", ")});`);
-      if (this.needStreamFmt) this.line(`__ctj_flush();`);
-    }
-    if (this.needStreamFmt) {
-      this.out.splice(1, 0, this.streamHelper());
     }
     return this.out.join("\n") + "\n";
   }
 
-  streamHelper(): string {
-    return [
-      `var __ctj_obuf = "";`,
-      ...this.fmtHelperLines("__ctj_"),
-      `function __ctj_write(s) { s = String(s); if (typeof process !== "undefined" && process.stdout && process.stdout.write) { process.stdout.write(s); return; } __ctj_obuf += s; for (;;) { var n = __ctj_obuf.indexOf("\\n"); if (n < 0) break; console.log(__ctj_obuf.slice(0, n)); __ctj_obuf = __ctj_obuf.slice(n + 1); } }`,
-      `function __ctj_flush() { if (__ctj_obuf) { console.log(__ctj_obuf); __ctj_obuf = ""; } }`,
-    ].join("\n");
-  }
 
   sortClasses(): ClsInfo[] {
     const cs = [...this.cx.classes.values()].filter(c => c.complete && c.referenced && !c.isLambda);
@@ -730,7 +716,7 @@ class JsGen {
   }
 
   emitMethod(c: ClsInfo, fns: FuncInfo[]): void {
-    const use = fns.filter(f => f.referenced && ((f.decl.body || []).length || f.decl.flags.includes("pure") || !!ioRuntimeKind(f) || !!this.listNodeStub(f) || !!this.hashPolicyStub(f) || !!this.hashBytesStub(f)));
+    const use = fns.filter(f => f.referenced && ((f.decl.body || []).length || f.decl.flags.includes("pure") || !!this.listNodeStub(f) || !!this.hashPolicyStub(f) || !!this.hashBytesStub(f)));
     if (!use.length) return;
     const groups = new Map<string, FuncInfo[]>();
     for (const f of use) {
@@ -745,11 +731,6 @@ class JsGen {
     void c;
     const m = methodJsName(use[0]);
     const pre = use[0].isStatic ? "static " : "";
-    const io = ioRuntimeKind(use[0]);
-    if (io) {
-      this.line(`${pre}${m}(...$a) { ${this.ioStubBody(io, true)} }`);
-      return;
-    }
     const list = this.listNodeStub(use[0]);
     if (list !== null) {
       this.line(`${pre}${m}(...$a) { ${list} }`);
@@ -846,108 +827,6 @@ class JsGen {
     return false;
   }
 
-  needsIoHelpers(): boolean {
-    for (const list of this.cx.funcs.values()) {
-      for (const f of list) if (f.referenced && ioRuntimeKind(f)) return true;
-    }
-    for (const c of this.cx.classes.values()) {
-      if (!c.referenced) continue;
-      for (const fns of c.methods.values()) {
-        for (const f of fns) if (f.referenced && ioRuntimeKind(f)) return true;
-      }
-    }
-    return false;
-  }
-
-  // Host stdout for the iostream methods we do not compile.
-  emitIoHelpers(): void {
-    for (const l of this.fmtHelperLines("_ctj_")) this.line(l);
-  }
-
-  // The value formatter.  The stream arrives as a reference, i.e. as an "a/i"
-  // box, and the width, the base, the fill character and the precision are read
-  // off the object at the end of the chain; the two runtime shims below need it
-  // under their own prefixes.
-  fmtHelperLines(pfx: string): string[] {
-    return [
-      `function ${pfx}ios(os) {`,
-      `  for (let n = 0; n < 4 && os && typeof os === "object" && os.a !== undefined; n++) { const x = os.a[os.i]; if (x === null || x === undefined) break; os = x; }`,
-      `  return os;`,
-      `}`,
-      `function ${pfx}fmt_g(x, p) {`,
-      `  let s = x.toPrecision(Math.max(1, Math.min(21, p)));`,
-      `  if (s.indexOf("e") >= 0) {`,
-      `    const m = s.split("e");`,
-      `    s = String(parseFloat(m[0])) + "e" + (m[1][0] === "-" ? "-" : "+") + String(Math.abs(parseInt(m[1], 10))).padStart(2, "0");`,
-      `  } else if (s.indexOf(".") >= 0) s = s.replace(/\\.?0+$/, "");`,
-      `  return s;`,
-      `}`,
-      `function ${pfx}cstr(p, n) {`,
-      `  if (p == null) return "";`,
-      `  const a = (p && p.a !== undefined) ? p.a : p;`,
-      `  const i = (p && p.i !== undefined) ? (p.i | 0) : 0;`,
-      `  const lim = (n == null) ? 1e9 : (n | 0);`,
-      `  let s = "";`,
-      `  for (let k = 0; k < lim; k++) {`,
-      `    const c = a[i + k];`,
-      `    if (c === 0 || c === undefined || c === null) break;`,
-      `    s += typeof c === "number" ? String.fromCharCode(c & 255) : String(c);`,
-      `  }`,
-      `  return s;`,
-      `}`,
-      `function ${pfx}fmt(v, os, u64) {`,
-      `  os = ${pfx}ios(os);`,
-      `  const f = (os && typeof os._M_flags === "number") ? os._M_flags : 0;`,
-      `  const base = (f & 74) === 8 ? 16 : ((f & 74) === 64 ? 8 : 10);`,
-      `  for (let n = 0; n < 4 && v && typeof v === "object" && v.a !== undefined; n++) { const nv = v.a[v.i]; if (nv !== null && typeof nv === "object") { v = nv; continue; } if (!Array.isArray(v.a)) { v = nv; continue; } break; }`,
-      `  if (v !== null && typeof v === "object" && v._M_dataplus !== undefined) v = v._M_dataplus._M_p;`,
-      `  let s;`,
-      `  if (v === null || v === undefined) s = "0";`,
-      `  else if (typeof v === "boolean") s = (f & 1) ? (v ? "true" : "false") : (v ? "1" : "0");`,
-      `  else if (typeof v === "number") {`,
-      `    if (u64 && Number.isInteger(v) && (v < 0 || v === 4294967295)) s = BigInt.asUintN(64, v === 4294967295 ? -1n : BigInt(v)).toString(base);`,
-      `    else if (base !== 10 && Number.isInteger(v)) s = (v < 0 ? (v >>> 0) : v).toString(base);`,
-      `    else if (Number.isInteger(v)) s = String(v);`,
-      `    else s = Number.isFinite(v) ? ${pfx}fmt_g(v, (os && os._M_precision) ? os._M_precision : 6) : String(v);`,
-      `  }`,
-      `  else if (typeof v === "string") s = v;`,
-      `  else if (typeof v === "object") s = ${pfx}cstr(v);`,
-      `  else s = String(v);`,
-      `  const w = (os && typeof os._M_width === "number") ? os._M_width : 0;`,
-      `  if (w > s.length) {`,
-      `    const c = (os && typeof os._M_fill === "number" && os._M_fill) ? String.fromCharCode(os._M_fill) : " ";`,
-      `    s = c.repeat(w - s.length) + s;`,
-      `  }`,
-      `  if (os && typeof os._M_width === "number") os._M_width = 0;`,
-      `  return s;`,
-      `}`,
-    ];
-  }
-
-
-  ioStubBody(kind: string, isMethod: boolean): string {
-    const retThis = isMethod ? "return {a: [this], i: 0};" : "return $a[0];";
-    switch (kind) {
-      case "insert":
-        return `process.stdout.write(_ctj_fmt($a[0], $a[0])); ${retThis}`;
-      case "put":
-        return `process.stdout.write(typeof $a[0] === "number" ? String.fromCharCode($a[0] & 255) : _ctj_fmt($a[0], $a[0])); ${retThis}`;
-      case "write":
-        return `process.stdout.write(_ctj_cstr($a[0], $a[1])); ${retThis}`;
-      case "sinsert":
-        return `process.stdout.write(_ctj_cstr($a[1], $a[2])); return $a[0];`;
-      case "flush":
-        return retThis;
-      case "widen":
-        return `return $a[0];`;
-      case "sentry_ctor":
-        return `this._M_ok = true;`;
-      case "sentry_bool":
-        return `return 1;`;
-      default:
-        return "";
-    }
-  }
   emitPtrHelpers(): void {
     this.line(`function _ctj_peq(a, b) { return a === b || (!!a && !!b && a.a === b.a && a.i === b.i); }`);
     this.line(`// _Rb_tree_rebalance_for_erase from libstdc++'s tree.cc: it takes the node`);
@@ -1278,11 +1157,7 @@ class JsGen {
   }
 
   emitFunc(f: FuncInfo): void {
-    const io = ioRuntimeKind(f);
-    if (io) {
-      this.line(`function ${f.mangled}(...$a) { ${this.ioStubBody(io, false)} }`);
-      return;
-    }    if (!(f.decl.body || []).length) {
+    if (!(f.decl.body || []).length) {
       const stub = this.allocStub(f) ?? this.rbTreeStub(f) ?? this.hashBytesStub(f);
       if (stub !== null) this.line(`function ${f.mangled}(...$a) { ${stub} }`);
       else this.line(`function ${f.mangled}(...$a) { throw new Error("unresolved external: ${f.fq}"); }`);
@@ -1358,19 +1233,6 @@ class JsGen {
 
   emitGlobal(v: VarInfo): void {
     if (!v.referenced && !v.decl.init && !v.decl.directInit) return;
-    if (v.isGlobal && /^(cout|cerr|clog|wcout|wcerr|wclog)$/.test(v.short)) {
-      // The standard streams are used by the manipulators, which set the width
-      // and the base on them, so they have to start out as real objects.
-      const st = v.typeCache as CppType;
-      const sfq = !st.isBox() && !st.dims.length && !st.isFunc ? this.cx.stripAll(st) : "";
-      if (sfq && this.cx.classes.has(sfq)) {
-        const scn = (this.cx.classes.get(sfq) as ClsInfo).mangled as string;
-        this.line(`let ${v.mangled} = new ${scn}();`);
-      } else {
-        this.line(`let ${v.mangled} = {};`);
-      }
-      return;
-    }
     const t = v.typeCache as CppType;
     if (v.lifted) {
       this.line(`let ${v.mangled};`);
@@ -2976,42 +2838,8 @@ class JsGen {
     return this.ex(e.arg);
   }
 
-  exStreamOut(e: BinaryExpr): string {
-    this.needStreamFmt = true;
-    const manip = streamManipName(e.r);
-    const l = this.ex(e.l);
-    // The stream itself is needed for the field width and the base, and the
-    // temporary it lives in is written before the value is formatted.
-    const simple = this.isSimple(e.l);
-    const os = simple ? l : this.tmp();
-    let payload: string;
-    if (manip === "endl") payload = `"\\n"`;
-    else if (manip === "ends") payload = `"\\0"`;
-    else if (manip === "flush") payload = `""`;
-    else {
-      const rt = this.cx.getAnn(e.r).t as CppType | null;
-      const core = rt ? coreName(rt) : "";
-      // "*it" and a call that hands back an "int&" stand for the value; read
-      // the box before printing it.
-      const rs = this.exVal(e.r);
-      if (rt && !rt.ptr && !rt.dims.length && (core === "char" || core === "signed char" || core === "unsigned char" || core === "wchar_t")) {
-        payload = `String.fromCharCode(${rs})`;
-      } else {
-        // A 64-bit unsigned value is held as its signed counterpart, so the
-        // printer has to be told when to read it back as digits.
-        const wide = !!rt && !rt.ptr && !rt.dims.length && isWideName(coreName(rt)) ? ", 1" : "";
-        payload = `__ctj_fmt(${rs}, ${os}${wide})`;
-      }
-    }
-    if (simple) return `(__ctj_write(${payload}), ${l})`;
-    return `(${os} = ${l}, __ctj_write(${payload}), ${os})`;
-  }
-
   exBinary(e: BinaryExpr): string {
     const a = this.cx.getAnn(e);
-    if (a.call && typeof a.call === "object" && "builtin" in (a.call as object)) {
-      return this.exStreamOut(e);
-    }
     if (a.call) {
       const fn = a.call as FuncInfo;
       const ps = this.cx.funcParams(fn);
