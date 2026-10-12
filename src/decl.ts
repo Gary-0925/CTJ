@@ -170,6 +170,15 @@ export function parseClassBody(p: Parser, head: ClassHead, a: At): ClassDecl {
   if (head.name) p.registerType(head.name);
   p.inClass.push(cls);
   p.pushScope();
+  // Typedefs and nested types of a base class are visible while parsing the
+  // derived class (e.g. __one/__two from __sfinae_types used as return types
+  // of SFINAE helpers).  Without this, "static __one __test(...)" is skipped
+  // because __one is not a registered type name.
+  for (const b of head.bases) {
+    const bn = b.name.length ? b.name[b.name.length - 1].n : "";
+    const types = bn ? p.classTypes.get(bn) : undefined;
+    if (types) for (const n of types) p.registerType(n);
+  }
   p.expect("{");
   while (!p.eat("}")) {
     if (p.atEnd()) {
@@ -395,7 +404,9 @@ export function parseTemplate(p: Parser, inClass: boolean): TemplateDecl {
   let td: TemplateDecl;
   if (tparams.length && (specArgs.length || isPartial)) {
     td = { kind: "template", tparams, decl: d, isSpec: true, specArgs, isExplicit: false, ...at(t) };
-  } else if (!tparams.length && specArgs.length) {
+  } else if (!tparams.length) {
+    // "template<> class tuple<>" is a full specialization even when the
+    // argument list is empty.
     td = { kind: "template", tparams: [], decl: d, isSpec: true, specArgs, isExplicit: false, ...at(t) };
   } else {
     td = { kind: "template", tparams, decl: d, isSpec: false, specArgs: [], isExplicit: false, ...at(t) };
@@ -457,7 +468,34 @@ export function parseTParams(p: Parser): TParam[] {
       let def: TypeNode | Expr | null = null;
       // Stop below the relational precedence so the closing '>' of the
       // parameter list is not taken for a comparison operator.
-      if (p.eat("=")) def = parseExpr(p, 10);
+      if (p.eat("=")) {
+        def = parseExpr(p, 10);
+        // A relational default is written without parentheses in the library
+        // ("bool = _Nb < _GLIBCXX_BITSET_BITS_PER_ULL>"), where the '<' belongs
+        // to the default and the '>' ends the parameter list.  The comparison
+        // is taken on only when a '>' really follows it.
+        // The logical operators belong to the default too ("bool _B =
+        // !__is_final(_Tp) && __is_empty(_Tp)>"): none of them can close the
+        // parameter list, so they are always taken.  "<" and "<=" are the
+        // ambiguous ones and stay behind the lookahead below.
+        const contOp = (x: string): boolean => x === "&&" || x === "||" || x === "|" ||
+          x === "^" || x === "&" || x === "==" || x === "!=";
+        for (;;) {
+          const op = p.peek();
+          const cont = contOp(op.t);
+          if (!cont && op.t !== "<" && op.t !== "<=") break;
+          const m = p.mark();
+          p.pos++;
+          let rhs: Expr | null = null;
+          try { rhs = parseExpr(p, 10); } catch { rhs = null; }
+          const nx = p.peek().t;
+          if (!rhs || (!cont && nx !== ">" && nx !== ">>" && nx !== ",")) {
+            p.reset(m);
+            break;
+          }
+          def = { kind: "binary", op: op.t, l: def as Expr, r: rhs, file: op.file, line: op.line };
+        }
+      }
       out.push({ kind: "nontype", name: nm || p.anonName("np"), type: spec.type, def, isPack, ...at(t) });
     }
     p.skipGnu();

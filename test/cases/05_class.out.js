@@ -6,7 +6,7 @@ class Point {
     this.__init_Point(...$a);
   }
   __init_Point(...$a) {
-    if ($a.length >= 1 && $a.length <= 1 && ($a[0] !== null && typeof $a[0] === "object" && $a[0].a[$a[0].i] instanceof Point)) {
+    if ($a.length >= 1 && $a.length <= 1 && ($a[0] !== null && typeof $a[0] === "object" && !Array.isArray($a[0]) && $a[0].a !== undefined && $a[0].i !== undefined && $a[0].a[$a[0].i] instanceof Point)) {
       this.x = ((($a[0]).a[($a[0]).i]).x * 10);
       this.y = ((($a[0]).a[($a[0]).i]).y * 10);
     }
@@ -33,7 +33,7 @@ class Point {
   }
   addx(d) {
     this.x += d;
-    return this;
+    return {a: [this], i: 0};
   }
   static count = 5;
 }
@@ -52,8 +52,8 @@ function main() {
   (console.log((Point.getCount())));
   q.v.addx(10);
   (console.log((q.v.sum())));
-  let pp = (($t0 = {a: [new Point(1, 2)], i: 0}, $t0) ? {a: (($t0 = {a: [new Point(1, 2)], i: 0}, $t0)).a, i: (($t0 = {a: [new Point(1, 2)], i: 0}, $t0)).i} : null);
-  (console.log((((pp.a[pp.i])).sum())));
+  let pp = ($t0 = {a: [new Point(1, 2)], i: 0}, $t0 ? {a: $t0.a, i: $t0.i} : null);
+  (console.log(((pp.a[pp.i]).sum())));
   return 0;
 }
 main();

@@ -18,6 +18,14 @@ export function analyzeAll(cx: Cx, tu: TranslationUnit): void {
     analyzeFunc(cx, fn);
   }
   finalizeFields(cx);
+  // finalizeFields may reference new classes and their virtual methods,
+  // pushing additional items onto the worklist.  Process them before
+  // code generation so that every reachable function body is annotated.
+  while (cx.worklist.length) {
+    const fn = cx.worklist.shift() as FuncInfo;
+    if (fn.analyzed) continue;
+    analyzeFunc(cx, fn);
+  }
   finalizeMangling(cx);
 }
 
@@ -123,6 +131,11 @@ function deduceAuto(cx: Cx, declT: CppType, initT: CppType, t: At): CppType {
 function analyzeFunc(cx: Cx, fn: FuncInfo): void {
   fn.analyzed = true;
   if (!fn.decl.body || fn.isDelete) return;
+  if (ioRuntimeKind(fn)) return;
+  analyzeFuncBody(cx, fn);}
+
+function analyzeFuncBody(cx: Cx, fn: FuncInfo): void {
+  if (!fn.decl.body) return;
   const scope = cx.snapScope(fn.scope);
   scope.fn = fn;
   scope.locals.push(new Map());
@@ -142,7 +155,9 @@ function analyzeFunc(cx: Cx, fn: FuncInfo): void {
     };
     if (node) cx.getAnn(node).var = v;
     scope.locals[0].set(name, v);
-    if (p.def) typeOf(cx, p.def, scope);
+    if (p.def) {
+      typeOf(cx, p.def, scope);
+    }
   });
   for (const c of fn.decl.ctorInit) annotateCtorInit(cx, fn, c, scope);
   for (const b of fn.decl.body) annotateStmt(cx, b, scope);
@@ -165,6 +180,13 @@ function annotateCtorInit(cx: Cx, fn: FuncInfo, c: CtorInit, scope: Scope): void
     return;
   }
   const short = last(c.name).n;
+  // C++11 delegating constructor: pair(...) : pair(other_args) { }
+  if (cx.isDelegatingCtorInit(cls as ClsInfo, c)) {
+    const r = resolveCtor(cx, (cls as ClsInfo).fq, argTs, scope, c);
+    cx.getAnn(c).call = r.fn;
+    cx.getAnn(c).convs = r.convs;
+    return;
+  }
   if ((cls as ClsInfo).fields.has(short)) {
     const ft = cx.fieldType(cls as ClsInfo, short);
     annotateFieldInit(cx, cls as ClsInfo, short, ft, c.args, argTs, c, scope);
@@ -357,10 +379,19 @@ function annotateRangeVar(cx: Cx, rf: RangeFor, rt: CppType, scope: Scope): void
     elem = new CppType(rt.name);
     elem.segs = rt.segs;
     elem.ptr = rt.ptr;
+  } else if (initListElemOf(cx, rt)) {
+    // "std::initializer_list<T>" is the array its elements are made of, and the
+    // loop walks that array by index: only the element type is needed here.
+    elem = initListElemOf(cx, rt) as CppType;
+    const op: RangeOp = { fn: null as unknown as FuncInfo, isMember: false, op: "", builtin: "" };
+    cx.getAnn(rf).range = { beginFn: null as unknown as FuncInfo, endFn: null as unknown as FuncInfo, ne: op, inc: op, star: op, copyCtor: null };
   } else {
     const clsFq = cx.stripAll(rt);
     const cls = cx.classes.get(clsFq);
-    if (!cls || rt.isBox()) cx.fail("range-for requires array or container with begin/end", vd);
+    // The range may be a reference to a container (an "auto&" element of an
+    // outer range-for or a "T&" parameter); only a pointer is not iterable.
+    if (!cls || rt.ptr > 0) cx.fail("range-for requires array or container with begin/end", vd);
+
     const bm = cx.lookupMember(clsFq, "begin", new Set());
     if (!bm.methods) cx.fail(`'${clsFq}' has no begin() for range-for`, vd);
     const r = resolveOverload(cx, bm.methods, [], [], scope, vd);
@@ -368,17 +399,46 @@ function annotateRangeVar(cx: Cx, rf: RangeFor, rt: CppType, scope: Scope): void
     if (!em.methods) cx.fail(`'${clsFq}' has no end() for range-for`, vd);
     const er = resolveOverload(cx, em.methods, [], [], scope, vd);
     const bt = cx.funcRet(r.fn);
-    const itFq = cx.stripAll(bt);
-    const ne = cx.lookupMember(itFq, "operator!=", new Set());
-    const inc = cx.lookupMember(itFq, "operator++", new Set());
-    const star = cx.lookupMember(itFq, "operator*", new Set());
-    if (!ne.methods || !inc.methods || !star.methods) cx.fail("bad iterator for range-for", vd);
-    const btArg = { t: bt, e: vd as unknown as Expr };
-    const neR = resolveOverload(cx, ne.methods, [], [btArg], scope, vd);
-    const incR = resolveOverload(cx, inc.methods, [], [], scope, vd);
-    const starR = resolveOverload(cx, star.methods, [], [], scope, vd);
-    cx.getAnn(rf).range = { beginFn: r.fn, endFn: er.fn, neFn: neR.fn, incFn: incR.fn, starFn: starR.fn };
-    elem = cx.funcRet(starR.fn);
+    // libstdc++ iterators keep the interesting operators outside the class
+    // (operator!= of __normal_iterator and of the rb-tree iterators are free
+    // functions), so both kinds are looked up the way "a != b" would be.
+    const itT = bt.core();
+    const itFq = cx.stripAll(itT);
+    const ptrIter = itT.ptr > 0 && !itT.isBox() && !itT.isFunc;
+    let ne: RangeOp;
+    let inc: RangeOp;
+    let star: RangeOp;
+    if (ptrIter) {
+      // A pointer is its own iterator: "!=" compares the fat pointers, "++"
+      // advances the index and "*" hands the fat pointer to the element out.
+      ne = { fn: null, isMember: false, op: "!=", builtin: "ptr" };
+      inc = { fn: null, isMember: false, op: "++", builtin: "ptr" };
+      star = { fn: null, isMember: false, op: "*", builtin: "ptr" };
+      elem = itT;
+    } else {
+      const arg = { t: itT, e: vd as unknown as Expr };
+      const neR = findOperator(cx, "!=", arg, arg, scope, vd);
+      if (!neR) cx.fail("bad iterator for range-for", vd);
+      const incR = findOperator(cx, "++", arg, null, scope, vd);
+      if (!incR) cx.fail("bad iterator for range-for", vd);
+      const starR = findOperator(cx, "*", arg, null, scope, vd);
+      if (!starR) cx.fail("bad iterator for range-for", vd);
+      ne = { fn: neR.fn, isMember: neR.fn.isMethod, op: "!=", builtin: "" };
+      inc = { fn: incR.fn, isMember: incR.fn.isMethod, op: "++", builtin: "" };
+      star = { fn: starR.fn, isMember: starR.fn.isMethod, op: "*", builtin: "" };
+      elem = cx.funcRet(starR.fn);
+    }
+    const itClsFq = !bt.isBox() && !bt.dims.length && !bt.isFunc ? cx.stripAll(bt) : "";
+    let itCopy: FuncInfo | null = null;
+    if (itClsFq && cx.classes.has(itClsFq)) {
+      const cp = tryResolveCtor(cx, itClsFq, [{ t: bt, e: rf as unknown as Expr }], scope);
+      if (cp) {
+        itCopy = cp.fn;
+        cx.markFunc(cp.fn);
+        for (const c of cp.convs) if (c && c.fn) cx.markFunc(c.fn);
+      }
+    }
+    cx.getAnn(rf).range = { beginFn: r.fn, endFn: er.fn, ne, inc, star, copyCtor: itCopy };
   }
   let t = cx.resolveTypeNode(vd.type, scope);
   if (t.name === "auto") t = deduceAuto(cx, t, elem, vd);
@@ -389,6 +449,18 @@ function annotateRangeVar(cx: Cx, rf: RangeFor, rt: CppType, scope: Scope): void
     storage: isBoxedVar(t) ? "box" : "plain",
     isGlobal: false, isStatic: false, isParam: false, isField: false, lifted: false, referenced: true,
   };
+  // "auto p : m" copies the element the iterator yields, so the element's copy
+  // constructor runs here and has to be emitted even though no call names it.
+  if (elem.ref !== "" && !t.isBox() && !t.dims.length && !t.isFunc) {
+    const fq = cx.stripAll(t);
+    if (fq && cx.classes.has(fq)) {
+      const cp = tryResolveCtor(cx, fq, [{ t: elem, e: vd as unknown as Expr }], scope);
+      if (cp) {
+        cx.markFunc(cp.fn);
+        for (const c of cp.convs) if (c && c.fn) cx.markFunc(c.fn);
+      }
+    }
+  }
   cx.getAnn(vd).var = v;
   cx.getAnn(vd).t = t;
   last(scope.locals).set(name, v);
@@ -478,8 +550,23 @@ function annotateVarInit(cx: Cx, v: VarInfo, scope: Scope): void {
         const asList = [{ t: initListType(cx, items, vd), e: vd.init }];
         const lr = tryResolveCtor(cx, cls.fq, asList, scope);
         if (lr) {
+          annotateListElems(cx, lr.fn, vd.init, scope);
           cx.getAnn(vd.init).call = lr.fn;
           cx.getAnn(vd.init).convs = lr.convs;
+          return;
+        }
+        const er = tryResolveCtor(cx, cls.fq, items, scope);
+        if (er) {
+          cx.getAnn(vd.init).call = er.fn;
+          cx.getAnn(vd.init).convs = er.convs;
+          return;
+        }
+        // An aggregate has no constructor to match: its members are given one
+        // at a time, in the order they were declared.
+        if (cx.aggCtor(cls, items.length)) {
+          const ar = resolveCtor(cx, cls.fq, items, scope, vd);
+          cx.getAnn(vd.init).call = ar.fn;
+          cx.getAnn(vd.init).convs = ar.convs;
           return;
         }
         const r = resolveCtor(cx, cls.fq, items, scope, vd);
@@ -512,6 +599,18 @@ function annotateVarInit(cx: Cx, v: VarInfo, scope: Scope): void {
     if (cls) {
       if (items.length === 1 && items[0].e.kind === "initlist") {
         const sub = (items[0].e as InitListExpr).items.map(e => ({ t: typeOf(cx, e, scope), e }));
+        const er = tryResolveCtor(cx, cls.fq, sub, scope);
+        if (er) {
+          cx.getAnn(vd).call = er.fn;
+          cx.getAnn(vd).convs = er.convs;
+          return;
+        }
+        if (cx.aggCtor(cls, sub.length)) {
+          const ar = resolveCtor(cx, cls.fq, sub, scope, vd);
+          cx.getAnn(vd).call = ar.fn;
+          cx.getAnn(vd).convs = ar.convs;
+          return;
+        }
         const r = resolveCtor(cx, cls.fq, sub, scope, vd);
         cx.getAnn(vd).call = r.fn;
         cx.getAnn(vd).convs = r.convs;
@@ -560,6 +659,12 @@ export function boxArg(cx: Cx, param: CppType, arg: { t: CppType; e: Expr }, sco
   void scope;
   void t;
   const a = arg.t;
+  // A reference to a pointer ("T*&") names the pointer variable itself, and
+  // the emitter writes through it: the variable needs a cell of its own for
+  // that write to land in, exactly as taking its address does.
+  if (param.ref !== "" && param.ptr > 0 && !param.isFunc && a.ptr > 0 && a.ref === "" && !a.dims.length) {
+    markRef(cx, arg.e);
+  }
   if (param.isBox() && !a.isBox() && !a.dims.length && a.name !== "__null" && a.name !== "__initlist") {
     markBoxed(cx, arg.e);
   }
@@ -569,6 +674,13 @@ export function boxArg(cx: Cx, param: CppType, arg: { t: CppType; e: Expr }, sco
   if (param.dims.length || param.isBox()) {
     if (a.dims.length && !a.isBox()) return;
   }
+}
+
+// A variable a reference binds to needs exactly the storage its address
+// needs: the reference stands in for the object, and a write through it has to
+// land in the object itself.
+function markRef(cx: Cx, e: Expr): void {
+  markBoxed(cx, e);
 }
 
 function markBoxed(cx: Cx, e: Expr): void {
@@ -584,6 +696,10 @@ function markBoxed(cx: Cx, e: Expr): void {
     return;
   }
   if (cur.kind === "member") {
+    // Taking the address of a field through a pointer or reference does not
+    // box the pointer itself — it already names the object.
+    const ot = cx.getAnn(cur.obj).t as CppType | undefined;
+    if (ot && ot.isBox()) return;
     markBoxed(cx, cur.obj);
     return;
   }

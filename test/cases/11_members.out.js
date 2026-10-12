@@ -18,6 +18,7 @@ class Buf {
   }
 }
 class Traits_char {
+  __init_Traits_char(...$a) { }
   __dtor() {
   }
 }
@@ -43,6 +44,7 @@ class Str_char_Traits_char {
   __init_Str_char_Traits_char(...$a) {
     this.buf = new Array(32).fill(0);
     this.rep = new Str_char_Traits_char_Rep();
+    this.rep.ctj_a = this; this.rep.ctj_i = "rep";
   }
   __dtor() {
   }
@@ -69,7 +71,19 @@ class Str_char_Traits_char {
   }
   static npos = -1;
 }
+class Node_double {
+  next;
+  constructor(...$a) {
+    this.__init_Node_double(...$a);
+  }
+  __init_Node_double(...$a) {
+    this.next = null;
+  }
+  __dtor() {
+  }
+}
 class Node_double_Rebind_int {
+  __init_Node_double_Rebind_int(...$a) { }
   __dtor() {
   }
 }
@@ -84,18 +98,8 @@ class Node_int {
   __dtor() {
   }
 }
-class Node_double {
-  next;
-  constructor(...$a) {
-    this.__init_Node_double(...$a);
-  }
-  __init_Node_double(...$a) {
-    this.next = null;
-  }
-  __dtor() {
-  }
-}
 class Node_int_Rebind_int {
+  __init_Node_int_Rebind_int(...$a) { }
   __dtor() {
   }
 }

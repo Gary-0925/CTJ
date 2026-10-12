@@ -17,8 +17,27 @@ export function isMathBuiltin(name: string): boolean {
   return MATH_BUILTINS.has(name);
 }
 
+// The "unsigned long"/"unsigned long long" variants of the bit builtins
+// ("__builtin_popcountl", "__builtin_ctzll"): the width of the argument does
+// not change the value, so they are spelled like the plain form.
+export function bitBuiltin(name: string): string {
+  for (const b of ["__builtin_popcount", "__builtin_parity", "__builtin_clz", "__builtin_ctz", "__builtin_ffs"]) {
+    if (name === b || name === b + "l" || name === b + "ll") return b;
+  }
+  return "";
+}
+
 export function builtinCall(cx: Cx, e: CallExpr, name: string, argTs: { t: CppType; e: Expr }[], scope: Scope): CppType {
   cx.getAnn(e).call = { builtin: name };
+  if (name.startsWith("__is_")) {
+    // GCC answers these type traits itself. The classes collected from the
+    // headers are enough to work them out, and the answer is a constant, so one
+    // value serves both the constant-expression path and the emitted code.
+    const v = typeTrait(cx, name, e.args, scope);
+    if (v === null) cx.warn(`${name} could not be evaluated, using 0`, e);
+    cx.getAnn(e).call = { builtin: name, value: v === null ? 0 : v };
+    return CppType.basic("bool");
+  }
   const voidPtr = () => {
     const t = CppType.basic("void");
     t.ptr = 1;
@@ -62,8 +81,7 @@ export function builtinCall(cx: Cx, e: CallExpr, name: string, argTs: { t: CppTy
     cx.warn(`${name} is not supported, stubbed as null`, e);
     return voidPtr();
   }
-  if (name === "__builtin_clz" || name === "__builtin_ctz" || name === "__builtin_popcount" ||
-    name === "__builtin_ffs" || name === "__builtin_parity" || name === "__builtin_bswap16" ||
+  if (bitBuiltin(name) || name === "__builtin_bswap16" ||
     name === "__builtin_bswap32" || name === "__builtin_bswap64") {
     return CppType.basic("int");
   }
@@ -250,6 +268,7 @@ function typeTrait(cx: Cx, nm: string, args: Expr[], scope: Scope): number | nul
   if (!ts.length) return null;
   const cls = cx.classes.get(ts[0].name) || null;
   switch (nm) {
+    case "__is_final": return 0;
     case "__is_enum": return cx.enums.has(ts[0].name) ? 1 : 0;
     case "__is_union": return cls && cls.isUnion ? 1 : 0;
     case "__is_class": return cls && !cls.isUnion ? 1 : 0;
@@ -270,7 +289,18 @@ function typeTrait(cx: Cx, nm: string, args: Expr[], scope: Scope): number | nul
     case "__is_trivial":
     case "__is_standard_layout":
     case "__is_literal_type":
+    // The compiler's own "__has_trivial_*" traits stand for the same idea: a
+    // builtin type constructs, copies and destroys trivially, a class does
+    // not, so the branches they guard in the headers ("if
+    // (!__has_trivial_destructor(value_type)) _M_destroy_data_aux(...)") are
+    // the ones a class needs.
+    case "__has_trivial_destructor":
+    case "__has_trivial_constructor":
+    case "__has_trivial_copy":
+    case "__has_trivial_assign":
       return ts[0].ptr === 0 && ts[0].dims.length === 0 && isPlainType(cx, ts[0], new Set()) ? 1 : 0;
+    case "__has_virtual_destructor":
+      return cls && hasVirtualMethod(cx, cls.fq, false) ? 1 : 0;
     case "__is_base_of": {
       if (ts.length < 2) return null;
       const base = cx.classes.get(ts[0].name);
@@ -390,13 +420,17 @@ function constEvalInner(cx: Cx, e: Expr, scope: Scope, seen: Set<string>): numbe
       if (e.arg.kind === "initlist" && !(e.arg as InitListExpr).items.length) return 0;
       const a = constEvalInner(cx, e.arg, scope, seen);
       if (typeof a !== "number") return a;
-      // An unsigned value wraps, and the width is the 32-bit one: a JS number
-      // cannot hold a 64-bit unsigned range.
-      return isUnsignedName(coreName(t)) ? a >>> 0 : a;
+      // An unsigned value wraps; the mask width depends on the type.
+      // JS numbers cannot hold the full 64-bit unsigned range.
+      if (!isUnsignedName(coreName(t))) return a;
+      const cn = coreName(t);
+      if (cn === "unsigned char" || cn === "signed char" || cn === "char" || cn === "char16_t") return a & 0xFF;
+      if (cn === "unsigned short" || cn === "short" || cn === "wchar_t") return a & 0xFFFF;
+      return a >>> 0;
     }
     case "call": {
       const nm = e.fn.kind === "id" && e.fn.parts.length === 1 ? e.fn.parts[0].n : "";
-      if (!nm.startsWith("__is_")) return null;
+      if (!nm.startsWith("__is_") && !nm.startsWith("__has_")) return null;
       return typeTrait(cx, nm, e.args, scope);
     }
     case "sizeof": {

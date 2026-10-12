@@ -1,0 +1,40 @@
+#include <bits/stdc++.h>
+using namespace std;
+int main() {
+  list<int> a;
+  a.push_back(3);
+  a.push_back(1);
+  a.push_back(4);
+  a.push_front(9);
+  int s = 0;
+  for (int x : a) s = s * 10 + x;
+  cout << s << " " << a.size() << endl;
+  a.sort();
+  s = 0;
+  for (int x : a) s = s * 10 + x;
+  cout << s << endl;
+  a.reverse();
+  s = 0;
+  for (int x : a) s = s * 10 + x;
+  cout << s << endl;
+  a.remove(4);
+  a.pop_front();
+  cout << a.front() << " " << a.back() << " " << a.size() << endl;
+  list<int> b;
+  b.push_back(7);
+  b.push_back(8);
+  b.splice(b.end(), a);
+  s = 0;
+  for (int& y : b) s = s * 10 + y;
+  cout << s << " " << a.size() << endl;
+  list<int> c;
+  c.push_back(5);
+  c.push_back(6);
+  b.merge(c);
+  s = 0;
+  for (const int& y : b) s = s * 10 + y;
+  cout << s << endl;
+  b.clear();
+  cout << b.size() << " " << b.empty() << endl;
+  return 0;
+}

@@ -55,7 +55,9 @@ export function substTypeNode(tn: TypeNode, env: SubstEnv): TypeNode {
   out.decltypeOf = tn.decltypeOf ? substExpr(tn.decltypeOf, env) : null;
   out.valueArg = tn.valueArg ? substExpr(tn.valueArg, env) : null;
   out.dims = tn.dims.map(d => substExpr(d, env));
-  out.func = tn.func ? { params: tn.func.params.map(p => substTypeNode(p, env)), variadic: tn.func.variadic } : null;
+  // The parameter list may hold a pack ("_Signature_type(_ArgTypes...)"), which
+  // expands to one node per bound argument.
+  out.func = tn.func ? { params: substTArgs(tn.func.params, env), variadic: tn.func.variadic } : null;
   if (!tn.parts.length) return out;
   const first = tn.parts[0].n;
   const rep = env.types.get(first);
@@ -69,6 +71,9 @@ export function substTypeNode(tn: TypeNode, env: SubstEnv): TypeNode {
       out.func = { params: rep.funcParams.map(typeToNode), variadic: rep.funcVariadic };
     }
     for (const d of rep.dims) out.dims.unshift(litNum(d, out) as Expr);
+  } else if (tn.parts.length === 1 && !tn.parts[0].a.length && env.values.has(first)) {
+    // A nontype parameter written in type position, as in get<_Indexes>.
+    out.valueArg = litNum(env.values.get(first) as number, tn);
   } else {
     out.parts = tn.parts.map(s => substQSeg(s, env));
   }
@@ -102,6 +107,29 @@ export function substTArgs(args: TypeNode[], env: SubstEnv): TypeNode[] {
         for (const v of env.valuePacks.get(nm) as number[]) {
           const tn = typeNode([]);
           tn.valueArg = litNum(v, a) as Expr;
+          out.push(tn);
+        }
+        continue;
+      }
+    }
+    // `_Indexes...` as a nontype template argument is parsed as an expression
+    // (unary `...` on the pack name), not a type with packExpand.
+    if (!a.parts.length && a.valueArg) {
+      const va = a.valueArg;
+      const packLike = (va.kind === "unary" && va.op === "...") || a.packExpand;
+      if (packLike) {
+        const e: Expr = va.kind === "unary" && va.op === "..."
+          ? va
+          : { kind: "unary", op: "...", arg: va, postfix: true, file: a.file, line: a.line };
+        const expanded = expandArg(e, env);
+        const unbound = expanded.length === 1 && expanded[0].kind === "unary" && expanded[0].op === "...";
+        if (unbound) {
+          out.push(substTypeNode(a, env));
+          continue;
+        }
+        for (const x of expanded) {
+          const tn = typeNode([], a);
+          tn.valueArg = x;
           out.push(tn);
         }
         continue;
@@ -148,25 +176,52 @@ function rebuildPack(core: Expr, wraps: Expr[]): Expr {
   return cur;
 }
 
+function isPackName(nm: string, env: SubstEnv): boolean {
+  return env.packNames.has(nm) || env.packs.has(nm) || env.valuePacks.has(nm);
+}
+
 // The pack an expression mentions, if any: an expansion may hide it inside a
-// call, as in "std::forward<_Args>(__args)...".
+// call, as in "std::forward<_Args>(__args)..." or
+// "std::forward<_Args1>(std::get<_Indexes1>(t))...".
+// Function-parameter packs (__args) take priority over type packs (_Args)
+// named only in a template argument: walking forward<_Args> would otherwise
+// expand over the types and leave __args unsubstituted.
 function packInExpr(e: Expr, env: SubstEnv): string | null {
-  let found: string | null = null;
+  let foundNames: string | null = null;
+  let foundOther: string | null = null;
+  const consider = (nm: string, fromId: boolean): void => {
+    if (env.packNames.has(nm)) {
+      if (!foundNames) foundNames = nm;
+    } else if (fromId ? (env.valuePacks.has(nm) || env.packs.has(nm)) : isPackName(nm, env)) {
+      if (!foundOther) foundOther = nm;
+    }
+  };
   const walk = (x: unknown): void => {
-    if (found || !x || typeof x !== "object") return;
+    if (!x || typeof x !== "object") return;
     if (Array.isArray(x)) { x.forEach(walk); return; }
     const n = x as Record<string, unknown>;
     if (n.kind === "id") {
       const parts = n.parts as QSeg[];
-      if (parts.length === 1 && !n.global && (env.packNames.has(parts[0].n) || env.valuePacks.has(parts[0].n))) {
-        found = parts[0].n;
-        return;
-      }
+      if (parts.length === 1 && !n.global) consider(parts[0].n, true);
     }
+    const parts = n.parts as QSeg[] | undefined;
+    if (parts && parts.length === 1 && !parts[0].a.length) consider(parts[0].n, false);
     for (const k of Object.keys(n)) walk(n[k]);
   };
   walk(e);
-  return found;
+  return foundNames || foundOther;
+}
+
+// When expanding one pack, bind every pack to its i-th element so a pattern
+// that mentions two packs of the same length (forward<_Args>(get<_Idx>(t)))
+// substitutes both.
+function bindPackIndex(e2: SubstEnv, env: SubstEnv, i: number): void {
+  for (const [k, ts] of env.packs) {
+    if (i < ts.length) e2.types.set(k, ts[i]);
+  }
+  for (const [k, vs] of env.valuePacks) {
+    if (i < vs.length) e2.values.set(k, vs[i]);
+  }
 }
 
 function replacePackId(e: Expr, pack: string, repl: Expr): Expr {
@@ -208,21 +263,48 @@ function expandArg(a: Expr, env: SubstEnv): Expr[] {
       return names.map((n, i) => {
         const e2 = copySubstEnv(env);
         if (tp && types[i]) e2.types.set(tp, types[i]);
+        bindPackIndex(e2, env, i);
         const id: Expr = { kind: "id", parts: [qseg(n)], global: false, file: a.file, line: a.line };
         return substExpr(replacePackId(a.arg, nm, id), e2);
       });
     }
     if (nm && env.valuePacks.has(nm)) {
-      return (env.valuePacks.get(nm) as number[]).map(v => {
+      return (env.valuePacks.get(nm) as number[]).map((v, i) => {
         const e2 = copySubstEnv(env);
         e2.values.set(nm, v);
+        bindPackIndex(e2, env, i);
         return substExpr(replacePackId(a.arg, nm, litNum(v, a) as Expr), e2);
+      });
+    }
+    if (nm && env.packs.has(nm)) {
+      return (env.packs.get(nm) as CppType[]).map((ty, i) => {
+        const e2 = copySubstEnv(env);
+        e2.types.set(nm, ty);
+        bindPackIndex(e2, env, i);
+        let core = a.arg;
+        for (const [pn, tp] of env.packOf) {
+          if (tp !== nm || !env.packNames.has(pn)) continue;
+          const names = env.packNames.get(pn) as string[];
+          if (!names[i]) continue;
+          const id: Expr = { kind: "id", parts: [qseg(names[i])], global: false, file: a.file, line: a.line };
+          core = replacePackId(core, pn, id);
+        }
+        return substExpr(core, e2);
       });
     }
   }
   return [substExpr(a, env)];
 }
 
+// The expression a functional cast constructs from: "Tp(__args...)" with a
+// pack of one element constructs that element, which is what a cast holds.
+function substCastArg(a: Expr, env: SubstEnv): Expr {
+  if (a.kind === "unary" && a.op === "...") {
+    const ex = expandArg(a, env);
+    if (ex.length === 1) return ex[0];
+  }
+  return substExpr(a, env);
+}
 function substCallArgs(args: Expr[], env: SubstEnv): Expr[] {
   const out: Expr[] = [];
   for (const a of args) out.push(...expandArg(a, env));
@@ -278,13 +360,25 @@ export function substExpr(ex: Expr, env: SubstEnv): Expr {
     case "cast":
       return {
         kind: "cast", ckind: ex.ckind, type: ex.type ? substTypeNode(ex.type, env) : null,
-        fn: ex.fn ? substExpr(ex.fn, env) : null, arg: substExpr(ex.arg, env), file: f, line: l,
+        fn: ex.fn ? substExpr(ex.fn, env) : null, arg: substCastArg(ex.arg, env), file: f, line: l,
       };
     case "sizeof": {
       if (ex.packName) {
-        const n = env.packs.has(ex.packName) ? (env.packs.get(ex.packName) as CppType[]).length
-          : env.valuePacks.has(ex.packName) ? (env.valuePacks.get(ex.packName) as number[]).length : 0;
-        return litNum(n, a);
+        // An inner template's pack is not bound yet; leave sizeof... as written
+        // so a later substitution of that pack can count it.  Only a bound pack
+        // (including an empty one) becomes a literal.
+        if (env.packs.has(ex.packName)) return litNum((env.packs.get(ex.packName) as CppType[]).length, a);
+        if (env.valuePacks.has(ex.packName)) return litNum((env.valuePacks.get(ex.packName) as number[]).length, a);
+        if (env.types.has(ex.packName) || env.values.has(ex.packName) || env.packNames.has(ex.packName)) {
+          return litNum(0, a);
+        }
+        return { kind: "sizeof", isType: ex.isType, type: ex.type, expr: ex.expr, packName: ex.packName, isAlignof: ex.isAlignof, file: f, line: l };
+      }
+      // `sizeof...(_Args)` parsed as sizeof of the pack name as a type.
+      if (ex.isType && ex.type && ex.type.parts.length === 1 && !ex.type.parts[0].a.length) {
+        const nm = ex.type.parts[0].n;
+        if (env.packs.has(nm)) return litNum((env.packs.get(nm) as CppType[]).length, a);
+        if (env.valuePacks.has(nm)) return litNum((env.valuePacks.get(nm) as number[]).length, a);
       }
       return {
         kind: "sizeof", isType: ex.isType, type: ex.type ? substTypeNode(ex.type, env) : null,
@@ -326,6 +420,7 @@ export function substParams(params: Param[], env: SubstEnv): Param[] {
         const tn = typeToNode(t);
         tn.ptr += p.type.ptr;
         if (p.type.ref) tn.ref = p.type.ref;
+        if (p.type.cnst) tn.cnst = true;
         out.push({ name: nm, type: tn, def: null, variadic: false, isPack: false, file: p.file, line: p.line });
       });
       if (p.name) {
@@ -349,7 +444,9 @@ export function substStmt(s: Stmt, env: SubstEnv): Stmt {
   const f = s.file;
   const l = s.line;
   switch (s.kind) {
-    case "compound": return { kind: "compound", stmts: s.stmts.map(x => substStmt(x, env)), file: f, line: l };
+    // A statement of several declarations shares the scope it stands in, and
+    // the copy has to say so too, or the names it declares are lost with it.
+    case "compound": return { kind: "compound", sameScope: s.sameScope, stmts: s.stmts.map(x => substStmt(x, env)), file: f, line: l };
     case "expr": return { kind: "expr", expr: substExpr(s.expr, env), file: f, line: l };
     case "decl": return { kind: "decl", decl: substDecl(s.decl, env), file: f, line: l };
     case "if":
@@ -402,6 +499,19 @@ function substCtorInit(c: CtorInit, env: SubstEnv): CtorInit {
   // ": _Alloc(__a)" names a base class, and that base can be a template
   // parameter, so the name is substituted like any other qualified name.
   return { name: substQName(c.name, env), args: substCallArgs(c.args, env), file: c.file, line: c.line };
+}
+
+export function substTParam(tp: TParam, env: SubstEnv): TParam {
+  let def: TypeNode | Expr | null = tp.def;
+  if (def) {
+    if (tp.kind === "nontype") def = substExpr(def as Expr, env);
+    else def = substTypeNode(def as TypeNode, env);
+  }
+  return {
+    kind: tp.kind, name: tp.name,
+    type: tp.type ? substTypeNode(tp.type, env) : null,
+    def, isPack: tp.isPack, file: tp.file, line: tp.line,
+  };
 }
 
 export function substDecl(d: Decl, env: SubstEnv): Decl {
@@ -470,7 +580,7 @@ export function substDecl(d: Decl, env: SubstEnv): Decl {
         e2.packNames.delete(tp.name);
       }
       return {
-        kind: "template", tparams: d.tparams,
+        kind: "template", tparams: d.tparams.map(tp => substTParam(tp, e2)),
         decl: d.decl ? substDecl(d.decl, e2) : null,
         isSpec: d.isSpec, specArgs: substTArgs(d.specArgs, e2), isExplicit: d.isExplicit, file: f, line: l,
       };
