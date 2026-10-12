@@ -350,7 +350,22 @@ function typeOfBinary(cx: Cx, e: BinaryExpr, scope: Scope): CppType {
   // Formatted iostream insertion pulls in locale/num_put/_M_insert. Emit a
   // builtin write instead of analysing those bodies.
   if (e.op === "<<" && isOstreamLike(cx, rawL.core())) {
-    if (!streamManipName(e.r)) typeOf(cx, e.r, scope);
+    if (!streamManipName(e.r)) {
+      const rt = typeOf(cx, e.r, scope);
+      const rc = !rt.isBox() && !rt.isFunc && !rt.dims.length ? String(rt.core().key()) : "";
+      // "cout << hex" and "cout << setw(6)" are calls after all: the first is
+      // a function of the stream, the second an object of its own that knows
+      // how to set the width.  Both hand the stream back, so what is printed
+      // after them is printed the way they asked for.
+      if (rt.isFunc || rc.indexOf("std::_Set") === 0) {
+        const r = findOperator(cx, e.op, { t: rawL, e: e.l }, { t: rt, e: e.r }, scope, e);
+        if (r) {
+          ann.call = r.fn;
+          ann.convs = r.convs;
+          return cx.funcRet(r.fn);
+        }
+      }
+    }
     ann.call = { builtin: "__ctj_out" };
     return rawL;
   }

@@ -1,9 +1,70 @@
 "use strict";
 var __ctj_obuf = "";
-function __ctj_fmt(v) { for (var n = 0; n < 4 && v && typeof v === "object" && v.a !== undefined; n++) { var nv = v.a[v.i]; if (nv !== null && typeof nv === "object") { v = nv; continue; } if (!Array.isArray(v.a)) { v = nv; continue; } break; } if (v != null && typeof v === "object" && v._M_dataplus !== undefined) { v = v._M_dataplus._M_p; if (v == null) return ""; } if (v == null) return "0"; if (typeof v === "boolean") return v ? "1" : "0"; if (typeof v === "number") return String(v); if (typeof v === "string") return v; var a = v && v.a, i = v && v.i; if (Array.isArray(v)) { a = v; i = 0; } if (Array.isArray(a)) { var s = ""; for (var k = i | 0; k < a.length && a[k]; k++) s += String.fromCharCode(a[k]); return s; } return String(v); }
+function __ctj_ios(os) {
+  for (let n = 0; n < 4 && os && typeof os === "object" && os.a !== undefined; n++) { const x = os.a[os.i]; if (x === null || x === undefined) break; os = x; }
+  return os;
+}
+function __ctj_fmt_g(x, p) {
+  let s = x.toPrecision(Math.max(1, Math.min(21, p)));
+  if (s.indexOf("e") >= 0) {
+    const m = s.split("e");
+    s = String(parseFloat(m[0])) + "e" + (m[1][0] === "-" ? "-" : "+") + String(Math.abs(parseInt(m[1], 10))).padStart(2, "0");
+  } else if (s.indexOf(".") >= 0) s = s.replace(/\.?0+$/, "");
+  return s;
+}
+function __ctj_cstr(p, n) {
+  if (p == null) return "";
+  const a = (p && p.a !== undefined) ? p.a : p;
+  const i = (p && p.i !== undefined) ? (p.i | 0) : 0;
+  const lim = (n == null) ? 1e9 : (n | 0);
+  let s = "";
+  for (let k = 0; k < lim; k++) {
+    const c = a[i + k];
+    if (c === 0 || c === undefined || c === null) break;
+    s += typeof c === "number" ? String.fromCharCode(c & 255) : String(c);
+  }
+  return s;
+}
+function __ctj_fmt(v, os) {
+  os = __ctj_ios(os);
+  const f = (os && typeof os._M_flags === "number") ? os._M_flags : 0;
+  const base = (f & 74) === 8 ? 16 : ((f & 74) === 64 ? 8 : 10);
+  for (let n = 0; n < 4 && v && typeof v === "object" && v.a !== undefined; n++) { const nv = v.a[v.i]; if (nv !== null && typeof nv === "object") { v = nv; continue; } if (!Array.isArray(v.a)) { v = nv; continue; } break; }
+  if (v !== null && typeof v === "object" && v._M_dataplus !== undefined) v = v._M_dataplus._M_p;
+  let s;
+  if (v === null || v === undefined) s = "0";
+  else if (typeof v === "boolean") s = (f & 1) ? (v ? "true" : "false") : (v ? "1" : "0");
+  else if (typeof v === "number") {
+    if (base !== 10 && Number.isInteger(v)) s = (v < 0 ? (v >>> 0) : v).toString(base);
+    else if (Number.isInteger(v)) s = String(v);
+    else s = Number.isFinite(v) ? __ctj_fmt_g(v, (os && os._M_precision) ? os._M_precision : 6) : String(v);
+  }
+  else if (typeof v === "string") s = v;
+  else if (typeof v === "object") s = __ctj_cstr(v);
+  else s = String(v);
+  const w = (os && typeof os._M_width === "number") ? os._M_width : 0;
+  if (w > s.length) {
+    const c = (os && typeof os._M_fill === "number" && os._M_fill) ? String.fromCharCode(os._M_fill) : " ";
+    s = c.repeat(w - s.length) + s;
+  }
+  if (os && typeof os._M_width === "number") os._M_width = 0;
+  return s;
+}
 function __ctj_write(s) { s = String(s); if (typeof process !== "undefined" && process.stdout && process.stdout.write) { process.stdout.write(s); return; } __ctj_obuf += s; for (;;) { var n = __ctj_obuf.indexOf("\n"); if (n < 0) break; console.log(__ctj_obuf.slice(0, n)); __ctj_obuf = __ctj_obuf.slice(n + 1); } }
 function __ctj_flush() { if (__ctj_obuf) { console.log(__ctj_obuf); __ctj_obuf = ""; } }
 const PRIME_BUCKETS = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97, 103, 109, 113, 127, 137, 139, 149, 157, 167, 179, 193, 199, 211, 227, 241, 257, 277, 293, 313, 337, 359, 383, 409, 439, 467, 503, 541, 577, 619, 661, 709, 761, 823, 887, 953, 1031, 1109, 1193, 1289, 1381, 1493, 1613, 1741, 1879, 2029, 2179, 2357, 2549, 2753, 2971, 3209, 3469, 3739, 4027, 4349, 4703, 5087, 5503, 5953, 6427, 6949, 7517, 8123, 8783, 9497, 10273, 11113, 12011, 12983, 14033, 15173, 16411, 17749, 19183, 20753, 22447, 24281, 26267, 28411, 30727, 33223, 35933, 38873, 42043, 45481, 49201, 53201, 57557, 62233, 67307, 72817, 78779, 85229, 92203, 99733, 107897, 116731, 126271, 136607, 147793, 159871, 172933, 187091, 202409, 218971, 236897, 256279, 277261, 299951, 324503, 351061, 379787, 410857, 444487, 480881, 520241, 562841, 608903, 658753, 712697, 771049, 834181, 902483, 976369, 1056323, 1142821, 1236397, 1337629, 1447153, 1565659, 1693859, 1832561, 1982627, 2144977, 2320627, 2510653, 2716249, 2938679, 3179303, 3439651, 3721303, 4026031, 4355707, 4712381, 5098259, 5515729, 5967347, 6456007, 6984629, 7556579, 8175383, 8844859, 9569143, 10352717, 11200489, 12117689, 13109983, 14183539, 15345007, 16601593, 17961079, 19431899, 21023161, 22744717, 24607243, 26622317, 28802401, 31160981, 33712729, 36473443, 39460231, 42691603, 46187573, 49969847, 54061849, 58488943, 63278561, 68460391, 74066549, 80131819, 86693767, 93793069, 101473717, 109783337, 118773397, 128499677, 139022417, 150406843, 162723577, 176048909, 190465427, 206062531, 222936881, 241193053, 260944219, 282312799, 305431229, 330442829, 357502601, 386778277, 418451333, 452718089, 489790921, 529899637, 573292817, 620239453, 671030513, 725980837, 785430967, 849749479, 919334987, 994618837, 1076067617, 1164186217, 1259520799, 1362662261, 1474249943, 1594975441, 1725587117, 1866894511, 2019773507, 2185171673, 2364114217, 2557710269, 2767159799, 2993761039, 3238918481, 3504151727, 3791104843, 4101556399, 4294967291, 6442450933, 8589934583, 12884901857, 17179869143, 25769803693, 34359738337, 51539607367, 68719476731, 103079215087, 137438953447, 206158430123, 274877906899, 412316860387, 549755813881, 824633720731, 1099511627689, 1649267441579, 2199023255531, 3298534883309, 4398046511093, 6597069766607, 8796093022151, 13194139533241, 17592186044399, 26388279066581, 35184372088777, 52776558133177, 70368744177643, 105553116266399, 140737488355213, 211106232532861, 281474976710597, 562949953421231, 1125899906842597, 2251799813685119, 4503599627370449, 9007199254740881, 18014398509481952, 36028797018963910, 72057594037927930, 144115188075855860, 288230376151711700, 576460752303423400, 1152921504606846800, 2305843009213694000, 4611686018427388000, 9223372036854776000, 18446744073709552000];
+function _ctj_ios(os) {
+  for (let n = 0; n < 4 && os && typeof os === "object" && os.a !== undefined; n++) { const x = os.a[os.i]; if (x === null || x === undefined) break; os = x; }
+  return os;
+}
+function _ctj_fmt_g(x, p) {
+  let s = x.toPrecision(Math.max(1, Math.min(21, p)));
+  if (s.indexOf("e") >= 0) {
+    const m = s.split("e");
+    s = String(parseFloat(m[0])) + "e" + (m[1][0] === "-" ? "-" : "+") + String(Math.abs(parseInt(m[1], 10))).padStart(2, "0");
+  } else if (s.indexOf(".") >= 0) s = s.replace(/\.?0+$/, "");
+  return s;
+}
 function _ctj_cstr(p, n) {
   if (p == null) return "";
   const a = (p && p.a !== undefined) ? p.a : p;
@@ -17,15 +78,30 @@ function _ctj_cstr(p, n) {
   }
   return s;
 }
-function _ctj_fmt(v) {
-  for (let n = 0; n < 4 && v && typeof v === "object" && v.a !== undefined; n++) { var nv = v.a[v.i]; if (nv !== null && typeof nv === "object") { v = nv; continue; } if (!Array.isArray(v.a)) { v = nv; continue; } break; }
+function _ctj_fmt(v, os) {
+  os = _ctj_ios(os);
+  const f = (os && typeof os._M_flags === "number") ? os._M_flags : 0;
+  const base = (f & 74) === 8 ? 16 : ((f & 74) === 64 ? 8 : 10);
+  for (let n = 0; n < 4 && v && typeof v === "object" && v.a !== undefined; n++) { const nv = v.a[v.i]; if (nv !== null && typeof nv === "object") { v = nv; continue; } if (!Array.isArray(v.a)) { v = nv; continue; } break; }
   if (v !== null && typeof v === "object" && v._M_dataplus !== undefined) v = v._M_dataplus._M_p;
-  if (v === null || v === undefined) return "0";
-  if (typeof v === "boolean") return v ? "1" : "0";
-  if (typeof v === "number") return String(v);
-  if (typeof v === "string") return v;
-  if (typeof v === "object") return _ctj_cstr(v);
-  return String(v);
+  let s;
+  if (v === null || v === undefined) s = "0";
+  else if (typeof v === "boolean") s = (f & 1) ? (v ? "true" : "false") : (v ? "1" : "0");
+  else if (typeof v === "number") {
+    if (base !== 10 && Number.isInteger(v)) s = (v < 0 ? (v >>> 0) : v).toString(base);
+    else if (Number.isInteger(v)) s = String(v);
+    else s = Number.isFinite(v) ? _ctj_fmt_g(v, (os && os._M_precision) ? os._M_precision : 6) : String(v);
+  }
+  else if (typeof v === "string") s = v;
+  else if (typeof v === "object") s = _ctj_cstr(v);
+  else s = String(v);
+  const w = (os && typeof os._M_width === "number") ? os._M_width : 0;
+  if (w > s.length) {
+    const c = (os && typeof os._M_fill === "number" && os._M_fill) ? String.fromCharCode(os._M_fill) : " ";
+    s = c.repeat(w - s.length) + s;
+  }
+  if (os && typeof os._M_width === "number") os._M_width = 0;
+  return s;
 }
 class std_sfinae_types {
   __init_std_sfinae_types(...$a) { }
@@ -11133,20 +11209,20 @@ function main() {
   let m = new std_unordered_map_std_basic_string_char_std_char_traits_char_std_allocator_char_int_std_hash_std_basic_string_char_std_char_traits_char_std_allocator_char_std_equal_to_std_basic_string_char_std_char_traits_char_std_allocator_char_std_allocator_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int(10, {a: [new std_hash_std_basic_string_char_std_char_traits_char_std_allocator_char()], i: 0}, {a: [new std_equal_to_std_basic_string_char_std_char_traits_char_std_allocator_char()], i: 0}, {a: [new std_allocator_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int()], i: 0});
   ($t294 = m.op_index({a: [new std_basic_string_char_std_char_traits_char_std_allocator_char({a: [97, 97, 0], i: 0})], i: 0}), $t294.a[$t294.i] = 1);
   ($t295 = m.op_index({a: [new std_basic_string_char_std_char_traits_char_std_allocator_char({a: [98, 98, 0], i: 0})], i: 0}), $t295.a[$t295.i] = 2);
-  ($t302 = ($t301 = ($t300 = ($t299 = ($t298 = (__ctj_write(__ctj_fmt(m.size__c())), std_cout), __ctj_write(__ctj_fmt([32, 0])), $t298), __ctj_write(__ctj_fmt((($t296 = m.op_index({a: [new std_basic_string_char_std_char_traits_char_std_allocator_char({a: [97, 97, 0], i: 0})], i: 0}), $t296.a[$t296.i]) + ($t297 = m.op_index({a: [new std_basic_string_char_std_char_traits_char_std_allocator_char({a: [98, 98, 0], i: 0})], i: 0}), $t297.a[$t297.i])))), $t299), __ctj_write(__ctj_fmt([32, 0])), $t300), __ctj_write(__ctj_fmt(m.count__c({a: [new std_basic_string_char_std_char_traits_char_std_allocator_char({a: [99, 99, 0], i: 0})], i: 0}))), $t301), __ctj_write("\n"), $t302);
+  ($t302 = ($t301 = ($t300 = ($t297 = ($t296 = (__ctj_write(__ctj_fmt(m.size__c(), std_cout)), std_cout), __ctj_write(__ctj_fmt([32, 0], $t296)), $t296), __ctj_write(__ctj_fmt((($t298 = m.op_index({a: [new std_basic_string_char_std_char_traits_char_std_allocator_char({a: [97, 97, 0], i: 0})], i: 0}), $t298.a[$t298.i]) + ($t299 = m.op_index({a: [new std_basic_string_char_std_char_traits_char_std_allocator_char({a: [98, 98, 0], i: 0})], i: 0}), $t299.a[$t299.i])), $t297)), $t297), __ctj_write(__ctj_fmt([32, 0], $t300)), $t300), __ctj_write(__ctj_fmt(m.count__c({a: [new std_basic_string_char_std_char_traits_char_std_allocator_char({a: [99, 99, 0], i: 0})], i: 0}), $t301)), $t301), __ctj_write("\n"), $t302);
   for (let $b0 = new std_detail_Node_iterator_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_value0_value1({a: [m.begin()], i: 0}), $e0 = new std_detail_Node_iterator_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_value0_value1({a: [m.end()], i: 0}); std_detail_operator_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_value1({a: [$b0], i: 0}, {a: [$e0], i: 0}); $b0.op_inc()) {
     let kv = $b0.op_mul__c();
-    ($t305 = ($t304 = ($t303 = (__ctj_write(__ctj_fmt((kv.a[kv.i]).first)), std_cout), __ctj_write(__ctj_fmt([61, 0])), $t303), __ctj_write(__ctj_fmt((kv.a[kv.i]).second)), $t304), __ctj_write(__ctj_fmt([32, 0])), $t305);
+    ($t305 = ($t304 = ($t303 = (__ctj_write(__ctj_fmt((kv.a[kv.i]).first, std_cout)), std_cout), __ctj_write(__ctj_fmt([61, 0], $t303)), $t303), __ctj_write(__ctj_fmt((kv.a[kv.i]).second, $t304)), $t304), __ctj_write(__ctj_fmt([32, 0], $t305)), $t305);
   }
   (__ctj_write("\n"), std_cout);
   let s = new std_unordered_set_int_std_hash_int_std_equal_to_int_std_allocator_int(10, {a: [new std_hash_int()], i: 0}, {a: [new std_equal_to_int()], i: 0}, {a: [new std_allocator_int()], i: 0});
   s.insert({a: [5], i: 0});
   s.insert({a: [6], i: 0});
   s.insert({a: [5], i: 0});
-  ($t308 = ($t307 = ($t306 = (__ctj_write(__ctj_fmt(s.size__c())), std_cout), __ctj_write(__ctj_fmt([32, 0])), $t306), __ctj_write(__ctj_fmt(s.count__c({a: [6], i: 0}))), $t307), __ctj_write("\n"), $t308);
+  ($t308 = ($t307 = ($t306 = (__ctj_write(__ctj_fmt(s.size__c(), std_cout)), std_cout), __ctj_write(__ctj_fmt([32, 0], $t306)), $t306), __ctj_write(__ctj_fmt(s.count__c({a: [6], i: 0}), $t307)), $t307), __ctj_write("\n"), $t308);
   for (let $b1 = new std_detail_Node_iterator_int_value1_value0({a: [s.begin()], i: 0}), $e1 = new std_detail_Node_iterator_int_value1_value0({a: [s.end()], i: 0}); std_detail_operator_int_value0({a: [$b1], i: 0}, {a: [$e1], i: 0}); $b1.op_inc()) {
     let x = ($b1.op_mul__c()).a[($b1.op_mul__c()).i];
-    (__ctj_write(__ctj_fmt(x)), std_cout);
+    (__ctj_write(__ctj_fmt(x, std_cout)), std_cout);
   }
   (__ctj_write("\n"), std_cout);
 }
@@ -11333,6 +11409,6 @@ function std_use_facet_std_ctype_wchar_t(__loc) {
 let std_piecewise_construct = {v: new std_piecewise_construct_t()};
 let std_allocator_arg = new std_allocator_arg_t();
 let std_ignore = [];
-let std_cout = {};
+let std_cout = new std_basic_ostream_char_std_char_traits_char();
 main();
 __ctj_flush();

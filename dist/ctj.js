@@ -8453,8 +8453,22 @@ var CTJ;
         // Formatted iostream insertion pulls in locale/num_put/_M_insert. Emit a
         // builtin write instead of analysing those bodies.
         if (e.op === "<<" && isOstreamLike(cx, rawL.core())) {
-            if (!streamManipName(e.r))
-                typeOf(cx, e.r, scope);
+            if (!streamManipName(e.r)) {
+                const rt = typeOf(cx, e.r, scope);
+                const rc = !rt.isBox() && !rt.isFunc && !rt.dims.length ? String(rt.core().key()) : "";
+                // "cout << hex" and "cout << setw(6)" are calls after all: the first is
+                // a function of the stream, the second an object of its own that knows
+                // how to set the width.  Both hand the stream back, so what is printed
+                // after them is printed the way they asked for.
+                if (rt.isFunc || rc.indexOf("std::_Set") === 0) {
+                    const r = findOperator(cx, e.op, { t: rawL, e: e.l }, { t: rt, e: e.r }, scope, e);
+                    if (r) {
+                        ann.call = r.fn;
+                        ann.convs = r.convs;
+                        return cx.funcRet(r.fn);
+                    }
+                }
+            }
             ann.call = { builtin: "__ctj_out" };
             return rawL;
         }
@@ -10831,7 +10845,7 @@ var CTJ;
         streamHelper() {
             return [
                 `var __ctj_obuf = "";`,
-                `function __ctj_fmt(v) { for (var n = 0; n < 4 && v && typeof v === "object" && v.a !== undefined; n++) { var nv = v.a[v.i]; if (nv !== null && typeof nv === "object") { v = nv; continue; } if (!Array.isArray(v.a)) { v = nv; continue; } break; } if (v != null && typeof v === "object" && v._M_dataplus !== undefined) { v = v._M_dataplus._M_p; if (v == null) return ""; } if (v == null) return "0"; if (typeof v === "boolean") return v ? "1" : "0"; if (typeof v === "number") return String(v); if (typeof v === "string") return v; var a = v && v.a, i = v && v.i; if (Array.isArray(v)) { a = v; i = 0; } if (Array.isArray(a)) { var s = ""; for (var k = i | 0; k < a.length && a[k]; k++) s += String.fromCharCode(a[k]); return s; } return String(v); }`,
+                ...this.fmtHelperLines("__ctj_"),
                 `function __ctj_write(s) { s = String(s); if (typeof process !== "undefined" && process.stdout && process.stdout.write) { process.stdout.write(s); return; } __ctj_obuf += s; for (;;) { var n = __ctj_obuf.indexOf("\\n"); if (n < 0) break; console.log(__ctj_obuf.slice(0, n)); __ctj_obuf = __ctj_obuf.slice(n + 1); } }`,
                 `function __ctj_flush() { if (__ctj_obuf) { console.log(__ctj_obuf); __ctj_obuf = ""; } }`,
             ].join("\n");
@@ -11607,37 +11621,74 @@ var CTJ;
         }
         // Host stdout for the iostream methods we do not compile.
         emitIoHelpers() {
-            this.line(`function _ctj_cstr(p, n) {`);
-            this.line(`  if (p == null) return "";`);
-            this.line(`  const a = (p && p.a !== undefined) ? p.a : p;`);
-            this.line(`  const i = (p && p.i !== undefined) ? (p.i | 0) : 0;`);
-            this.line(`  const lim = (n == null) ? 1e9 : (n | 0);`);
-            this.line(`  let s = "";`);
-            this.line(`  for (let k = 0; k < lim; k++) {`);
-            this.line(`    const c = a[i + k];`);
-            this.line(`    if (c === 0 || c === undefined || c === null) break;`);
-            this.line(`    s += typeof c === "number" ? String.fromCharCode(c & 255) : String(c);`);
-            this.line(`  }`);
-            this.line(`  return s;`);
-            this.line(`}`);
-            this.line(`function _ctj_fmt(v) {`);
-            this.line(`  for (let n = 0; n < 4 && v && typeof v === "object" && v.a !== undefined; n++) { var nv = v.a[v.i]; if (nv !== null && typeof nv === "object") { v = nv; continue; } if (!Array.isArray(v.a)) { v = nv; continue; } break; }`);
-            this.line(`  if (v !== null && typeof v === "object" && v._M_dataplus !== undefined) v = v._M_dataplus._M_p;`);
-            this.line(`  if (v === null || v === undefined) return "0";`);
-            this.line(`  if (typeof v === "boolean") return v ? "1" : "0";`);
-            this.line(`  if (typeof v === "number") return String(v);`);
-            this.line(`  if (typeof v === "string") return v;`);
-            this.line(`  if (typeof v === "object") return _ctj_cstr(v);`);
-            this.line(`  return String(v);`);
-            this.line(`}`);
+            for (const l of this.fmtHelperLines("_ctj_"))
+                this.line(l);
+        }
+        // The value formatter.  The stream arrives as a reference, i.e. as an "a/i"
+        // box, and the width, the base, the fill character and the precision are read
+        // off the object at the end of the chain; the two runtime shims below need it
+        // under their own prefixes.
+        fmtHelperLines(pfx) {
+            return [
+                `function ${pfx}ios(os) {`,
+                `  for (let n = 0; n < 4 && os && typeof os === "object" && os.a !== undefined; n++) { const x = os.a[os.i]; if (x === null || x === undefined) break; os = x; }`,
+                `  return os;`,
+                `}`,
+                `function ${pfx}fmt_g(x, p) {`,
+                `  let s = x.toPrecision(Math.max(1, Math.min(21, p)));`,
+                `  if (s.indexOf("e") >= 0) {`,
+                `    const m = s.split("e");`,
+                `    s = String(parseFloat(m[0])) + "e" + (m[1][0] === "-" ? "-" : "+") + String(Math.abs(parseInt(m[1], 10))).padStart(2, "0");`,
+                `  } else if (s.indexOf(".") >= 0) s = s.replace(/\\.?0+$/, "");`,
+                `  return s;`,
+                `}`,
+                `function ${pfx}cstr(p, n) {`,
+                `  if (p == null) return "";`,
+                `  const a = (p && p.a !== undefined) ? p.a : p;`,
+                `  const i = (p && p.i !== undefined) ? (p.i | 0) : 0;`,
+                `  const lim = (n == null) ? 1e9 : (n | 0);`,
+                `  let s = "";`,
+                `  for (let k = 0; k < lim; k++) {`,
+                `    const c = a[i + k];`,
+                `    if (c === 0 || c === undefined || c === null) break;`,
+                `    s += typeof c === "number" ? String.fromCharCode(c & 255) : String(c);`,
+                `  }`,
+                `  return s;`,
+                `}`,
+                `function ${pfx}fmt(v, os) {`,
+                `  os = ${pfx}ios(os);`,
+                `  const f = (os && typeof os._M_flags === "number") ? os._M_flags : 0;`,
+                `  const base = (f & 74) === 8 ? 16 : ((f & 74) === 64 ? 8 : 10);`,
+                `  for (let n = 0; n < 4 && v && typeof v === "object" && v.a !== undefined; n++) { const nv = v.a[v.i]; if (nv !== null && typeof nv === "object") { v = nv; continue; } if (!Array.isArray(v.a)) { v = nv; continue; } break; }`,
+                `  if (v !== null && typeof v === "object" && v._M_dataplus !== undefined) v = v._M_dataplus._M_p;`,
+                `  let s;`,
+                `  if (v === null || v === undefined) s = "0";`,
+                `  else if (typeof v === "boolean") s = (f & 1) ? (v ? "true" : "false") : (v ? "1" : "0");`,
+                `  else if (typeof v === "number") {`,
+                `    if (base !== 10 && Number.isInteger(v)) s = (v < 0 ? (v >>> 0) : v).toString(base);`,
+                `    else if (Number.isInteger(v)) s = String(v);`,
+                `    else s = Number.isFinite(v) ? ${pfx}fmt_g(v, (os && os._M_precision) ? os._M_precision : 6) : String(v);`,
+                `  }`,
+                `  else if (typeof v === "string") s = v;`,
+                `  else if (typeof v === "object") s = ${pfx}cstr(v);`,
+                `  else s = String(v);`,
+                `  const w = (os && typeof os._M_width === "number") ? os._M_width : 0;`,
+                `  if (w > s.length) {`,
+                `    const c = (os && typeof os._M_fill === "number" && os._M_fill) ? String.fromCharCode(os._M_fill) : " ";`,
+                `    s = c.repeat(w - s.length) + s;`,
+                `  }`,
+                `  if (os && typeof os._M_width === "number") os._M_width = 0;`,
+                `  return s;`,
+                `}`,
+            ];
         }
         ioStubBody(kind, isMethod) {
             const retThis = isMethod ? "return {a: [this], i: 0};" : "return $a[0];";
             switch (kind) {
                 case "insert":
-                    return `process.stdout.write(_ctj_fmt($a[0])); ${retThis}`;
+                    return `process.stdout.write(_ctj_fmt($a[0], $a[0])); ${retThis}`;
                 case "put":
-                    return `process.stdout.write(typeof $a[0] === "number" ? String.fromCharCode($a[0] & 255) : _ctj_fmt($a[0])); ${retThis}`;
+                    return `process.stdout.write(typeof $a[0] === "number" ? String.fromCharCode($a[0] & 255) : _ctj_fmt($a[0], $a[0])); ${retThis}`;
                 case "write":
                     return `process.stdout.write(_ctj_cstr($a[0], $a[1])); ${retThis}`;
                 case "sinsert":
@@ -12070,7 +12121,17 @@ var CTJ;
             if (!v.referenced && !v.decl.init && !v.decl.directInit)
                 return;
             if (v.isGlobal && /^(cout|cerr|clog|wcout|wcerr|wclog)$/.test(v.short)) {
-                this.line(`let ${v.mangled} = {};`);
+                // The standard streams are used by the manipulators, which set the width
+                // and the base on them, so they have to start out as real objects.
+                const st = v.typeCache;
+                const sfq = !st.isBox() && !st.dims.length && !st.isFunc ? this.cx.stripAll(st) : "";
+                if (sfq && this.cx.classes.has(sfq)) {
+                    const scn = this.cx.classes.get(sfq).mangled;
+                    this.line(`let ${v.mangled} = new ${scn}();`);
+                }
+                else {
+                    this.line(`let ${v.mangled} = {};`);
+                }
                 return;
             }
             const t = v.typeCache;
@@ -13845,6 +13906,11 @@ var CTJ;
         exStreamOut(e) {
             this.needStreamFmt = true;
             const manip = CTJ.streamManipName(e.r);
+            const l = this.ex(e.l);
+            // The stream itself is needed for the field width and the base, and the
+            // temporary it lives in is written before the value is formatted.
+            const simple = this.isSimple(e.l);
+            const os = simple ? l : this.tmp();
             let payload;
             if (manip === "endl")
                 payload = `"\\n"`;
@@ -13862,14 +13928,12 @@ var CTJ;
                     payload = `String.fromCharCode(${rs})`;
                 }
                 else {
-                    payload = `__ctj_fmt(${rs})`;
+                    payload = `__ctj_fmt(${rs}, ${os})`;
                 }
             }
-            const l = this.ex(e.l);
-            if (this.isSimple(e.l))
+            if (simple)
                 return `(__ctj_write(${payload}), ${l})`;
-            const t = this.tmp();
-            return `(${t} = ${l}, __ctj_write(${payload}), ${t})`;
+            return `(${os} = ${l}, __ctj_write(${payload}), ${os})`;
         }
         exBinary(e) {
             const a = this.cx.getAnn(e);
@@ -16932,4 +16996,4 @@ var CTJ;
     g["CTJ"] = CTJ;
 })();
 
-CTJ.version = "96da40d 2026-10-12 07:24:54Z";
+CTJ.version = "ef9b0df 2026-10-12 07:30:26Z";

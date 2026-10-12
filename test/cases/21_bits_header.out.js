@@ -1,8 +1,69 @@
 "use strict";
 var __ctj_obuf = "";
-function __ctj_fmt(v) { for (var n = 0; n < 4 && v && typeof v === "object" && v.a !== undefined; n++) { var nv = v.a[v.i]; if (nv !== null && typeof nv === "object") { v = nv; continue; } if (!Array.isArray(v.a)) { v = nv; continue; } break; } if (v != null && typeof v === "object" && v._M_dataplus !== undefined) { v = v._M_dataplus._M_p; if (v == null) return ""; } if (v == null) return "0"; if (typeof v === "boolean") return v ? "1" : "0"; if (typeof v === "number") return String(v); if (typeof v === "string") return v; var a = v && v.a, i = v && v.i; if (Array.isArray(v)) { a = v; i = 0; } if (Array.isArray(a)) { var s = ""; for (var k = i | 0; k < a.length && a[k]; k++) s += String.fromCharCode(a[k]); return s; } return String(v); }
+function __ctj_ios(os) {
+  for (let n = 0; n < 4 && os && typeof os === "object" && os.a !== undefined; n++) { const x = os.a[os.i]; if (x === null || x === undefined) break; os = x; }
+  return os;
+}
+function __ctj_fmt_g(x, p) {
+  let s = x.toPrecision(Math.max(1, Math.min(21, p)));
+  if (s.indexOf("e") >= 0) {
+    const m = s.split("e");
+    s = String(parseFloat(m[0])) + "e" + (m[1][0] === "-" ? "-" : "+") + String(Math.abs(parseInt(m[1], 10))).padStart(2, "0");
+  } else if (s.indexOf(".") >= 0) s = s.replace(/\.?0+$/, "");
+  return s;
+}
+function __ctj_cstr(p, n) {
+  if (p == null) return "";
+  const a = (p && p.a !== undefined) ? p.a : p;
+  const i = (p && p.i !== undefined) ? (p.i | 0) : 0;
+  const lim = (n == null) ? 1e9 : (n | 0);
+  let s = "";
+  for (let k = 0; k < lim; k++) {
+    const c = a[i + k];
+    if (c === 0 || c === undefined || c === null) break;
+    s += typeof c === "number" ? String.fromCharCode(c & 255) : String(c);
+  }
+  return s;
+}
+function __ctj_fmt(v, os) {
+  os = __ctj_ios(os);
+  const f = (os && typeof os._M_flags === "number") ? os._M_flags : 0;
+  const base = (f & 74) === 8 ? 16 : ((f & 74) === 64 ? 8 : 10);
+  for (let n = 0; n < 4 && v && typeof v === "object" && v.a !== undefined; n++) { const nv = v.a[v.i]; if (nv !== null && typeof nv === "object") { v = nv; continue; } if (!Array.isArray(v.a)) { v = nv; continue; } break; }
+  if (v !== null && typeof v === "object" && v._M_dataplus !== undefined) v = v._M_dataplus._M_p;
+  let s;
+  if (v === null || v === undefined) s = "0";
+  else if (typeof v === "boolean") s = (f & 1) ? (v ? "true" : "false") : (v ? "1" : "0");
+  else if (typeof v === "number") {
+    if (base !== 10 && Number.isInteger(v)) s = (v < 0 ? (v >>> 0) : v).toString(base);
+    else if (Number.isInteger(v)) s = String(v);
+    else s = Number.isFinite(v) ? __ctj_fmt_g(v, (os && os._M_precision) ? os._M_precision : 6) : String(v);
+  }
+  else if (typeof v === "string") s = v;
+  else if (typeof v === "object") s = __ctj_cstr(v);
+  else s = String(v);
+  const w = (os && typeof os._M_width === "number") ? os._M_width : 0;
+  if (w > s.length) {
+    const c = (os && typeof os._M_fill === "number" && os._M_fill) ? String.fromCharCode(os._M_fill) : " ";
+    s = c.repeat(w - s.length) + s;
+  }
+  if (os && typeof os._M_width === "number") os._M_width = 0;
+  return s;
+}
 function __ctj_write(s) { s = String(s); if (typeof process !== "undefined" && process.stdout && process.stdout.write) { process.stdout.write(s); return; } __ctj_obuf += s; for (;;) { var n = __ctj_obuf.indexOf("\n"); if (n < 0) break; console.log(__ctj_obuf.slice(0, n)); __ctj_obuf = __ctj_obuf.slice(n + 1); } }
 function __ctj_flush() { if (__ctj_obuf) { console.log(__ctj_obuf); __ctj_obuf = ""; } }
+function _ctj_ios(os) {
+  for (let n = 0; n < 4 && os && typeof os === "object" && os.a !== undefined; n++) { const x = os.a[os.i]; if (x === null || x === undefined) break; os = x; }
+  return os;
+}
+function _ctj_fmt_g(x, p) {
+  let s = x.toPrecision(Math.max(1, Math.min(21, p)));
+  if (s.indexOf("e") >= 0) {
+    const m = s.split("e");
+    s = String(parseFloat(m[0])) + "e" + (m[1][0] === "-" ? "-" : "+") + String(Math.abs(parseInt(m[1], 10))).padStart(2, "0");
+  } else if (s.indexOf(".") >= 0) s = s.replace(/\.?0+$/, "");
+  return s;
+}
 function _ctj_cstr(p, n) {
   if (p == null) return "";
   const a = (p && p.a !== undefined) ? p.a : p;
@@ -16,15 +77,30 @@ function _ctj_cstr(p, n) {
   }
   return s;
 }
-function _ctj_fmt(v) {
-  for (let n = 0; n < 4 && v && typeof v === "object" && v.a !== undefined; n++) { var nv = v.a[v.i]; if (nv !== null && typeof nv === "object") { v = nv; continue; } if (!Array.isArray(v.a)) { v = nv; continue; } break; }
+function _ctj_fmt(v, os) {
+  os = _ctj_ios(os);
+  const f = (os && typeof os._M_flags === "number") ? os._M_flags : 0;
+  const base = (f & 74) === 8 ? 16 : ((f & 74) === 64 ? 8 : 10);
+  for (let n = 0; n < 4 && v && typeof v === "object" && v.a !== undefined; n++) { const nv = v.a[v.i]; if (nv !== null && typeof nv === "object") { v = nv; continue; } if (!Array.isArray(v.a)) { v = nv; continue; } break; }
   if (v !== null && typeof v === "object" && v._M_dataplus !== undefined) v = v._M_dataplus._M_p;
-  if (v === null || v === undefined) return "0";
-  if (typeof v === "boolean") return v ? "1" : "0";
-  if (typeof v === "number") return String(v);
-  if (typeof v === "string") return v;
-  if (typeof v === "object") return _ctj_cstr(v);
-  return String(v);
+  let s;
+  if (v === null || v === undefined) s = "0";
+  else if (typeof v === "boolean") s = (f & 1) ? (v ? "true" : "false") : (v ? "1" : "0");
+  else if (typeof v === "number") {
+    if (base !== 10 && Number.isInteger(v)) s = (v < 0 ? (v >>> 0) : v).toString(base);
+    else if (Number.isInteger(v)) s = String(v);
+    else s = Number.isFinite(v) ? _ctj_fmt_g(v, (os && os._M_precision) ? os._M_precision : 6) : String(v);
+  }
+  else if (typeof v === "string") s = v;
+  else if (typeof v === "object") s = _ctj_cstr(v);
+  else s = String(v);
+  const w = (os && typeof os._M_width === "number") ? os._M_width : 0;
+  if (w > s.length) {
+    const c = (os && typeof os._M_fill === "number" && os._M_fill) ? String.fromCharCode(os._M_fill) : " ";
+    s = c.repeat(w - s.length) + s;
+  }
+  if (os && typeof os._M_width === "number") os._M_width = 0;
+  return s;
 }
 class lconv {
   decimal_point;
@@ -6696,28 +6772,28 @@ function main() {
     let x = ($b0.op_mul__c()).a[($b0.op_mul__c()).i];
     s = ((s * 10) + x);
   }
-  ($t225 = (__ctj_write(__ctj_fmt(s)), std_cout), __ctj_write("\n"), $t225);
-  ($t232 = ($t231 = ($t230 = (__ctj_write(__ctj_fmt(($t228 = (($t229 = std_max_element_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int(v.begin(), v.end()), $t229)).op_mul__c(), $t228.a[$t228.i]))), std_cout), __ctj_write(__ctj_fmt([32, 0])), $t230), __ctj_write(__ctj_fmt(($t226 = (($t227 = std_min_element_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int(v.begin(), v.end()), $t227)).op_mul__c(), $t226.a[$t226.i]))), $t231), __ctj_write("\n"), $t232);
-  ($t233 = (__ctj_write(__ctj_fmt(std_accumulate_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int_int(v.begin(), v.end(), 0))), std_cout), __ctj_write("\n"), $t233);
-  ($t238 = ($t237 = ($t236 = (__ctj_write(__ctj_fmt(std_count_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int_int(v.begin(), v.end(), {a: [1], i: 0}))), std_cout), __ctj_write(__ctj_fmt([32, 0])), $t236), __ctj_write(__ctj_fmt(($t234 = (($t235 = std_lower_bound_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int_int(v.begin(), v.end(), {a: [4], i: 0}), $t235)).op_mul__c(), $t234.a[$t234.i]))), $t237), __ctj_write("\n"), $t238);
-  ($t239 = (__ctj_write(__ctj_fmt((std_binary_search_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int_int(v.begin(), v.end(), {a: [3], i: 0}) ? 1 : 0))), std_cout), __ctj_write("\n"), $t239);
+  ($t225 = (__ctj_write(__ctj_fmt(s, std_cout)), std_cout), __ctj_write("\n"), $t225);
+  ($t232 = ($t229 = ($t228 = (__ctj_write(__ctj_fmt(($t226 = (($t227 = std_max_element_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int(v.begin(), v.end()), $t227)).op_mul__c(), $t226.a[$t226.i]), std_cout)), std_cout), __ctj_write(__ctj_fmt([32, 0], $t228)), $t228), __ctj_write(__ctj_fmt(($t230 = (($t231 = std_min_element_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int(v.begin(), v.end()), $t231)).op_mul__c(), $t230.a[$t230.i]), $t229)), $t229), __ctj_write("\n"), $t232);
+  ($t233 = (__ctj_write(__ctj_fmt(std_accumulate_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int_int(v.begin(), v.end(), 0), std_cout)), std_cout), __ctj_write("\n"), $t233);
+  ($t238 = ($t235 = ($t234 = (__ctj_write(__ctj_fmt(std_count_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int_int(v.begin(), v.end(), {a: [1], i: 0}), std_cout)), std_cout), __ctj_write(__ctj_fmt([32, 0], $t234)), $t234), __ctj_write(__ctj_fmt(($t236 = (($t237 = std_lower_bound_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int_int(v.begin(), v.end(), {a: [4], i: 0}), $t237)).op_mul__c(), $t236.a[$t236.i]), $t235)), $t235), __ctj_write("\n"), $t238);
+  ($t239 = (__ctj_write(__ctj_fmt((std_binary_search_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int_int(v.begin(), v.end(), {a: [3], i: 0}) ? 1 : 0), std_cout)), std_cout), __ctj_write("\n"), $t239);
   std_reverse_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int(v.begin(), v.end());
   let t = 0;
   for (let $b1 = new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [v.begin()], i: 0}), $e1 = new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [v.end()], i: 0}); gnu_cxx_operator_int_P_int_P_std_vector_int_std_allocator_int({a: [$b1], i: 0}, {a: [$e1], i: 0}); $b1.op_inc()) {
     let y = $b1.op_mul__c();
     t = ((t * 10) + y.a[y.i]);
   }
-  ($t240 = (__ctj_write(__ctj_fmt(t)), std_cout), __ctj_write("\n"), $t240);
+  ($t240 = (__ctj_write(__ctj_fmt(t, std_cout)), std_cout), __ctj_write("\n"), $t240);
   let w = new std_vector_int_std_allocator_int([9, 8, 7], {a: [new std_allocator_int()], i: 0});
   let u = 0;
   for (let $b2 = new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [w.begin()], i: 0}), $e2 = new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [w.end()], i: 0}); gnu_cxx_operator_int_P_int_P_std_vector_int_std_allocator_int({a: [$b2], i: 0}, {a: [$e2], i: 0}); $b2.op_inc()) {
     let x = ($b2.op_mul__c()).a[($b2.op_mul__c()).i];
     u += x;
   }
-  ($t243 = ($t242 = ($t241 = (__ctj_write(__ctj_fmt(u)), std_cout), __ctj_write(__ctj_fmt([32, 0])), $t241), __ctj_write(__ctj_fmt(w.size__c())), $t242), __ctj_write("\n"), $t243);
+  ($t243 = ($t242 = ($t241 = (__ctj_write(__ctj_fmt(u, std_cout)), std_cout), __ctj_write(__ctj_fmt([32, 0], $t241)), $t241), __ctj_write(__ctj_fmt(w.size__c(), $t242)), $t242), __ctj_write("\n"), $t243);
   let a = [7, 5, 9];
   std_sort_int_P({a: a, i: 0}, ($t244 = ({a: (({a: a, i: 0}) ? (({a: a, i: 0})).a : null), i: (({a: a, i: 0}) ? (({a: a, i: 0})).i : 0) + (3)}), $t244 ? {a: $t244.a, i: $t244.i} : null));
-  ($t247 = ($t246 = ($t245 = (__ctj_write(__ctj_fmt(a[0])), std_cout), __ctj_write(__ctj_fmt(a[1])), $t245), __ctj_write(__ctj_fmt(a[2])), $t246), __ctj_write("\n"), $t247);
+  ($t247 = ($t246 = ($t245 = (__ctj_write(__ctj_fmt(a[0], std_cout)), std_cout), __ctj_write(__ctj_fmt(a[1], $t245)), $t245), __ctj_write(__ctj_fmt(a[2], $t246)), $t246), __ctj_write("\n"), $t247);
   return 0;
 }
 function std_min_long(__a, __b) {
@@ -7391,7 +7467,7 @@ let std_piecewise_construct = new std_piecewise_construct_t();
 let std_allocator_arg = new std_allocator_arg_t();
 let std_ignore = [];
 let gnu_cxx_default_lock_policy = 0;
-let std_cout = {};
+let std_cout = new std_basic_ostream_char_std_char_traits_char();
 let std_defer_lock = [];
 let std_try_to_lock = [];
 let std_adopt_lock = [];

@@ -1,8 +1,69 @@
 "use strict";
 var __ctj_obuf = "";
-function __ctj_fmt(v) { for (var n = 0; n < 4 && v && typeof v === "object" && v.a !== undefined; n++) { var nv = v.a[v.i]; if (nv !== null && typeof nv === "object") { v = nv; continue; } if (!Array.isArray(v.a)) { v = nv; continue; } break; } if (v != null && typeof v === "object" && v._M_dataplus !== undefined) { v = v._M_dataplus._M_p; if (v == null) return ""; } if (v == null) return "0"; if (typeof v === "boolean") return v ? "1" : "0"; if (typeof v === "number") return String(v); if (typeof v === "string") return v; var a = v && v.a, i = v && v.i; if (Array.isArray(v)) { a = v; i = 0; } if (Array.isArray(a)) { var s = ""; for (var k = i | 0; k < a.length && a[k]; k++) s += String.fromCharCode(a[k]); return s; } return String(v); }
+function __ctj_ios(os) {
+  for (let n = 0; n < 4 && os && typeof os === "object" && os.a !== undefined; n++) { const x = os.a[os.i]; if (x === null || x === undefined) break; os = x; }
+  return os;
+}
+function __ctj_fmt_g(x, p) {
+  let s = x.toPrecision(Math.max(1, Math.min(21, p)));
+  if (s.indexOf("e") >= 0) {
+    const m = s.split("e");
+    s = String(parseFloat(m[0])) + "e" + (m[1][0] === "-" ? "-" : "+") + String(Math.abs(parseInt(m[1], 10))).padStart(2, "0");
+  } else if (s.indexOf(".") >= 0) s = s.replace(/\.?0+$/, "");
+  return s;
+}
+function __ctj_cstr(p, n) {
+  if (p == null) return "";
+  const a = (p && p.a !== undefined) ? p.a : p;
+  const i = (p && p.i !== undefined) ? (p.i | 0) : 0;
+  const lim = (n == null) ? 1e9 : (n | 0);
+  let s = "";
+  for (let k = 0; k < lim; k++) {
+    const c = a[i + k];
+    if (c === 0 || c === undefined || c === null) break;
+    s += typeof c === "number" ? String.fromCharCode(c & 255) : String(c);
+  }
+  return s;
+}
+function __ctj_fmt(v, os) {
+  os = __ctj_ios(os);
+  const f = (os && typeof os._M_flags === "number") ? os._M_flags : 0;
+  const base = (f & 74) === 8 ? 16 : ((f & 74) === 64 ? 8 : 10);
+  for (let n = 0; n < 4 && v && typeof v === "object" && v.a !== undefined; n++) { const nv = v.a[v.i]; if (nv !== null && typeof nv === "object") { v = nv; continue; } if (!Array.isArray(v.a)) { v = nv; continue; } break; }
+  if (v !== null && typeof v === "object" && v._M_dataplus !== undefined) v = v._M_dataplus._M_p;
+  let s;
+  if (v === null || v === undefined) s = "0";
+  else if (typeof v === "boolean") s = (f & 1) ? (v ? "true" : "false") : (v ? "1" : "0");
+  else if (typeof v === "number") {
+    if (base !== 10 && Number.isInteger(v)) s = (v < 0 ? (v >>> 0) : v).toString(base);
+    else if (Number.isInteger(v)) s = String(v);
+    else s = Number.isFinite(v) ? __ctj_fmt_g(v, (os && os._M_precision) ? os._M_precision : 6) : String(v);
+  }
+  else if (typeof v === "string") s = v;
+  else if (typeof v === "object") s = __ctj_cstr(v);
+  else s = String(v);
+  const w = (os && typeof os._M_width === "number") ? os._M_width : 0;
+  if (w > s.length) {
+    const c = (os && typeof os._M_fill === "number" && os._M_fill) ? String.fromCharCode(os._M_fill) : " ";
+    s = c.repeat(w - s.length) + s;
+  }
+  if (os && typeof os._M_width === "number") os._M_width = 0;
+  return s;
+}
 function __ctj_write(s) { s = String(s); if (typeof process !== "undefined" && process.stdout && process.stdout.write) { process.stdout.write(s); return; } __ctj_obuf += s; for (;;) { var n = __ctj_obuf.indexOf("\n"); if (n < 0) break; console.log(__ctj_obuf.slice(0, n)); __ctj_obuf = __ctj_obuf.slice(n + 1); } }
 function __ctj_flush() { if (__ctj_obuf) { console.log(__ctj_obuf); __ctj_obuf = ""; } }
+function _ctj_ios(os) {
+  for (let n = 0; n < 4 && os && typeof os === "object" && os.a !== undefined; n++) { const x = os.a[os.i]; if (x === null || x === undefined) break; os = x; }
+  return os;
+}
+function _ctj_fmt_g(x, p) {
+  let s = x.toPrecision(Math.max(1, Math.min(21, p)));
+  if (s.indexOf("e") >= 0) {
+    const m = s.split("e");
+    s = String(parseFloat(m[0])) + "e" + (m[1][0] === "-" ? "-" : "+") + String(Math.abs(parseInt(m[1], 10))).padStart(2, "0");
+  } else if (s.indexOf(".") >= 0) s = s.replace(/\.?0+$/, "");
+  return s;
+}
 function _ctj_cstr(p, n) {
   if (p == null) return "";
   const a = (p && p.a !== undefined) ? p.a : p;
@@ -16,15 +77,30 @@ function _ctj_cstr(p, n) {
   }
   return s;
 }
-function _ctj_fmt(v) {
-  for (let n = 0; n < 4 && v && typeof v === "object" && v.a !== undefined; n++) { var nv = v.a[v.i]; if (nv !== null && typeof nv === "object") { v = nv; continue; } if (!Array.isArray(v.a)) { v = nv; continue; } break; }
+function _ctj_fmt(v, os) {
+  os = _ctj_ios(os);
+  const f = (os && typeof os._M_flags === "number") ? os._M_flags : 0;
+  const base = (f & 74) === 8 ? 16 : ((f & 74) === 64 ? 8 : 10);
+  for (let n = 0; n < 4 && v && typeof v === "object" && v.a !== undefined; n++) { const nv = v.a[v.i]; if (nv !== null && typeof nv === "object") { v = nv; continue; } if (!Array.isArray(v.a)) { v = nv; continue; } break; }
   if (v !== null && typeof v === "object" && v._M_dataplus !== undefined) v = v._M_dataplus._M_p;
-  if (v === null || v === undefined) return "0";
-  if (typeof v === "boolean") return v ? "1" : "0";
-  if (typeof v === "number") return String(v);
-  if (typeof v === "string") return v;
-  if (typeof v === "object") return _ctj_cstr(v);
-  return String(v);
+  let s;
+  if (v === null || v === undefined) s = "0";
+  else if (typeof v === "boolean") s = (f & 1) ? (v ? "true" : "false") : (v ? "1" : "0");
+  else if (typeof v === "number") {
+    if (base !== 10 && Number.isInteger(v)) s = (v < 0 ? (v >>> 0) : v).toString(base);
+    else if (Number.isInteger(v)) s = String(v);
+    else s = Number.isFinite(v) ? _ctj_fmt_g(v, (os && os._M_precision) ? os._M_precision : 6) : String(v);
+  }
+  else if (typeof v === "string") s = v;
+  else if (typeof v === "object") s = _ctj_cstr(v);
+  else s = String(v);
+  const w = (os && typeof os._M_width === "number") ? os._M_width : 0;
+  if (w > s.length) {
+    const c = (os && typeof os._M_fill === "number" && os._M_fill) ? String.fromCharCode(os._M_fill) : " ";
+    s = c.repeat(w - s.length) + s;
+  }
+  if (os && typeof os._M_width === "number") os._M_width = 0;
+  return s;
 }
 class lconv {
   decimal_point;
@@ -5177,24 +5253,24 @@ function main() {
     let x = ($b0.op_mul__c()).a[($b0.op_mul__c()).i];
     s = ((s * 10) + x);
   }
-  ($t214 = ($t213 = ($t212 = (__ctj_write(__ctj_fmt(s)), std_cout), __ctj_write(__ctj_fmt([32, 0])), $t212), __ctj_write(__ctj_fmt(a.v.size__c())), $t213), __ctj_write("\n"), $t214);
+  ($t214 = ($t213 = ($t212 = (__ctj_write(__ctj_fmt(s, std_cout)), std_cout), __ctj_write(__ctj_fmt([32, 0], $t212)), $t212), __ctj_write(__ctj_fmt(a.v.size__c(), $t213)), $t213), __ctj_write("\n"), $t214);
   a.v.sort();
   s = 0;
   for (let $b1 = new std_List_iterator_int({a: [a.v.begin()], i: 0}), $e1 = new std_List_iterator_int({a: [a.v.end()], i: 0}); $b1.op_ne__c({a: [$e1], i: 0}); $b1.op_inc()) {
     let x = ($b1.op_mul__c()).a[($b1.op_mul__c()).i];
     s = ((s * 10) + x);
   }
-  ($t215 = (__ctj_write(__ctj_fmt(s)), std_cout), __ctj_write("\n"), $t215);
+  ($t215 = (__ctj_write(__ctj_fmt(s, std_cout)), std_cout), __ctj_write("\n"), $t215);
   a.v.reverse();
   s = 0;
   for (let $b2 = new std_List_iterator_int({a: [a.v.begin()], i: 0}), $e2 = new std_List_iterator_int({a: [a.v.end()], i: 0}); $b2.op_ne__c({a: [$e2], i: 0}); $b2.op_inc()) {
     let x = ($b2.op_mul__c()).a[($b2.op_mul__c()).i];
     s = ((s * 10) + x);
   }
-  ($t216 = (__ctj_write(__ctj_fmt(s)), std_cout), __ctj_write("\n"), $t216);
+  ($t216 = (__ctj_write(__ctj_fmt(s, std_cout)), std_cout), __ctj_write("\n"), $t216);
   a.v.remove({a: [4], i: 0});
   a.v.pop_front();
-  ($t223 = ($t222 = ($t221 = ($t220 = ($t219 = (__ctj_write(__ctj_fmt(($t218 = a.v.front(), $t218.a[$t218.i]))), std_cout), __ctj_write(__ctj_fmt([32, 0])), $t219), __ctj_write(__ctj_fmt(($t217 = a.v.back(), $t217.a[$t217.i]))), $t220), __ctj_write(__ctj_fmt([32, 0])), $t221), __ctj_write(__ctj_fmt(a.v.size__c())), $t222), __ctj_write("\n"), $t223);
+  ($t223 = ($t222 = ($t221 = ($t219 = ($t218 = (__ctj_write(__ctj_fmt(($t217 = a.v.front(), $t217.a[$t217.i]), std_cout)), std_cout), __ctj_write(__ctj_fmt([32, 0], $t218)), $t218), __ctj_write(__ctj_fmt(($t220 = a.v.back(), $t220.a[$t220.i]), $t219)), $t219), __ctj_write(__ctj_fmt([32, 0], $t221)), $t221), __ctj_write(__ctj_fmt(a.v.size__c(), $t222)), $t222), __ctj_write("\n"), $t223);
   let b = new std_list_int_std_allocator_int();
   b.push_back({a: [7], i: 0});
   b.push_back({a: [8], i: 0});
@@ -5204,7 +5280,7 @@ function main() {
     let y = $b3.op_mul__c();
     s = ((s * 10) + y.a[y.i]);
   }
-  ($t226 = ($t225 = ($t224 = (__ctj_write(__ctj_fmt(s)), std_cout), __ctj_write(__ctj_fmt([32, 0])), $t224), __ctj_write(__ctj_fmt(a.v.size__c())), $t225), __ctj_write("\n"), $t226);
+  ($t226 = ($t225 = ($t224 = (__ctj_write(__ctj_fmt(s, std_cout)), std_cout), __ctj_write(__ctj_fmt([32, 0], $t224)), $t224), __ctj_write(__ctj_fmt(a.v.size__c(), $t225)), $t225), __ctj_write("\n"), $t226);
   let c = {v: new std_list_int_std_allocator_int()};
   c.v.push_back({a: [5], i: 0});
   c.v.push_back({a: [6], i: 0});
@@ -5214,9 +5290,9 @@ function main() {
     let y = $b4.op_mul__c();
     s = ((s * 10) + y.a[y.i]);
   }
-  ($t227 = (__ctj_write(__ctj_fmt(s)), std_cout), __ctj_write("\n"), $t227);
+  ($t227 = (__ctj_write(__ctj_fmt(s, std_cout)), std_cout), __ctj_write("\n"), $t227);
   b.clear();
-  ($t230 = ($t229 = ($t228 = (__ctj_write(__ctj_fmt(b.size__c())), std_cout), __ctj_write(__ctj_fmt([32, 0])), $t228), __ctj_write(__ctj_fmt(b.empty__c())), $t229), __ctj_write("\n"), $t230);
+  ($t230 = ($t229 = ($t228 = (__ctj_write(__ctj_fmt(b.size__c(), std_cout)), std_cout), __ctj_write(__ctj_fmt([32, 0], $t228)), $t228), __ctj_write(__ctj_fmt(b.empty__c(), $t229)), $t229), __ctj_write("\n"), $t230);
   return 0;
 }
 function std_min_long(__a, __b) {
@@ -5297,7 +5373,7 @@ let std_piecewise_construct = new std_piecewise_construct_t();
 let std_allocator_arg = new std_allocator_arg_t();
 let std_ignore = [];
 let gnu_cxx_default_lock_policy = 0;
-let std_cout = {};
+let std_cout = new std_basic_ostream_char_std_char_traits_char();
 let std_defer_lock = [];
 let std_try_to_lock = [];
 let std_adopt_lock = [];
