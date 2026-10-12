@@ -903,6 +903,17 @@ class PhpGen {
         if (s.cond.kind === "var") {
           const vd = s.cond;
           const v = this.cx.getAnn(vd).var as VarInfo;
+          // The declaration runs again every turn of the loop.
+          if (!v.lifted) {
+            const nm = this.localName(v);
+            const init = this.varInitEx(vd, v, v.typeCache as CppType);
+            const val = v.storage === "boxed" || v.storage === "bbox" ? `{v: ${init}}` : init;
+            this.block("", () => {
+              this.line(`${nm} = null;`);
+              this.block(`while (${nm} = ${val})`, () => this.stmt(s.body));
+            });
+            return;
+          }
           this.block("", () => {
             this.varDeclFor(vd, v, v.typeCache as CppType);
             this.block(`while (${this.localName(v)})`, () => this.stmt(s.body));

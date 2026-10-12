@@ -11976,6 +11976,20 @@ var CTJ;
                     if (s.cond.kind === "var") {
                         const vd = s.cond;
                         const v = this.cx.getAnn(vd).var;
+                        // The condition declares a variable ("while (_Node* __tmp = ...)"):
+                        // every turn of the loop declares it again, so the initializer belongs
+                        // inside the condition.  Declared once before the loop it would never
+                        // be read again and the loop would run off the end of the list.
+                        if (!v.lifted) {
+                            const nm = this.localName(v);
+                            const init = this.varInitEx(vd, v, v.typeCache);
+                            const val = v.storage === "boxed" || v.storage === "bbox" ? `{v: ${init}}` : init;
+                            this.block("", () => {
+                                this.line(`let ${nm};`);
+                                this.block(`while (${nm} = ${val})`, () => this.stmt(s.body));
+                            });
+                            return;
+                        }
                         this.block("", () => {
                             this.varDeclFor(vd, v, v.typeCache);
                             this.block(`while (${this.localName(v)})`, () => this.stmt(s.body));
@@ -14941,6 +14955,17 @@ var CTJ;
                     if (s.cond.kind === "var") {
                         const vd = s.cond;
                         const v = this.cx.getAnn(vd).var;
+                        // The declaration runs again every turn of the loop.
+                        if (!v.lifted) {
+                            const nm = this.localName(v);
+                            const init = this.varInitEx(vd, v, v.typeCache);
+                            const val = v.storage === "boxed" || v.storage === "bbox" ? `{v: ${init}}` : init;
+                            this.block("", () => {
+                                this.line(`${nm} = null;`);
+                                this.block(`while (${nm} = ${val})`, () => this.stmt(s.body));
+                            });
+                            return;
+                        }
                         this.block("", () => {
                             this.varDeclFor(vd, v, v.typeCache);
                             this.block(`while (${this.localName(v)})`, () => this.stmt(s.body));
@@ -16578,4 +16603,4 @@ var CTJ;
     g["CTJ"] = CTJ;
 })();
 
-CTJ.version = "c5614b7 2026-10-12 05:47:00Z";
+CTJ.version = "2aa5fdb 2026-10-12 05:48:13Z";

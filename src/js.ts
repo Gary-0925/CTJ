@@ -1318,6 +1318,20 @@ class JsGen {
         if (s.cond.kind === "var") {
           const vd = s.cond;
           const v = this.cx.getAnn(vd).var as VarInfo;
+          // The condition declares a variable ("while (_Node* __tmp = ...)"):
+          // every turn of the loop declares it again, so the initializer belongs
+          // inside the condition.  Declared once before the loop it would never
+          // be read again and the loop would run off the end of the list.
+          if (!v.lifted) {
+            const nm = this.localName(v);
+            const init = this.varInitEx(vd, v, v.typeCache as CppType);
+            const val = v.storage === "boxed" || v.storage === "bbox" ? `{v: ${init}}` : init;
+            this.block("", () => {
+              this.line(`let ${nm};`);
+              this.block(`while (${nm} = ${val})`, () => this.stmt(s.body));
+            });
+            return;
+          }
           this.block("", () => {
             this.varDeclFor(vd, v, v.typeCache as CppType);
             this.block(`while (${this.localName(v)})`, () => this.stmt(s.body));
