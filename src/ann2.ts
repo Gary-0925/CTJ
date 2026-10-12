@@ -585,6 +585,12 @@ export function resolveInitCtor(cx: Cx, clsFq: string, args: { t: CppType; e: Ex
       annotateListElems(cx, lr.fn, args[0].e, scope);
       return lr;
     }
+    const er = tryResolveCtor(cx, clsFq, items, scope);
+    if (er) return er;
+    // A braced initializer of an aggregate is not a call of a constructor,
+    // but one of the class's members at a time.
+    const cls = cx.classes.get(clsFq);
+    if (cls && cx.aggCtor(cls, items.length)) return resolveCtor(cx, clsFq, items, scope, t, true);
     return resolveCtor(cx, clsFq, items, scope, t, true);
   }
   return resolveCtor(cx, clsFq, args, scope, t, true);

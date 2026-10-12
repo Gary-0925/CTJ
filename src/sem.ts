@@ -176,6 +176,8 @@ export interface ClsInfo {
   referenced: boolean;
   synthDone: boolean;
   isLambda: boolean;
+  // The constructors a braced initializer of an aggregate needed, by count.
+  aggCtors?: Map<number, FuncInfo>;
 }
 
 export interface FuncParam {
@@ -2276,6 +2278,54 @@ export class Cx {
       flags: [], op: "", ctorInit: inits, isCtor: true, isDtor: false,
       isConv: false, isDefault: false, isDelete: false, trailing: null, file: "", line: 0,
     };
+  }
+
+  // An aggregate is a class that declares no constructor of its own: a braced
+  // initializer then gives its members in the order they were declared.
+  isAggregate(cls: ClsInfo): boolean {
+    if (!cls.complete || cls.isLambda || cls.bases.length || !cls.fields.size) return false;
+    for (const m of cls.decl.members) {
+      if (m.kind === "func" && (m.isCtor || m.op === "()")) return false;
+    }
+    return true;
+  }
+
+  // The members a braced initializer fills, in declaration order.
+  aggMembers(cls: ClsInfo): { name: string; type: CppType }[] {
+    const out: { name: string; type: CppType }[] = [];
+    for (const name of cls.fields.keys()) {
+      if (cls.fieldStatic.has(name)) continue;
+      out.push({ name, type: this.fieldType(cls, name) });
+    }
+    return out;
+  }
+
+  // The constructor a braced initializer of an aggregate needs: the first "n"
+  // members, taken one by one.  It is made the first time it is asked for, so
+  // that a class never carries constructors nothing calls.
+  aggCtor(cls: ClsInfo, n: number): FuncInfo | null {
+    const members = this.aggMembers(cls);
+    if (!this.isAggregate(cls) || n < 1 || n > members.length) return null;
+    if (!cls.aggCtors) cls.aggCtors = new Map();
+    const hit = cls.aggCtors.get(n);
+    if (hit) return hit;
+    const used = members.slice(0, n);
+    const params: Param[] = used.map((m, i) => ({
+      name: "m" + i, type: typeToNode(m.type), def: null, variadic: false, isPack: false, file: "", line: 0,
+    }));
+    const inits: CtorInit[] = used.map((m, i) => ({
+      name: [qseg(m.name)], file: "", line: 0,
+      args: [{ kind: "id" as const, parts: [qseg("m" + i)], global: false, file: "", line: 0 }],
+    }));
+    const decl: FuncDecl = {
+      kind: "func", name: [qseg(cls.short)], ret: null, params,
+      body: [{ kind: "compound", stmts: [], file: "", line: 0 }],
+      flags: [], op: "", ctorInit: inits, isCtor: true, isDtor: false,
+      isConv: false, isDefault: false, isDelete: false, trailing: null, file: "", line: 0,
+    };
+    const fn = this.addMethod(cls, "#ctor", decl, cls.scope);
+    cls.aggCtors.set(n, fn);
+    return fn;
   }
 
   synthAssign(cls: ClsInfo): FuncDecl {

@@ -6449,6 +6449,57 @@ var CTJ;
                 isConv: false, isDefault: false, isDelete: false, trailing: null, file: "", line: 0,
             };
         }
+        // An aggregate is a class that declares no constructor of its own: a braced
+        // initializer then gives its members in the order they were declared.
+        isAggregate(cls) {
+            if (!cls.complete || cls.isLambda || cls.bases.length || !cls.fields.size)
+                return false;
+            for (const m of cls.decl.members) {
+                if (m.kind === "func" && (m.isCtor || m.op === "()"))
+                    return false;
+            }
+            return true;
+        }
+        // The members a braced initializer fills, in declaration order.
+        aggMembers(cls) {
+            const out = [];
+            for (const name of cls.fields.keys()) {
+                if (cls.fieldStatic.has(name))
+                    continue;
+                out.push({ name, type: this.fieldType(cls, name) });
+            }
+            return out;
+        }
+        // The constructor a braced initializer of an aggregate needs: the first "n"
+        // members, taken one by one.  It is made the first time it is asked for, so
+        // that a class never carries constructors nothing calls.
+        aggCtor(cls, n) {
+            const members = this.aggMembers(cls);
+            if (!this.isAggregate(cls) || n < 1 || n > members.length)
+                return null;
+            if (!cls.aggCtors)
+                cls.aggCtors = new Map();
+            const hit = cls.aggCtors.get(n);
+            if (hit)
+                return hit;
+            const used = members.slice(0, n);
+            const params = used.map((m, i) => ({
+                name: "m" + i, type: CTJ.typeToNode(m.type), def: null, variadic: false, isPack: false, file: "", line: 0,
+            }));
+            const inits = used.map((m, i) => ({
+                name: [CTJ.qseg(m.name)], file: "", line: 0,
+                args: [{ kind: "id", parts: [CTJ.qseg("m" + i)], global: false, file: "", line: 0 }],
+            }));
+            const decl = {
+                kind: "func", name: [CTJ.qseg(cls.short)], ret: null, params,
+                body: [{ kind: "compound", stmts: [], file: "", line: 0 }],
+                flags: [], op: "", ctorInit: inits, isCtor: true, isDtor: false,
+                isConv: false, isDefault: false, isDelete: false, trailing: null, file: "", line: 0,
+            };
+            const fn = this.addMethod(cls, "#ctor", decl, cls.scope);
+            cls.aggCtors.set(n, fn);
+            return fn;
+        }
         synthAssign(cls) {
             const stmts = [];
             for (const [name] of cls.fields) {
@@ -7777,6 +7828,20 @@ var CTJ;
                         cx.getAnn(vd.init).convs = lr.convs;
                         return;
                     }
+                    const er = CTJ.tryResolveCtor(cx, cls.fq, items, scope);
+                    if (er) {
+                        cx.getAnn(vd.init).call = er.fn;
+                        cx.getAnn(vd.init).convs = er.convs;
+                        return;
+                    }
+                    // An aggregate has no constructor to match: its members are given one
+                    // at a time, in the order they were declared.
+                    if (cx.aggCtor(cls, items.length)) {
+                        const ar = CTJ.resolveCtor(cx, cls.fq, items, scope, vd);
+                        cx.getAnn(vd.init).call = ar.fn;
+                        cx.getAnn(vd.init).convs = ar.convs;
+                        return;
+                    }
                     const r = CTJ.resolveCtor(cx, cls.fq, items, scope, vd);
                     cx.getAnn(vd.init).call = r.fn;
                     cx.getAnn(vd.init).convs = r.convs;
@@ -7811,6 +7876,18 @@ var CTJ;
             if (cls) {
                 if (items.length === 1 && items[0].e.kind === "initlist") {
                     const sub = items[0].e.items.map(e => ({ t: CTJ.typeOf(cx, e, scope), e }));
+                    const er = CTJ.tryResolveCtor(cx, cls.fq, sub, scope);
+                    if (er) {
+                        cx.getAnn(vd).call = er.fn;
+                        cx.getAnn(vd).convs = er.convs;
+                        return;
+                    }
+                    if (cx.aggCtor(cls, sub.length)) {
+                        const ar = CTJ.resolveCtor(cx, cls.fq, sub, scope, vd);
+                        cx.getAnn(vd).call = ar.fn;
+                        cx.getAnn(vd).convs = ar.convs;
+                        return;
+                    }
                     const r = CTJ.resolveCtor(cx, cls.fq, sub, scope, vd);
                     cx.getAnn(vd).call = r.fn;
                     cx.getAnn(vd).convs = r.convs;
@@ -8601,6 +8678,14 @@ var CTJ;
                 annotateListElems(cx, lr.fn, args[0].e, scope);
                 return lr;
             }
+            const er = tryResolveCtor(cx, clsFq, items, scope);
+            if (er)
+                return er;
+            // A braced initializer of an aggregate is not a call of a constructor,
+            // but one of the class's members at a time.
+            const cls = cx.classes.get(clsFq);
+            if (cls && cx.aggCtor(cls, items.length))
+                return resolveCtor(cx, clsFq, items, scope, t, true);
             return resolveCtor(cx, clsFq, items, scope, t, true);
         }
         return resolveCtor(cx, clsFq, args, scope, t, true);
@@ -16791,4 +16876,4 @@ var CTJ;
     g["CTJ"] = CTJ;
 })();
 
-CTJ.version = "e46bad8 2026-10-12 07:04:39Z";
+CTJ.version = "cc2c568 2026-10-12 07:09:45Z";

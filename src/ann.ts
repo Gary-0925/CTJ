@@ -555,6 +555,20 @@ function annotateVarInit(cx: Cx, v: VarInfo, scope: Scope): void {
           cx.getAnn(vd.init).convs = lr.convs;
           return;
         }
+        const er = tryResolveCtor(cx, cls.fq, items, scope);
+        if (er) {
+          cx.getAnn(vd.init).call = er.fn;
+          cx.getAnn(vd.init).convs = er.convs;
+          return;
+        }
+        // An aggregate has no constructor to match: its members are given one
+        // at a time, in the order they were declared.
+        if (cx.aggCtor(cls, items.length)) {
+          const ar = resolveCtor(cx, cls.fq, items, scope, vd);
+          cx.getAnn(vd.init).call = ar.fn;
+          cx.getAnn(vd.init).convs = ar.convs;
+          return;
+        }
         const r = resolveCtor(cx, cls.fq, items, scope, vd);
         cx.getAnn(vd.init).call = r.fn;
         cx.getAnn(vd.init).convs = r.convs;
@@ -585,6 +599,18 @@ function annotateVarInit(cx: Cx, v: VarInfo, scope: Scope): void {
     if (cls) {
       if (items.length === 1 && items[0].e.kind === "initlist") {
         const sub = (items[0].e as InitListExpr).items.map(e => ({ t: typeOf(cx, e, scope), e }));
+        const er = tryResolveCtor(cx, cls.fq, sub, scope);
+        if (er) {
+          cx.getAnn(vd).call = er.fn;
+          cx.getAnn(vd).convs = er.convs;
+          return;
+        }
+        if (cx.aggCtor(cls, sub.length)) {
+          const ar = resolveCtor(cx, cls.fq, sub, scope, vd);
+          cx.getAnn(vd).call = ar.fn;
+          cx.getAnn(vd).convs = ar.convs;
+          return;
+        }
         const r = resolveCtor(cx, cls.fq, sub, scope, vd);
         cx.getAnn(vd).call = r.fn;
         cx.getAnn(vd).convs = r.convs;
