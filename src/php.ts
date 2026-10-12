@@ -760,7 +760,7 @@ class PhpGen {
       const cn = phpClsName(this.cx.classes.get(fcls) as ClsInfo);
       this.line(`$${v.mangled} = ${wrap(a.call ? this.ctorExpr(cn, a.call as FuncInfo, [], []) : `new ${cn}()`)};`);
     } else if (t.dims.length) {
-      this.line(`$${v.mangled} = ${this.arrayNew(t)};`);
+      this.line(`$${v.mangled} = ${wrap(this.arrayNew(t))};`);
     } else if (t.isFunc || isBoxLike(t)) {
       this.line(`$${v.mangled} = null;`);
     } else if (v.storage === "bbox" || v.storage === "boxed") {
@@ -781,7 +781,7 @@ class PhpGen {
         return;
       case "expr": {
         if (s.expr.kind === "delete") return;
-        this.line(`${this.ex(s.expr)};`);
+        this.exprStmt(s.expr);
         return;
       }
       case "decl":
@@ -861,12 +861,12 @@ class PhpGen {
             this.varDeclFor(d, v, v.typeCache as CppType);
             this.out = save;
             const head = lines.length === 1 ? lines[0].trim().replace(/;$/, "") : `$${v.mangled} = null`;
-            this.block(`for (${head}; ${s.cond ? this.exVal(s.cond) : ""}; ${s.step ? this.ex(s.step) : ""})`, () => this.stmt(s.body));
+            this.block(`for (${head}; ${s.cond ? this.exVal(s.cond) : ""}; ${s.step ? this.stepList(s.step) : ""})`, () => this.stmt(s.body));
             return;
           }
         }
         if (s.init) this.stmt(s.init);
-        this.block(`for (; ${s.cond ? this.exVal(s.cond) : ""}; ${s.step ? this.ex(s.step) : ""})`, () => this.stmt(s.body));
+        this.block(`for (; ${s.cond ? this.exVal(s.cond) : ""}; ${s.step ? this.stepList(s.step) : ""})`, () => this.stmt(s.body));
         return;
       }
       case "rangefor":
@@ -1483,6 +1483,11 @@ class PhpGen {
       return `${p}["a"][${p}["i"]]`;
     }
     const tmp = this.tmp();
+    // An object is a handle, so it can come back through a function call: a
+    // member is written through a call's result, but not through an element
+    // of an array literal ("([...])[1]->second++" is a temporary in write context).
+    const cls = t && !t.dims.length && !t.isFunc ? this.cx.classes.get(this.cx.stripAll(t)) : undefined;
+    if (cls) return `(function ($o) { return $o; })((${tmp} = ${this.ex(e)})["a"][${tmp}["i"]])`;
     return `([${tmp} = ${this.ex(e)}, ${tmp}["a"][${tmp}["i"]]])[1]`;
   }
 
@@ -1562,7 +1567,33 @@ class PhpGen {
     return e.kind === "lit" && (e.lkind === "null" || ((e.lkind === "int" || e.lkind === "char") && parseNumber(e.value) === 0));
   }
 
+  // An expression statement.  PHP has no comma operator, so the parts of
+  // "a = 1, b = 2;" are statements of their own (their values are discarded).
+  exprStmt(e: Expr): void {
+    for (const part of this.commaParts(e)) this.line(`${this.ex(part)};`);
+  }
+
+  // A for clause's step: PHP takes a list of expressions where C++ has a comma.
+  stepList(e: Expr): string {
+    return this.commaParts(e).map(p => this.ex(p)).join(", ");
+  }
+
+  // The parts of a (built-in) comma expression, in order.
+  commaParts(e: Expr): Expr[] {
+    if (e.kind === "binary" && e.op === "," && !this.cx.getAnn(e).call) {
+      return [...this.commaParts(e.l), ...this.commaParts(e.r)];
+    }
+    return [e];
+  }
+
   argFor(p: CppType, x: Expr, conv: { kind: string; fn: FuncInfo } | null): string {
+    // A braced list for a class parameter: built from its items with the
+    // constructor the annotator resolved for the list.
+    const lc = conv && conv.kind === "ctor" && x.kind === "initlist" ? this.cx.getAnn(x).listCtors : null;
+    if (lc && conv && lc.has(conv.fn)) {
+      const cn = phpClsName(this.cx.classes.get(this.cx.stripAll(p)) as ClsInfo);
+      return this.ctorExpr(cn, conv.fn, (x as InitListExpr).items, lc.get(conv.fn) as ({ kind: string; fn: FuncInfo } | null)[]);
+    }
     if (conv && conv.kind === "ctor") {
       const fq = this.cx.stripAll(p);
       const cn = phpClsName(this.cx.classes.get(fq) as ClsInfo);
