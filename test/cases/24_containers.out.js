@@ -25,7 +25,7 @@ function __ctj_cstr(p, n) {
   }
   return s;
 }
-function __ctj_fmt(v, os) {
+function __ctj_fmt(v, os, u64) {
   os = __ctj_ios(os);
   const f = (os && typeof os._M_flags === "number") ? os._M_flags : 0;
   const base = (f & 74) === 8 ? 16 : ((f & 74) === 64 ? 8 : 10);
@@ -35,7 +35,8 @@ function __ctj_fmt(v, os) {
   if (v === null || v === undefined) s = "0";
   else if (typeof v === "boolean") s = (f & 1) ? (v ? "true" : "false") : (v ? "1" : "0");
   else if (typeof v === "number") {
-    if (base !== 10 && Number.isInteger(v)) s = (v < 0 ? (v >>> 0) : v).toString(base);
+    if (u64 && Number.isInteger(v) && (v < 0 || v === 4294967295)) s = BigInt.asUintN(64, v === 4294967295 ? -1n : BigInt(v)).toString(base);
+    else if (base !== 10 && Number.isInteger(v)) s = (v < 0 ? (v >>> 0) : v).toString(base);
     else if (Number.isInteger(v)) s = String(v);
     else s = Number.isFinite(v) ? __ctj_fmt_g(v, (os && os._M_precision) ? os._M_precision : 6) : String(v);
   }
@@ -174,7 +175,7 @@ function _ctj_cstr(p, n) {
   }
   return s;
 }
-function _ctj_fmt(v, os) {
+function _ctj_fmt(v, os, u64) {
   os = _ctj_ios(os);
   const f = (os && typeof os._M_flags === "number") ? os._M_flags : 0;
   const base = (f & 74) === 8 ? 16 : ((f & 74) === 64 ? 8 : 10);
@@ -184,7 +185,8 @@ function _ctj_fmt(v, os) {
   if (v === null || v === undefined) s = "0";
   else if (typeof v === "boolean") s = (f & 1) ? (v ? "true" : "false") : (v ? "1" : "0");
   else if (typeof v === "number") {
-    if (base !== 10 && Number.isInteger(v)) s = (v < 0 ? (v >>> 0) : v).toString(base);
+    if (u64 && Number.isInteger(v) && (v < 0 || v === 4294967295)) s = BigInt.asUintN(64, v === 4294967295 ? -1n : BigInt(v)).toString(base);
+    else if (base !== 10 && Number.isInteger(v)) s = (v < 0 ? (v >>> 0) : v).toString(base);
     else if (Number.isInteger(v)) s = String(v);
     else s = Number.isFinite(v) ? _ctj_fmt_g(v, (os && os._M_precision) ? os._M_precision : 6) : String(v);
   }
@@ -14088,7 +14090,7 @@ function main() {
   let t = new std_basic_string_char_std_char_traits_char_std_allocator_char({a: [121, 111, 0], i: 0}, {a: [new std_allocator_char()], i: 0});
   let buf = [97, 98, 99, 0];
   let u = new std_basic_string_char_std_char_traits_char_std_allocator_char({a: buf, i: 0}, {a: [new std_allocator_char()], i: 0});
-  ($t320 = (__ctj_write(__ctj_fmt(((s.size__c() + t.size__c()) + u.size__c()), std_cout)), std_cout), __ctj_write("\n"), $t320);
+  ($t320 = (__ctj_write(__ctj_fmt(((s.size__c() + t.size__c()) + u.size__c()), std_cout, 1)), std_cout), __ctj_write("\n"), $t320);
   let m = new std_map_int_int_std_less_int_std_allocator_std_pair_int_int([new std_pair_int_int({a: [1], i: 0}, {a: [10], i: 0}), new std_pair_int_int({a: [2], i: 0}, {a: [20], i: 0})], {a: [new std_less_int()], i: 0}, {a: [new std_allocator_std_pair_int_int()], i: 0});
   for (let $b0 = new std_Rb_tree_iterator_std_pair_int_int({a: [m.begin()], i: 0}), $e0 = new std_Rb_tree_iterator_std_pair_int_int({a: [m.end()], i: 0}); $b0.op_ne__c({a: [$e0], i: 0}); $b0.op_inc()) {
     let kv = $b0.op_mul__c();
@@ -14097,7 +14099,7 @@ function main() {
   (__ctj_write("\n"), std_cout);
   let v = {v: new std_vector_int_std_allocator_int([1, 2, 3], {a: [new std_allocator_int()], i: 0})};
   let w = new std_vector_int_std_allocator_int(std_move_std_vector_int_std_allocator_int({a: v, i: "v"}));
-  ($t327 = ($t325 = ($t324 = (__ctj_write(__ctj_fmt(w.size__c(), std_cout)), std_cout), __ctj_write(__ctj_fmt([32, 0], $t324)), $t324), __ctj_write(__ctj_fmt(($t326 = w.op_index(2), $t326.a[$t326.i]), $t325)), $t325), __ctj_write("\n"), $t327);
+  ($t327 = ($t325 = ($t324 = (__ctj_write(__ctj_fmt(w.size__c(), std_cout, 1)), std_cout), __ctj_write(__ctj_fmt([32, 0], $t324)), $t324), __ctj_write(__ctj_fmt(($t326 = w.op_index(2), $t326.a[$t326.i]), $t325)), $t325), __ctj_write("\n"), $t327);
   let st = new std_set_int_std_less_int_std_allocator_int([3, 1, 2], {a: [new std_less_int()], i: 0}, {a: [new std_allocator_int()], i: 0});
   for (let $b1 = new std_Rb_tree_const_iterator_int({a: [st.begin__c()], i: 0}), $e1 = new std_Rb_tree_const_iterator_int({a: [st.end__c()], i: 0}); $b1.op_ne__c({a: [$e1], i: 0}); $b1.op_inc()) {
     let x = ($b1.op_mul__c()).a[($b1.op_mul__c()).i];
@@ -14119,7 +14121,7 @@ function main() {
   }
   (__ctj_write("\n"), std_cout);
   let vv = new std_vector_std_vector_int_std_allocator_int_std_allocator_std_vector_int_std_allocator_int([new std_vector_int_std_allocator_int([1, 2], {a: [new std_allocator_int()], i: 0}), new std_vector_int_std_allocator_int([3], {a: [new std_allocator_int()], i: 0})], {a: [new std_allocator_std_vector_int_std_allocator_int()], i: 0});
-  ($t343 = ($t340 = ($t339 = ($t337 = ($t336 = (__ctj_write(__ctj_fmt(vv.size__c(), std_cout)), std_cout), __ctj_write(__ctj_fmt([32, 0], $t336)), $t336), __ctj_write(__ctj_fmt((($t338 = vv.op_index(0), $t338.a[$t338.i])).size__c(), $t337)), $t337), __ctj_write(__ctj_fmt([32, 0], $t339)), $t339), __ctj_write(__ctj_fmt(($t341 = (($t342 = vv.op_index(1), $t342.a[$t342.i])).op_index(0), $t341.a[$t341.i]), $t340)), $t340), __ctj_write("\n"), $t343);
+  ($t343 = ($t340 = ($t339 = ($t337 = ($t336 = (__ctj_write(__ctj_fmt(vv.size__c(), std_cout, 1)), std_cout), __ctj_write(__ctj_fmt([32, 0], $t336)), $t336), __ctj_write(__ctj_fmt((($t338 = vv.op_index(0), $t338.a[$t338.i])).size__c(), $t337, 1)), $t337), __ctj_write(__ctj_fmt([32, 0], $t339)), $t339), __ctj_write(__ctj_fmt(($t341 = (($t342 = vv.op_index(1), $t342.a[$t342.i])).op_index(0), $t341.a[$t341.i]), $t340)), $t340), __ctj_write("\n"), $t343);
   return 0;
 }
 function std_min_long(__a, __b) {

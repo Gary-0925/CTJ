@@ -25,7 +25,7 @@ function __ctj_cstr(p, n) {
   }
   return s;
 }
-function __ctj_fmt(v, os) {
+function __ctj_fmt(v, os, u64) {
   os = __ctj_ios(os);
   const f = (os && typeof os._M_flags === "number") ? os._M_flags : 0;
   const base = (f & 74) === 8 ? 16 : ((f & 74) === 64 ? 8 : 10);
@@ -35,7 +35,8 @@ function __ctj_fmt(v, os) {
   if (v === null || v === undefined) s = "0";
   else if (typeof v === "boolean") s = (f & 1) ? (v ? "true" : "false") : (v ? "1" : "0");
   else if (typeof v === "number") {
-    if (base !== 10 && Number.isInteger(v)) s = (v < 0 ? (v >>> 0) : v).toString(base);
+    if (u64 && Number.isInteger(v) && (v < 0 || v === 4294967295)) s = BigInt.asUintN(64, v === 4294967295 ? -1n : BigInt(v)).toString(base);
+    else if (base !== 10 && Number.isInteger(v)) s = (v < 0 ? (v >>> 0) : v).toString(base);
     else if (Number.isInteger(v)) s = String(v);
     else s = Number.isFinite(v) ? __ctj_fmt_g(v, (os && os._M_precision) ? os._M_precision : 6) : String(v);
   }
@@ -174,7 +175,7 @@ function _ctj_cstr(p, n) {
   }
   return s;
 }
-function _ctj_fmt(v, os) {
+function _ctj_fmt(v, os, u64) {
   os = _ctj_ios(os);
   const f = (os && typeof os._M_flags === "number") ? os._M_flags : 0;
   const base = (f & 74) === 8 ? 16 : ((f & 74) === 64 ? 8 : 10);
@@ -184,7 +185,8 @@ function _ctj_fmt(v, os) {
   if (v === null || v === undefined) s = "0";
   else if (typeof v === "boolean") s = (f & 1) ? (v ? "true" : "false") : (v ? "1" : "0");
   else if (typeof v === "number") {
-    if (base !== 10 && Number.isInteger(v)) s = (v < 0 ? (v >>> 0) : v).toString(base);
+    if (u64 && Number.isInteger(v) && (v < 0 || v === 4294967295)) s = BigInt.asUintN(64, v === 4294967295 ? -1n : BigInt(v)).toString(base);
+    else if (base !== 10 && Number.isInteger(v)) s = (v < 0 ? (v >>> 0) : v).toString(base);
     else if (Number.isInteger(v)) s = String(v);
     else s = Number.isFinite(v) ? _ctj_fmt_g(v, (os && os._M_precision) ? os._M_precision : 6) : String(v);
   }
@@ -14660,7 +14662,7 @@ function std_verify_grouping(...$a) { throw new Error("unresolved external: std:
 function main() {
   let $t328, $t329, $t330, $t331, $t332, $t333, $t334, $t335, $t336, $t337, $t338, $t339, $t340, $t341;
   let v = new std_vector_std_basic_string_char_std_char_traits_char_std_allocator_char_std_allocator_std_basic_string_char_std_char_traits_char_std_allocator_char([new std_basic_string_char_std_char_traits_char_std_allocator_char({a: [97, 0], i: 0}), new std_basic_string_char_std_char_traits_char_std_allocator_char({a: [98, 98, 0], i: 0})], {a: [new std_allocator_std_basic_string_char_std_char_traits_char_std_allocator_char()], i: 0});
-  ($t330 = ($t329 = ($t328 = (__ctj_write(__ctj_fmt(v.size__c(), std_cout)), std_cout), __ctj_write(__ctj_fmt([32, 0], $t328)), $t328), __ctj_write(__ctj_fmt(v.op_index(1), $t329)), $t329), __ctj_write("\n"), $t330);
+  ($t330 = ($t329 = ($t328 = (__ctj_write(__ctj_fmt(v.size__c(), std_cout, 1)), std_cout), __ctj_write(__ctj_fmt([32, 0], $t328)), $t328), __ctj_write(__ctj_fmt(v.op_index(1), $t329)), $t329), __ctj_write("\n"), $t330);
   let m = new std_map_std_basic_string_char_std_char_traits_char_std_allocator_char_int_std_less_std_basic_string_char_std_char_traits_char_std_allocator_char_std_allocator_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int([new std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int({a: [120, 0], i: 0}, {a: [1], i: 0}), new std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int({a: [121, 0], i: 0}, {a: [2], i: 0})], {a: [new std_less_std_basic_string_char_std_char_traits_char_std_allocator_char()], i: 0}, {a: [new std_allocator_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int()], i: 0});
   for (let $b0 = new std_Rb_tree_iterator_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int({a: [m.begin()], i: 0}), $e0 = new std_Rb_tree_iterator_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int({a: [m.end()], i: 0}); $b0.op_ne__c({a: [$e0], i: 0}); $b0.op_inc()) {
     let kv = $b0.op_mul__c();
@@ -14674,7 +14676,7 @@ function main() {
   }
   (__ctj_write("\n"), std_cout);
   let vv = new std_vector_std_vector_int_std_allocator_int_std_allocator_std_vector_int_std_allocator_int([new std_vector_int_std_allocator_int([1, 2], {a: [new std_allocator_int()], i: 0}), new std_vector_int_std_allocator_int([3], {a: [new std_allocator_int()], i: 0})], {a: [new std_allocator_std_vector_int_std_allocator_int()], i: 0});
-  ($t341 = ($t338 = ($t337 = ($t335 = ($t334 = (__ctj_write(__ctj_fmt(vv.size__c(), std_cout)), std_cout), __ctj_write(__ctj_fmt([32, 0], $t334)), $t334), __ctj_write(__ctj_fmt((($t336 = vv.op_index(0), $t336.a[$t336.i])).size__c(), $t335)), $t335), __ctj_write(__ctj_fmt([32, 0], $t337)), $t337), __ctj_write(__ctj_fmt(($t339 = (($t340 = vv.op_index(1), $t340.a[$t340.i])).op_index(0), $t339.a[$t339.i]), $t338)), $t338), __ctj_write("\n"), $t341);
+  ($t341 = ($t338 = ($t337 = ($t335 = ($t334 = (__ctj_write(__ctj_fmt(vv.size__c(), std_cout, 1)), std_cout), __ctj_write(__ctj_fmt([32, 0], $t334)), $t334), __ctj_write(__ctj_fmt((($t336 = vv.op_index(0), $t336.a[$t336.i])).size__c(), $t335, 1)), $t335), __ctj_write(__ctj_fmt([32, 0], $t337)), $t337), __ctj_write(__ctj_fmt(($t339 = (($t340 = vv.op_index(1), $t340.a[$t340.i])).op_index(0), $t339.a[$t339.i]), $t338)), $t338), __ctj_write("\n"), $t341);
 }
 function std_min_long(__a, __b) {
   if ((__b.a[__b.i] < __a.a[__a.i])) {

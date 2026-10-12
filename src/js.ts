@@ -895,7 +895,7 @@ class JsGen {
       `  }`,
       `  return s;`,
       `}`,
-      `function ${pfx}fmt(v, os) {`,
+      `function ${pfx}fmt(v, os, u64) {`,
       `  os = ${pfx}ios(os);`,
       `  const f = (os && typeof os._M_flags === "number") ? os._M_flags : 0;`,
       `  const base = (f & 74) === 8 ? 16 : ((f & 74) === 64 ? 8 : 10);`,
@@ -905,7 +905,8 @@ class JsGen {
       `  if (v === null || v === undefined) s = "0";`,
       `  else if (typeof v === "boolean") s = (f & 1) ? (v ? "true" : "false") : (v ? "1" : "0");`,
       `  else if (typeof v === "number") {`,
-      `    if (base !== 10 && Number.isInteger(v)) s = (v < 0 ? (v >>> 0) : v).toString(base);`,
+      `    if (u64 && Number.isInteger(v) && (v < 0 || v === 4294967295)) s = BigInt.asUintN(64, v === 4294967295 ? -1n : BigInt(v)).toString(base);`,
+      `    else if (base !== 10 && Number.isInteger(v)) s = (v < 0 ? (v >>> 0) : v).toString(base);`,
       `    else if (Number.isInteger(v)) s = String(v);`,
       `    else s = Number.isFinite(v) ? ${pfx}fmt_g(v, (os && os._M_precision) ? os._M_precision : 6) : String(v);`,
       `  }`,
@@ -2996,7 +2997,10 @@ class JsGen {
       if (rt && !rt.ptr && !rt.dims.length && (core === "char" || core === "signed char" || core === "unsigned char" || core === "wchar_t")) {
         payload = `String.fromCharCode(${rs})`;
       } else {
-        payload = `__ctj_fmt(${rs}, ${os})`;
+        // A 64-bit unsigned value is held as its signed counterpart, so the
+        // printer has to be told when to read it back as digits.
+        const wide = !!rt && !rt.ptr && !rt.dims.length && isWideName(coreName(rt)) ? ", 1" : "";
+        payload = `__ctj_fmt(${rs}, ${os}${wide})`;
       }
     }
     if (simple) return `(__ctj_write(${payload}), ${l})`;
@@ -3290,7 +3294,8 @@ class JsGen {
     }
     // An unsigned value wraps, so "size_t(-1)" is the largest size rather than
     // a negative one. The width is the 32-bit one: a JS number cannot hold a
-    // 64-bit unsigned range.
+    // 64-bit unsigned range, and the printer restores the digits of the largest
+    // 64-bit value this stand-in stands for.
     if (t.ptr === 0 && !t.dims.length && isUnsignedName(coreName(t))) return `(${this.ex(e.arg)} >>> 0)`;
     return this.ex(e.arg);
   }

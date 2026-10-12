@@ -25,7 +25,7 @@ function __ctj_cstr(p, n) {
   }
   return s;
 }
-function __ctj_fmt(v, os) {
+function __ctj_fmt(v, os, u64) {
   os = __ctj_ios(os);
   const f = (os && typeof os._M_flags === "number") ? os._M_flags : 0;
   const base = (f & 74) === 8 ? 16 : ((f & 74) === 64 ? 8 : 10);
@@ -35,7 +35,8 @@ function __ctj_fmt(v, os) {
   if (v === null || v === undefined) s = "0";
   else if (typeof v === "boolean") s = (f & 1) ? (v ? "true" : "false") : (v ? "1" : "0");
   else if (typeof v === "number") {
-    if (base !== 10 && Number.isInteger(v)) s = (v < 0 ? (v >>> 0) : v).toString(base);
+    if (u64 && Number.isInteger(v) && (v < 0 || v === 4294967295)) s = BigInt.asUintN(64, v === 4294967295 ? -1n : BigInt(v)).toString(base);
+    else if (base !== 10 && Number.isInteger(v)) s = (v < 0 ? (v >>> 0) : v).toString(base);
     else if (Number.isInteger(v)) s = String(v);
     else s = Number.isFinite(v) ? __ctj_fmt_g(v, (os && os._M_precision) ? os._M_precision : 6) : String(v);
   }
@@ -174,7 +175,7 @@ function _ctj_cstr(p, n) {
   }
   return s;
 }
-function _ctj_fmt(v, os) {
+function _ctj_fmt(v, os, u64) {
   os = _ctj_ios(os);
   const f = (os && typeof os._M_flags === "number") ? os._M_flags : 0;
   const base = (f & 74) === 8 ? 16 : ((f & 74) === 64 ? 8 : 10);
@@ -184,7 +185,8 @@ function _ctj_fmt(v, os) {
   if (v === null || v === undefined) s = "0";
   else if (typeof v === "boolean") s = (f & 1) ? (v ? "true" : "false") : (v ? "1" : "0");
   else if (typeof v === "number") {
-    if (base !== 10 && Number.isInteger(v)) s = (v < 0 ? (v >>> 0) : v).toString(base);
+    if (u64 && Number.isInteger(v) && (v < 0 || v === 4294967295)) s = BigInt.asUintN(64, v === 4294967295 ? -1n : BigInt(v)).toString(base);
+    else if (base !== 10 && Number.isInteger(v)) s = (v < 0 ? (v >>> 0) : v).toString(base);
     else if (Number.isInteger(v)) s = String(v);
     else s = Number.isFinite(v) ? _ctj_fmt_g(v, (os && os._M_precision) ? os._M_precision : 6) : String(v);
   }

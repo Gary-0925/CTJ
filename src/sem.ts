@@ -86,6 +86,13 @@ export function isUnsignedName(n: string): boolean {
     n === "unsigned long" || n === "unsigned long long";
 }
 
+// The 64-bit unsigned types: a JS number cannot hold their range, so they are
+// kept as the signed value and only the printer turns them back into digits.
+export function isWideName(n: string): boolean {
+  return n === "unsigned long" || n === "unsigned long long" || n === "size_t" ||
+    n === "unsigned __int128";
+}
+
 
 // "std::initializer_list<T>" is the array its elements are made of: a value of
 // the type is that array, and the header's own "begin", "end" and "size" are
