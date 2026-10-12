@@ -390,8 +390,9 @@ function typeOfBinary(cx: Cx, e: BinaryExpr, scope: Scope): CppType {
   }
   const lDec = lt.dims.length && !lt.isBox() ? decayed(lt) : lt;
   const rDec = rt.dims.length && !rt.isBox() ? decayed(rt) : rt;
-  if (lDec.ptr > 0 && isIntegerish(cx, rt) && (e.op === "+" || e.op === "-")) return lDec;
-  if (rDec.ptr > 0 && isIntegerish(cx, lt) && e.op === "+") return rDec;
+  // An enumerator counts as the integer it is, so a pointer steps by it.
+  if (lDec.ptr > 0 && isIntegralish(cx, rt) && (e.op === "+" || e.op === "-")) return lDec;
+  if (rDec.ptr > 0 && isIntegralish(cx, lt) && e.op === "+") return rDec;
   // Two pointers into the same array differ by a number of elements.
   if (lDec.ptr > 0 && rDec.ptr > 0 && e.op === "-") return CppType.basic("long");
   if (lDec.ptr > 0 && rDec.ptr > 0 && e.op === "-") return CppType.basic("long");
@@ -437,7 +438,7 @@ function typeOfAssign(cx: Cx, e: AssignExpr, scope: Scope): CppType {
   }
   if (e.op !== "=") {
     const p = promote(cx, lt, rt);
-    if (!p && !(lt.ptr > 0 && isIntegerish(cx, rt))) cx.fail(`bad operands to '${e.op}'`, e);
+    if (!p && !(lt.ptr > 0 && isIntegralish(cx, rt))) cx.fail(`bad operands to '${e.op}'`, e);
     return lt;
   }
   // Storing through a reference is a plain write; only a pointer target needs
@@ -1667,6 +1668,13 @@ function isIntegerish(cx: Cx, t: CppType): boolean {
   void cx;
   const c = t.ref ? noRef(t) : t;
   return !c.isBox() && !c.dims.length && !c.isFunc && isIntegerName(coreName(c));
+}
+
+// An integer, or an enumeration whose value is one.
+function isIntegralish(cx: Cx, t: CppType): boolean {
+  const c = t.ref ? noRef(t) : t;
+  if (c.isBox() || c.dims.length || c.isFunc) return false;
+  return isIntegerName(coreName(c)) || cx.enums.has(cx.stripAll(c));
 }
 
 function isNumericish(cx: Cx, t: CppType): boolean {

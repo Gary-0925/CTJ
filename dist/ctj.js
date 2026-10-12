@@ -4642,8 +4642,39 @@ var CTJ;
         // into the declaration of its own overload rather than into a sibling that
         // happens to take the same number of them ("merge(list&&)" against
         // "merge(list&)", which delegates to it).
-        paramShape(d) {
-            return d.params.map(p => [p.type.ptr, p.type.ref, p.type.dims.length, p.type.func ? "f" : "", p.variadic || p.isPack ? "..." : ""].join(",")).join(";");
+        // What tells an out-of-line definition from another overload: the parameters,
+        // by type when asked strictly (the name of each is its last segment, so a
+        // definition may write "std::size_t" where the declaration wrote "size_t").
+        paramShape(d, strict = false) {
+            return d.params.map(p => [
+                strict && p.type.parts.length ? p.type.parts[p.type.parts.length - 1].n : "",
+                p.type.ptr, p.type.ref, p.type.dims.length, p.type.func ? "f" : "",
+                p.variadic || p.isPack ? "..." : "",
+            ].join(",")).join(";");
+        }
+        // The parameter types of a declaration, read in the class they are declared
+        // in: a definition writes them with the template's arguments substituted,
+        // the class body with the names it chose ("char*" against "_CharT*").
+        paramKey(cls, d) {
+            try {
+                const scope = this.memberScope(cls);
+                return d.params.map(p => this.resolveTypeNode(p.type, scope).key()).join(";");
+            }
+            catch {
+                return null;
+            }
+        }
+        // Whether a declaration and a definition name the same parameters.  The
+        // spelling decides it when it can; where two overloads differ only in the
+        // names they give their types, the types themselves are compared.
+        sameParams(cls, a, b) {
+            if (this.paramShape(a, true) === this.paramShape(b, true))
+                return true;
+            if (this.paramShape(a) !== this.paramShape(b))
+                return false;
+            const ka = this.paramKey(cls, a);
+            const kb = this.paramKey(cls, b);
+            return ka !== null && ka === kb;
         }
         // An out-of-line definition repeats the parameter list but not the default
         // arguments, which are written on the declaration alone: without them a call
@@ -4661,8 +4692,13 @@ var CTJ;
             const sc = this.snapScope(scope);
             sc.cls = cls;
             const list = cls.methods.get(key) || [];
+            // The declaration a definition belongs to is the one whose parameters it
+            // repeats.  Two overloads may agree on pointers and references alone
+            // ("replace(size_type, size_type, const _CharT*, size_type)" against
+            // "replace(iterator, iterator, const _CharT*, size_type)"), so only a
+            // declaration that names the same types is the one being defined.
             for (const f of list) {
-                if (!f.decl.body && d.body && this.paramShape(f.decl) === this.paramShape(d)) {
+                if (!f.decl.body && d.body && this.sameParams(cls, f.decl, d)) {
                     this.mergeDefDefaults(f.decl, d);
                     f.decl = d;
                     f.scope = sc;
@@ -6199,16 +6235,22 @@ var CTJ;
                 return "";
             return CTJ.last(d.name).n;
         }
+        // The declaration an out-of-line definition belongs to, by its parameters:
+        // the types first, since "size_type, size_type, const _CharT*, size_type"
+        // and "iterator, iterator, const _CharT*, size_type" are the same shapes as
+        // references and pointers, and only the names tell them apart.
         findMethod(cls, d) {
             const key = this.methodKey(d, this.methodShort(d));
             const list = cls.methods.get(key);
             if (!list)
                 return null;
             for (const f of list) {
-                if (this.paramShape(f.decl) === this.paramShape(d))
+                if (this.sameParams(cls, f.decl, d))
                     return f;
             }
-            return list[0] || null;
+            // Nothing of that shape is declared: the definition is an overload the
+            // class does not carry yet, and the caller adds it.
+            return null;
         }
         instantiateAlias(tmplFq, args, scope) {
             const tmpl = this.tmpls.get(tmplFq);
@@ -8455,9 +8497,10 @@ var CTJ;
         }
         const lDec = lt.dims.length && !lt.isBox() ? decayed(lt) : lt;
         const rDec = rt.dims.length && !rt.isBox() ? decayed(rt) : rt;
-        if (lDec.ptr > 0 && isIntegerish(cx, rt) && (e.op === "+" || e.op === "-"))
+        // An enumerator counts as the integer it is, so a pointer steps by it.
+        if (lDec.ptr > 0 && isIntegralish(cx, rt) && (e.op === "+" || e.op === "-"))
             return lDec;
-        if (rDec.ptr > 0 && isIntegerish(cx, lt) && e.op === "+")
+        if (rDec.ptr > 0 && isIntegralish(cx, lt) && e.op === "+")
             return rDec;
         // Two pointers into the same array differ by a number of elements.
         if (lDec.ptr > 0 && rDec.ptr > 0 && e.op === "-")
@@ -8507,7 +8550,7 @@ var CTJ;
         }
         if (e.op !== "=") {
             const p = promote(cx, lt, rt);
-            if (!p && !(lt.ptr > 0 && isIntegerish(cx, rt)))
+            if (!p && !(lt.ptr > 0 && isIntegralish(cx, rt)))
                 cx.fail(`bad operands to '${e.op}'`, e);
             return lt;
         }
@@ -9914,6 +9957,13 @@ var CTJ;
         void cx;
         const c = t.ref ? noRef(t) : t;
         return !c.isBox() && !c.dims.length && !c.isFunc && CTJ.isIntegerName(coreName(c));
+    }
+    // An integer, or an enumeration whose value is one.
+    function isIntegralish(cx, t) {
+        const c = t.ref ? noRef(t) : t;
+        if (c.isBox() || c.dims.length || c.isFunc)
+            return false;
+        return CTJ.isIntegerName(coreName(c)) || cx.enums.has(cx.stripAll(c));
     }
     function isNumericish(cx, t) {
         const c = t.ref ? noRef(t) : t;
@@ -16726,6 +16776,10 @@ var CTJ;
         exCast(e) {
             const a = this.cx.getAnn(e);
             const t = a.t;
+            // A cast the analyser never reached (a static initializer of a member
+            // nothing calls) says nothing about the type, and converts nothing.
+            if (!t)
+                return this.ex(e.arg);
             if (a.call) {
                 const fq = this.cx.stripAll(t);
                 const cn = phpClsName(this.cx.classes.get(fq));
@@ -16876,4 +16930,4 @@ var CTJ;
     g["CTJ"] = CTJ;
 })();
 
-CTJ.version = "cc2c568 2026-10-12 07:09:45Z";
+CTJ.version = "caa0ed5 2026-10-12 07:23:08Z";

@@ -2279,7 +2279,10 @@ class PhpGen {
 
   exCast(e: CastExpr): string {
     const a = this.cx.getAnn(e);
-    const t = a.t as CppType;
+    const t = a.t as CppType | null;
+    // A cast the analyser never reached (a static initializer of a member
+    // nothing calls) says nothing about the type, and converts nothing.
+    if (!t) return this.ex(e.arg);
     if (a.call) {
       const fq = this.cx.stripAll(t);
       const cn = phpClsName(this.cx.classes.get(fq) as ClsInfo);

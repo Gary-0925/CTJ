@@ -96,6 +96,22 @@ class class_156 {
   __dtor() {
   }
 }
+class gnu_cxx_mutex {
+  __init_gnu_cxx_mutex(...$a) { }
+  __dtor() {
+  }
+}
+class gnu_cxx_scoped_lock {
+  __device;
+  constructor(...$a) {
+    this.__init_gnu_cxx_scoped_lock(...$a);
+  }
+  __init_gnu_cxx_scoped_lock(...$a) {
+    this.__device = null;
+  }
+  __dtor() {
+  }
+}
 class std_allocator_arg_t {
   constructor(...$a) {
     this.__init_std_allocator_arg_t(...$a);
@@ -250,6 +266,17 @@ class std_allocator_char_rebind_char {
   __dtor() {
   }
 }
+class gnu_cxx_normal_iterator_char_P_std_basic_string_char_std_char_traits_char_std_allocator_char {
+  _M_current;
+  constructor(...$a) {
+    this.__init_gnu_cxx_normal_iterator_char_P_std_basic_string_char_std_char_traits_char_std_allocator_char(...$a);
+  }
+  __init_gnu_cxx_normal_iterator_char_P_std_basic_string_char_std_char_traits_char_std_allocator_char(...$a) {
+    this._M_current = null;
+  }
+  __dtor() {
+  }
+}
 class std_hash_base_unsigned_long_long_std_basic_string_char_std_char_traits_char_std_allocator_char {
   __init_std_hash_base_unsigned_long_long_std_basic_string_char_std_char_traits_char_std_allocator_char(...$a) { }
   __dtor() {
@@ -330,6 +357,17 @@ class std_basic_string_wchar_t_std_char_traits_wchar_t_std_allocator_wchar_t {
 }
 class std_allocator_wchar_t_rebind_wchar_t {
   __init_std_allocator_wchar_t_rebind_wchar_t(...$a) { }
+  __dtor() {
+  }
+}
+class gnu_cxx_normal_iterator_wchar_t_P_std_basic_string_wchar_t_std_char_traits_wchar_t_std_allocator_wchar_t {
+  _M_current;
+  constructor(...$a) {
+    this.__init_gnu_cxx_normal_iterator_wchar_t_P_std_basic_string_wchar_t_std_char_traits_wchar_t_std_allocator_wchar_t(...$a);
+  }
+  __init_gnu_cxx_normal_iterator_wchar_t_P_std_basic_string_wchar_t_std_char_traits_wchar_t_std_allocator_wchar_t(...$a) {
+    this._M_current = null;
+  }
   __dtor() {
   }
 }
@@ -416,6 +454,17 @@ class std_allocator_char16_t_rebind_char16_t {
   __dtor() {
   }
 }
+class gnu_cxx_normal_iterator_char16_t_P_std_basic_string_char16_t_std_char_traits_char16_t_std_allocator_char16_t {
+  _M_current;
+  constructor(...$a) {
+    this.__init_gnu_cxx_normal_iterator_char16_t_P_std_basic_string_char16_t_std_char_traits_char16_t_std_allocator_char16_t(...$a);
+  }
+  __init_gnu_cxx_normal_iterator_char16_t_P_std_basic_string_char16_t_std_char_traits_char16_t_std_allocator_char16_t(...$a) {
+    this._M_current = null;
+  }
+  __dtor() {
+  }
+}
 class std_hash_base_unsigned_long_long_std_basic_string_char16_t_std_char_traits_char16_t_std_allocator_char16_t {
   __init_std_hash_base_unsigned_long_long_std_basic_string_char16_t_std_char_traits_char16_t_std_allocator_char16_t(...$a) { }
   __dtor() {
@@ -496,6 +545,17 @@ class std_basic_string_char32_t_std_char_traits_char32_t_std_allocator_char32_t 
 }
 class std_allocator_char32_t_rebind_char32_t {
   __init_std_allocator_char32_t_rebind_char32_t(...$a) { }
+  __dtor() {
+  }
+}
+class gnu_cxx_normal_iterator_char32_t_P_std_basic_string_char32_t_std_char_traits_char32_t_std_allocator_char32_t {
+  _M_current;
+  constructor(...$a) {
+    this.__init_gnu_cxx_normal_iterator_char32_t_P_std_basic_string_char32_t_std_char_traits_char32_t_std_allocator_char32_t(...$a);
+  }
+  __init_gnu_cxx_normal_iterator_char32_t_P_std_basic_string_char32_t_std_char_traits_char32_t_std_allocator_char32_t(...$a) {
+    this._M_current = null;
+  }
   __dtor() {
   }
 }

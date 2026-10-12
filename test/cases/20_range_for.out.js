@@ -219,6 +219,22 @@ class class_156 {
   __dtor() {
   }
 }
+class gnu_cxx_mutex {
+  __init_gnu_cxx_mutex(...$a) { }
+  __dtor() {
+  }
+}
+class gnu_cxx_scoped_lock {
+  __device;
+  constructor(...$a) {
+    this.__init_gnu_cxx_scoped_lock(...$a);
+  }
+  __init_gnu_cxx_scoped_lock(...$a) {
+    this.__device = null;
+  }
+  __dtor() {
+  }
+}
 class std_allocator_arg_t {
   constructor(...$a) {
     this.__init_std_allocator_arg_t(...$a);
@@ -401,6 +417,17 @@ class std_allocator_char_rebind_char {
   __dtor() {
   }
 }
+class gnu_cxx_normal_iterator_char_P_std_basic_string_char_std_char_traits_char_std_allocator_char {
+  _M_current;
+  constructor(...$a) {
+    this.__init_gnu_cxx_normal_iterator_char_P_std_basic_string_char_std_char_traits_char_std_allocator_char(...$a);
+  }
+  __init_gnu_cxx_normal_iterator_char_P_std_basic_string_char_std_char_traits_char_std_allocator_char(...$a) {
+    this._M_current = null;
+  }
+  __dtor() {
+  }
+}
 class std_hash_base_unsigned_long_long_std_basic_string_char_std_char_traits_char_std_allocator_char {
   __init_std_hash_base_unsigned_long_long_std_basic_string_char_std_char_traits_char_std_allocator_char(...$a) { }
   __dtor() {
@@ -481,6 +508,17 @@ class std_basic_string_wchar_t_std_char_traits_wchar_t_std_allocator_wchar_t {
 }
 class std_allocator_wchar_t_rebind_wchar_t {
   __init_std_allocator_wchar_t_rebind_wchar_t(...$a) { }
+  __dtor() {
+  }
+}
+class gnu_cxx_normal_iterator_wchar_t_P_std_basic_string_wchar_t_std_char_traits_wchar_t_std_allocator_wchar_t {
+  _M_current;
+  constructor(...$a) {
+    this.__init_gnu_cxx_normal_iterator_wchar_t_P_std_basic_string_wchar_t_std_char_traits_wchar_t_std_allocator_wchar_t(...$a);
+  }
+  __init_gnu_cxx_normal_iterator_wchar_t_P_std_basic_string_wchar_t_std_char_traits_wchar_t_std_allocator_wchar_t(...$a) {
+    this._M_current = null;
+  }
   __dtor() {
   }
 }
@@ -567,6 +605,17 @@ class std_allocator_char16_t_rebind_char16_t {
   __dtor() {
   }
 }
+class gnu_cxx_normal_iterator_char16_t_P_std_basic_string_char16_t_std_char_traits_char16_t_std_allocator_char16_t {
+  _M_current;
+  constructor(...$a) {
+    this.__init_gnu_cxx_normal_iterator_char16_t_P_std_basic_string_char16_t_std_char_traits_char16_t_std_allocator_char16_t(...$a);
+  }
+  __init_gnu_cxx_normal_iterator_char16_t_P_std_basic_string_char16_t_std_char_traits_char16_t_std_allocator_char16_t(...$a) {
+    this._M_current = null;
+  }
+  __dtor() {
+  }
+}
 class std_hash_base_unsigned_long_long_std_basic_string_char16_t_std_char_traits_char16_t_std_allocator_char16_t {
   __init_std_hash_base_unsigned_long_long_std_basic_string_char16_t_std_char_traits_char16_t_std_allocator_char16_t(...$a) { }
   __dtor() {
@@ -647,6 +696,17 @@ class std_basic_string_char32_t_std_char_traits_char32_t_std_allocator_char32_t 
 }
 class std_allocator_char32_t_rebind_char32_t {
   __init_std_allocator_char32_t_rebind_char32_t(...$a) { }
+  __dtor() {
+  }
+}
+class gnu_cxx_normal_iterator_char32_t_P_std_basic_string_char32_t_std_char_traits_char32_t_std_allocator_char32_t {
+  _M_current;
+  constructor(...$a) {
+    this.__init_gnu_cxx_normal_iterator_char32_t_P_std_basic_string_char32_t_std_char_traits_char32_t_std_allocator_char32_t(...$a);
+  }
+  __init_gnu_cxx_normal_iterator_char32_t_P_std_basic_string_char32_t_std_char_traits_char32_t_std_allocator_char32_t(...$a) {
+    this._M_current = null;
+  }
   __dtor() {
   }
 }
@@ -1294,6 +1354,20 @@ class std_Identity_int extends std_unary_function_int_int {
     return __x;
   }
 }
+class std_Rb_tree_node_int extends std_Rb_tree_node_base {
+  _M_value_field;
+  constructor(...$a) {
+    super(...[]);
+    this.__init_std_Rb_tree_node_int(...$a);
+  }
+  __init_std_Rb_tree_node_int(...$a) {
+    let $t11;
+    this._M_value_field = ($t11 = std_forward_1_int($a[0]), $t11.a[$t11.i]);
+  }
+  __dtor() {
+    std_Rb_tree_node_base.prototype.__dtor.call(this);
+  }
+}
 class std_Rb_tree_const_iterator_int {
   _M_node;
   constructor(...$a) {
@@ -1317,26 +1391,12 @@ class std_Rb_tree_const_iterator_int {
     return {a: this._M_node.a[this._M_node.i], i: "_M_value_field"};
   }
   op_inc() {
-    let $t11;
-    this._M_node = ($t11 = std_Rb_tree_increment__std_Rb_tree_node_baseP((this._M_node ? {a: this._M_node.a, i: this._M_node.i} : null)), $t11 ? {a: $t11.a, i: $t11.i} : null);
+    let $t12;
+    this._M_node = ($t12 = std_Rb_tree_increment__std_Rb_tree_node_baseP((this._M_node ? {a: this._M_node.a, i: this._M_node.i} : null)), $t12 ? {a: $t12.a, i: $t12.i} : null);
     return {a: [this], i: 0};
   }
   op_ne__c(__x) {
     return (!(this._M_node === ((__x.a[__x.i])._M_node) || (this._M_node && ((__x.a[__x.i])._M_node) && this._M_node.a === ((__x.a[__x.i])._M_node).a && this._M_node.i === ((__x.a[__x.i])._M_node).i)));
-  }
-}
-class std_Rb_tree_node_int extends std_Rb_tree_node_base {
-  _M_value_field;
-  constructor(...$a) {
-    super(...[]);
-    this.__init_std_Rb_tree_node_int(...$a);
-  }
-  __init_std_Rb_tree_node_int(...$a) {
-    let $t12;
-    this._M_value_field = ($t12 = std_forward_1_int($a[0]), $t12.a[$t12.i]);
-  }
-  __dtor() {
-    std_Rb_tree_node_base.prototype.__dtor.call(this);
   }
 }
 class std_Rb_tree_iterator_int {
@@ -2324,6 +2384,21 @@ class std_allocator_std_pair_int_int_rebind_std_pair_int_int {
   __dtor() {
   }
 }
+class std_Rb_tree_node_std_pair_int_int extends std_Rb_tree_node_base {
+  _M_value_field;
+  constructor(...$a) {
+    super(...[]);
+    this.__init_std_Rb_tree_node_std_pair_int_int(...$a);
+  }
+  __init_std_Rb_tree_node_std_pair_int_int(...$a) {
+    let $t15, $t16, $t17;
+    this._M_value_field = new std_pair_int_int(($t15 = std_forward_1_std_piecewise_construct_t($a[0]), $t15.a[$t15.i]), ($t16 = std_forward_1_std_tuple_int_R($a[1]), $t16.a[$t16.i]), ($t17 = std_forward_1_std_tuple($a[2]), $t17.a[$t17.i]));
+    this._M_value_field.ctj_a = this; this._M_value_field.ctj_i = "_M_value_field";
+  }
+  __dtor() {
+    std_Rb_tree_node_base.prototype.__dtor.call(this);
+  }
+}
 class std_Rb_tree_iterator_std_pair_int_int {
   _M_node;
   constructor(...$a) {
@@ -2344,13 +2419,13 @@ class std_Rb_tree_iterator_std_pair_int_int {
     return {a: this._M_node.a[this._M_node.i], i: "_M_value_field"};
   }
   op_inc() {
-    let $t15;
-    this._M_node = ($t15 = std_Rb_tree_increment__std_Rb_tree_node_baseP((this._M_node ? {a: this._M_node.a, i: this._M_node.i} : null)), $t15 ? {a: $t15.a, i: $t15.i} : null);
+    let $t18;
+    this._M_node = ($t18 = std_Rb_tree_increment__std_Rb_tree_node_baseP((this._M_node ? {a: this._M_node.a, i: this._M_node.i} : null)), $t18 ? {a: $t18.a, i: $t18.i} : null);
     return {a: [this], i: 0};
   }
   op_dec() {
-    let $t16;
-    this._M_node = ($t16 = std_Rb_tree_decrement__std_Rb_tree_node_baseP((this._M_node ? {a: this._M_node.a, i: this._M_node.i} : null)), $t16 ? {a: $t16.a, i: $t16.i} : null);
+    let $t19;
+    this._M_node = ($t19 = std_Rb_tree_decrement__std_Rb_tree_node_baseP((this._M_node ? {a: this._M_node.a, i: this._M_node.i} : null)), $t19 ? {a: $t19.a, i: $t19.i} : null);
     return {a: [this], i: 0};
   }
   op_eq__c(__x) {
@@ -2362,21 +2437,6 @@ class std_Rb_tree_iterator_std_pair_int_int {
   op_assign(o) {
     this._M_node = (((o.a[o.i])._M_node) ? {a: ((o.a[o.i])._M_node).a, i: ((o.a[o.i])._M_node).i} : null);
     return {a: [this], i: 0};
-  }
-}
-class std_Rb_tree_node_std_pair_int_int extends std_Rb_tree_node_base {
-  _M_value_field;
-  constructor(...$a) {
-    super(...[]);
-    this.__init_std_Rb_tree_node_std_pair_int_int(...$a);
-  }
-  __init_std_Rb_tree_node_std_pair_int_int(...$a) {
-    let $t17, $t18, $t19;
-    this._M_value_field = new std_pair_int_int(($t17 = std_forward_1_std_piecewise_construct_t($a[0]), $t17.a[$t17.i]), ($t18 = std_forward_1_std_tuple_int_R($a[1]), $t18.a[$t18.i]), ($t19 = std_forward_1_std_tuple($a[2]), $t19.a[$t19.i]));
-    this._M_value_field.ctj_a = this; this._M_value_field.ctj_i = "_M_value_field";
-  }
-  __dtor() {
-    std_Rb_tree_node_base.prototype.__dtor.call(this);
   }
 }
 class std_pair_std_Rb_tree_iterator_int_bool {

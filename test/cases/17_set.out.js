@@ -285,6 +285,20 @@ class std_allocator_int_rebind_int {
   __dtor() {
   }
 }
+class std_Rb_tree_node_int extends std_Rb_tree_node_base {
+  _M_value_field;
+  constructor(...$a) {
+    super(...[]);
+    this.__init_std_Rb_tree_node_int(...$a);
+  }
+  __init_std_Rb_tree_node_int(...$a) {
+    let $t0;
+    this._M_value_field = ($t0 = std_forward_1_int($a[0]), $t0.a[$t0.i]);
+  }
+  __dtor() {
+    std_Rb_tree_node_base.prototype.__dtor.call(this);
+  }
+}
 class std_Rb_tree_const_iterator_int {
   _M_node;
   constructor(...$a) {
@@ -300,20 +314,6 @@ class std_Rb_tree_const_iterator_int {
     else { throw new Error("no matching constructor"); }
   }
   __dtor() {
-  }
-}
-class std_Rb_tree_node_int extends std_Rb_tree_node_base {
-  _M_value_field;
-  constructor(...$a) {
-    super(...[]);
-    this.__init_std_Rb_tree_node_int(...$a);
-  }
-  __init_std_Rb_tree_node_int(...$a) {
-    let $t0;
-    this._M_value_field = ($t0 = std_forward_1_int($a[0]), $t0.a[$t0.i]);
-  }
-  __dtor() {
-    std_Rb_tree_node_base.prototype.__dtor.call(this);
   }
 }
 class std_Rb_tree_iterator_int {
