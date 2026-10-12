@@ -1429,6 +1429,14 @@ export function matchScore(cx: Cx, p: CppType, a: CppType, e: Expr | null, scope
   if (a.name === "__initlist" && p.ptr === 0 && !p.isFunc) {
     const cls = cx.classes.get(cx.stripAll(p));
     if (cls && cls.fromTmpl && last(cls.fromTmpl.split("::")) === "initializer_list") {
+      // A braced list reaches this constructor only when its elements can
+      // be the element type: "basic_string(__p, __n, __a)" writes three
+      // constructor arguments, not a list of a pointer, a count and an
+      // allocator.  An element that is a list of its own, as "map m{{1, 2}}"
+      // has, is left to the constructor of the element type.
+      const et = p.segs.length === 1 && p.segs[0].a.length === 1 ? p.segs[0].a[0] : null;
+      const el = a.ret;
+      if (et && el && el.name !== "__initlist" && matchScore(cx, et, el, null, scope, true).s < 0) return NOMATCH;
       return { s: 85, conv: null };
     }
     // "{1, 2}" also reaches a parameter of a class with an initializer_list

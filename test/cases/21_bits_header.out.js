@@ -746,6 +746,23 @@ class std_locale_Impl {
   static _S_id_messages = null;
   static _S_facet_categories = null;
 }
+class std_ios_base_Callback_list {
+  _M_next;
+  _M_fn;
+  _M_index;
+  _M_refcount;
+  constructor(...$a) {
+    this.__init_std_ios_base_Callback_list(...$a);
+  }
+  __init_std_ios_base_Callback_list(...$a) {
+    this._M_next = null;
+    this._M_fn = null;
+    this._M_index = 0;
+    this._M_refcount = 0;
+  }
+  __dtor() {
+  }
+}
 class std_ios_base_Words {
   _M_pword;
   _M_iword;
@@ -830,24 +847,6 @@ class std_ios_base {
   static beg = 0;
   static cur = 1;
   static end = 2;
-}
-class std_ios_base_Callback_list {
-  _M_next;
-  _M_fn;
-  _M_index;
-  _M_refcount;
-  constructor(...$a) {
-    this.__init_std_ios_base_Callback_list(...$a);
-  }
-  __init_std_ios_base_Callback_list(...$a) {
-    this._M_next = null;
-    this._M_fn = new std_ios_base();
-    this._M_fn.ctj_a = this; this._M_fn.ctj_i = "_M_fn";
-    this._M_index = 0;
-    this._M_refcount = 0;
-  }
-  __dtor() {
-  }
 }
 class std_ios_base_Init {
   constructor(...$a) {

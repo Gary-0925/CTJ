@@ -5326,8 +5326,18 @@ var CTJ;
             // arguments, stands for the class itself rather than for its template.
             if (!global && !parts[0].a.length) {
                 for (let c = scope.cls; c; c = c.scope.cls) {
-                    if (this.declaredName(c) === parts[0].n)
+                    if (this.declaredName(c) !== parts[0].n)
+                        continue;
+                    if (parts.length === 1)
                         return { k: "class", cls: c };
+                    // The injected class name may carry a qualifier of its own: inside
+                    // "_Rep", the qualified name "_Rep::_S_create" names that static.
+                    let inner = { k: "class", cls: c };
+                    for (let i = 1; i < parts.length && inner; i++)
+                        inner = this.lookupNext(inner, parts[i], scope);
+                    if (inner)
+                        return inner;
+                    break;
                 }
             }
             // allocator<U> written inside allocator<T> must name the class template,
@@ -9534,6 +9544,15 @@ var CTJ;
         if (a.name === "__initlist" && p.ptr === 0 && !p.isFunc) {
             const cls = cx.classes.get(cx.stripAll(p));
             if (cls && cls.fromTmpl && CTJ.last(cls.fromTmpl.split("::")) === "initializer_list") {
+                // A braced list reaches this constructor only when its elements can
+                // be the element type: "basic_string(__p, __n, __a)" writes three
+                // constructor arguments, not a list of a pointer, a count and an
+                // allocator.  An element that is a list of its own, as "map m{{1, 2}}"
+                // has, is left to the constructor of the element type.
+                const et = p.segs.length === 1 && p.segs[0].a.length === 1 ? p.segs[0].a[0] : null;
+                const el = a.ret;
+                if (et && el && el.name !== "__initlist" && matchScore(cx, et, el, null, scope, true).s < 0)
+                    return NOMATCH;
                 return { s: 85, conv: null };
             }
             // "{1, 2}" also reaches a parameter of a class with an initializer_list
@@ -10631,6 +10650,8 @@ var CTJ;
         }
         run() {
             this.line(`"use strict";`);
+            if (this.needsPrimeBuckets())
+                this.line(`const PRIME_BUCKETS = [${PRIME_BUCKETS.join(", ")}];`);
             if (this.needsRbTreeHelpers())
                 this.emitPtrHelpers();
             if (this.needsIoHelpers())
@@ -11399,6 +11420,20 @@ var CTJ;
                 this.line(`else { throw new Error("no matching overload"); }`);
             });
         }
+        // The rehash policy's stub reads the prime list at run time; it is written
+        // into the program instead of being carried over from the generator.
+        needsPrimeBuckets() {
+            for (const c of this.cx.classes.values()) {
+                if (!c.referenced)
+                    continue;
+                for (const fns of c.methods.values()) {
+                    for (const f of fns)
+                        if (f.referenced && this.hashPolicyStub(f))
+                            return true;
+                }
+            }
+            return false;
+        }
         needsRbTreeHelpers() {
             for (const list of this.cx.funcs.values()) {
                 for (const f of list) {
@@ -11635,9 +11670,12 @@ var CTJ;
                 // "pair<bool, size_type>" comes back boxed, as any class value does.
                 const cls = this.cx.classes.get(this.cx.stripAll(this.cx.funcRet(f)));
                 const pn = cls ? cls.mangled : "";
+                // A class value comes back as the object itself, as any other function
+                // returning one by value does: the caller copies it into a pair of its
+                // own, and that copy reads "first" and "second" off the object.
                 const mk = pn
-                    ? `const $mk = (b, s) => { const o = Object.create(${pn}.prototype); o.first = b; o.second = s; return {a: [o], i: 0}; };`
-                    : "const $mk = (b, s) => ({a: [{first: b, second: s}], i: 0});";
+                    ? `const $mk = (b, s) => { const o = Object.create(${pn}.prototype); o.first = b; o.second = s; return o; };`
+                    : "const $mk = (b, s) => ({first: b, second: s});";
                 return [
                     "const $nbkt = $a[0], $nelt = $a[1], $nins = $a[2];",
                     mk,
@@ -13826,7 +13864,10 @@ var CTJ;
             this.out = save;
             this.alias.pop();
             const all = defs.concat(decl);
-            return `{op_call: (${all.join(", ")}) => {\n${lines.join("\n")}\n${this.ind}}}`;
+            // The name is the one the call sites look for: a lambda's "operator()" is
+            // const, so the plain "op_call" would not be found on it.
+            const mname = lfn ? methodJsName(lfn) : "op_call";
+            return `{${mname}: (${all.join(", ")}) => {\n${lines.join("\n")}\n${this.ind}}}`;
         }
         sizeofType(e) {
             if (e.isType && e.type)
@@ -16487,4 +16528,4 @@ var CTJ;
     g["CTJ"] = CTJ;
 })();
 
-CTJ.version = "4a41975 2026-10-12 05:29:38Z";
+CTJ.version = "9579f57 2026-10-12 05:39:38Z";

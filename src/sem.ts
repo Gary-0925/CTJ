@@ -1267,7 +1267,14 @@ export class Cx {
     // arguments, stands for the class itself rather than for its template.
     if (!global && !parts[0].a.length) {
       for (let c = scope.cls; c; c = c.scope.cls) {
-        if (this.declaredName(c) === parts[0].n) return { k: "class", cls: c };
+        if (this.declaredName(c) !== parts[0].n) continue;
+        if (parts.length === 1) return { k: "class", cls: c };
+        // The injected class name may carry a qualifier of its own: inside
+        // "_Rep", the qualified name "_Rep::_S_create" names that static.
+        let inner: Sym | null = { k: "class", cls: c };
+        for (let i = 1; i < parts.length && inner; i++) inner = this.lookupNext(inner, parts[i], scope);
+        if (inner) return inner;
+        break;
       }
     }
     // allocator<U> written inside allocator<T> must name the class template,

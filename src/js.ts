@@ -114,6 +114,7 @@ class JsGen {
 
   run(): string {
     this.line(`"use strict";`);
+    if (this.needsPrimeBuckets()) this.line(`const PRIME_BUCKETS = [${PRIME_BUCKETS.join(", ")}];`);
     if (this.needsRbTreeHelpers()) this.emitPtrHelpers();
     if (this.needsIoHelpers()) this.emitIoHelpers();
     for (const c of this.sortClasses()) {
@@ -814,6 +815,18 @@ class JsGen {
     });
   }
 
+  // The rehash policy's stub reads the prime list at run time; it is written
+  // into the program instead of being carried over from the generator.
+  needsPrimeBuckets(): boolean {
+    for (const c of this.cx.classes.values()) {
+      if (!c.referenced) continue;
+      for (const fns of c.methods.values()) {
+        for (const f of fns) if (f.referenced && this.hashPolicyStub(f)) return true;
+      }
+    }
+    return false;
+  }
+
   needsRbTreeHelpers(): boolean {
     for (const list of this.cx.funcs.values()) {
       for (const f of list) {
@@ -1048,9 +1061,12 @@ class JsGen {
       // "pair<bool, size_type>" comes back boxed, as any class value does.
       const cls = this.cx.classes.get(this.cx.stripAll(this.cx.funcRet(f)));
       const pn = cls ? (cls.mangled as string) : "";
+      // A class value comes back as the object itself, as any other function
+      // returning one by value does: the caller copies it into a pair of its
+      // own, and that copy reads "first" and "second" off the object.
       const mk = pn
-        ? `const $mk = (b, s) => { const o = Object.create(${pn}.prototype); o.first = b; o.second = s; return {a: [o], i: 0}; };`
-        : "const $mk = (b, s) => ({a: [{first: b, second: s}], i: 0});";
+        ? `const $mk = (b, s) => { const o = Object.create(${pn}.prototype); o.first = b; o.second = s; return o; };`
+        : "const $mk = (b, s) => ({first: b, second: s});";
       return [
         "const $nbkt = $a[0], $nelt = $a[1], $nins = $a[2];",
         mk,
@@ -3045,7 +3061,10 @@ class JsGen {
     this.out = save;
     this.alias.pop();
     const all = defs.concat(decl);
-    return `{op_call: (${all.join(", ")}) => {\n${lines.join("\n")}\n${this.ind}}}`;
+    // The name is the one the call sites look for: a lambda's "operator()" is
+    // const, so the plain "op_call" would not be found on it.
+    const mname = lfn ? methodJsName(lfn) : "op_call";
+    return `{${mname}: (${all.join(", ")}) => {\n${lines.join("\n")}\n${this.ind}}}`;
   }
 
   sizeofType(e: SizeofExpr): CppType {
