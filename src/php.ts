@@ -1400,8 +1400,16 @@ class PhpGen {
         const s = this.cx.getAnn(e).sym;
         if (!s || s.k !== "var") return this.ex(e);
         const v = s.v;
-        const t = v.typeCache as CppType;
-        if (t.isFunc) return this.ex(e);
+        // A field's type lives on its class, not on this per-lookup record.
+        const t = (v.isField && v.scope.cls
+          ? this.cx.fieldType(v.scope.cls, v.short) : v.typeCache) as CppType;
+        if (!t || t.isFunc) return this.ex(e);
+        if (v.isField) {
+          const fname = safeJsName(v.short);
+          return v.isStatic
+            ? `["a" => ${phpClsName(v.scope.cls as ClsInfo)}, "i" => "${fname}"]`
+            : `["a" => $this, "i" => "${fname}"]`;
+        }
         const nm = this.varName(v, this.cx.getAnn(e).needsThis);
         if (v.storage === "box") return nm;
         if (v.storage === "bbox") return `${this.paren(nm)}["v"]`;

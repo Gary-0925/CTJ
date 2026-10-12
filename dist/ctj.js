@@ -15514,9 +15514,17 @@ var CTJ;
                     if (!s || s.k !== "var")
                         return this.ex(e);
                     const v = s.v;
-                    const t = v.typeCache;
-                    if (t.isFunc)
+                    // A field's type lives on its class, not on this per-lookup record.
+                    const t = (v.isField && v.scope.cls
+                        ? this.cx.fieldType(v.scope.cls, v.short) : v.typeCache);
+                    if (!t || t.isFunc)
                         return this.ex(e);
+                    if (v.isField) {
+                        const fname = CTJ.safeJsName(v.short);
+                        return v.isStatic
+                            ? `["a" => ${phpClsName(v.scope.cls)}, "i" => "${fname}"]`
+                            : `["a" => $this, "i" => "${fname}"]`;
+                    }
                     const nm = this.varName(v, this.cx.getAnn(e).needsThis);
                     if (v.storage === "box")
                         return nm;
@@ -16617,4 +16625,4 @@ var CTJ;
     g["CTJ"] = CTJ;
 })();
 
-CTJ.version = "6ae3a12 2026-10-12 05:51:23Z";
+CTJ.version = "fd32477 2026-10-12 05:53:50Z";
