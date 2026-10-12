@@ -6335,7 +6335,21 @@ var CTJ;
                     this.fail(`too few template arguments for '${tmpl.fq}'`, t || undefined);
                 if (tp.kind === "type" || tp.kind === "template") {
                     const tn = CTJ.substTypeNode(tp.def, env);
-                    const ty = this.resolveTypeNode(tn, scope);
+                    // A default argument is read where the template was declared:
+                    // "'class _Hash = hash<_Key>'" is written inside "std" and means
+                    // "std::hash" there, whatever names the use site has in scope.  The
+                    // scope naming the template is the fallback, for the synthesized
+                    // declarations whose own scope is not the one they are read in.
+                    const dscope = tmpl.scope && tmpl.scope !== scope ? tmpl.scope : scope;
+                    let ty;
+                    try {
+                        ty = this.resolveTypeNode(tn, dscope);
+                    }
+                    catch (e) {
+                        if (dscope === scope)
+                            throw e;
+                        ty = this.resolveTypeNode(tn, scope);
+                    }
                     full.push(ty);
                     env.types.set(tp.name, ty);
                 }
@@ -16603,4 +16617,4 @@ var CTJ;
     g["CTJ"] = CTJ;
 })();
 
-CTJ.version = "2aa5fdb 2026-10-12 05:48:13Z";
+CTJ.version = "6ae3a12 2026-10-12 05:51:23Z";
