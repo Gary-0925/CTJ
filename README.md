@@ -23,6 +23,20 @@ npm run build
 
 `dist/` 与 `include.json` 都是构建产物，已在 `.gitignore` 中排除。
 
+## 源码结构
+
+`src` 下的文件在 `tsconfig.json` 中按顺序拼接成一个 `namespace CTJ`，按处理阶段分组如下。
+
+| 阶段 | 文件 | 内容 |
+| --- | --- | --- |
+| 工具 | `util.ts`、`token.ts` | 通用工具、词法单元定义 |
+| 词法与预处理 | `lexer.ts`、`pre.ts` | 词法分析，`#include` / `#define` / 条件编译，内置头文件表 |
+| 语法 | `ast.ts`、`parser.ts`、`decl.ts`、`expr.ts`、`stmt.ts` | AST 节点定义，以及声明、表达式、语句的解析 |
+| 语义模型 | `sem.ts`、`subst.ts` | 类型表示 `CppType`，程序状态 `Cx`，模板替换 |
+| 语义分析 | `analyze.ts`、`types.ts`、`calls.ts`、`ctors.ts`、`conversions.ts`、`deduction.ts`、`consteval.ts`、`builtins.ts` | 为每个表达式和声明标注类型与调用目标，包括重载决议、构造函数、模板推导、常量求值与内建函数 |
+| 代码生成 | `js.ts` | 把标注后的程序输出为 JavaScript |
+| 接口 | `api.ts` | `CTJ.transpile` |
+
 ## 接口
 
 ```js
@@ -84,3 +98,12 @@ npm test                # 运行 test/cases 下的全部用例
 - `cerr` / `clog` 目前与 `cout` 一样写到标准输出；`ostringstream` 不可用。
 - 未以换行结束的最后一行会留在 `globalThis.__ctjpend`，由宿主（如 `index.html` 的 `run()`）负责输出。
 - 转译结果使用 JavaScript 的 `number`，`long long`、`unsigned` 等只保证在 53 位整数范围内语义一致。
+
+## 开发约定
+
+- 代码与注释使用英文，文档使用中文。
+- 每个 `src` 文件开头用几行注释说明它的职责；函数上方的注释说明用途或不显然的原因，不复述代码。
+- 格式由 Prettier 统一：`npm run format`（检查用 `npm run format:check`）。单行长度不做限制，配置见 `.prettierrc.json`。
+- 行尾为 LF（`.gitattributes`），缩进为 2 个空格（`.editorconfig`）。
+- 提交前运行 `npm run build && npm test`。`npm test` 会把生成的 JavaScript 写回 `test/cases/*.out.js`，若这些文件有变化，应检查后一并提交。
+- `dist/` 与 `include.json` 是构建产物，不入库。

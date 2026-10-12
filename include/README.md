@@ -34,6 +34,11 @@ stdio.h stdlib.h string.h time.h unistd.h wchar.h wctype.h x86intrin.h`
 转译器对 `ostream` 没有任何特判。`cout` / `cerr` / `clog` 目前都写到标准输出。
 `cin` 也是 CTJ 手写（`include/istream`）：整数、浮点、`char`、`bool`、`std::string` 的 `>>`，以及 `get` / `ignore` / `getline`（`char*` 与 `string` 两种）已实现，输入来自 `globalThis.__ctjin`，没有时才读标准输入。`<sstream>`、`<fstream>` 仍是存根。
 
+## 来源
+
+- 文件头第一行写有 `for CTJ` 的 34 个头文件是 CTJ 编写的替代实现（如 `<iostream>`、`<istream>`、`<ostream>`、`<iomanip>`、`<stdio.h>`、`<math.h>` 等），其余来自 GCC / libstdc++ 的原样拷贝。
+- 原样拷贝中有局部修改的文件，在文件内用 CTJ 注释标出：`ext/alloc_traits.h`、`ext/concurrence.h`、`ext/type_traits.h`、`debug/debug.h`。
+
 ## 增删头文件
 
 直接在目录里添加或修改文件即可，重新 `npm run build` 会刷新 `include.json`。
