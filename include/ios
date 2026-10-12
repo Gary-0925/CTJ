@@ -5,6 +5,7 @@
 
 #include <bits/char_traits.h>
 #include <bits/ios_base.h>
+#include <bits/basic_ios.h>
 
 namespace std {
 
