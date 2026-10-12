@@ -3380,7 +3380,7 @@ var CTJ;
                 : p.isTypeName(CTJ.last(e.parts).n));
         if (e.kind === "id" && isType) {
             const arg = args.length === 1 ? args[0]
-                : { kind: "initlist", items: args, ...CTJ.at(t) };
+                : { kind: "initlist", items: args, parens: true, ...CTJ.at(t) };
             return {
                 kind: "cast", ckind: "functional",
                 type: { kind: "type", parts: e.parts, global: e.global, ptr: 0, ref: "", cnst: false, dims: [], func: null, decltypeOf: null, packExpand: false, valueArg: null, ...CTJ.at(t) },
@@ -4278,7 +4278,7 @@ var CTJ;
     }
     CTJ.scopeName = scopeName;
     function blankAnn() {
-        return { t: null, sym: null, call: null, conv: null, convs: [], caps: [], var: null, arrowCall: null, initCall: null, copyCtor: null, range: null, needsThis: false, isType: false, boolConv: null };
+        return { t: null, sym: null, call: null, conv: null, convs: [], caps: [], var: null, arrowCall: null, initCall: null, copyCtor: null, range: null, needsThis: false, isType: false, boolConv: null, listCtors: null };
     }
     CTJ.blankAnn = blankAnn;
     class Cx {
@@ -7013,7 +7013,7 @@ var CTJ;
                 };
             }
             case "initlist":
-                return { kind: "initlist", items: substCallArgs(ex.items, env), file: f, line: l };
+                return { kind: "initlist", items: substCallArgs(ex.items, env), parens: ex.parens, file: f, line: l };
             case "stmtexpr":
                 return { kind: "stmtexpr", stmts: ex.stmts.map(s => substStmt(s, env)), file: f, line: l };
             case "noexcept":
@@ -8678,7 +8678,7 @@ var CTJ;
             if (!items.length)
                 return resolveCtor(cx, clsFq, [], scope, t, true);
             const asList = [{ t: listType(items), e: args[0].e }];
-            const lr = tryResolveCtor(cx, clsFq, asList, scope);
+            const lr = tryInitListCtor(cx, clsFq, asList, scope);
             if (lr) {
                 annotateListElems(cx, lr.fn, args[0].e, scope);
                 return lr;
@@ -8722,7 +8722,7 @@ var CTJ;
             if (item.kind === "initlist") {
                 const sub = item.items.map(x => ({ t: typeOf(cx, x, scope), e: x }));
                 try {
-                    const r = tryResolveCtor(cx, cls.fq, sub.length ? [{ t: listType(sub), e: item }] : [], scope)
+                    const r = tryInitListCtor(cx, cls.fq, sub.length ? [{ t: listType(sub), e: item }] : [], scope)
                         || tryResolveCtor(cx, cls.fq, sub, scope);
                     if (r) {
                         cx.getAnn(item).call = r.fn;
@@ -9651,6 +9651,13 @@ var CTJ;
                 const c0 = findConversion(cx, a, p, scope);
                 if (c0)
                     return { s: 25, conv: c0 };
+                // "f({x, 1})" for "f(std::pair<int,int>)" or a class whose constructor
+                // takes the items: the constructor is resolved from the items.
+                if (initListPhase === 0 && e && e.kind === "initlist" && !e.parens) {
+                    const r = listCtorFor(cx, p, e, scope);
+                    if (r)
+                        return { s: 25, conv: { kind: "ctor", fn: r.fn } };
+                }
             }
             return NOMATCH;
         }
@@ -9664,6 +9671,53 @@ var CTJ;
         return NOMATCH;
     }
     CTJ.matchScore = matchScore;
+    // The constructor of the class p that a braced list of items builds: an
+    // initializer_list constructor first, as in C++, otherwise one taking the items.
+    // Recorded on the list so that the code generator can build the object.
+    // Depth of the resolutions that take a braced list as the one argument of a
+    // constructor.  Those consider the initializer_list constructors only, as the
+    // first step of list-initialization does: a braced list is not turned into a
+    // class parameter there (the copy constructor of a pair is not the one that
+    // takes "{\"x\", 1}").
+    let initListPhase = 0;
+    function tryInitListCtor(cx, clsFq, args, scope) {
+        initListPhase++;
+        try {
+            return tryResolveCtor(cx, clsFq, args, scope);
+        }
+        finally {
+            initListPhase--;
+        }
+    }
+    // The lists being resolved: while a list is resolved against a constructor,
+    // that constructor's own parameters (a copy constructor, say) see the same list.
+    const listBusy = new Set();
+    function listCtorFor(cx, p, il, scope) {
+        const target = p.ref !== "" ? noRef(p) : p;
+        if (target.isBox() || target.dims.length || target.isFunc || target.name === "__initlist")
+            return null;
+        const fq = cx.stripAll(target);
+        if (!cx.classes.has(fq) || listBusy.has(il))
+            return null;
+        const items = il.items.map(x => ({ t: typeOf(cx, x, scope), e: x }));
+        listBusy.add(il);
+        let r;
+        try {
+            r = (items.length ? tryInitListCtor(cx, fq, [{ t: listType(items), e: il }], scope) : null)
+                || tryResolveCtor(cx, fq, items, scope);
+        }
+        finally {
+            listBusy.delete(il);
+        }
+        if (!r)
+            return null;
+        const ann = cx.getAnn(il);
+        if (!ann.listCtors)
+            ann.listCtors = new Map();
+        ann.listCtors.set(r.fn, r.convs);
+        cx.markFunc(r.fn);
+        return r;
+    }
     function funcSigMatch(cx, p, a) {
         void cx;
         if (p.funcVariadic !== a.funcVariadic)
@@ -11972,7 +12026,8 @@ var CTJ;
                 this.line(`let ${v.mangled} = ${wrap(a.call ? this.ctorExpr(cn, a.call, [], [], t) : `new ${cn}()`)};`);
             }
             else if (t.dims.length) {
-                this.line(`let ${v.mangled} = ${this.arrayNew(t, [])};`);
+                // An array whose element is referenced is boxed like any other variable.
+                this.line(`let ${v.mangled} = ${wrap(this.arrayNew(t, []))};`);
             }
             else if (t.isFunc) {
                 this.line(`let ${v.mangled} = null;`);
@@ -13067,6 +13122,14 @@ var CTJ;
             return null;
         }
         argFor(p, x, conv) {
+            // A braced list for a class parameter: the object is built from the items
+            // with the constructor the annotator resolved for the list.
+            const lc = conv && conv.kind === "ctor" && x.kind === "initlist" ? this.cx.getAnn(x).listCtors : null;
+            if (lc && conv && lc.has(conv.fn)) {
+                const cn = this.cx.classes.get(this.cx.stripAll(p)).mangled;
+                const obj = this.ctorExpr(cn, conv.fn, x.items, lc.get(conv.fn), p);
+                return p.ref !== "" && p.ptr === 0 && !p.dims.length ? `{a: [${obj}], i: 0}` : obj;
+            }
             if (conv && conv.kind === "ctor") {
                 const fq = this.cx.stripAll(p);
                 const cn = this.cx.classes.get(fq).mangled;
@@ -14955,7 +15018,7 @@ var CTJ;
                 this.line(`$${v.mangled} = ${wrap(a.call ? this.ctorExpr(cn, a.call, [], []) : `new ${cn}()`)};`);
             }
             else if (t.dims.length) {
-                this.line(`$${v.mangled} = ${this.arrayNew(t)};`);
+                this.line(`$${v.mangled} = ${wrap(this.arrayNew(t))};`);
             }
             else if (t.isFunc || CTJ.isBoxLike(t)) {
                 this.line(`$${v.mangled} = null;`);
@@ -14981,7 +15044,7 @@ var CTJ;
                 case "expr": {
                     if (s.expr.kind === "delete")
                         return;
-                    this.line(`${this.ex(s.expr)};`);
+                    this.exprStmt(s.expr);
                     return;
                 }
                 case "decl":
@@ -15063,13 +15126,13 @@ var CTJ;
                             this.varDeclFor(d, v, v.typeCache);
                             this.out = save;
                             const head = lines.length === 1 ? lines[0].trim().replace(/;$/, "") : `$${v.mangled} = null`;
-                            this.block(`for (${head}; ${s.cond ? this.exVal(s.cond) : ""}; ${s.step ? this.ex(s.step) : ""})`, () => this.stmt(s.body));
+                            this.block(`for (${head}; ${s.cond ? this.exVal(s.cond) : ""}; ${s.step ? this.stepList(s.step) : ""})`, () => this.stmt(s.body));
                             return;
                         }
                     }
                     if (s.init)
                         this.stmt(s.init);
-                    this.block(`for (; ${s.cond ? this.exVal(s.cond) : ""}; ${s.step ? this.ex(s.step) : ""})`, () => this.stmt(s.body));
+                    this.block(`for (; ${s.cond ? this.exVal(s.cond) : ""}; ${s.step ? this.stepList(s.step) : ""})`, () => this.stmt(s.body));
                     return;
                 }
                 case "rangefor":
@@ -15760,6 +15823,12 @@ var CTJ;
                 return `${p}["a"][${p}["i"]]`;
             }
             const tmp = this.tmp();
+            // An object is a handle, so it can come back through a function call: a
+            // member is written through a call's result, but not through an element
+            // of an array literal ("([...])[1]->second++" is a temporary in write context).
+            const cls = t && !t.dims.length && !t.isFunc ? this.cx.classes.get(this.cx.stripAll(t)) : undefined;
+            if (cls)
+                return `(function ($o) { return $o; })((${tmp} = ${this.ex(e)})["a"][${tmp}["i"]])`;
             return `([${tmp} = ${this.ex(e)}, ${tmp}["a"][${tmp}["i"]]])[1]`;
         }
         deref(e) {
@@ -15835,7 +15904,31 @@ var CTJ;
         isZeroLit(e) {
             return e.kind === "lit" && (e.lkind === "null" || ((e.lkind === "int" || e.lkind === "char") && CTJ.parseNumber(e.value) === 0));
         }
+        // An expression statement.  PHP has no comma operator, so the parts of
+        // "a = 1, b = 2;" are statements of their own (their values are discarded).
+        exprStmt(e) {
+            for (const part of this.commaParts(e))
+                this.line(`${this.ex(part)};`);
+        }
+        // A for clause's step: PHP takes a list of expressions where C++ has a comma.
+        stepList(e) {
+            return this.commaParts(e).map(p => this.ex(p)).join(", ");
+        }
+        // The parts of a (built-in) comma expression, in order.
+        commaParts(e) {
+            if (e.kind === "binary" && e.op === "," && !this.cx.getAnn(e).call) {
+                return [...this.commaParts(e.l), ...this.commaParts(e.r)];
+            }
+            return [e];
+        }
         argFor(p, x, conv) {
+            // A braced list for a class parameter: built from its items with the
+            // constructor the annotator resolved for the list.
+            const lc = conv && conv.kind === "ctor" && x.kind === "initlist" ? this.cx.getAnn(x).listCtors : null;
+            if (lc && conv && lc.has(conv.fn)) {
+                const cn = phpClsName(this.cx.classes.get(this.cx.stripAll(p)));
+                return this.ctorExpr(cn, conv.fn, x.items, lc.get(conv.fn));
+            }
             if (conv && conv.kind === "ctor") {
                 const fq = this.cx.stripAll(p);
                 const cn = phpClsName(this.cx.classes.get(fq));
@@ -16670,4 +16763,4 @@ var CTJ;
     g["CTJ"] = CTJ;
 })();
 
-CTJ.version = "316f3fa 2026-10-12 10:50:28Z";
+CTJ.version = "9bdef9f 2026-10-12 11:18:22Z";

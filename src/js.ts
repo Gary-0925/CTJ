@@ -1262,7 +1262,8 @@ class JsGen {
       const cn = (this.cx.classes.get(fcls) as ClsInfo).mangled as string;
       this.line(`let ${v.mangled} = ${wrap(a.call ? this.ctorExpr(cn, a.call as FuncInfo, [], [], t) : `new ${cn}()`)};`);
     } else if (t.dims.length) {
-      this.line(`let ${v.mangled} = ${this.arrayNew(t, [])};`);
+      // An array whose element is referenced is boxed like any other variable.
+      this.line(`let ${v.mangled} = ${wrap(this.arrayNew(t, []))};`);
     } else if (t.isFunc) {
       this.line(`let ${v.mangled} = null;`);
     } else if (isBoxLike(t)) {
@@ -2256,6 +2257,14 @@ class JsGen {
   }
 
   argFor(p: CppType, x: Expr, conv: { kind: string; fn: FuncInfo } | null): string {
+    // A braced list for a class parameter: the object is built from the items
+    // with the constructor the annotator resolved for the list.
+    const lc = conv && conv.kind === "ctor" && x.kind === "initlist" ? this.cx.getAnn(x).listCtors : null;
+    if (lc && conv && lc.has(conv.fn)) {
+      const cn = (this.cx.classes.get(this.cx.stripAll(p)) as ClsInfo).mangled as string;
+      const obj = this.ctorExpr(cn, conv.fn, (x as InitListExpr).items, lc.get(conv.fn) as ({ kind: string; fn: FuncInfo } | null)[], p);
+      return p.ref !== "" && p.ptr === 0 && !p.dims.length ? `{a: [${obj}], i: 0}` : obj;
+    }
     if (conv && conv.kind === "ctor") {
       const fq = this.cx.stripAll(p);
       const cn = (this.cx.classes.get(fq) as ClsInfo).mangled as string;

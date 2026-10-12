@@ -305,10 +305,13 @@ export interface Ann {
   isType: boolean;
   // The operator bool a class-valued condition converts with (see markBoolConv).
   boolConv: FuncInfo | null;
+  // A braced list passed to a class parameter: the constructor it builds the
+  // object with, and the conversions of its items (see matchScore).
+  listCtors: Map<FuncInfo, ({ kind: string; fn: FuncInfo } | null)[]> | null;
 }
 
 export function blankAnn(): Ann {
-  return { t: null, sym: null, call: null, conv: null, convs: [], caps: [], var: null, arrowCall: null, initCall: null, copyCtor: null, range: null, needsThis: false, isType: false, boolConv: null };
+  return { t: null, sym: null, call: null, conv: null, convs: [], caps: [], var: null, arrowCall: null, initCall: null, copyCtor: null, range: null, needsThis: false, isType: false, boolConv: null, listCtors: null };
 }
 
 export class Cx {

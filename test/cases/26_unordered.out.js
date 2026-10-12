@@ -1087,12 +1087,14 @@ class std_Ios_op {
 }
 class std_basic_ostream_char_std_char_traits_char extends std_ios_base {
   _M_fd;
+  _M_tie;
   constructor(...$a) {
     super(...[]);
     this.__init_std_basic_ostream_char_std_char_traits_char(...$a);
   }
   __init_std_basic_ostream_char_std_char_traits_char(...$a) {
     this._M_fd = ($a[0] === undefined ? (1) : $a[0]);
+    this._M_tie = null;
   }
   __dtor() {
     std_ios_base.prototype.__dtor.call(this);

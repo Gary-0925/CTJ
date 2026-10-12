@@ -580,7 +580,7 @@ export function resolveInitCtor(cx: Cx, clsFq: string, args: { t: CppType; e: Ex
     const items = (args[0].e as InitListExpr).items.map(x => ({ t: typeOf(cx, x, scope), e: x }));
     if (!items.length) return resolveCtor(cx, clsFq, [], scope, t, true);
     const asList = [{ t: listType(items), e: args[0].e }];
-    const lr = tryResolveCtor(cx, clsFq, asList, scope);
+    const lr = tryInitListCtor(cx, clsFq, asList, scope);
     if (lr) {
       annotateListElems(cx, lr.fn, args[0].e, scope);
       return lr;
@@ -619,7 +619,7 @@ export function annotateListElems(cx: Cx, fn: FuncInfo, il: Expr, scope: Scope):
     if (item.kind === "initlist") {
       const sub = (item as InitListExpr).items.map(x => ({ t: typeOf(cx, x, scope), e: x }));
       try {
-        const r = tryResolveCtor(cx, cls.fq, sub.length ? [{ t: listType(sub), e: item }] : [], scope)
+        const r = tryInitListCtor(cx, cls.fq, sub.length ? [{ t: listType(sub), e: item }] : [], scope)
           || tryResolveCtor(cx, cls.fq, sub, scope);
         if (r) {
           cx.getAnn(item).call = r.fn;
@@ -1449,6 +1449,12 @@ export function matchScore(cx: Cx, p: CppType, a: CppType, e: Expr | null, scope
     if (allowConv) {
       const c0 = findConversion(cx, a, p, scope);
       if (c0) return { s: 25, conv: c0 };
+      // "f({x, 1})" for "f(std::pair<int,int>)" or a class whose constructor
+      // takes the items: the constructor is resolved from the items.
+      if (initListPhase === 0 && e && e.kind === "initlist" && !(e as InitListExpr).parens) {
+        const r = listCtorFor(cx, p, e as InitListExpr, scope);
+        if (r) return { s: 25, conv: { kind: "ctor", fn: r.fn } };
+      }
     }
     return NOMATCH;
   }
@@ -1458,6 +1464,51 @@ export function matchScore(cx: Cx, p: CppType, a: CppType, e: Expr | null, scope
     if (c) return { s: 30, conv: c };
   }
   return NOMATCH;
+}
+
+// The constructor of the class p that a braced list of items builds: an
+// initializer_list constructor first, as in C++, otherwise one taking the items.
+// Recorded on the list so that the code generator can build the object.
+// Depth of the resolutions that take a braced list as the one argument of a
+// constructor.  Those consider the initializer_list constructors only, as the
+// first step of list-initialization does: a braced list is not turned into a
+// class parameter there (the copy constructor of a pair is not the one that
+// takes "{\"x\", 1}").
+let initListPhase = 0;
+
+function tryInitListCtor(cx: Cx, clsFq: string, args: { t: CppType; e: Expr }[], scope: Scope): { fn: FuncInfo; convs: ({ kind: string; fn: FuncInfo } | null)[] } | null {
+  initListPhase++;
+  try {
+    return tryResolveCtor(cx, clsFq, args, scope);
+  } finally {
+    initListPhase--;
+  }
+}
+
+// The lists being resolved: while a list is resolved against a constructor,
+// that constructor's own parameters (a copy constructor, say) see the same list.
+const listBusy = new Set<InitListExpr>();
+
+function listCtorFor(cx: Cx, p: CppType, il: InitListExpr, scope: Scope): { fn: FuncInfo; convs: ({ kind: string; fn: FuncInfo } | null)[] } | null {
+  const target = p.ref !== "" ? noRef(p) : p;
+  if (target.isBox() || target.dims.length || target.isFunc || target.name === "__initlist") return null;
+  const fq = cx.stripAll(target);
+  if (!cx.classes.has(fq) || listBusy.has(il)) return null;
+  const items = il.items.map(x => ({ t: typeOf(cx, x, scope), e: x }));
+  listBusy.add(il);
+  let r: { fn: FuncInfo; convs: ({ kind: string; fn: FuncInfo } | null)[] } | null;
+  try {
+    r = (items.length ? tryInitListCtor(cx, fq, [{ t: listType(items), e: il }], scope) : null)
+      || tryResolveCtor(cx, fq, items, scope);
+  } finally {
+    listBusy.delete(il);
+  }
+  if (!r) return null;
+  const ann = cx.getAnn(il);
+  if (!ann.listCtors) ann.listCtors = new Map();
+  ann.listCtors.set(r.fn, r.convs);
+  cx.markFunc(r.fn);
+  return r;
 }
 
 function funcSigMatch(cx: Cx, p: CppType, a: CppType): boolean {

@@ -38,8 +38,14 @@ namespace std {
 
       // File descriptor the stream writes to: 1 for stdout, 2 for stderr.
       int _M_fd;
+      // The stream tied to this one (cout.tie(0) unties it).  Like istream's
+      // tie it is only remembered: the output is written as it is produced.
+      __ostream_type* _M_tie;
 
-      explicit basic_ostream(int __fd = 1) : ios_base(), _M_fd(__fd) { }
+      explicit basic_ostream(int __fd = 1) : ios_base(), _M_fd(__fd), _M_tie(0) { }
+
+      __ostream_type* tie() const { return _M_tie; }
+      __ostream_type* tie(__ostream_type* __tie) { __ostream_type* __old = _M_tie; _M_tie = __tie; return __old; }
 
       // The one place where characters leave the program.  The fields of the
       // stream are passed along; the width applies to this output only.

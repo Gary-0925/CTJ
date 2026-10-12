@@ -126,7 +126,7 @@ function maybeFunctional(p: Parser, e: Expr, args: Expr[], t: Token): Expr {
       : p.isTypeName(last(e.parts).n));
   if (e.kind === "id" && isType) {
     const arg: Expr = args.length === 1 ? args[0]
-      : { kind: "initlist", items: args, ...at(t) };
+      : { kind: "initlist", items: args, parens: true, ...at(t) };
     return {
       kind: "cast", ckind: "functional",
       type: { kind: "type", parts: e.parts, global: e.global, ptr: 0, ref: "", cnst: false, dims: [], func: null, decltypeOf: null, packExpand: false, valueArg: null, ...at(t) },

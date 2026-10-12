@@ -400,7 +400,7 @@ export function substExpr(ex: Expr, env: SubstEnv): Expr {
       };
     }
     case "initlist":
-      return { kind: "initlist", items: substCallArgs(ex.items, env), file: f, line: l };
+      return { kind: "initlist", items: substCallArgs(ex.items, env), parens: ex.parens, file: f, line: l };
     case "stmtexpr":
       return { kind: "stmtexpr", stmts: ex.stmts.map(s => substStmt(s, env)), file: f, line: l };
     case "noexcept":

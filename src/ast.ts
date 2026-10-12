@@ -426,6 +426,8 @@ export interface LambdaExpr extends At {
 export interface InitListExpr extends At {
   kind: "initlist";
   items: Expr[];
+  // The argument list of a functional cast "T(a, b)", not a braced list.
+  parens?: boolean;
 }
 
 export interface StmtExpr extends At {
