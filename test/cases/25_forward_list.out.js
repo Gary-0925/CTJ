@@ -121,6 +121,10 @@ class std_ios_base {
   static left = 32;
   static right = 128;
   static adjustfield = 176;
+  static goodbit = 0;
+  static badbit = 1;
+  static eofbit = 2;
+  static failbit = 4;
 }
 class gnu_cxx_mutex {
   __init_gnu_cxx_mutex(...$a) { }
@@ -939,12 +943,14 @@ class std_basic_ostream_char_std_char_traits_char extends std_ios_base {
 }
 class std_basic_istream_char_std_char_traits_char extends std_ios_base {
   _M_tie;
+  _M_state;
   constructor(...$a) {
     super(...[]);
     this.__init_std_basic_istream_char_std_char_traits_char(...$a);
   }
   __init_std_basic_istream_char_std_char_traits_char(...$a) {
     this._M_tie = null;
+    this._M_state = 0;
   }
   __dtor() {
     std_ios_base.prototype.__dtor.call(this);
@@ -2532,11 +2538,11 @@ function main() {
   f.push_front({a: [3], i: 0});
   for (let $b0 = new std_Fwd_list_iterator_int({a: [f.begin()], i: 0}), $e0 = new std_Fwd_list_iterator_int({a: [f.end()], i: 0}); $b0.op_ne__c({a: [$e0], i: 0}); $b0.op_inc()) {
     let x = ($b0.op_mul__c()).a[($b0.op_mul__c()).i];
-    std_operator__std_basic_ostream_char_std_char_traits_char_R_charP(std_operator__std_basic_ostream_char_std_char_traits_char_R_int({a: [std_cout], i: 0}, x), {a: [32, 0], i: 0});
+    std_operator__std_basic_ostream_char_std_char_traits_char_R_charP(std_operator__std_basic_ostream_char_std_char_traits_char_R_int({a: std_cout, i: "v"}, x), {a: [32, 0], i: 0});
   }
-  std_operator__std_basic_ostream_char_std_char_traits_char_R_std_Ios_opR({a: [std_cout], i: 0}, {a: [std_endl], i: 0});
+  std_operator__std_basic_ostream_char_std_char_traits_char_R_std_Ios_opR({a: std_cout, i: "v"}, {a: [std_endl], i: 0});
   f.pop_front();
-  std_operator__std_basic_ostream_char_std_char_traits_char_R_std_Ios_opR(std_operator__std_basic_ostream_char_std_char_traits_char_R_int(std_operator__std_basic_ostream_char_std_char_traits_char_R_charP(std_operator__std_basic_ostream_char_std_char_traits_char_R_int({a: [std_cout], i: 0}, ($t8 = f.front(), $t8.a[$t8.i])), {a: [32, 0], i: 0}), (f.empty__c() ? 1 : 0)), {a: [std_endl], i: 0});
+  std_operator__std_basic_ostream_char_std_char_traits_char_R_std_Ios_opR(std_operator__std_basic_ostream_char_std_char_traits_char_R_int(std_operator__std_basic_ostream_char_std_char_traits_char_R_charP(std_operator__std_basic_ostream_char_std_char_traits_char_R_int({a: std_cout, i: "v"}, ($t8 = f.front(), $t8.a[$t8.i])), {a: [32, 0], i: 0}), (f.empty__c() ? 1 : 0)), {a: [std_endl], i: 0});
 }
 function std_forward_1_int(__t) {
   return __t;
@@ -2564,7 +2570,7 @@ let std_right = new std_Ios_fmt(176, 128);
 let std_endl = new std_Ios_op(0);
 let std_ends = new std_Ios_op(1);
 let std_flush = new std_Ios_op(2);
-let std_cout = new std_basic_ostream_char_std_char_traits_char(1);
+let std_cout = {v: new std_basic_ostream_char_std_char_traits_char(1)};
 let std_cerr = new std_basic_ostream_char_std_char_traits_char(2);
 let std_clog = new std_basic_ostream_char_std_char_traits_char(2);
 let std_cin = new std_basic_istream_char_std_char_traits_char(0);

@@ -2505,6 +2505,14 @@ class JsGen {
   // operator that returns a reference to a scalar hands back the box; where a
   // value is wanted, the element the box points at is read.
   exVal(e: Expr): string {
+    // A class object in a condition: its conversion to bool is called here.
+    const bc = this.cx.getAnn(e).boolConv;
+    if (bc) {
+      const bt = this.cx.getAnn(e).t as CppType | null;
+      // A reference (operator>> returns istream&) is a box: the object is inside it.
+      const bo = bt && bt.ref ? this.deref(e) : this.ex(e);
+      return `${this.paren(bo)}.${methodJsName(bc)}()`;
+    }
     const t = this.cx.getAnn(e).t as CppType | null;
     if (!t || !t.ref || t.ptr > 0 || t.dims.length || t.isFunc) return this.ex(e);
     if (this.cx.classes.has(this.cx.stripAll(t))) return this.ex(e);

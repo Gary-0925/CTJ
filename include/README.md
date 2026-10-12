@@ -32,7 +32,7 @@ stdio.h stdlib.h string.h time.h unistd.h wchar.h wctype.h x86intrin.h`
 `<ostream>`、`<iostream>`、`<ios>`、`<iomanip>`、`<istream>` 为 CTJ 手写，不使用 libstdc++ 原版，
 输出直接在头文件中通过 `__ctj_js` / `__ctj_php` 实现（`include/ostream` 中的 `_CTJ_OUT_JS` / `_CTJ_OUT_PHP`），
 转译器对 `ostream` 没有任何特判。`cout` / `cerr` / `clog` 目前都写到标准输出。
-`cin`、`<sstream>`、`<fstream>` 仍是存根。
+`cin` 也是 CTJ 手写（`include/istream`）：整数、浮点、`char`、`bool`、`std::string` 的 `>>`，以及 `get` / `ignore` / `getline`（`char*` 与 `string` 两种）已实现，输入来自 `globalThis.__ctjin`（JS）或 `$GLOBALS['__ctjin']`（PHP），二者都没有时才读标准输入。`<sstream>`、`<fstream>` 仍是存根。
 
 ## 增删头文件
 

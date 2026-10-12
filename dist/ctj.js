@@ -4278,7 +4278,7 @@ var CTJ;
     }
     CTJ.scopeName = scopeName;
     function blankAnn() {
-        return { t: null, sym: null, call: null, conv: null, convs: [], caps: [], var: null, arrowCall: null, initCall: null, copyCtor: null, range: null, needsThis: false, isType: false };
+        return { t: null, sym: null, call: null, conv: null, convs: [], caps: [], var: null, arrowCall: null, initCall: null, copyCtor: null, range: null, needsThis: false, isType: false, boolConv: null };
     }
     CTJ.blankAnn = blankAnn;
     class Cx {
@@ -7471,6 +7471,8 @@ var CTJ;
                 scope.locals.push(new Map());
                 try {
                     annotateCond(cx, s.cond, scope);
+                    if (s.kind === "if")
+                        markCond(cx, s.cond);
                     if (s.kind === "if") {
                         annotateStmt(cx, s.then, scope);
                         if (s.els)
@@ -7497,6 +7499,7 @@ var CTJ;
                 scope.locals.push(new Map());
                 try {
                     annotateCond(cx, s.cond, scope);
+                    markCond(cx, s.cond);
                     annotateStmt(cx, s.body, scope);
                 }
                 finally {
@@ -7506,6 +7509,7 @@ var CTJ;
             }
             case "do": {
                 CTJ.typeOf(cx, s.cond, scope);
+                markCond(cx, s.cond);
                 annotateStmt(cx, s.body, scope);
                 return;
             }
@@ -7516,6 +7520,7 @@ var CTJ;
                         annotateStmt(cx, s.init, scope);
                     if (s.cond)
                         CTJ.typeOf(cx, s.cond, scope);
+                    markCond(cx, s.cond);
                     if (s.step)
                         CTJ.typeOf(cx, s.step, scope);
                     annotateStmt(cx, s.body, scope);
@@ -7605,6 +7610,11 @@ var CTJ;
             annotateLocalVar(cx, c, scope);
         else
             CTJ.typeOf(cx, c, scope);
+    }
+    // The condition of if, while, do and for is a contextual conversion to bool.
+    function markCond(cx, c) {
+        if (c && c.kind !== "var")
+            CTJ.markBoolConv(cx, c);
     }
     function annotateDecl(cx, d, scope) {
         switch (d.kind) {
@@ -8048,6 +8058,7 @@ var CTJ;
             case "assign": return typeOfAssign(cx, e, scope);
             case "cond": {
                 typeOf(cx, e.c, scope);
+                markBoolConv(cx, e.c);
                 const a = typeOf(cx, e.a, scope);
                 const b = typeOf(cx, e.b, scope);
                 if (a.key() === b.key())
@@ -8364,8 +8375,10 @@ var CTJ;
             markBoxedOf(cx, e.arg);
             return t;
         }
-        if (e.op === "!")
+        if (e.op === "!") {
+            markBoolConv(cx, e.arg);
             return CTJ.CppType.basic("bool");
+        }
         if (e.op === "++" || e.op === "--") {
             if (classValFq(cx, at)) {
                 const r = findOperator(cx, e.op, { t: at, e: e.arg }, null, scope, e, e.postfix);
@@ -8418,6 +8431,7 @@ var CTJ;
             if (r) {
                 ann.call = r.fn;
                 ann.convs = r.convs;
+                markOperatorRefs(cx, r.fn, [e.l, e.r]);
                 return cx.funcRet(r.fn);
             }
         }
@@ -8428,6 +8442,8 @@ var CTJ;
                 ann.convs = r.convs;
                 return cx.funcRet(r.fn);
             }
+            markBoolConv(cx, e.l);
+            markBoolConv(cx, e.r);
             return CTJ.CppType.basic("bool");
         }
         if (e.op === "&&" || e.op === "||")
@@ -9716,6 +9732,47 @@ var CTJ;
         return null;
     }
     CTJ.findConversion = findConversion;
+    // A class-valued condition is converted to bool by its operator bool, which may
+    // be explicit: a condition is a contextual conversion (if (cin), while (cin >> x)).
+    // The conversion is recorded on the expression, so the emitter calls it there.
+    function markBoolConv(cx, e) {
+        const t = cx.getAnn(e).t;
+        if (!t || t.ptr > 0 || t.dims.length || t.isFunc)
+            return;
+        const fq = cx.stripAll(t.core());
+        const cls = cx.classes.get(fq);
+        if (!cls)
+            return;
+        for (const fns of cls.methods.values()) {
+            for (const f of fns) {
+                if (!f.isConv)
+                    continue;
+                const rt = cx.funcRet(f);
+                if (rt && coreName(rt) === "bool") {
+                    cx.markFunc(f);
+                    cx.getAnn(e).boolConv = f;
+                    return;
+                }
+            }
+        }
+    }
+    CTJ.markBoolConv = markBoolConv;
+    // An overloaded operator that takes a non-const reference to a scalar, as
+    // cin >> n does, writes through it: the operand needs a cell of its own, as it
+    // does when it is passed to a function.  Class operands are already references.
+    function markOperatorRefs(cx, fn, operands) {
+        const ps = cx.funcParams(fn);
+        operands.forEach((x, i) => {
+            if (i >= ps.length)
+                return;
+            const p = ps[i].type;
+            if (p.ref === "" || p.cnst || p.ptr > 0 || p.isFunc || p.dims.length)
+                return;
+            if (isClassVal(cx, p))
+                return;
+            markBoxedOf(cx, x);
+        });
+    }
     function findOperator(cx, op, l, r, scope, t, postfix = false) {
         const key = "operator" + op;
         const argsLR = [];
@@ -13272,6 +13329,14 @@ var CTJ;
         // operator that returns a reference to a scalar hands back the box; where a
         // value is wanted, the element the box points at is read.
         exVal(e) {
+            // A class object in a condition: its conversion to bool is called here.
+            const bc = this.cx.getAnn(e).boolConv;
+            if (bc) {
+                const bt = this.cx.getAnn(e).t;
+                // A reference (operator>> returns istream&) is a box: the object is inside it.
+                const bo = bt && bt.ref ? this.deref(e) : this.ex(e);
+                return `${this.paren(bo)}.${methodJsName(bc)}()`;
+            }
             const t = this.cx.getAnn(e).t;
             if (!t || !t.ref || t.ptr > 0 || t.dims.length || t.isFunc)
                 return this.ex(e);
@@ -14524,7 +14589,9 @@ var CTJ;
             return p.type.isBox() ? `["a" => [${d}], "i" => 0]` : d;
         }
         ctorArg(p, i) {
-            const v = `$a[${i}] ?? null`;
+            // The overload test has checked the count, so the element is there; a
+            // plain element stays writable (a "??" expression is not).
+            const v = `$a[${i}]`;
             if (p.def)
                 return `(array_key_exists(${i}, $a) ? $a[${i}] : (${this.defArg(p)}))`;
             return v;
@@ -15480,7 +15547,7 @@ var CTJ;
             if (this.isSimple(e))
                 return s;
             const t = this.tmp();
-            return `(${t} = ${s}, ${t})`;
+            return `(${t} = ${s})`;
         }
         isSimple(e) {
             switch (e.kind) {
@@ -15521,7 +15588,7 @@ var CTJ;
                     if (v.storage === "bbox")
                         return `${this.paren(nm)}["v"]`;
                     if (v.storage === "boxed")
-                        return `["a" => ${nm}, "i" => "v"]`;
+                        return `["a" => &${nm}, "i" => "v"]`;
                     if (t.dims.length)
                         return `["a" => ${nm}, "i" => 0]`;
                     return `["a" => [${nm}], "i" => 0]`;
@@ -15636,7 +15703,7 @@ var CTJ;
                         o = `(${this.paren(o)}->${phpMethodName(m.arrowCall)}())`;
                     if (this.cx.fieldType(cls, v.short).ref) {
                         const t = this.tmp();
-                        return `(${t} = ${this.paren(o)}->${fname}, ${t}["a"][${t}["i"]])`;
+                        return `([${t} = ${this.paren(o)}->${fname}, ${t}["a"][${t}["i"]]])[1]`;
                     }
                     return `${this.paren(o)}->${fname}`;
                 }
@@ -15644,7 +15711,7 @@ var CTJ;
                     const m = this.cx.getAnn(e);
                     if (m.call) {
                         const t = this.tmp();
-                        return `(${t} = ${this.ex(e)}, ${t}["a"][${t}["i"]])`;
+                        return `([${t} = ${this.ex(e)}, ${t}["a"][${t}["i"]]])[1]`;
                     }
                     const at = this.cx.getAnn(e.arr).t;
                     if (at.ptr > 0) {
@@ -15662,7 +15729,7 @@ var CTJ;
                         this.cx.fail("not assignable", e);
                     if (this.classDeref(e)) {
                         const t = this.tmp();
-                        return `(${t} = ${this.ex(e)}, ${t}["a"][${t}["i"]])`;
+                        return `([${t} = ${this.ex(e)}, ${t}["a"][${t}["i"]]])[1]`;
                     }
                     const p = this.complex(this.ex(e.arg), e.arg);
                     const pp = this.paren(p);
@@ -15672,7 +15739,7 @@ var CTJ;
                     const t = this.tmp();
                     // A call returning a scalar reference already yields the box.
                     const c = this.returnsScalarRef(e) ? this.exCall(e) : this.ex(e);
-                    return `(${t} = ${c}, ${t}["a"][${t}["i"]])`;
+                    return `([${t} = ${c}, ${t}["a"][${t}["i"]]])[1]`;
                 }
                 default:
                     this.cx.fail("not assignable", e);
@@ -15693,14 +15760,19 @@ var CTJ;
                 return `${p}["a"][${p}["i"]]`;
             }
             const tmp = this.tmp();
-            return `(${tmp} = ${this.ex(e)}, ${tmp}["a"][${tmp}["i"]])`;
+            return `([${tmp} = ${this.ex(e)}, ${tmp}["a"][${tmp}["i"]]])[1]`;
         }
         deref(e) {
             if (e.kind === "this")
                 return "$this";
-            const s = this.complex(this.ex(e), e);
-            const p = this.paren(s);
-            return `${p}["a"][${p}["i"]]`;
+            if (this.isSimple(e)) {
+                const p = this.paren(this.ex(e));
+                return `${p}["a"][${p}["i"]]`;
+            }
+            // The object is evaluated once: the assignment is the container, and the
+            // index reads the temporary after it (PHP has no comma operator).
+            const t = this.tmp();
+            return `(${t} = ${this.ex(e)})["a"][${t}["i"]]`;
         }
         exAddr(e) {
             if (e.kind === "id") {
@@ -15789,9 +15861,11 @@ var CTJ;
                 const pre = this.isSimple(x) ? "" : `${src} = ${raw}, `;
                 if (at.ref && x.kind === "call") {
                     const t = this.tmp();
-                    return `(${pre}${t} = (${src} ? ${src}["a"][${src}["i"]] : null), ${t} && is_array(${t}) && array_key_exists("a", ${t}) ? ["a" => ${t}["a"], "i" => ${t}["i"]] : ${t})`;
+                    return `([${pre}${t} = (${src} ? ${src}["a"][${src}["i"]] : null), ${t} && is_array(${t}) && array_key_exists("a", ${t}) ? ["a" => ${t}["a"], "i" => ${t}["i"]] : ${t}])[1]`;
                 }
-                return `(${pre}${src} ? ["a" => ${src}["a"], "i" => ${src}["i"]] : null)`;
+                if (pre)
+                    return `([${pre}${src} ? ["a" => ${src}["a"], "i" => ${src}["i"]] : null])[1]`;
+                return `(${src} ? ["a" => ${src}["a"], "i" => ${src}["i"]] : null)`;
             }
             if (p.dims.length && x.kind === "initlist") {
                 return this.arrayInit(p, x.items);
@@ -15874,7 +15948,7 @@ var CTJ;
         exCallValue(e) {
             if (this.returnsScalarRef(e)) {
                 const v = this.tmp();
-                return `(${v} = ${this.exCall(e)}, ${v}["a"][${v}["i"]])`;
+                return `([${v} = ${this.exCall(e)}, ${v}["a"][${v}["i"]]])[1]`;
             }
             return this.exCall(e);
         }
@@ -15882,6 +15956,13 @@ var CTJ;
         // operator that returns a reference to a scalar hands back the box; where a
         // value is wanted, the element the box points at is read.
         exVal(e) {
+            // A class object in a condition: its conversion to bool is called here.
+            const bc = this.cx.getAnn(e).boolConv;
+            if (bc) {
+                const bt = this.cx.getAnn(e).t;
+                const bo = bt && bt.ref ? this.deref(e) : this.ex(e);
+                return `${this.paren(bo)}->${phpMethodName(bc)}()`;
+            }
             const t = this.cx.getAnn(e).t;
             if (!t || !t.ref || t.ptr > 0 || t.dims.length || t.isFunc)
                 return this.ex(e);
@@ -16186,7 +16267,7 @@ var CTJ;
             const fname = this.fieldName(cls, v.short);
             if (this.cx.fieldType(cls, v.short).ref) {
                 const t = this.tmp();
-                return `(${t} = ${this.paren(o)}->${fname}, ${t}["a"][${t}["i"]])`;
+                return `([${t} = ${this.paren(o)}->${fname}, ${t}["a"][${t}["i"]]])[1]`;
             }
             return `${this.paren(o)}->${fname}`;
         }
@@ -16228,7 +16309,7 @@ var CTJ;
                 if (this.splitLhs(e.arg)) {
                     const t = this.tmp();
                     const inner = at.ptr > 0 && !at.isFunc ? `${t}["i"]` : `${t}["a"][${t}["i"]]`;
-                    return `(${t} = ${this.ex(e.arg)}, ${post ? inner + inc : inc + inner})`;
+                    return `([${t} = ${this.ex(e.arg)}, ${post ? inner + inc : inc + inner}])[1]`;
                 }
                 if (at.ptr > 0 && !at.isFunc) {
                     const p = this.paren(this.lvalue(e.arg));
@@ -16361,7 +16442,7 @@ var CTJ;
                 target.ptr = lt.ptr;
                 target.dims = lt.dims;
                 const rhs = e.op === "=" ? this.argFor(target, e.r, null) : this.ex(e.r);
-                return `(${t} = ${this.lhsBox(e.l)}, ${t}["a"][${t}["i"]] ${e.op} ${rhs})`;
+                return `([${t} = ${this.lhsBox(e.l)}, ${t}["a"][${t}["i"]] ${e.op} ${rhs}])[1]`;
             }
             const l = this.lvalue(e.l);
             if ((e.op === "+=" || e.op === "-=") && lt.ptr > 0 && !lt.isFunc) {
@@ -16589,4 +16670,4 @@ var CTJ;
     g["CTJ"] = CTJ;
 })();
 
-CTJ.version = "e49e80a 2026-10-12 10:32:03Z";
+CTJ.version = "316f3fa 2026-10-12 10:50:28Z";

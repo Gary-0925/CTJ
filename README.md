@@ -55,7 +55,7 @@ npm run serve          # 缺少构建产物时先构建；把转译器内联进�
 python3 -m http.server 8080
 ```
 
-打开 `http://localhost:8000/`（或 `http://localhost:8080/`）即可：左侧写 C++，右侧得到目标代码，可切换 JavaScript / PHP，JavaScript 结果可以直接在页面里运行，警告与运行输出分别显示在下方。页面内置了基础语法、指针与数组、类与继承、模板、类模板与成员、标准库容器、标准库头文件、PHP 后端八个示例。`npm run serve` 提供的页面已把 `dist/ctj.js` 内联进 HTML（磁盘上的 `index.html` 仍是普通的 `<script src>`），因此除 `include.json` 外不再有第二个请求——某些反向代理会缓存或拦掉对子资源脚本的请求，页面就会一直停在“转译器未加载”。若用其它静态服务器且页面提示转译器未加载，页面会带时间戳重新获取一次（先 `<script>` 标签，失败再 `fetch`），也可以强制刷新（Ctrl+Shift+R）；状态栏会写明失败原因（HTTP 状态、content-type、字节数）。就绪后状态栏还会显示构建标记（`CTJ.version`，即 commit 短哈希加构建时间）和一次自检结果：页面自己转译并运行一段 `vector` 代码，若不是 `55` 就报“自检失败”，这样“页面用的是旧构建”会直接写在脸上，而不是表现成莫名其妙的运行结果。
+打开 `http://localhost:8000/`（或 `http://localhost:8080/`）即可：左侧写 C++，右侧得到目标代码，可切换 JavaScript / PHP，JavaScript 结果可以直接在页面里运行，警告与运行输出分别显示在下方。页面内置了基础语法、指针与数组、类与继承、模板、类模板与成员、标准库容器、标准库头文件、PHP 后端、输入（cin）九个示例。页面下方的“输入（cin）”文本框内容会在运行前交给程序，`cin` 按空白分隔读取；选择“输入（cin）”示例时会自动填入示例数据。`npm run serve` 提供的页面已把 `dist/ctj.js` 内联进 HTML（磁盘上的 `index.html` 仍是普通的 `<script src>`），因此除 `include.json` 外不再有第二个请求——某些反向代理会缓存或拦掉对子资源脚本的请求，页面就会一直停在“转译器未加载”。若用其它静态服务器且页面提示转译器未加载，页面会带时间戳重新获取一次（先 `<script>` 标签，失败再 `fetch`），也可以强制刷新（Ctrl+Shift+R）；状态栏会写明失败原因（HTTP 状态、content-type、字节数）。就绪后状态栏还会显示构建标记（`CTJ.version`，即 commit 短哈希加构建时间）和一次自检结果：页面自己转译并运行一段 `vector` 代码，若不是 `55` 就报“自检失败”，这样“页面用的是旧构建”会直接写在脸上，而不是表现成莫名其妙的运行结果。
 
 ## 命令行
 
@@ -81,7 +81,7 @@ npm test                # 运行 test/cases 下的全部用例
 已知限制：
 
 - `#include <algorithm>` 会让解析器在 `bits/random.tcc` 里失去同步，把后面的 `main` 一起吃掉，最后只剩一条 `no main function found`；`<algorithm>` 目前不要用（`std::max`、`std::min` 由 `bits/stl_algobase.h` 提供，随 `<vector>` 一起可用）。另外 `include/` 还缺少 `bits/uniform_int_dist.h`。
-- `<iostream>` 的输出已改为 CTJ 手写的头文件实现（见 `include/ostream`），不再依赖 libstdc++ 原版；`cin`、`<sstream>`、`<fstream>` 仍不支持。
+- `<iostream>` 的输出已改为 CTJ 手写的头文件实现（见 `include/ostream`），不再依赖 libstdc++ 原版；`cin` 已支持（见 `include/istream`，JavaScript 与 PHP 目标都可用，输入来自 `globalThis.__ctjin` 或 `$GLOBALS['__ctjin']`，二者都没有时才读标准输入）；`<sstream>`、`<fstream>` 仍不支持。PHP 目标下 `std::string` 尚不能运行（这是 PHP 后端的既有缺陷），因此字符串版本的 `>>` 与 `getline` 在 PHP 目标下也暂不可用。
 - PHP 后端不支持按值传递类对象，因此 `std::setw`、`std::setprecision`、`std::setfill`、`std::setbase` 在 PHP 目标下会失败（基线同样失败）。
 - `include/stdio.h` 只声明了 `printf` 一族而没有实现，调用它们会在运行时抛出 `unresolved external`；请用 `__ctj_js` / `__ctj_php` 输出。
 - `cerr` / `clog` 目前与 `cout` 一样写到标准输出；`ostringstream` 不可用。

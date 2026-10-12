@@ -26,6 +26,7 @@ function typeOfInner(cx: Cx, e: Expr, scope: Scope): CppType {
     case "assign": return typeOfAssign(cx, e, scope);
     case "cond": {
       typeOf(cx, e.c, scope);
+      markBoolConv(cx, e.c);
       const a = typeOf(cx, e.a, scope);
       const b = typeOf(cx, e.b, scope);
       if (a.key() === b.key()) return a;
@@ -312,7 +313,7 @@ function typeOfUnary(cx: Cx, e: UnaryExpr, scope: Scope): CppType {
     markBoxedOf(cx, e.arg);
     return t;
   }
-  if (e.op === "!" ) return CppType.basic("bool");
+  if (e.op === "!" ) { markBoolConv(cx, e.arg); return CppType.basic("bool"); }
   if (e.op === "++" || e.op === "--") {
     if (classValFq(cx, at)) {
       const r = findOperator(cx, e.op, { t: at, e: e.arg }, null, scope, e, e.postfix);
@@ -362,6 +363,7 @@ function typeOfBinary(cx: Cx, e: BinaryExpr, scope: Scope): CppType {
     if (r) {
       ann.call = r.fn;
       ann.convs = r.convs;
+      markOperatorRefs(cx, r.fn, [e.l, e.r]);
       return cx.funcRet(r.fn);
     }
   }
@@ -372,6 +374,8 @@ function typeOfBinary(cx: Cx, e: BinaryExpr, scope: Scope): CppType {
       ann.convs = r.convs;
       return cx.funcRet(r.fn);
     }
+    markBoolConv(cx, e.l);
+    markBoolConv(cx, e.r);
     return CppType.basic("bool");
   }
   if (e.op === "&&" || e.op === "||") return CppType.basic("bool");
@@ -1509,6 +1513,42 @@ export function findConversion(cx: Cx, from: CppType, to: CppType, scope: Scope)
     }
   }
   return null;
+}
+
+// A class-valued condition is converted to bool by its operator bool, which may
+// be explicit: a condition is a contextual conversion (if (cin), while (cin >> x)).
+// The conversion is recorded on the expression, so the emitter calls it there.
+export function markBoolConv(cx: Cx, e: Expr): void {
+  const t = cx.getAnn(e).t as CppType | null;
+  if (!t || t.ptr > 0 || t.dims.length || t.isFunc) return;
+  const fq = cx.stripAll(t.core());
+  const cls = cx.classes.get(fq);
+  if (!cls) return;
+  for (const fns of cls.methods.values()) {
+    for (const f of fns) {
+      if (!f.isConv) continue;
+      const rt = cx.funcRet(f);
+      if (rt && coreName(rt) === "bool") {
+        cx.markFunc(f);
+        cx.getAnn(e).boolConv = f;
+        return;
+      }
+    }
+  }
+}
+
+// An overloaded operator that takes a non-const reference to a scalar, as
+// cin >> n does, writes through it: the operand needs a cell of its own, as it
+// does when it is passed to a function.  Class operands are already references.
+function markOperatorRefs(cx: Cx, fn: FuncInfo, operands: Expr[]): void {
+  const ps = cx.funcParams(fn);
+  operands.forEach((x, i) => {
+    if (i >= ps.length) return;
+    const p = ps[i].type;
+    if (p.ref === "" || p.cnst || p.ptr > 0 || p.isFunc || p.dims.length) return;
+    if (isClassVal(cx, p)) return;
+    markBoxedOf(cx, x);
+  });
 }
 
 export function findOperator(cx: Cx, op: string, l: { t: CppType; e: Expr } | null, r: { t: CppType; e: Expr } | null, scope: Scope, t: At, postfix = false): { fn: FuncInfo; convs: ({ kind: string; fn: FuncInfo } | null)[] } | null {

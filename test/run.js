@@ -26,7 +26,10 @@ for (const f of files) {
     const jsFile = path.join(dir, name + ".out.js");
     const prev = fs.existsSync(jsFile) ? fs.readFileSync(jsFile, "utf8") : "";
     if (norm(prev) !== norm(r.code)) fs.writeFileSync(jsFile, r.code);
-    const out = execFileSync("node", [jsFile], { encoding: "utf8", timeout: 10000 });
+    // A case may read standard input from name.in (cin); otherwise it is empty.
+    const inFile = path.join(dir, name + ".in");
+    const input = fs.existsSync(inFile) ? fs.readFileSync(inFile) : "";
+    const out = execFileSync("node", [jsFile], { encoding: "utf8", input, timeout: 10000 });
     if (norm(out) === expected) {
       pass++;
       console.log(`ok   ${name}`);

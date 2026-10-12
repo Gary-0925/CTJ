@@ -239,6 +239,7 @@ export function annotateStmt(cx: Cx, s: Stmt, scope: Scope): void {
       scope.locals.push(new Map());
       try {
         annotateCond(cx, s.cond, scope);
+        if (s.kind === "if") markCond(cx, s.cond);
         if (s.kind === "if") {
           annotateStmt(cx, (s as IfStmt).then, scope);
           if ((s as IfStmt).els) annotateStmt(cx, (s as IfStmt).els as Stmt, scope);
@@ -260,6 +261,7 @@ export function annotateStmt(cx: Cx, s: Stmt, scope: Scope): void {
       scope.locals.push(new Map());
       try {
         annotateCond(cx, s.cond, scope);
+        markCond(cx, s.cond);
         annotateStmt(cx, s.body, scope);
       } finally {
         scope.locals.pop();
@@ -268,6 +270,7 @@ export function annotateStmt(cx: Cx, s: Stmt, scope: Scope): void {
     }
     case "do": {
       typeOf(cx, s.cond, scope);
+      markCond(cx, s.cond);
       annotateStmt(cx, s.body, scope);
       return;
     }
@@ -276,6 +279,7 @@ export function annotateStmt(cx: Cx, s: Stmt, scope: Scope): void {
       try {
         if (s.init) annotateStmt(cx, s.init, scope);
         if (s.cond) typeOf(cx, s.cond, scope);
+        markCond(cx, s.cond);
         if (s.step) typeOf(cx, s.step, scope);
         annotateStmt(cx, s.body, scope);
       } finally {
@@ -356,6 +360,11 @@ export function annotateStmt(cx: Cx, s: Stmt, scope: Scope): void {
 function annotateCond(cx: Cx, c: Expr | VarDecl, scope: Scope): void {
   if ((c as VarDecl).kind === "var") annotateLocalVar(cx, c as VarDecl, scope);
   else typeOf(cx, c as Expr, scope);
+}
+
+// The condition of if, while, do and for is a contextual conversion to bool.
+function markCond(cx: Cx, c: Expr | VarDecl | null): void {
+  if (c && (c as VarDecl).kind !== "var") markBoolConv(cx, c as Expr);
 }
 
 function annotateDecl(cx: Cx, d: Decl, scope: Scope): void {

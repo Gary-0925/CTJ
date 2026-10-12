@@ -303,10 +303,12 @@ export interface Ann {
   range: RangeInfo | null;
   needsThis: boolean;
   isType: boolean;
+  // The operator bool a class-valued condition converts with (see markBoolConv).
+  boolConv: FuncInfo | null;
 }
 
 export function blankAnn(): Ann {
-  return { t: null, sym: null, call: null, conv: null, convs: [], caps: [], var: null, arrowCall: null, initCall: null, copyCtor: null, range: null, needsThis: false, isType: false };
+  return { t: null, sym: null, call: null, conv: null, convs: [], caps: [], var: null, arrowCall: null, initCall: null, copyCtor: null, range: null, needsThis: false, isType: false, boolConv: null };
 }
 
 export class Cx {

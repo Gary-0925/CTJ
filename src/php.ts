@@ -429,7 +429,9 @@ class PhpGen {
   }
 
   ctorArg(p: { type: CppType; def: Expr | null }, i: number): string {
-    const v = `$a[${i}] ?? null`;
+    // The overload test has checked the count, so the element is there; a
+    // plain element stays writable (a "??" expression is not).
+    const v = `$a[${i}]`;
     if (p.def) return `(array_key_exists(${i}, $a) ? $a[${i}] : (${this.defArg(p)}))`;
     return v;
   }
@@ -1297,7 +1299,7 @@ class PhpGen {
   complex(s: string, e: Expr): string {
     if (this.isSimple(e)) return s;
     const t = this.tmp();
-    return `(${t} = ${s}, ${t})`;
+    return `(${t} = ${s})`;
   }
 
   isSimple(e: Expr): boolean {
@@ -1332,7 +1334,7 @@ class PhpGen {
         const nm = this.varName(v, this.cx.getAnn(e).needsThis);
         if (v.storage === "box") return nm;
         if (v.storage === "bbox") return `${this.paren(nm)}["v"]`;
-        if (v.storage === "boxed") return `["a" => ${nm}, "i" => "v"]`;
+        if (v.storage === "boxed") return `["a" => &${nm}, "i" => "v"]`;
         if (t.dims.length) return `["a" => ${nm}, "i" => 0]`;
         return `["a" => [${nm}], "i" => 0]`;
       }
@@ -1426,7 +1428,7 @@ class PhpGen {
         if (m.arrowCall) o = `(${this.paren(o)}->${phpMethodName(m.arrowCall as FuncInfo)}())`;
         if (this.cx.fieldType(cls, v.short).ref) {
           const t = this.tmp();
-          return `(${t} = ${this.paren(o)}->${fname}, ${t}["a"][${t}["i"]])`;
+          return `([${t} = ${this.paren(o)}->${fname}, ${t}["a"][${t}["i"]]])[1]`;
         }
         return `${this.paren(o)}->${fname}`;
       }
@@ -1434,7 +1436,7 @@ class PhpGen {
         const m = this.cx.getAnn(e);
         if (m.call) {
           const t = this.tmp();
-          return `(${t} = ${this.ex(e)}, ${t}["a"][${t}["i"]])`;
+          return `([${t} = ${this.ex(e)}, ${t}["a"][${t}["i"]]])[1]`;
         }
         const at = this.cx.getAnn(e.arr).t as CppType;
         if (at.ptr > 0) {
@@ -1450,7 +1452,7 @@ class PhpGen {
         if (e.op !== "*") this.cx.fail("not assignable", e);
         if (this.classDeref(e)) {
           const t = this.tmp();
-          return `(${t} = ${this.ex(e)}, ${t}["a"][${t}["i"]])`;
+          return `([${t} = ${this.ex(e)}, ${t}["a"][${t}["i"]]])[1]`;
         }
         const p = this.complex(this.ex(e.arg), e.arg);
         const pp = this.paren(p);
@@ -1460,7 +1462,7 @@ class PhpGen {
         const t = this.tmp();
         // A call returning a scalar reference already yields the box.
         const c = this.returnsScalarRef(e) ? this.exCall(e) : this.ex(e);
-        return `(${t} = ${c}, ${t}["a"][${t}["i"]])`;
+        return `([${t} = ${c}, ${t}["a"][${t}["i"]]])[1]`;
       }
       default:
         this.cx.fail("not assignable", e);
@@ -1481,14 +1483,19 @@ class PhpGen {
       return `${p}["a"][${p}["i"]]`;
     }
     const tmp = this.tmp();
-    return `(${tmp} = ${this.ex(e)}, ${tmp}["a"][${tmp}["i"]])`;
+    return `([${tmp} = ${this.ex(e)}, ${tmp}["a"][${tmp}["i"]]])[1]`;
   }
 
   deref(e: Expr): string {
     if (e.kind === "this") return "$this";
-    const s = this.complex(this.ex(e), e);
-    const p = this.paren(s);
-    return `${p}["a"][${p}["i"]]`;
+    if (this.isSimple(e)) {
+      const p = this.paren(this.ex(e));
+      return `${p}["a"][${p}["i"]]`;
+    }
+    // The object is evaluated once: the assignment is the container, and the
+    // index reads the temporary after it (PHP has no comma operator).
+    const t = this.tmp();
+    return `(${t} = ${this.ex(e)})["a"][${t}["i"]]`;
   }
 
   exAddr(e: Expr): string {
@@ -1581,9 +1588,10 @@ class PhpGen {
       const pre = this.isSimple(x) ? "" : `${src} = ${raw}, `;
       if (at.ref && x.kind === "call") {
         const t = this.tmp();
-        return `(${pre}${t} = (${src} ? ${src}["a"][${src}["i"]] : null), ${t} && is_array(${t}) && array_key_exists("a", ${t}) ? ["a" => ${t}["a"], "i" => ${t}["i"]] : ${t})`;
+        return `([${pre}${t} = (${src} ? ${src}["a"][${src}["i"]] : null), ${t} && is_array(${t}) && array_key_exists("a", ${t}) ? ["a" => ${t}["a"], "i" => ${t}["i"]] : ${t}])[1]`;
       }
-      return `(${pre}${src} ? ["a" => ${src}["a"], "i" => ${src}["i"]] : null)`;
+      if (pre) return `([${pre}${src} ? ["a" => ${src}["a"], "i" => ${src}["i"]] : null])[1]`;
+      return `(${src} ? ["a" => ${src}["a"], "i" => ${src}["i"]] : null)`;
     }
     if (p.dims.length && x.kind === "initlist") {
       return this.arrayInit(p, (x as InitListExpr).items);
@@ -1661,7 +1669,7 @@ class PhpGen {
   exCallValue(e: CallExpr): string {
     if (this.returnsScalarRef(e)) {
       const v = this.tmp();
-      return `(${v} = ${this.exCall(e)}, ${v}["a"][${v}["i"]])`;
+      return `([${v} = ${this.exCall(e)}, ${v}["a"][${v}["i"]]])[1]`;
     }
     return this.exCall(e);
   }
@@ -1670,6 +1678,13 @@ class PhpGen {
   // operator that returns a reference to a scalar hands back the box; where a
   // value is wanted, the element the box points at is read.
   exVal(e: Expr): string {
+    // A class object in a condition: its conversion to bool is called here.
+    const bc = this.cx.getAnn(e).boolConv;
+    if (bc) {
+      const bt = this.cx.getAnn(e).t as CppType | null;
+      const bo = bt && bt.ref ? this.deref(e) : this.ex(e);
+      return `${this.paren(bo)}->${phpMethodName(bc)}()`;
+    }
     const t = this.cx.getAnn(e).t as CppType | null;
     if (!t || !t.ref || t.ptr > 0 || t.dims.length || t.isFunc) return this.ex(e);
     if (this.cx.classes.has(this.cx.stripAll(t))) return this.ex(e);
@@ -1926,7 +1941,7 @@ class PhpGen {
     const fname = this.fieldName(cls, v.short);
     if (this.cx.fieldType(cls, v.short).ref) {
       const t = this.tmp();
-      return `(${t} = ${this.paren(o)}->${fname}, ${t}["a"][${t}["i"]])`;
+      return `([${t} = ${this.paren(o)}->${fname}, ${t}["a"][${t}["i"]]])[1]`;
     }
     return `${this.paren(o)}->${fname}`;
   }
@@ -1967,7 +1982,7 @@ class PhpGen {
       if (this.splitLhs(e.arg)) {
         const t = this.tmp();
         const inner = at.ptr > 0 && !at.isFunc ? `${t}["i"]` : `${t}["a"][${t}["i"]]`;
-        return `(${t} = ${this.ex(e.arg)}, ${post ? inner + inc : inc + inner})`;
+        return `([${t} = ${this.ex(e.arg)}, ${post ? inner + inc : inc + inner}])[1]`;
       }
       if (at.ptr > 0 && !at.isFunc) {
         const p = this.paren(this.lvalue(e.arg));
@@ -2092,7 +2107,7 @@ class PhpGen {
       target.ptr = lt.ptr;
       target.dims = lt.dims;
       const rhs = e.op === "=" ? this.argFor(target, e.r, null) : this.ex(e.r);
-      return `(${t} = ${this.lhsBox(e.l)}, ${t}["a"][${t}["i"]] ${e.op} ${rhs})`;
+      return `([${t} = ${this.lhsBox(e.l)}, ${t}["a"][${t}["i"]] ${e.op} ${rhs}])[1]`;
     }
     const l = this.lvalue(e.l);
     if ((e.op === "+=" || e.op === "-=") && lt.ptr > 0 && !lt.isFunc) {

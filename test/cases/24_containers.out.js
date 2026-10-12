@@ -319,6 +319,10 @@ class std_ios_base {
   static left = 32;
   static right = 128;
   static adjustfield = 176;
+  static goodbit = 0;
+  static badbit = 1;
+  static eofbit = 2;
+  static failbit = 4;
 }
 class std_Ios_fmt {
   _M_mask;
@@ -1302,12 +1306,14 @@ class std_basic_ostream_char_std_char_traits_char extends std_ios_base {
 }
 class std_basic_istream_char_std_char_traits_char extends std_ios_base {
   _M_tie;
+  _M_state;
   constructor(...$a) {
     super(...[]);
     this.__init_std_basic_istream_char_std_char_traits_char(...$a);
   }
   __init_std_basic_istream_char_std_char_traits_char(...$a) {
     this._M_tie = null;
+    this._M_state = 0;
   }
   __dtor() {
     std_ios_base.prototype.__dtor.call(this);
@@ -11237,22 +11243,22 @@ function main() {
   let t = new std_basic_string_char_std_char_traits_char_std_allocator_char({a: [121, 111, 0], i: 0}, {a: [new std_allocator_char()], i: 0});
   let buf = [97, 98, 99, 0];
   let u = new std_basic_string_char_std_char_traits_char_std_allocator_char({a: buf, i: 0}, {a: [new std_allocator_char()], i: 0});
-  std_operator__std_basic_ostream_char_std_char_traits_char_R_std_Ios_opR(std_operator__std_basic_ostream_char_std_char_traits_char_R_unsigned_long_long({a: [std_cout], i: 0}, ((s.size__c() + t.size__c()) + u.size__c())), {a: [std_endl], i: 0});
+  std_operator__std_basic_ostream_char_std_char_traits_char_R_std_Ios_opR(std_operator__std_basic_ostream_char_std_char_traits_char_R_unsigned_long_long({a: std_cout, i: "v"}, ((s.size__c() + t.size__c()) + u.size__c())), {a: [std_endl], i: 0});
   let m = new std_map_int_int_std_less_int_std_allocator_std_pair_int_int([new std_pair_int_int({a: [1], i: 0}, {a: [10], i: 0}), new std_pair_int_int({a: [2], i: 0}, {a: [20], i: 0})], {a: [new std_less_int()], i: 0}, {a: [new std_allocator_std_pair_int_int()], i: 0});
   for (let $b0 = new std_Rb_tree_iterator_std_pair_int_int({a: [m.begin()], i: 0}), $e0 = new std_Rb_tree_iterator_std_pair_int_int({a: [m.end()], i: 0}); $b0.op_ne__c({a: [$e0], i: 0}); $b0.op_inc()) {
     let kv = $b0.op_mul__c();
-    std_operator__std_basic_ostream_char_std_char_traits_char_R_charP(std_operator__std_basic_ostream_char_std_char_traits_char_R_int(std_operator__std_basic_ostream_char_std_char_traits_char_R_charP(std_operator__std_basic_ostream_char_std_char_traits_char_R_int({a: [std_cout], i: 0}, (kv.a[kv.i]).first), {a: [58, 0], i: 0}), (kv.a[kv.i]).second), {a: [32, 0], i: 0});
+    std_operator__std_basic_ostream_char_std_char_traits_char_R_charP(std_operator__std_basic_ostream_char_std_char_traits_char_R_int(std_operator__std_basic_ostream_char_std_char_traits_char_R_charP(std_operator__std_basic_ostream_char_std_char_traits_char_R_int({a: std_cout, i: "v"}, (kv.a[kv.i]).first), {a: [58, 0], i: 0}), (kv.a[kv.i]).second), {a: [32, 0], i: 0});
   }
-  std_operator__std_basic_ostream_char_std_char_traits_char_R_std_Ios_opR({a: [std_cout], i: 0}, {a: [std_endl], i: 0});
+  std_operator__std_basic_ostream_char_std_char_traits_char_R_std_Ios_opR({a: std_cout, i: "v"}, {a: [std_endl], i: 0});
   let v = {v: new std_vector_int_std_allocator_int([1, 2, 3], {a: [new std_allocator_int()], i: 0})};
   let w = new std_vector_int_std_allocator_int(std_move_std_vector_int_std_allocator_int({a: v, i: "v"}));
-  std_operator__std_basic_ostream_char_std_char_traits_char_R_std_Ios_opR(std_operator__std_basic_ostream_char_std_char_traits_char_R_int(std_operator__std_basic_ostream_char_std_char_traits_char_R_charP(std_operator__std_basic_ostream_char_std_char_traits_char_R_unsigned_long_long({a: [std_cout], i: 0}, w.size__c()), {a: [32, 0], i: 0}), ($t145 = w.op_index(2), $t145.a[$t145.i])), {a: [std_endl], i: 0});
+  std_operator__std_basic_ostream_char_std_char_traits_char_R_std_Ios_opR(std_operator__std_basic_ostream_char_std_char_traits_char_R_int(std_operator__std_basic_ostream_char_std_char_traits_char_R_charP(std_operator__std_basic_ostream_char_std_char_traits_char_R_unsigned_long_long({a: std_cout, i: "v"}, w.size__c()), {a: [32, 0], i: 0}), ($t145 = w.op_index(2), $t145.a[$t145.i])), {a: [std_endl], i: 0});
   let st = new std_set_int_std_less_int_std_allocator_int([3, 1, 2], {a: [new std_less_int()], i: 0}, {a: [new std_allocator_int()], i: 0});
   for (let $b1 = new std_Rb_tree_const_iterator_int({a: [st.begin__c()], i: 0}), $e1 = new std_Rb_tree_const_iterator_int({a: [st.end__c()], i: 0}); $b1.op_ne__c({a: [$e1], i: 0}); $b1.op_inc()) {
     let x = ($b1.op_mul__c()).a[($b1.op_mul__c()).i];
-    std_operator__std_basic_ostream_char_std_char_traits_char_R_int({a: [std_cout], i: 0}, x);
+    std_operator__std_basic_ostream_char_std_char_traits_char_R_int({a: std_cout, i: "v"}, x);
   }
-  std_operator__std_basic_ostream_char_std_char_traits_char_R_std_Ios_opR({a: [std_cout], i: 0}, {a: [std_endl], i: 0});
+  std_operator__std_basic_ostream_char_std_char_traits_char_R_std_Ios_opR({a: std_cout, i: "v"}, {a: [std_endl], i: 0});
   let a = {v: 1};
   let b = {v: 2};
   let p = {v: (({a: a, i: "v"}) ? {a: ({a: a, i: "v"}).a, i: ({a: a, i: "v"}).i} : null)};
@@ -11260,15 +11266,15 @@ function main() {
   std_swap_int_P({a: p, i: "v"}, {a: q, i: "v"});
   let r = {a: p, i: "v"};
   r.a[r.i] = (({a: a, i: "v"}) ? {a: ({a: a, i: "v"}).a, i: ({a: a, i: "v"}).i} : null);
-  std_operator__std_basic_ostream_char_std_char_traits_char_R_std_Ios_opR(std_operator__std_basic_ostream_char_std_char_traits_char_R_int(std_operator__std_basic_ostream_char_std_char_traits_char_R_charP(std_operator__std_basic_ostream_char_std_char_traits_char_R_int(std_operator__std_basic_ostream_char_std_char_traits_char_R_charP(std_operator__std_basic_ostream_char_std_char_traits_char_R_int({a: [std_cout], i: 0}, p.v.a[p.v.i]), {a: [32, 0], i: 0}), q.v.a[q.v.i]), {a: [32, 0], i: 0}), (r.a[r.i]).a[(r.a[r.i]).i]), {a: [std_endl], i: 0});
+  std_operator__std_basic_ostream_char_std_char_traits_char_R_std_Ios_opR(std_operator__std_basic_ostream_char_std_char_traits_char_R_int(std_operator__std_basic_ostream_char_std_char_traits_char_R_charP(std_operator__std_basic_ostream_char_std_char_traits_char_R_int(std_operator__std_basic_ostream_char_std_char_traits_char_R_charP(std_operator__std_basic_ostream_char_std_char_traits_char_R_int({a: std_cout, i: "v"}, p.v.a[p.v.i]), {a: [32, 0], i: 0}), q.v.a[q.v.i]), {a: [32, 0], i: 0}), (r.a[r.i]).a[(r.a[r.i]).i]), {a: [std_endl], i: 0});
   let vp = new std_vector_std_pair_int_int_std_allocator_std_pair_int_int([new std_pair_int_int({a: [1], i: 0}, {a: [2], i: 0}), new std_pair_int_int({a: [3], i: 0}, {a: [4], i: 0})], {a: [new std_allocator_std_pair_int_int()], i: 0});
   for (let $b2 = new gnu_cxx_normal_iterator_std_pair_int_int_P_std_vector_std_pair_int_int_std_allocator_std_pair_int_int({a: [vp.begin()], i: 0}), $e2 = new gnu_cxx_normal_iterator_std_pair_int_int_P_std_vector_std_pair_int_int_std_allocator_std_pair_int_int({a: [vp.end()], i: 0}); gnu_cxx_operator_std_pair_int_int_P_std_pair_int_int_P_std_vector_std_pair_int_int_std_allocator_std_pair_int_int({a: [$b2], i: 0}, {a: [$e2], i: 0}); $b2.op_inc()) {
     let pr = $b2.op_mul__c();
-    std_operator__std_basic_ostream_char_std_char_traits_char_R_charP(std_operator__std_basic_ostream_char_std_char_traits_char_R_int(std_operator__std_basic_ostream_char_std_char_traits_char_R_charP(std_operator__std_basic_ostream_char_std_char_traits_char_R_int({a: [std_cout], i: 0}, (pr.a[pr.i]).first), {a: [45, 0], i: 0}), (pr.a[pr.i]).second), {a: [32, 0], i: 0});
+    std_operator__std_basic_ostream_char_std_char_traits_char_R_charP(std_operator__std_basic_ostream_char_std_char_traits_char_R_int(std_operator__std_basic_ostream_char_std_char_traits_char_R_charP(std_operator__std_basic_ostream_char_std_char_traits_char_R_int({a: std_cout, i: "v"}, (pr.a[pr.i]).first), {a: [45, 0], i: 0}), (pr.a[pr.i]).second), {a: [32, 0], i: 0});
   }
-  std_operator__std_basic_ostream_char_std_char_traits_char_R_std_Ios_opR({a: [std_cout], i: 0}, {a: [std_endl], i: 0});
+  std_operator__std_basic_ostream_char_std_char_traits_char_R_std_Ios_opR({a: std_cout, i: "v"}, {a: [std_endl], i: 0});
   let vv = new std_vector_std_vector_int_std_allocator_int_std_allocator_std_vector_int_std_allocator_int([new std_vector_int_std_allocator_int([1, 2], {a: [new std_allocator_int()], i: 0}), new std_vector_int_std_allocator_int([3], {a: [new std_allocator_int()], i: 0})], {a: [new std_allocator_std_vector_int_std_allocator_int()], i: 0});
-  std_operator__std_basic_ostream_char_std_char_traits_char_R_std_Ios_opR(std_operator__std_basic_ostream_char_std_char_traits_char_R_int(std_operator__std_basic_ostream_char_std_char_traits_char_R_charP(std_operator__std_basic_ostream_char_std_char_traits_char_R_unsigned_long_long(std_operator__std_basic_ostream_char_std_char_traits_char_R_charP(std_operator__std_basic_ostream_char_std_char_traits_char_R_unsigned_long_long({a: [std_cout], i: 0}, vv.size__c()), {a: [32, 0], i: 0}), (($t146 = vv.op_index(0), $t146.a[$t146.i])).size__c()), {a: [32, 0], i: 0}), ($t147 = (($t148 = vv.op_index(1), $t148.a[$t148.i])).op_index(0), $t147.a[$t147.i])), {a: [std_endl], i: 0});
+  std_operator__std_basic_ostream_char_std_char_traits_char_R_std_Ios_opR(std_operator__std_basic_ostream_char_std_char_traits_char_R_int(std_operator__std_basic_ostream_char_std_char_traits_char_R_charP(std_operator__std_basic_ostream_char_std_char_traits_char_R_unsigned_long_long(std_operator__std_basic_ostream_char_std_char_traits_char_R_charP(std_operator__std_basic_ostream_char_std_char_traits_char_R_unsigned_long_long({a: std_cout, i: "v"}, vv.size__c()), {a: [32, 0], i: 0}), (($t146 = vv.op_index(0), $t146.a[$t146.i])).size__c()), {a: [32, 0], i: 0}), ($t147 = (($t148 = vv.op_index(1), $t148.a[$t148.i])).op_index(0), $t147.a[$t147.i])), {a: [std_endl], i: 0});
   return 0;
 }
 function std_declval_int() {
@@ -11514,7 +11520,7 @@ let std_right = new std_Ios_fmt(176, 128);
 let std_endl = new std_Ios_op(0);
 let std_ends = new std_Ios_op(1);
 let std_flush = new std_Ios_op(2);
-let std_cout = new std_basic_ostream_char_std_char_traits_char(1);
+let std_cout = {v: new std_basic_ostream_char_std_char_traits_char(1)};
 let std_cerr = new std_basic_ostream_char_std_char_traits_char(2);
 let std_clog = new std_basic_ostream_char_std_char_traits_char(2);
 let std_cin = new std_basic_istream_char_std_char_traits_char(0);

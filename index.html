@@ -44,6 +44,12 @@
   #warnings div { white-space: pre-wrap; }
   #output { border-top: 1px solid #2c303a; max-height: 34%; }
   #output pre { padding: 8px 12px; }
+  #stdinBox { display: flex; flex-direction: column; border-top: 1px solid #2c303a; }
+  #stdinBox label {
+    padding: 5px 12px; font-size: 12px; font-weight: 600; letter-spacing: .04em;
+    color: #9aa1b1; text-transform: uppercase; background: #1e2128;
+  }
+  #stdin { flex: none; height: 84px; }
   #output .err { color: #f0717a; }
   footer { padding: 4px 12px; font-size: 12px; color: #6f7686; background: #1e2128; }
 </style>
@@ -70,6 +76,10 @@
     <h2 id="codeTitle">转译结果</h2>
     <pre id="code"></pre>
     <div id="warnings"></div>
+    <div id="stdinBox">
+      <label for="stdin">输入（cin）</label>
+      <textarea id="stdin" spellcheck="false" placeholder="运行前在这里输入；cin 按空白分隔读取，可用 Enter 换行"></textarea>
+    </div>
     <div id="output"><pre id="out"></pre></div>
   </section>
 </main>
@@ -227,6 +237,30 @@ int main() {
   return 0;
 }
 `,
+  "输入（cin）": `#include <iostream>
+#include <string>
+
+int main() {
+  int n;
+  std::cin >> n;
+  long long sum = 0;
+  for (int i = 0; i < n; i++) {
+    int x;
+    std::cin >> x;
+    sum += x;
+  }
+  std::cout << "sum = " << sum << std::endl;
+  std::string name;
+  std::cin >> name;
+  std::cout << "hello, " << name << std::endl;
+  return 0;
+}
+`,
+};
+
+// The input text of an example, placed in the input box when it is chosen.
+const EXAMPLE_INPUT = {
+  "输入（cin）": "3\n10 20 30\nCTJ\n",
 };
 
 const $ = id => document.getElementById(id);
@@ -409,6 +443,8 @@ function run() {
   // globalThis.__ctjpend; it is printed once the program has ended.
   globalThis.__ctjpend = "";
   const flushPending = () => { if (globalThis.__ctjpend) lines.push(globalThis.__ctjpend); globalThis.__ctjpend = ""; };
+  // cin reads the input box: the transpiled code takes its text from here.
+  globalThis.__ctjin = { s: $("stdin").value, p: 0 };
   try {
     new Function("console", lastCode)(shim);
     flushPending();
@@ -430,7 +466,10 @@ Object.keys(EXAMPLES).forEach(name => {
   o.textContent = name;
   exampleSelect.appendChild(o);
 });
-exampleSelect.addEventListener("change", () => { $("source").value = EXAMPLES[exampleSelect.value]; });
+exampleSelect.addEventListener("change", () => {
+  $("source").value = EXAMPLES[exampleSelect.value];
+  $("stdin").value = EXAMPLE_INPUT[exampleSelect.value] || "";
+});
 exampleSelect.value = "基础语法";
 $("source").value = EXAMPLES[exampleSelect.value];
 

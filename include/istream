@@ -1,10 +1,36 @@
-// <istream> for CTJ.  Input is not supported: the class exists so that the
-// headers which name it (<iostream>, <sstream>, <fstream>) still parse.
+// <istream> for CTJ: the input stream classes.  Like <ostream>, the reading
+// itself is written in the target language: the characters come from
+// __ctj_js / __ctj_php, so the transpiler knows nothing about streams.
+//
+// The input text is taken from, in order: globalThis.__ctjin (the playground
+// sets it, as {s: text, p: 0}); on Node, standard input; in PHP, STDIN.  The
+// reader only ever moves forward through that text.
+//
+// Each primitive is written as _CTJ_IN(JS, PHP).  __ctj_js("1") is a true
+// value in JavaScript and null in PHP (where __ctj_js emits null), so the
+// conditional picks the branch of the target being generated: the other
+// branch is never evaluated.
 #ifndef _CTJ_ISTREAM
 #define _CTJ_ISTREAM 1
 
 #include <ios>
 #include <ostream>
+#include <string>
+
+#define _CTJ_IN(JS, PHP) (__ctj_js("1") ? __ctj_js(JS) : __ctj_php(PHP))
+
+// The character code at the read position, or -1 at the end of the input.
+#define _CTJ_JS_PEEK "(function(){var q=(globalThis.__ctjin||(globalThis.__ctjin={s:(typeof require==='function'?require('fs').readFileSync(0,'utf8'):''),p:0}));return q.p<q.s.length?q.s.charCodeAt(q.p):-1})()"
+#define _CTJ_PHP_PEEK "(function(){$q=&$GLOBALS['__ctjin'];if($q===null)$q=['s'=>(defined('STDIN')?stream_get_contents(STDIN):''),'p'=>0];return $q['p']<strlen($q['s'])?ord($q['s'][$q['p']]):-1;})()"
+
+// The same, consuming the character.
+#define _CTJ_JS_GET "(function(){var q=(globalThis.__ctjin||(globalThis.__ctjin={s:(typeof require==='function'?require('fs').readFileSync(0,'utf8'):''),p:0}));return q.p<q.s.length?q.s.charCodeAt(q.p++):-1})()"
+#define _CTJ_PHP_GET "(function(){$q=&$GLOBALS['__ctjin'];if($q===null)$q=['s'=>(defined('STDIN')?stream_get_contents(STDIN):''),'p'=>0];return $q['p']<strlen($q['s'])?ord($q['s'][$q['p']++]):-1;})()"
+
+// Skips white space, then reads a run of non-white-space characters as a
+// floating-point number.  NaN, and nothing consumed, if the run is not one.
+#define _CTJ_JS_TOK "(function(){var q=(globalThis.__ctjin||(globalThis.__ctjin={s:(typeof require==='function'?require('fs').readFileSync(0,'utf8'):''),p:0})),s=q.s,e,t;function w(c){return c===32||(c>=9&&c<=13)}while(q.p<s.length&&w(s.charCodeAt(q.p)))q.p++;e=q.p;while(e<s.length&&!w(s.charCodeAt(e)))e++;t=s.slice(q.p,e);if(!/^[+-]?([0-9]+[.]?[0-9]*|[.][0-9]+)([eE][+-]?[0-9]+)?$/.test(t))return NaN;q.p=e;return Number(t)})()"
+#define _CTJ_PHP_TOK "(function(){$q=&$GLOBALS['__ctjin'];if($q===null)$q=['s'=>(defined('STDIN')?stream_get_contents(STDIN):''),'p'=>0];$s=$q['s'];$w=function($c){return $c===32||($c>=9&&$c<=13);};while($q['p']<strlen($s)&&$w(ord($s[$q['p']])))$q['p']++;$e=$q['p'];while($e<strlen($s)&&!$w(ord($s[$e])))$e++;$t=substr($s,$q['p'],$e-$q['p']);if(!preg_match('/^[+-]?([0-9]+[.]?[0-9]*|[.][0-9]+)([eE][+-]?[0-9]+)?$/',$t))return NAN;$q['p']=$e;return floatval($t);})()"
 
 namespace std {
 
@@ -15,18 +41,183 @@ namespace std {
       typedef _CharT char_type;
       typedef _Traits traits_type;
 
-      explicit basic_istream(int __fd = 0) : ios_base(), _M_tie(0) { }
+      // The stream tied to this one.  It is remembered, not flushed: the
+      // output is written as it is produced.
+      ostream* _M_tie;
+      // The state bits: goodbit, badbit, eofbit and failbit, as in ios_base.
+      int _M_state;
 
-      // The stream tied to this one (flushed before input in libstdc++).  Input
-      // never happens here, so the tie is only remembered.
+      explicit basic_istream(int __fd = 0) : ios_base(), _M_tie(0), _M_state(0) { }
+
       ostream* tie() const { return _M_tie; }
       ostream* tie(ostream* __tie) { ostream* __old = _M_tie; _M_tie = __tie; return __old; }
 
-    private:
-      ostream* _M_tie;
+      int rdstate() const { return _M_state; }
+      void clear(int __s = 0) { _M_state = __s; }
+      void setstate(int __s) { _M_state = _M_state | __s; }
+      bool good() const { return _M_state == 0; }
+      bool eof() const { return (_M_state & 2) != 0; }
+      bool fail() const { return (_M_state & 5) != 0; }
+      bool bad() const { return (_M_state & 1) != 0; }
+      bool operator!() const { return fail(); }
+      // The usual test of a stream: while (cin >> x), if (cin).
+      operator bool() const { return !fail(); }
+
+      // The character at the read position, or -1 at the end of the input.
+      // _M_peek_eof also sets eofbit there.
+      int _M_peek() { return _CTJ_IN(_CTJ_JS_PEEK, _CTJ_PHP_PEEK); }
+      int _M_peek_eof() { int __c = _M_peek(); if (__c < 0) setstate(eofbit); return __c; }
+
+      // Consumes one character and returns it, or -1 at the end of the input.
+      int _M_get() { return _CTJ_IN(_CTJ_JS_GET, _CTJ_PHP_GET); }
+
+      void _M_skip_space() {
+        int __c = _M_peek_eof();
+        while (__c == 32 || (__c >= 9 && __c <= 13)) {
+          _M_get();
+          __c = _M_peek_eof();
+        }
+      }
+
+      // An integer, as the C++ number reader takes it: optional sign, then
+      // digits.  Nothing is stored and failbit is set if there are no digits.
+      long long _M_read_int() {
+        long long __v = 0;
+        _M_skip_space();
+        int __c = _M_peek_eof();
+        if (__c < 0) { setstate(failbit); return 0; }
+        bool __neg = false;
+        if (__c == 43 || __c == 45) {
+          __neg = (__c == 45);
+          _M_get();
+          __c = _M_peek_eof();
+        }
+        if (__c < 48 || __c > 57) { setstate(failbit); return 0; }
+        while (__c >= 48 && __c <= 57) {
+          _M_get();
+          __v = __v * 10 + (__c - 48);
+          __c = _M_peek_eof();
+        }
+        return __neg ? -__v : __v;
+      }
+
+      // A floating-point number: the run of non-white-space characters that
+      // the target language reads as one.
+      double _M_read_double() {
+        _M_skip_space();
+        if (_M_peek_eof() < 0) { setstate(failbit); return 0; }
+        double __v = _CTJ_IN(_CTJ_JS_TOK, _CTJ_PHP_TOK);
+        if (__v != __v) { setstate(failbit); return 0; }
+        return __v;
+      }
+
+      // get(): one character, or -1 (with failbit) at the end of the input.
+      int get() {
+        int __c = _M_peek_eof();
+        if (__c >= 0) _M_get();
+        else setstate(failbit);
+        return __c;
+      }
+
+      basic_istream& get(char& __c) {
+        int __x = get();
+        if (__x >= 0) __c = (char)__x;
+        return *this;
+      }
+
+      int peek() { return _M_peek_eof(); }
+
+      // Skips up to __n characters, stopping after __delim.
+      basic_istream& ignore(int __n = 1, int __delim = -1) {
+        while (__n > 0) {
+          int __c = _M_peek_eof();
+          if (__c < 0) break;
+          _M_get();
+          __n--;
+          if (__c == __delim) break;
+        }
+        return *this;
+      }
+
+      // Reads a line into __s, at most __n - 1 characters, and ends it with
+      // a NUL.  The delimiter is consumed but not stored.
+      basic_istream& getline(char* __s, int __n, char __delim = 10) {
+        int __k = 0;
+        int __got = 0;
+        bool __done = false;
+        while (!__done && __k < __n - 1) {
+          int __c = _M_peek_eof();
+          if (__c < 0) break;
+          _M_get();
+          __got++;
+          if (__c == __delim) { __done = true; }
+          else { __s[__k] = (char)__c; __k++; }
+        }
+        if (__n > 0) __s[__k] = 0;
+        if (__got == 0) setstate(failbit);
+        return *this;
+      }
     };
 
   typedef basic_istream<char> istream;
+
+  // Extraction.  Each one skips white space first, as the C++ number and
+  // string readers do.  The state is set through failbit and eofbit.
+  inline istream& operator>>(istream& __in, int& __v) { __v = (int)__in._M_read_int(); return __in; }
+  inline istream& operator>>(istream& __in, unsigned int& __v) { __v = (unsigned int)__in._M_read_int(); return __in; }
+  inline istream& operator>>(istream& __in, long& __v) { __v = (long)__in._M_read_int(); return __in; }
+  inline istream& operator>>(istream& __in, unsigned long& __v) { __v = (unsigned long)__in._M_read_int(); return __in; }
+  inline istream& operator>>(istream& __in, long long& __v) { __v = __in._M_read_int(); return __in; }
+  inline istream& operator>>(istream& __in, unsigned long long& __v) { __v = (unsigned long long)__in._M_read_int(); return __in; }
+  inline istream& operator>>(istream& __in, short& __v) { __v = (short)__in._M_read_int(); return __in; }
+  inline istream& operator>>(istream& __in, unsigned short& __v) { __v = (unsigned short)__in._M_read_int(); return __in; }
+  inline istream& operator>>(istream& __in, bool& __v) { __v = __in._M_read_int() != 0; return __in; }
+  inline istream& operator>>(istream& __in, float& __v) { __v = (float)__in._M_read_double(); return __in; }
+  inline istream& operator>>(istream& __in, double& __v) { __v = __in._M_read_double(); return __in; }
+  inline istream& operator>>(istream& __in, long double& __v) { __v = __in._M_read_double(); return __in; }
+
+  // One non-white-space character.
+  inline istream& operator>>(istream& __in, char& __c) {
+    __in._M_skip_space();
+    int __x = __in._M_peek_eof();
+    if (__x < 0) __in.setstate(ios_base::failbit);
+    else { __in._M_get(); __c = (char)__x; }
+    return __in;
+  }
+
+  // A word: the run of non-white-space characters up to the next white space.
+  inline istream& operator>>(istream& __in, string& __s) {
+    __s.clear();
+    __in._M_skip_space();
+    int __c = __in._M_peek_eof();
+    if (__c < 0) { __in.setstate(ios_base::failbit); return __in; }
+    while (__c >= 0 && !(__c == 32 || (__c >= 9 && __c <= 13))) {
+      __in._M_get();
+      __s.push_back((char)__c);
+      __c = __in._M_peek_eof();
+    }
+    return __in;
+  }
+
+  // A line: everything up to __delim, which is consumed but not stored.
+  // Both forms are spelled out: a default argument would leave the call with
+  // two arguments to libstdc++'s template.
+  inline istream& getline(istream& __in, string& __s, char __delim);
+  inline istream& getline(istream& __in, string& __s) { return getline(__in, __s, 10); }
+  inline istream& getline(istream& __in, string& __s, char __delim) {
+    __s.clear();
+    int __got = 0;
+    while (true) {
+      int __c = __in._M_peek_eof();
+      if (__c < 0) break;
+      __in._M_get();
+      __got++;
+      if (__c == __delim) break;
+      __s.push_back((char)__c);
+    }
+    if (__got == 0) __in.setstate(ios_base::failbit);
+    return __in;
+  }
 
 }
 
