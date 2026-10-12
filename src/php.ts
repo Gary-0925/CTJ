@@ -136,6 +136,14 @@ class PhpGen {
     this.out.push(this.ind + s);
   }
 
+  switchStmts(body: Stmt): void {
+    if (body.kind === "compound") {
+      for (const x of body.stmts) this.stmt(x);
+      return;
+    }
+    this.stmt(body);
+  }
+
   block(head: string, fn: () => void): void {
     this.line(head + " {");
     this.ind += "  ";
@@ -887,11 +895,11 @@ class PhpGen {
           const v = this.cx.getAnn(vd).var as VarInfo;
           this.block("", () => {
             this.varDeclFor(vd, v, v.typeCache as CppType);
-            this.block(`switch (${this.localName(v)})`, () => this.stmt(s.body));
+            this.block(`switch (${this.localName(v)})`, () => this.switchStmts(s.body));
           });
           return;
         }
-        this.block(`switch (${this.exVal(s.cond)})`, () => this.stmt(s.body));
+        this.block(`switch (${this.exVal(s.cond)})`, () => this.switchStmts(s.body));
         return;
       case "case":
         this.line(s.value ? `case ${this.constStr(s.value)}:` : `default:`);

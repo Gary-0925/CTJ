@@ -4311,8 +4311,11 @@ var CTJ;
             this.main = null;
             this.ann = new Map();
             // Types currently being resolved, so a loop says which names are in it
-            // instead of exhausting the stack.
+            // instead of exhausting the stack.  The scope each one is resolved in is
+            // kept beside it: the same spelling means different types in different
+            // classes, and only a name that comes back in its own scope is a loop.
             this.resolving = [];
+            this.resolvingScopes = [];
         }
         getAnn(n) {
             let a = this.ann.get(n);
@@ -5593,10 +5596,27 @@ var CTJ;
             }
             return t;
         }
+        // What a type node is read against.  The class it is read in comes first:
+        // a member typedef of one instance of a class template has nothing to do
+        // with the same member of another.
+        scopeKey(scope) {
+            const cls = scope.cls ? scope.cls.fq || "" : "";
+            return cls + "|" + scope.ns.join("::") + "|" + (scope.fn ? scope.fn.fq : "");
+        }
+        // The place in the list where this name is already being resolved in the
+        // same scope, or -1.  "indexOf" would find the name under another class.
+        resolvingAt(key, sk) {
+            for (let i = 0; i < this.resolving.length; i++) {
+                if (this.resolving[i] === key && this.resolvingScopes[i] === sk)
+                    return i;
+            }
+            return -1;
+        }
         resolveTypeNode(tn, scope) {
             const key = tnKey(tn);
-            const at = this.resolving.indexOf(key);
-            if (at >= 0) {
+            const sk = this.scopeKey(scope);
+            const anyAt = this.resolving.indexOf(key);
+            if (anyAt >= 0) {
                 // A class being instantiated can name itself before its own instantiation
                 // has returned ("typedef _Deque_iterator<_Tp, _Tp&, _Tp*> iterator" in a
                 // constructor's "const iterator&" parameter). Those classes are
@@ -5612,7 +5632,7 @@ var CTJ;
                     return t;
                 }
             }
-            if (at >= 0 && (tn.ptr > 0 || tn.ref !== "" || tn.dims.length > 0 || !!tn.func)) {
+            if (anyAt >= 0 && (tn.ptr > 0 || tn.ref !== "" || tn.dims.length > 0 || !!tn.func)) {
                 const baseName = tn.parts.map(s => s.n).join("::") || "void";
                 const t = CppType.basic(baseName);
                 if (tn.parts.length)
@@ -5620,10 +5640,13 @@ var CTJ;
                 this.applyTypeSuffix(t, tn, scope);
                 return t;
             }
+            const at = this.resolvingAt(key, sk);
             this.resolving.push(key);
+            this.resolvingScopes.push(sk);
             if (at >= 0) {
                 const loop = this.resolving.slice(at).join(" -> ");
                 this.resolving.length = 0;
+                this.resolvingScopes.length = 0;
                 this.fail("cyclic type resolution: " + loop, tn);
             }
             try {
@@ -5631,6 +5654,7 @@ var CTJ;
             }
             finally {
                 this.resolving.pop();
+                this.resolvingScopes.pop();
             }
         }
         resolveTypeNodeInner(tn, scope) {
@@ -6832,6 +6856,16 @@ var CTJ;
         }
         return [substExpr(a, env)];
     }
+    // The expression a functional cast constructs from: "Tp(__args...)" with a
+    // pack of one element constructs that element, which is what a cast holds.
+    function substCastArg(a, env) {
+        if (a.kind === "unary" && a.op === "...") {
+            const ex = expandArg(a, env);
+            if (ex.length === 1)
+                return ex[0];
+        }
+        return substExpr(a, env);
+    }
     function substCallArgs(args, env) {
         const out = [];
         for (const a of args)
@@ -6888,7 +6922,7 @@ var CTJ;
             case "cast":
                 return {
                     kind: "cast", ckind: ex.ckind, type: ex.type ? substTypeNode(ex.type, env) : null,
-                    fn: ex.fn ? substExpr(ex.fn, env) : null, arg: substExpr(ex.arg, env), file: f, line: l,
+                    fn: ex.fn ? substExpr(ex.fn, env) : null, arg: substCastArg(ex.arg, env), file: f, line: l,
                 };
             case "sizeof": {
                 if (ex.packName) {
@@ -6978,7 +7012,9 @@ var CTJ;
         const f = s.file;
         const l = s.line;
         switch (s.kind) {
-            case "compound": return { kind: "compound", stmts: s.stmts.map(x => substStmt(x, env)), file: f, line: l };
+            // A statement of several declarations shares the scope it stands in, and
+            // the copy has to say so too, or the names it declares are lost with it.
+            case "compound": return { kind: "compound", sameScope: s.sameScope, stmts: s.stmts.map(x => substStmt(x, env)), file: f, line: l };
             case "expr": return { kind: "expr", expr: substExpr(s.expr, env), file: f, line: l };
             case "decl": return { kind: "decl", decl: substDecl(s.decl, env), file: f, line: l };
             case "if":
@@ -8892,6 +8928,22 @@ var CTJ;
         cx.getAnn(e).call = { builtin: name };
         return CTJ.CppType.basic("__any");
     }
+    // A class object a parameter takes by value is copied in the callee, so the
+    // class's copy constructor is called there even though the argument never
+    // names it: it has to be emitted like any other call.
+    function markValueCopy(cx, p, a, scope) {
+        if (!p || p.isBox() || p.isFunc || p.dims.length)
+            return;
+        if (a.t.isBox() || a.t.isFunc || a.t.dims.length)
+            return;
+        const fq = cx.stripAll(p);
+        if (!fq || fq !== cx.stripAll(a.t))
+            return;
+        const cls = cx.classes.get(fq);
+        if (!cls || !cls.complete)
+            return;
+        tryResolveCtor(cx, fq, [{ t: a.t, e: a.e }], scope);
+    }
     function applyArgBoxing(cx, e, fn, argTs, scope) {
         const ps = cx.funcParams(fn);
         const convs = cx.getAnn(e).convs;
@@ -8904,6 +8956,7 @@ var CTJ;
             }
             else if (i < ps.length && !ps[i].variadic) {
                 CTJ.boxArg(cx, ps[i].type, a, scope, e);
+                markValueCopy(cx, ps[i].type, a, scope);
             }
         });
     }
@@ -10705,6 +10758,16 @@ var CTJ;
         line(s) {
             this.out.push(this.ind + s);
         }
+        // The braces of a switch are its own: the statements it was given go
+        // straight inside them, so that the labels stay in the switch itself.
+        switchStmts(body) {
+            if (body.kind === "compound") {
+                for (const x of body.stmts)
+                    this.stmt(x);
+                return;
+            }
+            this.stmt(body);
+        }
         block(head, fn) {
             this.line(head + " {");
             this.ind += "  ";
@@ -11456,9 +11519,104 @@ var CTJ;
                     return "";
             }
         }
-        // Fat-pointer helpers used by the libstdc++ red-black tree externals.
         emitPtrHelpers() {
             this.line(`function _ctj_peq(a, b) { return a === b || (!!a && !!b && a.a === b.a && a.i === b.i); }`);
+            this.line(`// _Rb_tree_rebalance_for_erase from libstdc++'s tree.cc: it takes the node`);
+            this.line(`// out of the tree and rebalances, and hands back the node to destroy.`);
+            this.line(`function _ctj_rb_erase(z, hb) {`);
+            this.line(`  var hn = hb.a[hb.i], root = hn._M_parent;`);
+            this.line(`  var D = function (p) { return p ? p.a[p.i] : null; };`);
+            this.line(`  var rotL = function (x) {`);
+            this.line(`    var nx = D(x), y = nx._M_right, ny = D(y);`);
+            this.line(`    nx._M_right = ny._M_left;`);
+            this.line(`    if (ny._M_left) D(ny._M_left)._M_parent = x;`);
+            this.line(`    ny._M_parent = nx._M_parent;`);
+            this.line(`    if (_ctj_peq(x, root)) { root = y; hn._M_parent = root; }`);
+            this.line(`    else if (_ctj_peq(D(nx._M_parent)._M_left, x)) D(nx._M_parent)._M_left = y;`);
+            this.line(`    else D(nx._M_parent)._M_right = y;`);
+            this.line(`    ny._M_left = x; nx._M_parent = y;`);
+            this.line(`  };`);
+            this.line(`  var rotR = function (x) {`);
+            this.line(`    var nx = D(x), y = nx._M_left, ny = D(y);`);
+            this.line(`    nx._M_left = ny._M_right;`);
+            this.line(`    if (ny._M_right) D(ny._M_right)._M_parent = x;`);
+            this.line(`    ny._M_parent = nx._M_parent;`);
+            this.line(`    if (_ctj_peq(x, root)) { root = y; hn._M_parent = root; }`);
+            this.line(`    else if (_ctj_peq(D(nx._M_parent)._M_right, x)) D(nx._M_parent)._M_right = y;`);
+            this.line(`    else D(nx._M_parent)._M_left = y;`);
+            this.line(`    ny._M_right = x; nx._M_parent = y;`);
+            this.line(`  };`);
+            this.line(`  var pz = z, nz = D(pz), py = pz, px = null, pxp = null;`);
+            this.line(`  if (!nz._M_left) px = nz._M_right;`);
+            this.line(`  else if (!nz._M_right) px = nz._M_left;`);
+            this.line(`  else { py = nz._M_right; while (D(py)._M_left) py = D(py)._M_left; px = D(py)._M_right; }`);
+            this.line(`  if (!_ctj_peq(py, pz)) {`);
+            this.line(`    var ny = D(py);`);
+            this.line(`    D(nz._M_left)._M_parent = py;`);
+            this.line(`    ny._M_left = nz._M_left;`);
+            this.line(`    if (!_ctj_peq(py, nz._M_right)) {`);
+            this.line(`      pxp = ny._M_parent;`);
+            this.line(`      if (px) D(px)._M_parent = ny._M_parent;`);
+            this.line(`      D(ny._M_parent)._M_left = px;`);
+            this.line(`      ny._M_right = nz._M_right;`);
+            this.line(`      D(nz._M_right)._M_parent = py;`);
+            this.line(`    } else pxp = py;`);
+            this.line(`    if (_ctj_peq(root, pz)) { root = py; hn._M_parent = root; }`);
+            this.line(`    else if (_ctj_peq(D(nz._M_parent)._M_left, pz)) D(nz._M_parent)._M_left = py;`);
+            this.line(`    else D(nz._M_parent)._M_right = py;`);
+            this.line(`    ny._M_parent = nz._M_parent;`);
+            this.line(`    var cl = ny._M_color; ny._M_color = nz._M_color; nz._M_color = cl;`);
+            this.line(`    py = pz;`);
+            this.line(`  } else {`);
+            this.line(`    pxp = nz._M_parent;`);
+            this.line(`    if (px) D(px)._M_parent = nz._M_parent;`);
+            this.line(`    if (_ctj_peq(root, pz)) { root = px; hn._M_parent = root; }`);
+            this.line(`    else if (_ctj_peq(D(nz._M_parent)._M_left, pz)) D(nz._M_parent)._M_left = px;`);
+            this.line(`    else D(nz._M_parent)._M_right = px;`);
+            this.line(`    if (_ctj_peq(hn._M_left, pz)) {`);
+            this.line(`      if (!nz._M_right) hn._M_left = nz._M_parent;`);
+            this.line(`      else { var a = px; while (D(a)._M_left) a = D(a)._M_left; hn._M_left = a; }`);
+            this.line(`    }`);
+            this.line(`    if (_ctj_peq(hn._M_right, pz)) {`);
+            this.line(`      if (!nz._M_left) hn._M_right = nz._M_parent;`);
+            this.line(`      else { var b = px; while (D(b)._M_right) b = D(b)._M_right; hn._M_right = b; }`);
+            this.line(`    }`);
+            this.line(`  }`);
+            this.line(`  if (D(py)._M_color !== 0) {`);
+            this.line(`    while (!_ctj_peq(px, root) && (!px || D(px)._M_color !== 0)) {`);
+            this.line(`      var nxp = D(pxp);`);
+            this.line(`      if (_ctj_peq(px, nxp._M_left)) {`);
+            this.line(`        var w = nxp._M_right, nw = D(w);`);
+            this.line(`        if (nw._M_color === 0) { nw._M_color = 1; nxp._M_color = 0; rotL(pxp); w = nxp._M_right; nw = D(w); }`);
+            this.line(`        if ((!nw._M_left || D(nw._M_left)._M_color !== 0) && (!nw._M_right || D(nw._M_right)._M_color !== 0)) {`);
+            this.line(`          nw._M_color = 0; px = pxp; pxp = nxp._M_parent;`);
+            this.line(`        } else {`);
+            this.line(`          if (!nw._M_right || D(nw._M_right)._M_color !== 0) {`);
+            this.line(`            D(nw._M_left)._M_color = 1; nw._M_color = 0; rotR(w); w = nxp._M_right; nw = D(w);`);
+            this.line(`          }`);
+            this.line(`          nw._M_color = nxp._M_color; nxp._M_color = 1;`);
+            this.line(`          if (nw._M_right) D(nw._M_right)._M_color = 1;`);
+            this.line(`          rotL(pxp); break;`);
+            this.line(`        }`);
+            this.line(`      } else {`);
+            this.line(`        var w2 = nxp._M_left, nw2 = D(w2);`);
+            this.line(`        if (nw2._M_color === 0) { nw2._M_color = 1; nxp._M_color = 0; rotR(pxp); w2 = nxp._M_left; nw2 = D(w2); }`);
+            this.line(`        if ((!nw2._M_right || D(nw2._M_right)._M_color !== 0) && (!nw2._M_left || D(nw2._M_left)._M_color !== 0)) {`);
+            this.line(`          nw2._M_color = 0; px = pxp; pxp = nxp._M_parent;`);
+            this.line(`        } else {`);
+            this.line(`          if (!nw2._M_left || D(nw2._M_left)._M_color !== 0) {`);
+            this.line(`            D(nw2._M_right)._M_color = 1; nw2._M_color = 0; rotL(w2); w2 = nxp._M_left; nw2 = D(w2);`);
+            this.line(`          }`);
+            this.line(`          nw2._M_color = nxp._M_color; nxp._M_color = 1;`);
+            this.line(`          if (nw2._M_left) D(nw2._M_left)._M_color = 1;`);
+            this.line(`          rotR(pxp); break;`);
+            this.line(`        }`);
+            this.line(`      }`);
+            this.line(`    }`);
+            this.line(`    if (px) D(px)._M_color = 1;`);
+            this.line(`  }`);
+            this.line(`  return py;`);
+            this.line(`}`);
         }
         // The allocation operators are declared by <new> with no body; storage comes
         // from the target language, and freeing is its business too. A placement
@@ -11590,7 +11748,7 @@ var CTJ;
                 ].join(" ");
             }
             if (f.fq === "std::_Rb_tree_rebalance_for_erase") {
-                return "return $a[0];";
+                return "return _ctj_rb_erase($a[0], $a[1]);";
             }
             return null;
         }
@@ -11876,11 +12034,11 @@ var CTJ;
                         const v = this.cx.getAnn(vd).var;
                         this.block("", () => {
                             this.varDeclFor(vd, v, v.typeCache);
-                            this.block(`switch (${this.localName(v)})`, () => this.stmt(s.body));
+                            this.block(`switch (${this.localName(v)})`, () => this.switchStmts(s.body));
                         });
                         return;
                     }
-                    this.block(`switch (${this.exVal(s.cond)})`, () => this.stmt(s.body));
+                    this.block(`switch (${this.exVal(s.cond)})`, () => this.switchStmts(s.body));
                     return;
                 case "case":
                     this.line(s.value ? `case ${this.constStr(s.value)}:` : `default:`);
@@ -12679,6 +12837,25 @@ var CTJ;
             const t = this.tmp();
             return `(${t} = ${this.paren(o)}.${methodJsName(fn)}(), ${t}.a[${t}.i])`;
         }
+        // A copy of a class value calls the class's copy constructor, and a
+        // constructor is emitted only for the classes something calls it on.
+        markCopyCtor(fq) {
+            const cls = this.cx.classes.get(fq);
+            if (!cls)
+                return;
+            for (const f of cls.methods.get("#ctor") || []) {
+                if (this.cx.isCopyCtor(f))
+                    this.cx.markFunc(f);
+            }
+        }
+        // What a copy of an expression is made from: an object is boxed for it,
+        // while a reference is already a box and is handed over as it is.
+        copySource(x) {
+            const at = this.cx.getAnn(x).t;
+            if (at && !at.isFunc && (at.ref !== "" || at.ptr > 0))
+                return this.ex(x);
+            return this.exBox(x);
+        }
         objOf(e) {
             const t = this.cx.getAnn(e).t;
             const needDeref = e.kind !== "this" && !!t && (t.ptr > 0 ||
@@ -13013,9 +13190,11 @@ var CTJ;
             // writes through its own object, and the caller's stays as it was.
             if (!pB && !p.isFunc && at && !at.isBox() && !at.isFunc && !at.dims.length) {
                 const pfq = this.cx.stripAll(p);
-                if (pfq === this.cx.stripAll(at) && this.cx.classes.has(pfq) && !CTJ.initListElemOf(this.cx, p) &&
-                    !this.prvalue(x) && !this.cx.classes.get(pfq).isLambda) {
-                    return `new ${this.cx.classes.get(pfq).mangled}(${this.exBox(x)})`;
+                const pcls = this.cx.classes.get(pfq);
+                if (pcls && pfq === this.cx.stripAll(at) && !CTJ.initListElemOf(this.cx, p) &&
+                    !this.prvalue(x) && !pcls.isLambda) {
+                    this.markCopyCtor(pfq);
+                    return `new ${pcls.mangled}(${this.copySource(x)})`;
                 }
             }
             return this.ex(x);
@@ -13098,7 +13277,10 @@ var CTJ;
                 // The object a local or a temporary is becomes the value handed back;
                 // anything else is copied into one.
                 if (afq === rfq) {
-                    return this.freshValue(x) ? this.ex(x) : `new ${this.cx.classes.get(rfq).mangled}(${this.exBox(x)})`;
+                    if (this.freshValue(x))
+                        return this.ex(x);
+                    this.markCopyCtor(rfq);
+                    return `new ${this.cx.classes.get(rfq).mangled}(${this.copySource(x)})`;
                 }
             }
             return this.argFor(ret, x, null);
@@ -14090,6 +14272,14 @@ var CTJ;
         line(s) {
             this.out.push(this.ind + s);
         }
+        switchStmts(body) {
+            if (body.kind === "compound") {
+                for (const x of body.stmts)
+                    this.stmt(x);
+                return;
+            }
+            this.stmt(body);
+        }
         block(head, fn) {
             this.line(head + " {");
             this.ind += "  ";
@@ -14914,11 +15104,11 @@ var CTJ;
                         const v = this.cx.getAnn(vd).var;
                         this.block("", () => {
                             this.varDeclFor(vd, v, v.typeCache);
-                            this.block(`switch (${this.localName(v)})`, () => this.stmt(s.body));
+                            this.block(`switch (${this.localName(v)})`, () => this.switchStmts(s.body));
                         });
                         return;
                     }
-                    this.block(`switch (${this.exVal(s.cond)})`, () => this.stmt(s.body));
+                    this.block(`switch (${this.exVal(s.cond)})`, () => this.switchStmts(s.body));
                     return;
                 case "case":
                     this.line(s.value ? `case ${this.constStr(s.value)}:` : `default:`);
@@ -16586,4 +16776,4 @@ var CTJ;
     g["CTJ"] = CTJ;
 })();
 
-CTJ.version = "4656bc4 2026-10-12 06:05:12Z";
+CTJ.version = "57bfcd5 2026-10-12 06:20:38Z";

@@ -78,6 +78,11 @@ class std_false_type {
     $this->__init_std_false_type(...$a);
   }
   function __init_std_false_type(...$a) {
+    if (count($a) >= 0 && count($a) <= 0) {
+    }
+    else if (count($a) >= 1 && count($a) <= 1 && ($a[0] === null || is_array($a[0]))) {
+    }
+    else { throw new Exception("no matching constructor"); }
   }
   function __dtor() {
   }

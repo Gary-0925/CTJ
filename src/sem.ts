@@ -1510,13 +1510,34 @@ export class Cx {
   }
 
   // Types currently being resolved, so a loop says which names are in it
-  // instead of exhausting the stack.
+  // instead of exhausting the stack.  The scope each one is resolved in is
+  // kept beside it: the same spelling means different types in different
+  // classes, and only a name that comes back in its own scope is a loop.
   resolving: string[] = [];
+  resolvingScopes: string[] = [];
+
+  // What a type node is read against.  The class it is read in comes first:
+  // a member typedef of one instance of a class template has nothing to do
+  // with the same member of another.
+  scopeKey(scope: Scope): string {
+    const cls = scope.cls ? (scope.cls as unknown as { fq?: string }).fq || "" : "";
+    return cls + "|" + scope.ns.join("::") + "|" + (scope.fn ? scope.fn.fq : "");
+  }
+
+  // The place in the list where this name is already being resolved in the
+  // same scope, or -1.  "indexOf" would find the name under another class.
+  resolvingAt(key: string, sk: string): number {
+    for (let i = 0; i < this.resolving.length; i++) {
+      if (this.resolving[i] === key && this.resolvingScopes[i] === sk) return i;
+    }
+    return -1;
+  }
 
   resolveTypeNode(tn: TypeNode, scope: Scope): CppType {
     const key = tnKey(tn);
-    const at = this.resolving.indexOf(key);
-    if (at >= 0) {
+    const sk = this.scopeKey(scope);
+    const anyAt = this.resolving.indexOf(key);
+    if (anyAt >= 0) {
       // A class being instantiated can name itself before its own instantiation
       // has returned ("typedef _Deque_iterator<_Tp, _Tp&, _Tp*> iterator" in a
       // constructor's "const iterator&" parameter). Those classes are
@@ -1531,23 +1552,27 @@ export class Cx {
         return t;
       }
     }
-    if (at >= 0 && (tn.ptr > 0 || tn.ref !== "" || tn.dims.length > 0 || !!tn.func)) {
+    if (anyAt >= 0 && (tn.ptr > 0 || tn.ref !== "" || tn.dims.length > 0 || !!tn.func)) {
       const baseName = tn.parts.map(s => s.n).join("::") || "void";
       const t = CppType.basic(baseName);
       if (tn.parts.length) t.segs = tn.parts.map(s => ({ n: s.n, a: [] }));
       this.applyTypeSuffix(t, tn, scope);
       return t;
     }
+    const at = this.resolvingAt(key, sk);
     this.resolving.push(key);
+    this.resolvingScopes.push(sk);
     if (at >= 0) {
       const loop = this.resolving.slice(at).join(" -> ");
       this.resolving.length = 0;
+      this.resolvingScopes.length = 0;
       this.fail("cyclic type resolution: " + loop, tn);
     }
     try {
       return this.resolveTypeNodeInner(tn, scope);
     } finally {
       this.resolving.pop();
+      this.resolvingScopes.pop();
     }
   }
 

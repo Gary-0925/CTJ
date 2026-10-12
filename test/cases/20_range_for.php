@@ -3193,7 +3193,13 @@ class std_Rb_tree_const_iterator_std_pair_int_int {
     $this->__init_std_Rb_tree_const_iterator_std_pair_int_int(...$a);
   }
   function __init_std_Rb_tree_const_iterator_std_pair_int_int(...$a) {
-    $this->_M_node = (((($a[0] ?? null)["a"][($a[0] ?? null)["i"]])->_M_node) ? ["a" => ((($a[0] ?? null)["a"][($a[0] ?? null)["i"]])->_M_node)["a"], "i" => ((($a[0] ?? null)["a"][($a[0] ?? null)["i"]])->_M_node)["i"]] : null);
+    if (count($a) >= 1 && count($a) <= 1 && ($a[0] === null || is_array($a[0]))) {
+      $this->_M_node = (((($a[0] ?? null)["a"][($a[0] ?? null)["i"]])->_M_node) ? ["a" => ((($a[0] ?? null)["a"][($a[0] ?? null)["i"]])->_M_node)["a"], "i" => ((($a[0] ?? null)["a"][($a[0] ?? null)["i"]])->_M_node)["i"]] : null);
+    }
+    else if (count($a) >= 1 && count($a) <= 1 && ($a[0] === null || is_array($a[0]))) {
+      $this->_M_node = (((($a[0] ?? null)["a"][($a[0] ?? null)["i"]])->_M_node) ? ["a" => ((($a[0] ?? null)["a"][($a[0] ?? null)["i"]])->_M_node)["a"], "i" => ((($a[0] ?? null)["a"][($a[0] ?? null)["i"]])->_M_node)["i"]] : null);
+    }
+    else { throw new Exception("no matching constructor"); }
   }
   function __dtor() {
   }

@@ -33,6 +33,11 @@ class std_false_type {
     $this->__init_std_false_type(...$a);
   }
   function __init_std_false_type(...$a) {
+    if (count($a) >= 0 && count($a) <= 0) {
+    }
+    else if (count($a) >= 1 && count($a) <= 1 && ($a[0] === null || is_array($a[0]))) {
+    }
+    else { throw new Exception("no matching constructor"); }
   }
   function __dtor() {
   }
@@ -3951,7 +3956,13 @@ class std_Rb_tree_const_iterator_std_pair_std_basic_string_char_std_char_traits_
     $this->__init_std_Rb_tree_const_iterator_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int(...$a);
   }
   function __init_std_Rb_tree_const_iterator_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int(...$a) {
-    $this->_M_node = (((($a[0] ?? null)["a"][($a[0] ?? null)["i"]])->_M_node) ? ["a" => ((($a[0] ?? null)["a"][($a[0] ?? null)["i"]])->_M_node)["a"], "i" => ((($a[0] ?? null)["a"][($a[0] ?? null)["i"]])->_M_node)["i"]] : null);
+    if (count($a) >= 1 && count($a) <= 1 && ($a[0] === null || is_array($a[0]))) {
+      $this->_M_node = (((($a[0] ?? null)["a"][($a[0] ?? null)["i"]])->_M_node) ? ["a" => ((($a[0] ?? null)["a"][($a[0] ?? null)["i"]])->_M_node)["a"], "i" => ((($a[0] ?? null)["a"][($a[0] ?? null)["i"]])->_M_node)["i"]] : null);
+    }
+    else if (count($a) >= 1 && count($a) <= 1 && ($a[0] === null || is_array($a[0]))) {
+      $this->_M_node = (((($a[0] ?? null)["a"][($a[0] ?? null)["i"]])->_M_node) ? ["a" => ((($a[0] ?? null)["a"][($a[0] ?? null)["i"]])->_M_node)["a"], "i" => ((($a[0] ?? null)["a"][($a[0] ?? null)["i"]])->_M_node)["i"]] : null);
+    }
+    else { throw new Exception("no matching constructor"); }
   }
   function __dtor() {
   }

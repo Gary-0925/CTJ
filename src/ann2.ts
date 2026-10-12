@@ -882,6 +882,19 @@ function ctjInline(cx: Cx, e: CallExpr, name: string, argTs: { t: CppType; e: Ex
   return CppType.basic("__any");
 }
 
+// A class object a parameter takes by value is copied in the callee, so the
+// class's copy constructor is called there even though the argument never
+// names it: it has to be emitted like any other call.
+function markValueCopy(cx: Cx, p: CppType | null, a: { t: CppType; e: Expr }, scope: Scope): void {
+  if (!p || p.isBox() || p.isFunc || p.dims.length) return;
+  if (a.t.isBox() || a.t.isFunc || a.t.dims.length) return;
+  const fq = cx.stripAll(p);
+  if (!fq || fq !== cx.stripAll(a.t)) return;
+  const cls = cx.classes.get(fq);
+  if (!cls || !cls.complete) return;
+  tryResolveCtor(cx, fq, [{ t: a.t, e: a.e }], scope);
+}
+
 function applyArgBoxing(cx: Cx, e: CallExpr, fn: FuncInfo, argTs: { t: CppType; e: Expr }[], scope: Scope): void {
   const ps = cx.funcParams(fn);
   const convs = cx.getAnn(e).convs;
@@ -892,6 +905,7 @@ function applyArgBoxing(cx: Cx, e: CallExpr, fn: FuncInfo, argTs: { t: CppType; 
       if (cps.length) boxArg(cx, cps[0].type, a, scope, e);
     } else if (i < ps.length && !ps[i].variadic) {
       boxArg(cx, ps[i].type, a, scope, e);
+      markValueCopy(cx, ps[i].type, a, scope);
     }
   });
 }

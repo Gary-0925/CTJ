@@ -200,6 +200,16 @@ class JsGen {
     this.out.push(this.ind + s);
   }
 
+  // The braces of a switch are its own: the statements it was given go
+  // straight inside them, so that the labels stay in the switch itself.
+  switchStmts(body: Stmt): void {
+    if (body.kind === "compound") {
+      for (const x of body.stmts) this.stmt(x);
+      return;
+    }
+    this.stmt(body);
+  }
+
   block(head: string, fn: () => void): void {
     this.line(head + " {");
     this.ind += "  ";
@@ -899,9 +909,104 @@ class JsGen {
         return "";
     }
   }
-  // Fat-pointer helpers used by the libstdc++ red-black tree externals.
   emitPtrHelpers(): void {
     this.line(`function _ctj_peq(a, b) { return a === b || (!!a && !!b && a.a === b.a && a.i === b.i); }`);
+    this.line(`// _Rb_tree_rebalance_for_erase from libstdc++'s tree.cc: it takes the node`);
+    this.line(`// out of the tree and rebalances, and hands back the node to destroy.`);
+    this.line(`function _ctj_rb_erase(z, hb) {`);
+    this.line(`  var hn = hb.a[hb.i], root = hn._M_parent;`);
+    this.line(`  var D = function (p) { return p ? p.a[p.i] : null; };`);
+    this.line(`  var rotL = function (x) {`);
+    this.line(`    var nx = D(x), y = nx._M_right, ny = D(y);`);
+    this.line(`    nx._M_right = ny._M_left;`);
+    this.line(`    if (ny._M_left) D(ny._M_left)._M_parent = x;`);
+    this.line(`    ny._M_parent = nx._M_parent;`);
+    this.line(`    if (_ctj_peq(x, root)) { root = y; hn._M_parent = root; }`);
+    this.line(`    else if (_ctj_peq(D(nx._M_parent)._M_left, x)) D(nx._M_parent)._M_left = y;`);
+    this.line(`    else D(nx._M_parent)._M_right = y;`);
+    this.line(`    ny._M_left = x; nx._M_parent = y;`);
+    this.line(`  };`);
+    this.line(`  var rotR = function (x) {`);
+    this.line(`    var nx = D(x), y = nx._M_left, ny = D(y);`);
+    this.line(`    nx._M_left = ny._M_right;`);
+    this.line(`    if (ny._M_right) D(ny._M_right)._M_parent = x;`);
+    this.line(`    ny._M_parent = nx._M_parent;`);
+    this.line(`    if (_ctj_peq(x, root)) { root = y; hn._M_parent = root; }`);
+    this.line(`    else if (_ctj_peq(D(nx._M_parent)._M_right, x)) D(nx._M_parent)._M_right = y;`);
+    this.line(`    else D(nx._M_parent)._M_left = y;`);
+    this.line(`    ny._M_right = x; nx._M_parent = y;`);
+    this.line(`  };`);
+    this.line(`  var pz = z, nz = D(pz), py = pz, px = null, pxp = null;`);
+    this.line(`  if (!nz._M_left) px = nz._M_right;`);
+    this.line(`  else if (!nz._M_right) px = nz._M_left;`);
+    this.line(`  else { py = nz._M_right; while (D(py)._M_left) py = D(py)._M_left; px = D(py)._M_right; }`);
+    this.line(`  if (!_ctj_peq(py, pz)) {`);
+    this.line(`    var ny = D(py);`);
+    this.line(`    D(nz._M_left)._M_parent = py;`);
+    this.line(`    ny._M_left = nz._M_left;`);
+    this.line(`    if (!_ctj_peq(py, nz._M_right)) {`);
+    this.line(`      pxp = ny._M_parent;`);
+    this.line(`      if (px) D(px)._M_parent = ny._M_parent;`);
+    this.line(`      D(ny._M_parent)._M_left = px;`);
+    this.line(`      ny._M_right = nz._M_right;`);
+    this.line(`      D(nz._M_right)._M_parent = py;`);
+    this.line(`    } else pxp = py;`);
+    this.line(`    if (_ctj_peq(root, pz)) { root = py; hn._M_parent = root; }`);
+    this.line(`    else if (_ctj_peq(D(nz._M_parent)._M_left, pz)) D(nz._M_parent)._M_left = py;`);
+    this.line(`    else D(nz._M_parent)._M_right = py;`);
+    this.line(`    ny._M_parent = nz._M_parent;`);
+    this.line(`    var cl = ny._M_color; ny._M_color = nz._M_color; nz._M_color = cl;`);
+    this.line(`    py = pz;`);
+    this.line(`  } else {`);
+    this.line(`    pxp = nz._M_parent;`);
+    this.line(`    if (px) D(px)._M_parent = nz._M_parent;`);
+    this.line(`    if (_ctj_peq(root, pz)) { root = px; hn._M_parent = root; }`);
+    this.line(`    else if (_ctj_peq(D(nz._M_parent)._M_left, pz)) D(nz._M_parent)._M_left = px;`);
+    this.line(`    else D(nz._M_parent)._M_right = px;`);
+    this.line(`    if (_ctj_peq(hn._M_left, pz)) {`);
+    this.line(`      if (!nz._M_right) hn._M_left = nz._M_parent;`);
+    this.line(`      else { var a = px; while (D(a)._M_left) a = D(a)._M_left; hn._M_left = a; }`);
+    this.line(`    }`);
+    this.line(`    if (_ctj_peq(hn._M_right, pz)) {`);
+    this.line(`      if (!nz._M_left) hn._M_right = nz._M_parent;`);
+    this.line(`      else { var b = px; while (D(b)._M_right) b = D(b)._M_right; hn._M_right = b; }`);
+    this.line(`    }`);
+    this.line(`  }`);
+    this.line(`  if (D(py)._M_color !== 0) {`);
+    this.line(`    while (!_ctj_peq(px, root) && (!px || D(px)._M_color !== 0)) {`);
+    this.line(`      var nxp = D(pxp);`);
+    this.line(`      if (_ctj_peq(px, nxp._M_left)) {`);
+    this.line(`        var w = nxp._M_right, nw = D(w);`);
+    this.line(`        if (nw._M_color === 0) { nw._M_color = 1; nxp._M_color = 0; rotL(pxp); w = nxp._M_right; nw = D(w); }`);
+    this.line(`        if ((!nw._M_left || D(nw._M_left)._M_color !== 0) && (!nw._M_right || D(nw._M_right)._M_color !== 0)) {`);
+    this.line(`          nw._M_color = 0; px = pxp; pxp = nxp._M_parent;`);
+    this.line(`        } else {`);
+    this.line(`          if (!nw._M_right || D(nw._M_right)._M_color !== 0) {`);
+    this.line(`            D(nw._M_left)._M_color = 1; nw._M_color = 0; rotR(w); w = nxp._M_right; nw = D(w);`);
+    this.line(`          }`);
+    this.line(`          nw._M_color = nxp._M_color; nxp._M_color = 1;`);
+    this.line(`          if (nw._M_right) D(nw._M_right)._M_color = 1;`);
+    this.line(`          rotL(pxp); break;`);
+    this.line(`        }`);
+    this.line(`      } else {`);
+    this.line(`        var w2 = nxp._M_left, nw2 = D(w2);`);
+    this.line(`        if (nw2._M_color === 0) { nw2._M_color = 1; nxp._M_color = 0; rotR(pxp); w2 = nxp._M_left; nw2 = D(w2); }`);
+    this.line(`        if ((!nw2._M_right || D(nw2._M_right)._M_color !== 0) && (!nw2._M_left || D(nw2._M_left)._M_color !== 0)) {`);
+    this.line(`          nw2._M_color = 0; px = pxp; pxp = nxp._M_parent;`);
+    this.line(`        } else {`);
+    this.line(`          if (!nw2._M_left || D(nw2._M_left)._M_color !== 0) {`);
+    this.line(`            D(nw2._M_right)._M_color = 1; nw2._M_color = 0; rotL(w2); w2 = nxp._M_left; nw2 = D(w2);`);
+    this.line(`          }`);
+    this.line(`          nw2._M_color = nxp._M_color; nxp._M_color = 1;`);
+    this.line(`          if (nw2._M_left) D(nw2._M_left)._M_color = 1;`);
+    this.line(`          rotR(pxp); break;`);
+    this.line(`        }`);
+    this.line(`      }`);
+    this.line(`    }`);
+    this.line(`    if (px) D(px)._M_color = 1;`);
+    this.line(`  }`);
+    this.line(`  return py;`);
+    this.line(`}`);
   }
 
   // The allocation operators are declared by <new> with no body; storage comes
@@ -1034,7 +1139,7 @@ class JsGen {
       ].join(" ");
     }
     if (f.fq === "std::_Rb_tree_rebalance_for_erase") {
-      return "return $a[0];";
+      return "return _ctj_rb_erase($a[0], $a[1]);";
     }
     return null;
   }
@@ -1302,11 +1407,11 @@ class JsGen {
           const v = this.cx.getAnn(vd).var as VarInfo;
           this.block("", () => {
             this.varDeclFor(vd, v, v.typeCache as CppType);
-            this.block(`switch (${this.localName(v)})`, () => this.stmt(s.body));
+            this.block(`switch (${this.localName(v)})`, () => this.switchStmts(s.body));
           });
           return;
         }
-        this.block(`switch (${this.exVal(s.cond)})`, () => this.stmt(s.body));
+        this.block(`switch (${this.exVal(s.cond)})`, () => this.switchStmts(s.body));
         return;
       case "case":
         this.line(s.value ? `case ${this.constStr(s.value)}:` : `default:`);
@@ -2022,6 +2127,24 @@ class JsGen {
     return `(${t} = ${this.paren(o)}.${methodJsName(fn)}(), ${t}.a[${t}.i])`;
   }
 
+  // A copy of a class value calls the class's copy constructor, and a
+  // constructor is emitted only for the classes something calls it on.
+  markCopyCtor(fq: string): void {
+    const cls = this.cx.classes.get(fq);
+    if (!cls) return;
+    for (const f of cls.methods.get("#ctor") || []) {
+      if (this.cx.isCopyCtor(f as FuncInfo)) this.cx.markFunc(f as FuncInfo);
+    }
+  }
+
+  // What a copy of an expression is made from: an object is boxed for it,
+  // while a reference is already a box and is handed over as it is.
+  copySource(x: Expr): string {
+    const at = this.cx.getAnn(x).t as CppType | null;
+    if (at && !at.isFunc && (at.ref !== "" || at.ptr > 0)) return this.ex(x);
+    return this.exBox(x);
+  }
+
   objOf(e: Expr): string {
     const t = this.cx.getAnn(e).t as CppType;
     const needDeref = e.kind !== "this" && !!t && (t.ptr > 0 ||
@@ -2336,9 +2459,11 @@ class JsGen {
     // writes through its own object, and the caller's stays as it was.
     if (!pB && !p.isFunc && at && !at.isBox() && !at.isFunc && !at.dims.length) {
       const pfq = this.cx.stripAll(p);
-      if (pfq === this.cx.stripAll(at) && this.cx.classes.has(pfq) && !initListElemOf(this.cx, p) &&
-        !this.prvalue(x) && !(this.cx.classes.get(pfq) as ClsInfo).isLambda) {
-        return `new ${(this.cx.classes.get(pfq) as ClsInfo).mangled}(${this.exBox(x)})`;
+      const pcls = this.cx.classes.get(pfq);
+      if (pcls && pfq === this.cx.stripAll(at) && !initListElemOf(this.cx, p) &&
+        !this.prvalue(x) && !pcls.isLambda) {
+        this.markCopyCtor(pfq);
+        return `new ${pcls.mangled}(${this.copySource(x)})`;
       }
     }
     return this.ex(x);
@@ -2419,7 +2544,9 @@ class JsGen {
       // The object a local or a temporary is becomes the value handed back;
       // anything else is copied into one.
       if (afq === rfq) {
-        return this.freshValue(x) ? this.ex(x) : `new ${(this.cx.classes.get(rfq) as ClsInfo).mangled}(${this.exBox(x)})`;
+        if (this.freshValue(x)) return this.ex(x);
+        this.markCopyCtor(rfq);
+        return `new ${(this.cx.classes.get(rfq) as ClsInfo).mangled}(${this.copySource(x)})`;
       }
     }
     return this.argFor(ret, x, null);

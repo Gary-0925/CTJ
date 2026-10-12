@@ -4,6 +4,102 @@ function __ctj_fmt(v) { for (var n = 0; n < 4 && v && typeof v === "object" && v
 function __ctj_write(s) { s = String(s); if (typeof process !== "undefined" && process.stdout && process.stdout.write) { process.stdout.write(s); return; } __ctj_obuf += s; for (;;) { var n = __ctj_obuf.indexOf("\n"); if (n < 0) break; console.log(__ctj_obuf.slice(0, n)); __ctj_obuf = __ctj_obuf.slice(n + 1); } }
 function __ctj_flush() { if (__ctj_obuf) { console.log(__ctj_obuf); __ctj_obuf = ""; } }
 function _ctj_peq(a, b) { return a === b || (!!a && !!b && a.a === b.a && a.i === b.i); }
+// _Rb_tree_rebalance_for_erase from libstdc++'s tree.cc: it takes the node
+// out of the tree and rebalances, and hands back the node to destroy.
+function _ctj_rb_erase(z, hb) {
+  var hn = hb.a[hb.i], root = hn._M_parent;
+  var D = function (p) { return p ? p.a[p.i] : null; };
+  var rotL = function (x) {
+    var nx = D(x), y = nx._M_right, ny = D(y);
+    nx._M_right = ny._M_left;
+    if (ny._M_left) D(ny._M_left)._M_parent = x;
+    ny._M_parent = nx._M_parent;
+    if (_ctj_peq(x, root)) { root = y; hn._M_parent = root; }
+    else if (_ctj_peq(D(nx._M_parent)._M_left, x)) D(nx._M_parent)._M_left = y;
+    else D(nx._M_parent)._M_right = y;
+    ny._M_left = x; nx._M_parent = y;
+  };
+  var rotR = function (x) {
+    var nx = D(x), y = nx._M_left, ny = D(y);
+    nx._M_left = ny._M_right;
+    if (ny._M_right) D(ny._M_right)._M_parent = x;
+    ny._M_parent = nx._M_parent;
+    if (_ctj_peq(x, root)) { root = y; hn._M_parent = root; }
+    else if (_ctj_peq(D(nx._M_parent)._M_right, x)) D(nx._M_parent)._M_right = y;
+    else D(nx._M_parent)._M_left = y;
+    ny._M_right = x; nx._M_parent = y;
+  };
+  var pz = z, nz = D(pz), py = pz, px = null, pxp = null;
+  if (!nz._M_left) px = nz._M_right;
+  else if (!nz._M_right) px = nz._M_left;
+  else { py = nz._M_right; while (D(py)._M_left) py = D(py)._M_left; px = D(py)._M_right; }
+  if (!_ctj_peq(py, pz)) {
+    var ny = D(py);
+    D(nz._M_left)._M_parent = py;
+    ny._M_left = nz._M_left;
+    if (!_ctj_peq(py, nz._M_right)) {
+      pxp = ny._M_parent;
+      if (px) D(px)._M_parent = ny._M_parent;
+      D(ny._M_parent)._M_left = px;
+      ny._M_right = nz._M_right;
+      D(nz._M_right)._M_parent = py;
+    } else pxp = py;
+    if (_ctj_peq(root, pz)) { root = py; hn._M_parent = root; }
+    else if (_ctj_peq(D(nz._M_parent)._M_left, pz)) D(nz._M_parent)._M_left = py;
+    else D(nz._M_parent)._M_right = py;
+    ny._M_parent = nz._M_parent;
+    var cl = ny._M_color; ny._M_color = nz._M_color; nz._M_color = cl;
+    py = pz;
+  } else {
+    pxp = nz._M_parent;
+    if (px) D(px)._M_parent = nz._M_parent;
+    if (_ctj_peq(root, pz)) { root = px; hn._M_parent = root; }
+    else if (_ctj_peq(D(nz._M_parent)._M_left, pz)) D(nz._M_parent)._M_left = px;
+    else D(nz._M_parent)._M_right = px;
+    if (_ctj_peq(hn._M_left, pz)) {
+      if (!nz._M_right) hn._M_left = nz._M_parent;
+      else { var a = px; while (D(a)._M_left) a = D(a)._M_left; hn._M_left = a; }
+    }
+    if (_ctj_peq(hn._M_right, pz)) {
+      if (!nz._M_left) hn._M_right = nz._M_parent;
+      else { var b = px; while (D(b)._M_right) b = D(b)._M_right; hn._M_right = b; }
+    }
+  }
+  if (D(py)._M_color !== 0) {
+    while (!_ctj_peq(px, root) && (!px || D(px)._M_color !== 0)) {
+      var nxp = D(pxp);
+      if (_ctj_peq(px, nxp._M_left)) {
+        var w = nxp._M_right, nw = D(w);
+        if (nw._M_color === 0) { nw._M_color = 1; nxp._M_color = 0; rotL(pxp); w = nxp._M_right; nw = D(w); }
+        if ((!nw._M_left || D(nw._M_left)._M_color !== 0) && (!nw._M_right || D(nw._M_right)._M_color !== 0)) {
+          nw._M_color = 0; px = pxp; pxp = nxp._M_parent;
+        } else {
+          if (!nw._M_right || D(nw._M_right)._M_color !== 0) {
+            D(nw._M_left)._M_color = 1; nw._M_color = 0; rotR(w); w = nxp._M_right; nw = D(w);
+          }
+          nw._M_color = nxp._M_color; nxp._M_color = 1;
+          if (nw._M_right) D(nw._M_right)._M_color = 1;
+          rotL(pxp); break;
+        }
+      } else {
+        var w2 = nxp._M_left, nw2 = D(w2);
+        if (nw2._M_color === 0) { nw2._M_color = 1; nxp._M_color = 0; rotR(pxp); w2 = nxp._M_left; nw2 = D(w2); }
+        if ((!nw2._M_right || D(nw2._M_right)._M_color !== 0) && (!nw2._M_left || D(nw2._M_left)._M_color !== 0)) {
+          nw2._M_color = 0; px = pxp; pxp = nxp._M_parent;
+        } else {
+          if (!nw2._M_left || D(nw2._M_left)._M_color !== 0) {
+            D(nw2._M_right)._M_color = 1; nw2._M_color = 0; rotL(w2); w2 = nxp._M_left; nw2 = D(w2);
+          }
+          nw2._M_color = nxp._M_color; nxp._M_color = 1;
+          if (nw2._M_left) D(nw2._M_left)._M_color = 1;
+          rotR(pxp); break;
+        }
+      }
+    }
+    if (px) D(px)._M_color = 1;
+  }
+  return py;
+}
 function _ctj_cstr(p, n) {
   if (p == null) return "";
   const a = (p && p.a !== undefined) ? p.a : p;
@@ -37,6 +133,11 @@ class std_false_type {
     this.__init_std_false_type(...$a);
   }
   __init_std_false_type(...$a) {
+    if ($a.length >= 1 && $a.length <= 1 && ($a[0] !== null && typeof $a[0] === "object" && !Array.isArray($a[0]) && $a[0].a !== undefined && $a[0].i !== undefined && $a[0].a[$a[0].i] instanceof std_false_type)) {
+    }
+    else if ($a.length >= 0 && $a.length <= 0) {
+    }
+    else { throw new Error("no matching constructor"); }
   }
   __dtor() {
   }
@@ -3460,7 +3561,13 @@ class std_Rb_tree_const_iterator_std_pair_int_int {
     this.__init_std_Rb_tree_const_iterator_std_pair_int_int(...$a);
   }
   __init_std_Rb_tree_const_iterator_std_pair_int_int(...$a) {
-    this._M_node = (((($a[0]).a[($a[0]).i])._M_node) ? {a: ((($a[0]).a[($a[0]).i])._M_node).a, i: ((($a[0]).a[($a[0]).i])._M_node).i} : null);
+    if ($a.length >= 1 && $a.length <= 1 && ($a[0] !== null && typeof $a[0] === "object" && !Array.isArray($a[0]) && $a[0].a !== undefined && $a[0].i !== undefined && $a[0].a[$a[0].i] instanceof std_Rb_tree_iterator_std_pair_int_int)) {
+      this._M_node = (((($a[0]).a[($a[0]).i])._M_node) ? {a: ((($a[0]).a[($a[0]).i])._M_node).a, i: ((($a[0]).a[($a[0]).i])._M_node).i} : null);
+    }
+    else if ($a.length >= 1 && $a.length <= 1 && ($a[0] !== null && typeof $a[0] === "object" && !Array.isArray($a[0]) && $a[0].a !== undefined && $a[0].i !== undefined && $a[0].a[$a[0].i] instanceof std_Rb_tree_const_iterator_std_pair_int_int)) {
+      this._M_node = (((($a[0]).a[($a[0]).i])._M_node) ? {a: ((($a[0]).a[($a[0]).i])._M_node).a, i: ((($a[0]).a[($a[0]).i])._M_node).i} : null);
+    }
+    else { throw new Error("no matching constructor"); }
   }
   __dtor() {
   }

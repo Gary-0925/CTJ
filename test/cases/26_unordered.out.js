@@ -87,6 +87,11 @@ class std_false_type {
     this.__init_std_false_type(...$a);
   }
   __init_std_false_type(...$a) {
+    if ($a.length >= 1 && $a.length <= 1 && ($a[0] !== null && typeof $a[0] === "object" && !Array.isArray($a[0]) && $a[0].a !== undefined && $a[0].i !== undefined && $a[0].a[$a[0].i] instanceof std_false_type)) {
+    }
+    else if ($a.length >= 0 && $a.length <= 0) {
+    }
+    else { throw new Error("no matching constructor"); }
   }
   __dtor() {
   }
