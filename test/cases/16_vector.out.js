@@ -1198,15 +1198,26 @@ class std_conditional_value0_std_is_lvalue_reference_int_std_is_rvalue_reference
   __dtor() {
   }
 }
-class std_is_static_castable_impl_int_int extends std_do_is_static_castable_impl {
+class std_is_static_castable_impl_int_RR_int extends std_do_is_static_castable_impl {
   constructor(...$a) {
     super();
-    this.__init_std_is_static_castable_impl_int_int(...$a);
+    this.__init_std_is_static_castable_impl_int_RR_int(...$a);
   }
-  __init_std_is_static_castable_impl_int_int(...$a) {
+  __init_std_is_static_castable_impl_int_RR_int(...$a) {
   }
   __dtor() {
     std_do_is_static_castable_impl.prototype.__dtor.call(this);
+  }
+}
+class std_is_lvalue_reference_int_RR extends std_integral_constant_bool_value0 {
+  constructor(...$a) {
+    super();
+    this.__init_std_is_lvalue_reference_int_RR(...$a);
+  }
+  __init_std_is_lvalue_reference_int_RR(...$a) {
+  }
+  __dtor() {
+    std_integral_constant_bool_value0.prototype.__dtor.call(this);
   }
 }
 class std_integral_constant_bool_value1 {
@@ -1263,18 +1274,18 @@ class std_is_constructible_int_int_RR extends std_integral_constant_bool_value1 
     std_integral_constant_bool_value1.prototype.__dtor.call(this);
   }
 }
-class std_is_direct_constructible_int_int extends std_integral_constant_bool_value1 {
+class std_is_direct_constructible_int_int_RR extends std_integral_constant_bool_value1 {
   constructor(...$a) {
     super();
-    this.__init_std_is_direct_constructible_int_int(...$a);
+    this.__init_std_is_direct_constructible_int_int_RR(...$a);
   }
-  __init_std_is_direct_constructible_int_int(...$a) {
+  __init_std_is_direct_constructible_int_int_RR(...$a) {
   }
   __dtor() {
     std_integral_constant_bool_value1.prototype.__dtor.call(this);
   }
 }
-class std_is_constructible_impl_int_int_RR extends std_is_direct_constructible_int_int {
+class std_is_constructible_impl_int_int_RR extends std_is_direct_constructible_int_int_RR {
   constructor(...$a) {
     super();
     this.__init_std_is_constructible_impl_int_int_RR(...$a);
@@ -1282,180 +1293,260 @@ class std_is_constructible_impl_int_int_RR extends std_is_direct_constructible_i
   __init_std_is_constructible_impl_int_int_RR(...$a) {
   }
   __dtor() {
-    std_is_direct_constructible_int_int.prototype.__dtor.call(this);
+    std_is_direct_constructible_int_int_RR.prototype.__dtor.call(this);
   }
 }
-class std_is_direct_constructible_ref_cast_int_int extends std_integral_constant_bool_value1 {
+class std_is_direct_constructible_ref_cast_int_int_RR extends std_integral_constant_bool_value1 {
   constructor(...$a) {
     super();
-    this.__init_std_is_direct_constructible_ref_cast_int_int(...$a);
+    this.__init_std_is_direct_constructible_ref_cast_int_int_RR(...$a);
   }
-  __init_std_is_direct_constructible_ref_cast_int_int(...$a) {
+  __init_std_is_direct_constructible_ref_cast_int_int_RR(...$a) {
   }
   __dtor() {
     std_integral_constant_bool_value1.prototype.__dtor.call(this);
   }
 }
-class std_is_static_castable_int_int extends std_integral_constant_bool_value1 {
+class std_is_static_castable_int_RR_int extends std_integral_constant_bool_value1 {
   constructor(...$a) {
     super();
-    this.__init_std_is_static_castable_int_int(...$a);
+    this.__init_std_is_static_castable_int_RR_int(...$a);
   }
-  __init_std_is_static_castable_int_int(...$a) {
+  __init_std_is_static_castable_int_RR_int(...$a) {
   }
   __dtor() {
     std_integral_constant_bool_value1.prototype.__dtor.call(this);
   }
 }
-class std_is_static_castable_safe_int_int extends std_integral_constant_bool_value1 {
+class std_is_static_castable_safe_int_RR_int extends std_integral_constant_bool_value1 {
   constructor(...$a) {
     super();
-    this.__init_std_is_static_castable_safe_int_int(...$a);
+    this.__init_std_is_static_castable_safe_int_RR_int(...$a);
   }
-  __init_std_is_static_castable_safe_int_int(...$a) {
+  __init_std_is_static_castable_safe_int_RR_int(...$a) {
   }
   __dtor() {
     std_integral_constant_bool_value1.prototype.__dtor.call(this);
   }
 }
-class std_not_std_is_reference_int extends std_integral_constant_bool_value1 {
+class std_is_reference_int_RR extends std_integral_constant_bool_value1 {
   constructor(...$a) {
     super();
-    this.__init_std_not_std_is_reference_int(...$a);
+    this.__init_std_is_reference_int_RR(...$a);
   }
-  __init_std_not_std_is_reference_int(...$a) {
+  __init_std_is_reference_int_RR(...$a) {
   }
   __dtor() {
     std_integral_constant_bool_value1.prototype.__dtor.call(this);
   }
 }
-class std_not_std_is_void_int extends std_integral_constant_bool_value1 {
+class std_is_rvalue_reference_int_RR extends std_integral_constant_bool_value1 {
   constructor(...$a) {
     super();
-    this.__init_std_not_std_is_void_int(...$a);
+    this.__init_std_is_rvalue_reference_int_RR(...$a);
   }
-  __init_std_not_std_is_void_int(...$a) {
+  __init_std_is_rvalue_reference_int_RR(...$a) {
   }
   __dtor() {
     std_integral_constant_bool_value1.prototype.__dtor.call(this);
   }
 }
-class std_and_std_not_std_is_reference_int_std_not_std_is_void_int extends std_not_std_is_void_int {
+class std_or_std_is_lvalue_reference_int_RR_std_is_rvalue_reference_int_RR extends std_is_rvalue_reference_int_RR {
   constructor(...$a) {
     super();
-    this.__init_std_and_std_not_std_is_reference_int_std_not_std_is_void_int(...$a);
+    this.__init_std_or_std_is_lvalue_reference_int_RR_std_is_rvalue_reference_int_RR(...$a);
   }
-  __init_std_and_std_not_std_is_reference_int_std_not_std_is_void_int(...$a) {
+  __init_std_or_std_is_lvalue_reference_int_RR_std_is_rvalue_reference_int_RR(...$a) {
   }
   __dtor() {
-    std_not_std_is_void_int.prototype.__dtor.call(this);
+    std_is_rvalue_reference_int_RR.prototype.__dtor.call(this);
   }
 }
-class std_conditional_value1_std_not_std_is_void_int_std_not_std_is_reference_int {
-  __init_std_conditional_value1_std_not_std_is_void_int_std_not_std_is_reference_int(...$a) { }
-  __dtor() {
-  }
-}
-class std_add_rvalue_reference_helper_int_value1 {
-  __init_std_add_rvalue_reference_helper_int_value1(...$a) { }
+class std_conditional_value0_std_is_lvalue_reference_int_RR_std_is_rvalue_reference_int_RR {
+  __init_std_conditional_value0_std_is_lvalue_reference_int_RR_std_is_rvalue_reference_int_RR(...$a) { }
   __dtor() {
   }
 }
-class std_add_rvalue_reference_int extends std_add_rvalue_reference_helper_int_value1 {
+class std_not_std_is_reference_int_RR extends std_integral_constant_bool_value0 {
   constructor(...$a) {
     super();
-    this.__init_std_add_rvalue_reference_int(...$a);
+    this.__init_std_not_std_is_reference_int_RR(...$a);
   }
-  __init_std_add_rvalue_reference_int(...$a) {
-  }
-  __dtor() {
-    std_add_rvalue_reference_helper_int_value1.prototype.__dtor.call(this);
-  }
-}
-class std_is_function_int extends std_integral_constant_bool_value0 {
-  constructor(...$a) {
-    super();
-    this.__init_std_is_function_int(...$a);
-  }
-  __init_std_is_function_int(...$a) {
+  __init_std_not_std_is_reference_int_RR(...$a) {
   }
   __dtor() {
     std_integral_constant_bool_value0.prototype.__dtor.call(this);
   }
 }
-class std_or_std_is_void_int_std_is_function_int extends std_is_function_int {
+class std_is_void_int_RR extends std_integral_constant_bool_value0 {
   constructor(...$a) {
     super();
-    this.__init_std_or_std_is_void_int_std_is_function_int(...$a);
+    this.__init_std_is_void_int_RR(...$a);
   }
-  __init_std_or_std_is_void_int_std_is_function_int(...$a) {
+  __init_std_is_void_int_RR(...$a) {
   }
   __dtor() {
-    std_is_function_int.prototype.__dtor.call(this);
+    std_integral_constant_bool_value0.prototype.__dtor.call(this);
   }
 }
-class std_conditional_value0_std_is_void_int_std_is_function_int {
-  __init_std_conditional_value0_std_is_void_int_std_is_function_int(...$a) { }
+class std_remove_cv_int_RR {
+  __init_std_remove_cv_int_RR(...$a) { }
   __dtor() {
   }
 }
-class std_not_std_or_std_is_void_int_std_is_function_int extends std_integral_constant_bool_value1 {
+class std_remove_volatile_int_RR {
+  __init_std_remove_volatile_int_RR(...$a) { }
+  __dtor() {
+  }
+}
+class std_remove_const_int_RR {
+  __init_std_remove_const_int_RR(...$a) { }
+  __dtor() {
+  }
+}
+class std_is_void_helper_int_RR extends std_integral_constant_bool_value0 {
   constructor(...$a) {
     super();
-    this.__init_std_not_std_or_std_is_void_int_std_is_function_int(...$a);
+    this.__init_std_is_void_helper_int_RR(...$a);
   }
-  __init_std_not_std_or_std_is_void_int_std_is_function_int(...$a) {
+  __init_std_is_void_helper_int_RR(...$a) {
+  }
+  __dtor() {
+    std_integral_constant_bool_value0.prototype.__dtor.call(this);
+  }
+}
+class std_not_std_is_void_int_RR extends std_integral_constant_bool_value1 {
+  constructor(...$a) {
+    super();
+    this.__init_std_not_std_is_void_int_RR(...$a);
+  }
+  __init_std_not_std_is_void_int_RR(...$a) {
   }
   __dtor() {
     std_integral_constant_bool_value1.prototype.__dtor.call(this);
   }
 }
-class std_is_base_to_derived_ref_int_int_value1 {
+class std_and_std_not_std_is_reference_int_RR_std_not_std_is_void_int_RR extends std_not_std_is_reference_int_RR {
   constructor(...$a) {
-    this.__init_std_is_base_to_derived_ref_int_int_value1(...$a);
+    super();
+    this.__init_std_and_std_not_std_is_reference_int_RR_std_not_std_is_void_int_RR(...$a);
   }
-  __init_std_is_base_to_derived_ref_int_int_value1(...$a) {
+  __init_std_and_std_not_std_is_reference_int_RR_std_not_std_is_void_int_RR(...$a) {
+  }
+  __dtor() {
+    std_not_std_is_reference_int_RR.prototype.__dtor.call(this);
+  }
+}
+class std_conditional_value0_std_not_std_is_void_int_RR_std_not_std_is_reference_int_RR {
+  __init_std_conditional_value0_std_not_std_is_void_int_RR_std_not_std_is_reference_int_RR(...$a) { }
+  __dtor() {
+  }
+}
+class std_add_rvalue_reference_helper_int_RR_value0 {
+  __init_std_add_rvalue_reference_helper_int_RR_value0(...$a) { }
+  __dtor() {
+  }
+}
+class std_add_rvalue_reference_int_RR extends std_add_rvalue_reference_helper_int_RR_value0 {
+  constructor(...$a) {
+    super();
+    this.__init_std_add_rvalue_reference_int_RR(...$a);
+  }
+  __init_std_add_rvalue_reference_int_RR(...$a) {
+  }
+  __dtor() {
+    std_add_rvalue_reference_helper_int_RR_value0.prototype.__dtor.call(this);
+  }
+}
+class std_is_function_int_RR extends std_integral_constant_bool_value0 {
+  constructor(...$a) {
+    super();
+    this.__init_std_is_function_int_RR(...$a);
+  }
+  __init_std_is_function_int_RR(...$a) {
+  }
+  __dtor() {
+    std_integral_constant_bool_value0.prototype.__dtor.call(this);
+  }
+}
+class std_or_std_is_void_int_RR_std_is_function_int_RR extends std_is_function_int_RR {
+  constructor(...$a) {
+    super();
+    this.__init_std_or_std_is_void_int_RR_std_is_function_int_RR(...$a);
+  }
+  __init_std_or_std_is_void_int_RR_std_is_function_int_RR(...$a) {
+  }
+  __dtor() {
+    std_is_function_int_RR.prototype.__dtor.call(this);
+  }
+}
+class std_conditional_value0_std_is_void_int_RR_std_is_function_int_RR {
+  __init_std_conditional_value0_std_is_void_int_RR_std_is_function_int_RR(...$a) { }
+  __dtor() {
+  }
+}
+class std_not_std_or_std_is_void_int_RR_std_is_function_int_RR extends std_integral_constant_bool_value1 {
+  constructor(...$a) {
+    super();
+    this.__init_std_not_std_or_std_is_void_int_RR_std_is_function_int_RR(...$a);
+  }
+  __init_std_not_std_or_std_is_void_int_RR_std_is_function_int_RR(...$a) {
+  }
+  __dtor() {
+    std_integral_constant_bool_value1.prototype.__dtor.call(this);
+  }
+}
+class std_is_base_to_derived_ref_int_RR_int_value1 {
+  constructor(...$a) {
+    this.__init_std_is_base_to_derived_ref_int_RR_int_value1(...$a);
+  }
+  __init_std_is_base_to_derived_ref_int_RR_int_value1(...$a) {
   }
   __dtor() {
   }
   static value = 0;
 }
-class std_and_std_is_lvalue_reference_int_std_is_rvalue_reference_int extends std_is_lvalue_reference_int {
+class std_and_std_is_lvalue_reference_int_RR_std_is_rvalue_reference_int extends std_is_lvalue_reference_int_RR {
   constructor(...$a) {
     super();
-    this.__init_std_and_std_is_lvalue_reference_int_std_is_rvalue_reference_int(...$a);
+    this.__init_std_and_std_is_lvalue_reference_int_RR_std_is_rvalue_reference_int(...$a);
   }
-  __init_std_and_std_is_lvalue_reference_int_std_is_rvalue_reference_int(...$a) {
+  __init_std_and_std_is_lvalue_reference_int_RR_std_is_rvalue_reference_int(...$a) {
   }
   __dtor() {
-    std_is_lvalue_reference_int.prototype.__dtor.call(this);
+    std_is_lvalue_reference_int_RR.prototype.__dtor.call(this);
   }
 }
-class std_conditional_value0_std_is_rvalue_reference_int_std_is_lvalue_reference_int {
-  __init_std_conditional_value0_std_is_rvalue_reference_int_std_is_lvalue_reference_int(...$a) { }
+class std_conditional_value0_std_is_rvalue_reference_int_std_is_lvalue_reference_int_RR {
+  __init_std_conditional_value0_std_is_rvalue_reference_int_std_is_lvalue_reference_int_RR(...$a) { }
   __dtor() {
   }
 }
-class std_is_lvalue_to_rvalue_ref_int_int_value0 extends std_integral_constant_bool_value0 {
+class std_is_lvalue_to_rvalue_ref_int_RR_int_value0 extends std_integral_constant_bool_value0 {
   constructor(...$a) {
     super();
-    this.__init_std_is_lvalue_to_rvalue_ref_int_int_value0(...$a);
+    this.__init_std_is_lvalue_to_rvalue_ref_int_RR_int_value0(...$a);
   }
-  __init_std_is_lvalue_to_rvalue_ref_int_int_value0(...$a) {
+  __init_std_is_lvalue_to_rvalue_ref_int_RR_int_value0(...$a) {
   }
   __dtor() {
     std_integral_constant_bool_value0.prototype.__dtor.call(this);
   }
 }
-class std_or_std_is_base_to_derived_ref_int_int_value1_std_is_lvalue_to_rvalue_ref_int_int_value0 extends std_is_lvalue_to_rvalue_ref_int_int_value0 {
+class std_or_std_is_base_to_derived_ref_int_RR_int_value1_std_is_lvalue_to_rvalue_ref_int_RR_int_value0 extends std_is_lvalue_to_rvalue_ref_int_RR_int_value0 {
   constructor(...$a) {
     super();
-    this.__init_std_or_std_is_base_to_derived_ref_int_int_value1_std_is_lvalue_to_rvalue_ref_int_int_value0(...$a);
+    this.__init_std_or_std_is_base_to_derived_ref_int_RR_int_value1_std_is_lvalue_to_rvalue_ref_int_RR_int_value0(...$a);
   }
-  __init_std_or_std_is_base_to_derived_ref_int_int_value1_std_is_lvalue_to_rvalue_ref_int_int_value0(...$a) {
+  __init_std_or_std_is_base_to_derived_ref_int_RR_int_value1_std_is_lvalue_to_rvalue_ref_int_RR_int_value0(...$a) {
   }
   __dtor() {
-    std_is_lvalue_to_rvalue_ref_int_int_value0.prototype.__dtor.call(this);
+    std_is_lvalue_to_rvalue_ref_int_RR_int_value0.prototype.__dtor.call(this);
+  }
+}
+class std_remove_reference_int_RR {
+  __init_std_remove_reference_int_RR(...$a) { }
+  __dtor() {
   }
 }
 class std_is_same_int_int extends std_integral_constant_bool_value1 {
@@ -1507,58 +1598,58 @@ class std_conditional_value0_std_is_base_of_int_int_std_not_std_is_same_int_int 
   __dtor() {
   }
 }
-class std_conditional_value0_std_is_base_to_derived_ref_int_int_value1_std_is_lvalue_to_rvalue_ref_int_int_value0 {
-  __init_std_conditional_value0_std_is_base_to_derived_ref_int_int_value1_std_is_lvalue_to_rvalue_ref_int_int_value0(...$a) { }
+class std_conditional_value0_std_is_base_to_derived_ref_int_RR_int_value1_std_is_lvalue_to_rvalue_ref_int_RR_int_value0 {
+  __init_std_conditional_value0_std_is_base_to_derived_ref_int_RR_int_value1_std_is_lvalue_to_rvalue_ref_int_RR_int_value0(...$a) { }
   __dtor() {
   }
 }
-class std_not_std_or_std_is_base_to_derived_ref_int_int_value1_std_is_lvalue_to_rvalue_ref_int_int_value0 extends std_integral_constant_bool_value1 {
+class std_not_std_or_std_is_base_to_derived_ref_int_RR_int_value1_std_is_lvalue_to_rvalue_ref_int_RR_int_value0 extends std_integral_constant_bool_value1 {
   constructor(...$a) {
     super();
-    this.__init_std_not_std_or_std_is_base_to_derived_ref_int_int_value1_std_is_lvalue_to_rvalue_ref_int_int_value0(...$a);
+    this.__init_std_not_std_or_std_is_base_to_derived_ref_int_RR_int_value1_std_is_lvalue_to_rvalue_ref_int_RR_int_value0(...$a);
   }
-  __init_std_not_std_or_std_is_base_to_derived_ref_int_int_value1_std_is_lvalue_to_rvalue_ref_int_int_value0(...$a) {
+  __init_std_not_std_or_std_is_base_to_derived_ref_int_RR_int_value1_std_is_lvalue_to_rvalue_ref_int_RR_int_value0(...$a) {
   }
   __dtor() {
     std_integral_constant_bool_value1.prototype.__dtor.call(this);
   }
 }
-class std_and_std_is_static_castable_int_int_std_not_std_or_std_is_base_to_derived_ref_int_int_value1_std_is_lvalue_to_rvalue_ref_int_int_value0 extends std_not_std_or_std_is_base_to_derived_ref_int_int_value1_std_is_lvalue_to_rvalue_ref_int_int_value0 {
+class std_and_std_is_static_castable_int_RR_int_std_not_std_or_std_is_base_to_derived_ref_int_RR_int_value1_std_is_lvalue_to_rvalue_ref_int_RR_int_value0 extends std_not_std_or_std_is_base_to_derived_ref_int_RR_int_value1_std_is_lvalue_to_rvalue_ref_int_RR_int_value0 {
   constructor(...$a) {
     super();
-    this.__init_std_and_std_is_static_castable_int_int_std_not_std_or_std_is_base_to_derived_ref_int_int_value1_std_is_lvalue_to_rvalue_ref_int_int_value0(...$a);
+    this.__init_std_and_std_is_static_castable_int_RR_int_std_not_std_or_std_is_base_to_derived_ref_int_RR_int_value1_std_is_lvalue_to_rvalue_ref_int_RR_int_value0(...$a);
   }
-  __init_std_and_std_is_static_castable_int_int_std_not_std_or_std_is_base_to_derived_ref_int_int_value1_std_is_lvalue_to_rvalue_ref_int_int_value0(...$a) {
+  __init_std_and_std_is_static_castable_int_RR_int_std_not_std_or_std_is_base_to_derived_ref_int_RR_int_value1_std_is_lvalue_to_rvalue_ref_int_RR_int_value0(...$a) {
   }
   __dtor() {
-    std_not_std_or_std_is_base_to_derived_ref_int_int_value1_std_is_lvalue_to_rvalue_ref_int_int_value0.prototype.__dtor.call(this);
+    std_not_std_or_std_is_base_to_derived_ref_int_RR_int_value1_std_is_lvalue_to_rvalue_ref_int_RR_int_value0.prototype.__dtor.call(this);
   }
 }
-class std_conditional_value1_std_not_std_or_std_is_base_to_derived_ref_int_int_value1_std_is_lvalue_to_rvalue_ref_int_int_value0_std_is_static_castable_int_int {
-  __init_std_conditional_value1_std_not_std_or_std_is_base_to_derived_ref_int_int_value1_std_is_lvalue_to_rvalue_ref_int_int_value0_std_is_static_castable_int_int(...$a) { }
+class std_conditional_value1_std_not_std_or_std_is_base_to_derived_ref_int_RR_int_value1_std_is_lvalue_to_rvalue_ref_int_RR_int_value0_std_is_static_castable_int_RR_int {
+  __init_std_conditional_value1_std_not_std_or_std_is_base_to_derived_ref_int_RR_int_value1_std_is_lvalue_to_rvalue_ref_int_RR_int_value0_std_is_static_castable_int_RR_int(...$a) { }
   __dtor() {
   }
 }
-class std_is_direct_constructible_new_safe_int_int extends std_integral_constant_bool_value1 {
+class std_is_direct_constructible_new_safe_int_int_RR extends std_integral_constant_bool_value1 {
   constructor(...$a) {
     super();
-    this.__init_std_is_direct_constructible_new_safe_int_int(...$a);
+    this.__init_std_is_direct_constructible_new_safe_int_int_RR(...$a);
   }
-  __init_std_is_direct_constructible_new_safe_int_int(...$a) {
+  __init_std_is_direct_constructible_new_safe_int_int_RR(...$a) {
   }
   __dtor() {
     std_integral_constant_bool_value1.prototype.__dtor.call(this);
   }
 }
-class std_is_direct_constructible_new_int_int extends std_is_direct_constructible_new_safe_int_int {
+class std_is_direct_constructible_new_int_int_RR extends std_is_direct_constructible_new_safe_int_int_RR {
   constructor(...$a) {
     super();
-    this.__init_std_is_direct_constructible_new_int_int(...$a);
+    this.__init_std_is_direct_constructible_new_int_int_RR(...$a);
   }
-  __init_std_is_direct_constructible_new_int_int(...$a) {
+  __init_std_is_direct_constructible_new_int_int_RR(...$a) {
   }
   __dtor() {
-    std_is_direct_constructible_new_safe_int_int.prototype.__dtor.call(this);
+    std_is_direct_constructible_new_safe_int_int_RR.prototype.__dtor.call(this);
   }
 }
 class std_is_destructible_int extends std_integral_constant_bool_value1 {
@@ -1640,6 +1731,17 @@ class std_and_std_is_array_int_std_not_std_extent_int_value0 extends std_is_arra
 class std_conditional_value0_std_not_std_extent_int_value0_std_is_array_int {
   __init_std_conditional_value0_std_not_std_extent_int_value0_std_is_array_int(...$a) { }
   __dtor() {
+  }
+}
+class std_is_function_int extends std_integral_constant_bool_value0 {
+  constructor(...$a) {
+    super();
+    this.__init_std_is_function_int(...$a);
+  }
+  __init_std_is_function_int(...$a) {
+  }
+  __dtor() {
+    std_integral_constant_bool_value0.prototype.__dtor.call(this);
   }
 }
 class std_or_std_is_array_unknown_bounds_int_std_is_function_int extends std_is_function_int {
@@ -1924,35 +2026,35 @@ class std_is_destructible_safe_int_value0_value1 extends std_integral_constant_b
     std_integral_constant_bool_value1.prototype.__dtor.call(this);
   }
 }
-class std_is_direct_constructible_impl_int_int extends std_do_is_direct_constructible_impl {
+class std_is_direct_constructible_impl_int_int_RR extends std_do_is_direct_constructible_impl {
   constructor(...$a) {
     super();
-    this.__init_std_is_direct_constructible_impl_int_int(...$a);
+    this.__init_std_is_direct_constructible_impl_int_int_RR(...$a);
   }
-  __init_std_is_direct_constructible_impl_int_int(...$a) {
+  __init_std_is_direct_constructible_impl_int_int_RR(...$a) {
   }
   __dtor() {
     std_do_is_direct_constructible_impl.prototype.__dtor.call(this);
   }
 }
-class std_and_std_is_destructible_int_std_is_direct_constructible_impl_int_int extends std_is_direct_constructible_impl_int_int {
+class std_and_std_is_destructible_int_std_is_direct_constructible_impl_int_int_RR extends std_is_direct_constructible_impl_int_int_RR {
   constructor(...$a) {
     super();
-    this.__init_std_and_std_is_destructible_int_std_is_direct_constructible_impl_int_int(...$a);
+    this.__init_std_and_std_is_destructible_int_std_is_direct_constructible_impl_int_int_RR(...$a);
   }
-  __init_std_and_std_is_destructible_int_std_is_direct_constructible_impl_int_int(...$a) {
+  __init_std_and_std_is_destructible_int_std_is_direct_constructible_impl_int_int_RR(...$a) {
   }
   __dtor() {
-    std_is_direct_constructible_impl_int_int.prototype.__dtor.call(this);
+    std_is_direct_constructible_impl_int_int_RR.prototype.__dtor.call(this);
   }
 }
-class std_conditional_value1_std_is_direct_constructible_impl_int_int_std_is_destructible_int {
-  __init_std_conditional_value1_std_is_direct_constructible_impl_int_int_std_is_destructible_int(...$a) { }
+class std_conditional_value1_std_is_direct_constructible_impl_int_int_RR_std_is_destructible_int {
+  __init_std_conditional_value1_std_is_direct_constructible_impl_int_int_RR_std_is_destructible_int(...$a) { }
   __dtor() {
   }
 }
-class std_conditional_value0_std_is_direct_constructible_ref_cast_int_int_std_is_direct_constructible_new_safe_int_int {
-  __init_std_conditional_value0_std_is_direct_constructible_ref_cast_int_int_std_is_direct_constructible_new_safe_int_int(...$a) { }
+class std_conditional_value0_std_is_direct_constructible_ref_cast_int_int_RR_std_is_direct_constructible_new_safe_int_int_RR {
+  __init_std_conditional_value0_std_is_direct_constructible_ref_cast_int_int_RR_std_is_direct_constructible_new_safe_int_int_RR(...$a) { }
   __dtor() {
   }
 }
@@ -2027,7 +2129,18 @@ class std_is_copy_constructible_int extends std_is_copy_constructible_impl_int_v
     std_is_copy_constructible_impl_int_value0.prototype.__dtor.call(this);
   }
 }
-class std_is_constructible_impl_int_int_R extends std_is_direct_constructible_int_int {
+class std_is_direct_constructible_int_int_R extends std_integral_constant_bool_value1 {
+  constructor(...$a) {
+    super();
+    this.__init_std_is_direct_constructible_int_int_R(...$a);
+  }
+  __init_std_is_direct_constructible_int_int_R(...$a) {
+  }
+  __dtor() {
+    std_integral_constant_bool_value1.prototype.__dtor.call(this);
+  }
+}
+class std_is_constructible_impl_int_int_R extends std_is_direct_constructible_int_int_R {
   constructor(...$a) {
     super();
     this.__init_std_is_constructible_impl_int_int_R(...$a);
@@ -2035,7 +2148,368 @@ class std_is_constructible_impl_int_int_R extends std_is_direct_constructible_in
   __init_std_is_constructible_impl_int_int_R(...$a) {
   }
   __dtor() {
-    std_is_direct_constructible_int_int.prototype.__dtor.call(this);
+    std_is_direct_constructible_int_int_R.prototype.__dtor.call(this);
+  }
+}
+class std_is_direct_constructible_ref_cast_int_int_R extends std_integral_constant_bool_value1 {
+  constructor(...$a) {
+    super();
+    this.__init_std_is_direct_constructible_ref_cast_int_int_R(...$a);
+  }
+  __init_std_is_direct_constructible_ref_cast_int_int_R(...$a) {
+  }
+  __dtor() {
+    std_integral_constant_bool_value1.prototype.__dtor.call(this);
+  }
+}
+class std_is_static_castable_int_R_int extends std_integral_constant_bool_value1 {
+  constructor(...$a) {
+    super();
+    this.__init_std_is_static_castable_int_R_int(...$a);
+  }
+  __init_std_is_static_castable_int_R_int(...$a) {
+  }
+  __dtor() {
+    std_integral_constant_bool_value1.prototype.__dtor.call(this);
+  }
+}
+class std_is_static_castable_safe_int_R_int extends std_integral_constant_bool_value1 {
+  constructor(...$a) {
+    super();
+    this.__init_std_is_static_castable_safe_int_R_int(...$a);
+  }
+  __init_std_is_static_castable_safe_int_R_int(...$a) {
+  }
+  __dtor() {
+    std_integral_constant_bool_value1.prototype.__dtor.call(this);
+  }
+}
+class std_is_static_castable_impl_int_R_int extends std_do_is_static_castable_impl {
+  constructor(...$a) {
+    super();
+    this.__init_std_is_static_castable_impl_int_R_int(...$a);
+  }
+  __init_std_is_static_castable_impl_int_R_int(...$a) {
+  }
+  __dtor() {
+    std_do_is_static_castable_impl.prototype.__dtor.call(this);
+  }
+}
+class std_is_reference_int_R extends std_integral_constant_bool_value1 {
+  constructor(...$a) {
+    super();
+    this.__init_std_is_reference_int_R(...$a);
+  }
+  __init_std_is_reference_int_R(...$a) {
+  }
+  __dtor() {
+    std_integral_constant_bool_value1.prototype.__dtor.call(this);
+  }
+}
+class std_is_lvalue_reference_int_R extends std_integral_constant_bool_value1 {
+  constructor(...$a) {
+    super();
+    this.__init_std_is_lvalue_reference_int_R(...$a);
+  }
+  __init_std_is_lvalue_reference_int_R(...$a) {
+  }
+  __dtor() {
+    std_integral_constant_bool_value1.prototype.__dtor.call(this);
+  }
+}
+class std_is_rvalue_reference_int_R extends std_integral_constant_bool_value0 {
+  constructor(...$a) {
+    super();
+    this.__init_std_is_rvalue_reference_int_R(...$a);
+  }
+  __init_std_is_rvalue_reference_int_R(...$a) {
+  }
+  __dtor() {
+    std_integral_constant_bool_value0.prototype.__dtor.call(this);
+  }
+}
+class std_or_std_is_lvalue_reference_int_R_std_is_rvalue_reference_int_R extends std_is_lvalue_reference_int_R {
+  constructor(...$a) {
+    super();
+    this.__init_std_or_std_is_lvalue_reference_int_R_std_is_rvalue_reference_int_R(...$a);
+  }
+  __init_std_or_std_is_lvalue_reference_int_R_std_is_rvalue_reference_int_R(...$a) {
+  }
+  __dtor() {
+    std_is_lvalue_reference_int_R.prototype.__dtor.call(this);
+  }
+}
+class std_conditional_value1_std_is_lvalue_reference_int_R_std_is_rvalue_reference_int_R {
+  __init_std_conditional_value1_std_is_lvalue_reference_int_R_std_is_rvalue_reference_int_R(...$a) { }
+  __dtor() {
+  }
+}
+class std_not_std_is_reference_int_R extends std_integral_constant_bool_value0 {
+  constructor(...$a) {
+    super();
+    this.__init_std_not_std_is_reference_int_R(...$a);
+  }
+  __init_std_not_std_is_reference_int_R(...$a) {
+  }
+  __dtor() {
+    std_integral_constant_bool_value0.prototype.__dtor.call(this);
+  }
+}
+class std_is_void_int_R extends std_integral_constant_bool_value0 {
+  constructor(...$a) {
+    super();
+    this.__init_std_is_void_int_R(...$a);
+  }
+  __init_std_is_void_int_R(...$a) {
+  }
+  __dtor() {
+    std_integral_constant_bool_value0.prototype.__dtor.call(this);
+  }
+}
+class std_remove_cv_int_R {
+  __init_std_remove_cv_int_R(...$a) { }
+  __dtor() {
+  }
+}
+class std_remove_volatile_int_R {
+  __init_std_remove_volatile_int_R(...$a) { }
+  __dtor() {
+  }
+}
+class std_remove_const_int_R {
+  __init_std_remove_const_int_R(...$a) { }
+  __dtor() {
+  }
+}
+class std_is_void_helper_int_R extends std_integral_constant_bool_value0 {
+  constructor(...$a) {
+    super();
+    this.__init_std_is_void_helper_int_R(...$a);
+  }
+  __init_std_is_void_helper_int_R(...$a) {
+  }
+  __dtor() {
+    std_integral_constant_bool_value0.prototype.__dtor.call(this);
+  }
+}
+class std_not_std_is_void_int_R extends std_integral_constant_bool_value1 {
+  constructor(...$a) {
+    super();
+    this.__init_std_not_std_is_void_int_R(...$a);
+  }
+  __init_std_not_std_is_void_int_R(...$a) {
+  }
+  __dtor() {
+    std_integral_constant_bool_value1.prototype.__dtor.call(this);
+  }
+}
+class std_and_std_not_std_is_reference_int_R_std_not_std_is_void_int_R extends std_not_std_is_reference_int_R {
+  constructor(...$a) {
+    super();
+    this.__init_std_and_std_not_std_is_reference_int_R_std_not_std_is_void_int_R(...$a);
+  }
+  __init_std_and_std_not_std_is_reference_int_R_std_not_std_is_void_int_R(...$a) {
+  }
+  __dtor() {
+    std_not_std_is_reference_int_R.prototype.__dtor.call(this);
+  }
+}
+class std_conditional_value0_std_not_std_is_void_int_R_std_not_std_is_reference_int_R {
+  __init_std_conditional_value0_std_not_std_is_void_int_R_std_not_std_is_reference_int_R(...$a) { }
+  __dtor() {
+  }
+}
+class std_add_rvalue_reference_helper_int_R_value0 {
+  __init_std_add_rvalue_reference_helper_int_R_value0(...$a) { }
+  __dtor() {
+  }
+}
+class std_add_rvalue_reference_int_R extends std_add_rvalue_reference_helper_int_R_value0 {
+  constructor(...$a) {
+    super();
+    this.__init_std_add_rvalue_reference_int_R(...$a);
+  }
+  __init_std_add_rvalue_reference_int_R(...$a) {
+  }
+  __dtor() {
+    std_add_rvalue_reference_helper_int_R_value0.prototype.__dtor.call(this);
+  }
+}
+class std_is_function_int_R extends std_integral_constant_bool_value0 {
+  constructor(...$a) {
+    super();
+    this.__init_std_is_function_int_R(...$a);
+  }
+  __init_std_is_function_int_R(...$a) {
+  }
+  __dtor() {
+    std_integral_constant_bool_value0.prototype.__dtor.call(this);
+  }
+}
+class std_or_std_is_void_int_R_std_is_function_int_R extends std_is_function_int_R {
+  constructor(...$a) {
+    super();
+    this.__init_std_or_std_is_void_int_R_std_is_function_int_R(...$a);
+  }
+  __init_std_or_std_is_void_int_R_std_is_function_int_R(...$a) {
+  }
+  __dtor() {
+    std_is_function_int_R.prototype.__dtor.call(this);
+  }
+}
+class std_conditional_value0_std_is_void_int_R_std_is_function_int_R {
+  __init_std_conditional_value0_std_is_void_int_R_std_is_function_int_R(...$a) { }
+  __dtor() {
+  }
+}
+class std_not_std_or_std_is_void_int_R_std_is_function_int_R extends std_integral_constant_bool_value1 {
+  constructor(...$a) {
+    super();
+    this.__init_std_not_std_or_std_is_void_int_R_std_is_function_int_R(...$a);
+  }
+  __init_std_not_std_or_std_is_void_int_R_std_is_function_int_R(...$a) {
+  }
+  __dtor() {
+    std_integral_constant_bool_value1.prototype.__dtor.call(this);
+  }
+}
+class std_is_base_to_derived_ref_int_R_int_value1 {
+  constructor(...$a) {
+    this.__init_std_is_base_to_derived_ref_int_R_int_value1(...$a);
+  }
+  __init_std_is_base_to_derived_ref_int_R_int_value1(...$a) {
+  }
+  __dtor() {
+  }
+  static value = 0;
+}
+class std_and_std_is_lvalue_reference_int_R_std_is_rvalue_reference_int extends std_is_rvalue_reference_int {
+  constructor(...$a) {
+    super();
+    this.__init_std_and_std_is_lvalue_reference_int_R_std_is_rvalue_reference_int(...$a);
+  }
+  __init_std_and_std_is_lvalue_reference_int_R_std_is_rvalue_reference_int(...$a) {
+  }
+  __dtor() {
+    std_is_rvalue_reference_int.prototype.__dtor.call(this);
+  }
+}
+class std_conditional_value1_std_is_rvalue_reference_int_std_is_lvalue_reference_int_R {
+  __init_std_conditional_value1_std_is_rvalue_reference_int_std_is_lvalue_reference_int_R(...$a) { }
+  __dtor() {
+  }
+}
+class std_is_lvalue_to_rvalue_ref_int_R_int_value0 extends std_integral_constant_bool_value0 {
+  constructor(...$a) {
+    super();
+    this.__init_std_is_lvalue_to_rvalue_ref_int_R_int_value0(...$a);
+  }
+  __init_std_is_lvalue_to_rvalue_ref_int_R_int_value0(...$a) {
+  }
+  __dtor() {
+    std_integral_constant_bool_value0.prototype.__dtor.call(this);
+  }
+}
+class std_or_std_is_base_to_derived_ref_int_R_int_value1_std_is_lvalue_to_rvalue_ref_int_R_int_value0 extends std_is_lvalue_to_rvalue_ref_int_R_int_value0 {
+  constructor(...$a) {
+    super();
+    this.__init_std_or_std_is_base_to_derived_ref_int_R_int_value1_std_is_lvalue_to_rvalue_ref_int_R_int_value0(...$a);
+  }
+  __init_std_or_std_is_base_to_derived_ref_int_R_int_value1_std_is_lvalue_to_rvalue_ref_int_R_int_value0(...$a) {
+  }
+  __dtor() {
+    std_is_lvalue_to_rvalue_ref_int_R_int_value0.prototype.__dtor.call(this);
+  }
+}
+class std_remove_reference_int_R {
+  __init_std_remove_reference_int_R(...$a) { }
+  __dtor() {
+  }
+}
+class std_conditional_value0_std_is_base_to_derived_ref_int_R_int_value1_std_is_lvalue_to_rvalue_ref_int_R_int_value0 {
+  __init_std_conditional_value0_std_is_base_to_derived_ref_int_R_int_value1_std_is_lvalue_to_rvalue_ref_int_R_int_value0(...$a) { }
+  __dtor() {
+  }
+}
+class std_not_std_or_std_is_base_to_derived_ref_int_R_int_value1_std_is_lvalue_to_rvalue_ref_int_R_int_value0 extends std_integral_constant_bool_value1 {
+  constructor(...$a) {
+    super();
+    this.__init_std_not_std_or_std_is_base_to_derived_ref_int_R_int_value1_std_is_lvalue_to_rvalue_ref_int_R_int_value0(...$a);
+  }
+  __init_std_not_std_or_std_is_base_to_derived_ref_int_R_int_value1_std_is_lvalue_to_rvalue_ref_int_R_int_value0(...$a) {
+  }
+  __dtor() {
+    std_integral_constant_bool_value1.prototype.__dtor.call(this);
+  }
+}
+class std_and_std_is_static_castable_int_R_int_std_not_std_or_std_is_base_to_derived_ref_int_R_int_value1_std_is_lvalue_to_rvalue_ref_int_R_int_value0 extends std_not_std_or_std_is_base_to_derived_ref_int_R_int_value1_std_is_lvalue_to_rvalue_ref_int_R_int_value0 {
+  constructor(...$a) {
+    super();
+    this.__init_std_and_std_is_static_castable_int_R_int_std_not_std_or_std_is_base_to_derived_ref_int_R_int_value1_std_is_lvalue_to_rvalue_ref_int_R_int_value0(...$a);
+  }
+  __init_std_and_std_is_static_castable_int_R_int_std_not_std_or_std_is_base_to_derived_ref_int_R_int_value1_std_is_lvalue_to_rvalue_ref_int_R_int_value0(...$a) {
+  }
+  __dtor() {
+    std_not_std_or_std_is_base_to_derived_ref_int_R_int_value1_std_is_lvalue_to_rvalue_ref_int_R_int_value0.prototype.__dtor.call(this);
+  }
+}
+class std_conditional_value1_std_not_std_or_std_is_base_to_derived_ref_int_R_int_value1_std_is_lvalue_to_rvalue_ref_int_R_int_value0_std_is_static_castable_int_R_int {
+  __init_std_conditional_value1_std_not_std_or_std_is_base_to_derived_ref_int_R_int_value1_std_is_lvalue_to_rvalue_ref_int_R_int_value0_std_is_static_castable_int_R_int(...$a) { }
+  __dtor() {
+  }
+}
+class std_is_direct_constructible_new_safe_int_int_R extends std_integral_constant_bool_value1 {
+  constructor(...$a) {
+    super();
+    this.__init_std_is_direct_constructible_new_safe_int_int_R(...$a);
+  }
+  __init_std_is_direct_constructible_new_safe_int_int_R(...$a) {
+  }
+  __dtor() {
+    std_integral_constant_bool_value1.prototype.__dtor.call(this);
+  }
+}
+class std_is_direct_constructible_new_int_int_R extends std_is_direct_constructible_new_safe_int_int_R {
+  constructor(...$a) {
+    super();
+    this.__init_std_is_direct_constructible_new_int_int_R(...$a);
+  }
+  __init_std_is_direct_constructible_new_int_int_R(...$a) {
+  }
+  __dtor() {
+    std_is_direct_constructible_new_safe_int_int_R.prototype.__dtor.call(this);
+  }
+}
+class std_is_direct_constructible_impl_int_int_R extends std_do_is_direct_constructible_impl {
+  constructor(...$a) {
+    super();
+    this.__init_std_is_direct_constructible_impl_int_int_R(...$a);
+  }
+  __init_std_is_direct_constructible_impl_int_int_R(...$a) {
+  }
+  __dtor() {
+    std_do_is_direct_constructible_impl.prototype.__dtor.call(this);
+  }
+}
+class std_and_std_is_destructible_int_std_is_direct_constructible_impl_int_int_R extends std_is_direct_constructible_impl_int_int_R {
+  constructor(...$a) {
+    super();
+    this.__init_std_and_std_is_destructible_int_std_is_direct_constructible_impl_int_int_R(...$a);
+  }
+  __init_std_and_std_is_destructible_int_std_is_direct_constructible_impl_int_int_R(...$a) {
+  }
+  __dtor() {
+    std_is_direct_constructible_impl_int_int_R.prototype.__dtor.call(this);
+  }
+}
+class std_conditional_value1_std_is_direct_constructible_impl_int_int_R_std_is_destructible_int {
+  __init_std_conditional_value1_std_is_direct_constructible_impl_int_int_R_std_is_destructible_int(...$a) { }
+  __dtor() {
+  }
+}
+class std_conditional_value0_std_is_direct_constructible_ref_cast_int_int_R_std_is_direct_constructible_new_safe_int_int_R {
+  __init_std_conditional_value0_std_is_direct_constructible_ref_cast_int_int_R_std_is_direct_constructible_new_safe_int_int_R(...$a) { }
+  __dtor() {
   }
 }
 class std_and_std_not_std_is_nothrow_move_constructible_int_std_is_copy_constructible_int extends std_not_std_is_nothrow_move_constructible_int {
@@ -2087,11 +2561,21 @@ class std_conditional_value0_int_P_std_move_iterator_int_P {
   __dtor() {
   }
 }
-class std_declval_protector_int {
+class std_declval_protector_int_RR {
   constructor(...$a) {
-    this.__init_std_declval_protector_int(...$a);
+    this.__init_std_declval_protector_int_RR(...$a);
   }
-  __init_std_declval_protector_int(...$a) {
+  __init_std_declval_protector_int_RR(...$a) {
+  }
+  __dtor() {
+  }
+  static __stop = 0;
+}
+class std_declval_protector_int_R {
+  constructor(...$a) {
+    this.__init_std_declval_protector_int_R(...$a);
+  }
+  __init_std_declval_protector_int_R(...$a) {
   }
   __dtor() {
   }
@@ -2155,8 +2639,11 @@ function std_max_unsigned_long_long(__a, __b) {
   }
   return __a;
 }
-function std_declval_int() {
-  return std_declval_protector_int.__delegate();
+function std_declval_int_RR() {
+  return std_declval_protector_int_RR.__delegate();
+}
+function std_declval_int_R() {
+  return std_declval_protector_int_R.__delegate();
 }
 function std_make_move_if_noexcept_iterator_int_P_std_move_iterator_int_P(__i) {
   return new std_move_iterator_int_P((__i ? {a: __i.a, i: __i.i} : null));

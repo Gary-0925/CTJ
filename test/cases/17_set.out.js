@@ -280,8 +280,8 @@ class std_remove_volatile_std_Rb_tree_const_iterator_int_R {
   __dtor() {
   }
 }
-class std_remove_const_std_Rb_tree_const_iterator_int {
-  __init_std_remove_const_std_Rb_tree_const_iterator_int(...$a) { }
+class std_remove_const_std_Rb_tree_const_iterator_int_R {
+  __init_std_remove_const_std_Rb_tree_const_iterator_int_R(...$a) { }
   __dtor() {
   }
 }
@@ -306,12 +306,12 @@ class std_is_void_std_Rb_tree_const_iterator_int_R extends std_integral_constant
     std_integral_constant_bool_value0.prototype.__dtor.call(this);
   }
 }
-class std_is_void_helper_std_Rb_tree_const_iterator_int extends std_integral_constant_bool_value0 {
+class std_is_void_helper_std_Rb_tree_const_iterator_int_R extends std_integral_constant_bool_value0 {
   constructor(...$a) {
     super();
-    this.__init_std_is_void_helper_std_Rb_tree_const_iterator_int(...$a);
+    this.__init_std_is_void_helper_std_Rb_tree_const_iterator_int_R(...$a);
   }
-  __init_std_is_void_helper_std_Rb_tree_const_iterator_int(...$a) {
+  __init_std_is_void_helper_std_Rb_tree_const_iterator_int_R(...$a) {
   }
   __dtor() {
     std_integral_constant_bool_value0.prototype.__dtor.call(this);
@@ -383,55 +383,6 @@ class std_is_convertible_helper_std_Rb_tree_const_iterator_int_R_std_Rb_tree_con
   }
   static value = 1;
 }
-class std_is_reference_std_Rb_tree_const_iterator_int extends std_integral_constant_bool_value0 {
-  constructor(...$a) {
-    super();
-    this.__init_std_is_reference_std_Rb_tree_const_iterator_int(...$a);
-  }
-  __init_std_is_reference_std_Rb_tree_const_iterator_int(...$a) {
-  }
-  __dtor() {
-    std_integral_constant_bool_value0.prototype.__dtor.call(this);
-  }
-}
-class std_is_lvalue_reference_std_Rb_tree_const_iterator_int extends std_integral_constant_bool_value0 {
-  constructor(...$a) {
-    super();
-    this.__init_std_is_lvalue_reference_std_Rb_tree_const_iterator_int(...$a);
-  }
-  __init_std_is_lvalue_reference_std_Rb_tree_const_iterator_int(...$a) {
-  }
-  __dtor() {
-    std_integral_constant_bool_value0.prototype.__dtor.call(this);
-  }
-}
-class std_is_rvalue_reference_std_Rb_tree_const_iterator_int extends std_integral_constant_bool_value0 {
-  constructor(...$a) {
-    super();
-    this.__init_std_is_rvalue_reference_std_Rb_tree_const_iterator_int(...$a);
-  }
-  __init_std_is_rvalue_reference_std_Rb_tree_const_iterator_int(...$a) {
-  }
-  __dtor() {
-    std_integral_constant_bool_value0.prototype.__dtor.call(this);
-  }
-}
-class std_or_std_is_lvalue_reference_std_Rb_tree_const_iterator_int_std_is_rvalue_reference_std_Rb_tree_const_iterator_int extends std_is_rvalue_reference_std_Rb_tree_const_iterator_int {
-  constructor(...$a) {
-    super();
-    this.__init_std_or_std_is_lvalue_reference_std_Rb_tree_const_iterator_int_std_is_rvalue_reference_std_Rb_tree_const_iterator_int(...$a);
-  }
-  __init_std_or_std_is_lvalue_reference_std_Rb_tree_const_iterator_int_std_is_rvalue_reference_std_Rb_tree_const_iterator_int(...$a) {
-  }
-  __dtor() {
-    std_is_rvalue_reference_std_Rb_tree_const_iterator_int.prototype.__dtor.call(this);
-  }
-}
-class std_conditional_value0_std_is_lvalue_reference_std_Rb_tree_const_iterator_int_std_is_rvalue_reference_std_Rb_tree_const_iterator_int {
-  __init_std_conditional_value0_std_is_lvalue_reference_std_Rb_tree_const_iterator_int_std_is_rvalue_reference_std_Rb_tree_const_iterator_int(...$a) { }
-  __dtor() {
-  }
-}
 class std_integral_constant_bool_value1 {
   constructor(...$a) {
     this.__init_std_integral_constant_bool_value1(...$a);
@@ -453,79 +404,107 @@ class std_is_convertible_std_Rb_tree_const_iterator_int_R_std_Rb_tree_const_iter
     std_integral_constant_bool_value1.prototype.__dtor.call(this);
   }
 }
-class std_not_std_is_reference_std_Rb_tree_const_iterator_int extends std_integral_constant_bool_value1 {
+class std_is_reference_std_Rb_tree_const_iterator_int_R extends std_integral_constant_bool_value1 {
   constructor(...$a) {
     super();
-    this.__init_std_not_std_is_reference_std_Rb_tree_const_iterator_int(...$a);
+    this.__init_std_is_reference_std_Rb_tree_const_iterator_int_R(...$a);
   }
-  __init_std_not_std_is_reference_std_Rb_tree_const_iterator_int(...$a) {
+  __init_std_is_reference_std_Rb_tree_const_iterator_int_R(...$a) {
   }
   __dtor() {
     std_integral_constant_bool_value1.prototype.__dtor.call(this);
   }
 }
-class std_is_void_std_Rb_tree_const_iterator_int extends std_integral_constant_bool_value0 {
+class std_is_lvalue_reference_std_Rb_tree_const_iterator_int_R extends std_integral_constant_bool_value1 {
   constructor(...$a) {
     super();
-    this.__init_std_is_void_std_Rb_tree_const_iterator_int(...$a);
+    this.__init_std_is_lvalue_reference_std_Rb_tree_const_iterator_int_R(...$a);
   }
-  __init_std_is_void_std_Rb_tree_const_iterator_int(...$a) {
+  __init_std_is_lvalue_reference_std_Rb_tree_const_iterator_int_R(...$a) {
+  }
+  __dtor() {
+    std_integral_constant_bool_value1.prototype.__dtor.call(this);
+  }
+}
+class std_is_rvalue_reference_std_Rb_tree_const_iterator_int_R extends std_integral_constant_bool_value0 {
+  constructor(...$a) {
+    super();
+    this.__init_std_is_rvalue_reference_std_Rb_tree_const_iterator_int_R(...$a);
+  }
+  __init_std_is_rvalue_reference_std_Rb_tree_const_iterator_int_R(...$a) {
   }
   __dtor() {
     std_integral_constant_bool_value0.prototype.__dtor.call(this);
   }
 }
-class std_remove_cv_std_Rb_tree_const_iterator_int {
-  __init_std_remove_cv_std_Rb_tree_const_iterator_int(...$a) { }
-  __dtor() {
-  }
-}
-class std_remove_volatile_std_Rb_tree_const_iterator_int {
-  __init_std_remove_volatile_std_Rb_tree_const_iterator_int(...$a) { }
-  __dtor() {
-  }
-}
-class std_not_std_is_void_std_Rb_tree_const_iterator_int extends std_integral_constant_bool_value1 {
+class std_or_std_is_lvalue_reference_std_Rb_tree_const_iterator_int_R_std_is_rvalue_reference_std_Rb_tree_const_iterator_int_R extends std_is_lvalue_reference_std_Rb_tree_const_iterator_int_R {
   constructor(...$a) {
     super();
-    this.__init_std_not_std_is_void_std_Rb_tree_const_iterator_int(...$a);
+    this.__init_std_or_std_is_lvalue_reference_std_Rb_tree_const_iterator_int_R_std_is_rvalue_reference_std_Rb_tree_const_iterator_int_R(...$a);
   }
-  __init_std_not_std_is_void_std_Rb_tree_const_iterator_int(...$a) {
+  __init_std_or_std_is_lvalue_reference_std_Rb_tree_const_iterator_int_R_std_is_rvalue_reference_std_Rb_tree_const_iterator_int_R(...$a) {
+  }
+  __dtor() {
+    std_is_lvalue_reference_std_Rb_tree_const_iterator_int_R.prototype.__dtor.call(this);
+  }
+}
+class std_conditional_value1_std_is_lvalue_reference_std_Rb_tree_const_iterator_int_R_std_is_rvalue_reference_std_Rb_tree_const_iterator_int_R {
+  __init_std_conditional_value1_std_is_lvalue_reference_std_Rb_tree_const_iterator_int_R_std_is_rvalue_reference_std_Rb_tree_const_iterator_int_R(...$a) { }
+  __dtor() {
+  }
+}
+class std_not_std_is_reference_std_Rb_tree_const_iterator_int_R extends std_integral_constant_bool_value0 {
+  constructor(...$a) {
+    super();
+    this.__init_std_not_std_is_reference_std_Rb_tree_const_iterator_int_R(...$a);
+  }
+  __init_std_not_std_is_reference_std_Rb_tree_const_iterator_int_R(...$a) {
+  }
+  __dtor() {
+    std_integral_constant_bool_value0.prototype.__dtor.call(this);
+  }
+}
+class std_not_std_is_void_std_Rb_tree_const_iterator_int_R extends std_integral_constant_bool_value1 {
+  constructor(...$a) {
+    super();
+    this.__init_std_not_std_is_void_std_Rb_tree_const_iterator_int_R(...$a);
+  }
+  __init_std_not_std_is_void_std_Rb_tree_const_iterator_int_R(...$a) {
   }
   __dtor() {
     std_integral_constant_bool_value1.prototype.__dtor.call(this);
   }
 }
-class std_and_std_not_std_is_reference_std_Rb_tree_const_iterator_int_std_not_std_is_void_std_Rb_tree_const_iterator_int extends std_not_std_is_void_std_Rb_tree_const_iterator_int {
+class std_and_std_not_std_is_reference_std_Rb_tree_const_iterator_int_R_std_not_std_is_void_std_Rb_tree_const_iterator_int_R extends std_not_std_is_reference_std_Rb_tree_const_iterator_int_R {
   constructor(...$a) {
     super();
-    this.__init_std_and_std_not_std_is_reference_std_Rb_tree_const_iterator_int_std_not_std_is_void_std_Rb_tree_const_iterator_int(...$a);
+    this.__init_std_and_std_not_std_is_reference_std_Rb_tree_const_iterator_int_R_std_not_std_is_void_std_Rb_tree_const_iterator_int_R(...$a);
   }
-  __init_std_and_std_not_std_is_reference_std_Rb_tree_const_iterator_int_std_not_std_is_void_std_Rb_tree_const_iterator_int(...$a) {
+  __init_std_and_std_not_std_is_reference_std_Rb_tree_const_iterator_int_R_std_not_std_is_void_std_Rb_tree_const_iterator_int_R(...$a) {
   }
   __dtor() {
-    std_not_std_is_void_std_Rb_tree_const_iterator_int.prototype.__dtor.call(this);
+    std_not_std_is_reference_std_Rb_tree_const_iterator_int_R.prototype.__dtor.call(this);
   }
 }
-class std_conditional_value1_std_not_std_is_void_std_Rb_tree_const_iterator_int_std_not_std_is_reference_std_Rb_tree_const_iterator_int {
-  __init_std_conditional_value1_std_not_std_is_void_std_Rb_tree_const_iterator_int_std_not_std_is_reference_std_Rb_tree_const_iterator_int(...$a) { }
-  __dtor() {
-  }
-}
-class std_add_rvalue_reference_helper_std_Rb_tree_const_iterator_int_value1 {
-  __init_std_add_rvalue_reference_helper_std_Rb_tree_const_iterator_int_value1(...$a) { }
+class std_conditional_value0_std_not_std_is_void_std_Rb_tree_const_iterator_int_R_std_not_std_is_reference_std_Rb_tree_const_iterator_int_R {
+  __init_std_conditional_value0_std_not_std_is_void_std_Rb_tree_const_iterator_int_R_std_not_std_is_reference_std_Rb_tree_const_iterator_int_R(...$a) { }
   __dtor() {
   }
 }
-class std_add_rvalue_reference_std_Rb_tree_const_iterator_int extends std_add_rvalue_reference_helper_std_Rb_tree_const_iterator_int_value1 {
+class std_add_rvalue_reference_helper_std_Rb_tree_const_iterator_int_R_value0 {
+  __init_std_add_rvalue_reference_helper_std_Rb_tree_const_iterator_int_R_value0(...$a) { }
+  __dtor() {
+  }
+}
+class std_add_rvalue_reference_std_Rb_tree_const_iterator_int_R extends std_add_rvalue_reference_helper_std_Rb_tree_const_iterator_int_R_value0 {
   constructor(...$a) {
     super();
-    this.__init_std_add_rvalue_reference_std_Rb_tree_const_iterator_int(...$a);
+    this.__init_std_add_rvalue_reference_std_Rb_tree_const_iterator_int_R(...$a);
   }
-  __init_std_add_rvalue_reference_std_Rb_tree_const_iterator_int(...$a) {
+  __init_std_add_rvalue_reference_std_Rb_tree_const_iterator_int_R(...$a) {
   }
   __dtor() {
-    std_add_rvalue_reference_helper_std_Rb_tree_const_iterator_int_value1.prototype.__dtor.call(this);
+    std_add_rvalue_reference_helper_std_Rb_tree_const_iterator_int_R_value0.prototype.__dtor.call(this);
   }
 }
 class std_is_convertible_bool_R_bool extends std_integral_constant_bool_value1 {
@@ -560,17 +539,17 @@ class std_remove_volatile_bool_R {
   __dtor() {
   }
 }
-class std_remove_const_bool {
-  __init_std_remove_const_bool(...$a) { }
+class std_remove_const_bool_R {
+  __init_std_remove_const_bool_R(...$a) { }
   __dtor() {
   }
 }
-class std_is_void_helper_bool extends std_integral_constant_bool_value0 {
+class std_is_void_helper_bool_R extends std_integral_constant_bool_value0 {
   constructor(...$a) {
     super();
-    this.__init_std_is_void_helper_bool(...$a);
+    this.__init_std_is_void_helper_bool_R(...$a);
   }
-  __init_std_is_void_helper_bool(...$a) {
+  __init_std_is_void_helper_bool_R(...$a) {
   }
   __dtor() {
     std_integral_constant_bool_value0.prototype.__dtor.call(this);
@@ -642,6 +621,385 @@ class std_is_convertible_helper_bool_R_bool_value0 extends std_sfinae_types {
   }
   static value = 1;
 }
+class std_is_reference_bool_R extends std_integral_constant_bool_value1 {
+  constructor(...$a) {
+    super();
+    this.__init_std_is_reference_bool_R(...$a);
+  }
+  __init_std_is_reference_bool_R(...$a) {
+  }
+  __dtor() {
+    std_integral_constant_bool_value1.prototype.__dtor.call(this);
+  }
+}
+class std_is_lvalue_reference_bool_R extends std_integral_constant_bool_value1 {
+  constructor(...$a) {
+    super();
+    this.__init_std_is_lvalue_reference_bool_R(...$a);
+  }
+  __init_std_is_lvalue_reference_bool_R(...$a) {
+  }
+  __dtor() {
+    std_integral_constant_bool_value1.prototype.__dtor.call(this);
+  }
+}
+class std_is_rvalue_reference_bool_R extends std_integral_constant_bool_value0 {
+  constructor(...$a) {
+    super();
+    this.__init_std_is_rvalue_reference_bool_R(...$a);
+  }
+  __init_std_is_rvalue_reference_bool_R(...$a) {
+  }
+  __dtor() {
+    std_integral_constant_bool_value0.prototype.__dtor.call(this);
+  }
+}
+class std_or_std_is_lvalue_reference_bool_R_std_is_rvalue_reference_bool_R extends std_is_lvalue_reference_bool_R {
+  constructor(...$a) {
+    super();
+    this.__init_std_or_std_is_lvalue_reference_bool_R_std_is_rvalue_reference_bool_R(...$a);
+  }
+  __init_std_or_std_is_lvalue_reference_bool_R_std_is_rvalue_reference_bool_R(...$a) {
+  }
+  __dtor() {
+    std_is_lvalue_reference_bool_R.prototype.__dtor.call(this);
+  }
+}
+class std_conditional_value1_std_is_lvalue_reference_bool_R_std_is_rvalue_reference_bool_R {
+  __init_std_conditional_value1_std_is_lvalue_reference_bool_R_std_is_rvalue_reference_bool_R(...$a) { }
+  __dtor() {
+  }
+}
+class std_not_std_is_reference_bool_R extends std_integral_constant_bool_value0 {
+  constructor(...$a) {
+    super();
+    this.__init_std_not_std_is_reference_bool_R(...$a);
+  }
+  __init_std_not_std_is_reference_bool_R(...$a) {
+  }
+  __dtor() {
+    std_integral_constant_bool_value0.prototype.__dtor.call(this);
+  }
+}
+class std_not_std_is_void_bool_R extends std_integral_constant_bool_value1 {
+  constructor(...$a) {
+    super();
+    this.__init_std_not_std_is_void_bool_R(...$a);
+  }
+  __init_std_not_std_is_void_bool_R(...$a) {
+  }
+  __dtor() {
+    std_integral_constant_bool_value1.prototype.__dtor.call(this);
+  }
+}
+class std_and_std_not_std_is_reference_bool_R_std_not_std_is_void_bool_R extends std_not_std_is_reference_bool_R {
+  constructor(...$a) {
+    super();
+    this.__init_std_and_std_not_std_is_reference_bool_R_std_not_std_is_void_bool_R(...$a);
+  }
+  __init_std_and_std_not_std_is_reference_bool_R_std_not_std_is_void_bool_R(...$a) {
+  }
+  __dtor() {
+    std_not_std_is_reference_bool_R.prototype.__dtor.call(this);
+  }
+}
+class std_conditional_value0_std_not_std_is_void_bool_R_std_not_std_is_reference_bool_R {
+  __init_std_conditional_value0_std_not_std_is_void_bool_R_std_not_std_is_reference_bool_R(...$a) { }
+  __dtor() {
+  }
+}
+class std_add_rvalue_reference_helper_bool_R_value0 {
+  __init_std_add_rvalue_reference_helper_bool_R_value0(...$a) { }
+  __dtor() {
+  }
+}
+class std_add_rvalue_reference_bool_R extends std_add_rvalue_reference_helper_bool_R_value0 {
+  constructor(...$a) {
+    super();
+    this.__init_std_add_rvalue_reference_bool_R(...$a);
+  }
+  __init_std_add_rvalue_reference_bool_R(...$a) {
+  }
+  __dtor() {
+    std_add_rvalue_reference_helper_bool_R_value0.prototype.__dtor.call(this);
+  }
+}
+class std_and_std_is_convertible_std_Rb_tree_const_iterator_int_R_std_Rb_tree_const_iterator_int_std_is_convertible_bool_R_bool extends std_is_convertible_bool_R_bool {
+  constructor(...$a) {
+    super();
+    this.__init_std_and_std_is_convertible_std_Rb_tree_const_iterator_int_R_std_Rb_tree_const_iterator_int_std_is_convertible_bool_R_bool(...$a);
+  }
+  __init_std_and_std_is_convertible_std_Rb_tree_const_iterator_int_R_std_Rb_tree_const_iterator_int_std_is_convertible_bool_R_bool(...$a) {
+  }
+  __dtor() {
+    std_is_convertible_bool_R_bool.prototype.__dtor.call(this);
+  }
+}
+class std_conditional_value1_std_is_convertible_bool_R_bool_std_is_convertible_std_Rb_tree_const_iterator_int_R_std_Rb_tree_const_iterator_int {
+  __init_std_conditional_value1_std_is_convertible_bool_R_bool_std_is_convertible_std_Rb_tree_const_iterator_int_R_std_Rb_tree_const_iterator_int(...$a) { }
+  __dtor() {
+  }
+}
+class std_enable_if_value1_void {
+  __init_std_enable_if_value1_void(...$a) { }
+  __dtor() {
+  }
+}
+class std_is_convertible_std_Rb_tree_const_iterator_int_std_Rb_tree_const_iterator_int extends std_integral_constant_bool_value1 {
+  constructor(...$a) {
+    super();
+    this.__init_std_is_convertible_std_Rb_tree_const_iterator_int_std_Rb_tree_const_iterator_int(...$a);
+  }
+  __init_std_is_convertible_std_Rb_tree_const_iterator_int_std_Rb_tree_const_iterator_int(...$a) {
+  }
+  __dtor() {
+    std_integral_constant_bool_value1.prototype.__dtor.call(this);
+  }
+}
+class std_is_void_std_Rb_tree_const_iterator_int extends std_integral_constant_bool_value0 {
+  constructor(...$a) {
+    super();
+    this.__init_std_is_void_std_Rb_tree_const_iterator_int(...$a);
+  }
+  __init_std_is_void_std_Rb_tree_const_iterator_int(...$a) {
+  }
+  __dtor() {
+    std_integral_constant_bool_value0.prototype.__dtor.call(this);
+  }
+}
+class std_remove_cv_std_Rb_tree_const_iterator_int {
+  __init_std_remove_cv_std_Rb_tree_const_iterator_int(...$a) { }
+  __dtor() {
+  }
+}
+class std_remove_volatile_std_Rb_tree_const_iterator_int {
+  __init_std_remove_volatile_std_Rb_tree_const_iterator_int(...$a) { }
+  __dtor() {
+  }
+}
+class std_remove_const_std_Rb_tree_const_iterator_int {
+  __init_std_remove_const_std_Rb_tree_const_iterator_int(...$a) { }
+  __dtor() {
+  }
+}
+class std_is_void_helper_std_Rb_tree_const_iterator_int extends std_integral_constant_bool_value0 {
+  constructor(...$a) {
+    super();
+    this.__init_std_is_void_helper_std_Rb_tree_const_iterator_int(...$a);
+  }
+  __init_std_is_void_helper_std_Rb_tree_const_iterator_int(...$a) {
+  }
+  __dtor() {
+    std_integral_constant_bool_value0.prototype.__dtor.call(this);
+  }
+}
+class std_or_std_is_void_std_Rb_tree_const_iterator_int_std_is_function_std_Rb_tree_const_iterator_int_std_is_array_std_Rb_tree_const_iterator_int extends std_or_std_is_function_std_Rb_tree_const_iterator_int_std_is_array_std_Rb_tree_const_iterator_int {
+  constructor(...$a) {
+    super();
+    this.__init_std_or_std_is_void_std_Rb_tree_const_iterator_int_std_is_function_std_Rb_tree_const_iterator_int_std_is_array_std_Rb_tree_const_iterator_int(...$a);
+  }
+  __init_std_or_std_is_void_std_Rb_tree_const_iterator_int_std_is_function_std_Rb_tree_const_iterator_int_std_is_array_std_Rb_tree_const_iterator_int(...$a) {
+  }
+  __dtor() {
+    std_or_std_is_function_std_Rb_tree_const_iterator_int_std_is_array_std_Rb_tree_const_iterator_int.prototype.__dtor.call(this);
+  }
+}
+class std_conditional_value0_std_is_void_std_Rb_tree_const_iterator_int_std_or_std_is_function_std_Rb_tree_const_iterator_int_std_is_array_std_Rb_tree_const_iterator_int {
+  __init_std_conditional_value0_std_is_void_std_Rb_tree_const_iterator_int_std_or_std_is_function_std_Rb_tree_const_iterator_int_std_is_array_std_Rb_tree_const_iterator_int(...$a) { }
+  __dtor() {
+  }
+}
+class std_is_convertible_helper_std_Rb_tree_const_iterator_int_std_Rb_tree_const_iterator_int_value0 extends std_sfinae_types {
+  constructor(...$a) {
+    super();
+    this.__init_std_is_convertible_helper_std_Rb_tree_const_iterator_int_std_Rb_tree_const_iterator_int_value0(...$a);
+  }
+  __init_std_is_convertible_helper_std_Rb_tree_const_iterator_int_std_Rb_tree_const_iterator_int_value0(...$a) {
+  }
+  __dtor() {
+    std_sfinae_types.prototype.__dtor.call(this);
+  }
+  static value = 1;
+}
+class std_is_reference_std_Rb_tree_const_iterator_int extends std_integral_constant_bool_value0 {
+  constructor(...$a) {
+    super();
+    this.__init_std_is_reference_std_Rb_tree_const_iterator_int(...$a);
+  }
+  __init_std_is_reference_std_Rb_tree_const_iterator_int(...$a) {
+  }
+  __dtor() {
+    std_integral_constant_bool_value0.prototype.__dtor.call(this);
+  }
+}
+class std_is_lvalue_reference_std_Rb_tree_const_iterator_int extends std_integral_constant_bool_value0 {
+  constructor(...$a) {
+    super();
+    this.__init_std_is_lvalue_reference_std_Rb_tree_const_iterator_int(...$a);
+  }
+  __init_std_is_lvalue_reference_std_Rb_tree_const_iterator_int(...$a) {
+  }
+  __dtor() {
+    std_integral_constant_bool_value0.prototype.__dtor.call(this);
+  }
+}
+class std_is_rvalue_reference_std_Rb_tree_const_iterator_int extends std_integral_constant_bool_value0 {
+  constructor(...$a) {
+    super();
+    this.__init_std_is_rvalue_reference_std_Rb_tree_const_iterator_int(...$a);
+  }
+  __init_std_is_rvalue_reference_std_Rb_tree_const_iterator_int(...$a) {
+  }
+  __dtor() {
+    std_integral_constant_bool_value0.prototype.__dtor.call(this);
+  }
+}
+class std_or_std_is_lvalue_reference_std_Rb_tree_const_iterator_int_std_is_rvalue_reference_std_Rb_tree_const_iterator_int extends std_is_rvalue_reference_std_Rb_tree_const_iterator_int {
+  constructor(...$a) {
+    super();
+    this.__init_std_or_std_is_lvalue_reference_std_Rb_tree_const_iterator_int_std_is_rvalue_reference_std_Rb_tree_const_iterator_int(...$a);
+  }
+  __init_std_or_std_is_lvalue_reference_std_Rb_tree_const_iterator_int_std_is_rvalue_reference_std_Rb_tree_const_iterator_int(...$a) {
+  }
+  __dtor() {
+    std_is_rvalue_reference_std_Rb_tree_const_iterator_int.prototype.__dtor.call(this);
+  }
+}
+class std_conditional_value0_std_is_lvalue_reference_std_Rb_tree_const_iterator_int_std_is_rvalue_reference_std_Rb_tree_const_iterator_int {
+  __init_std_conditional_value0_std_is_lvalue_reference_std_Rb_tree_const_iterator_int_std_is_rvalue_reference_std_Rb_tree_const_iterator_int(...$a) { }
+  __dtor() {
+  }
+}
+class std_not_std_is_reference_std_Rb_tree_const_iterator_int extends std_integral_constant_bool_value1 {
+  constructor(...$a) {
+    super();
+    this.__init_std_not_std_is_reference_std_Rb_tree_const_iterator_int(...$a);
+  }
+  __init_std_not_std_is_reference_std_Rb_tree_const_iterator_int(...$a) {
+  }
+  __dtor() {
+    std_integral_constant_bool_value1.prototype.__dtor.call(this);
+  }
+}
+class std_not_std_is_void_std_Rb_tree_const_iterator_int extends std_integral_constant_bool_value1 {
+  constructor(...$a) {
+    super();
+    this.__init_std_not_std_is_void_std_Rb_tree_const_iterator_int(...$a);
+  }
+  __init_std_not_std_is_void_std_Rb_tree_const_iterator_int(...$a) {
+  }
+  __dtor() {
+    std_integral_constant_bool_value1.prototype.__dtor.call(this);
+  }
+}
+class std_and_std_not_std_is_reference_std_Rb_tree_const_iterator_int_std_not_std_is_void_std_Rb_tree_const_iterator_int extends std_not_std_is_void_std_Rb_tree_const_iterator_int {
+  constructor(...$a) {
+    super();
+    this.__init_std_and_std_not_std_is_reference_std_Rb_tree_const_iterator_int_std_not_std_is_void_std_Rb_tree_const_iterator_int(...$a);
+  }
+  __init_std_and_std_not_std_is_reference_std_Rb_tree_const_iterator_int_std_not_std_is_void_std_Rb_tree_const_iterator_int(...$a) {
+  }
+  __dtor() {
+    std_not_std_is_void_std_Rb_tree_const_iterator_int.prototype.__dtor.call(this);
+  }
+}
+class std_conditional_value1_std_not_std_is_void_std_Rb_tree_const_iterator_int_std_not_std_is_reference_std_Rb_tree_const_iterator_int {
+  __init_std_conditional_value1_std_not_std_is_void_std_Rb_tree_const_iterator_int_std_not_std_is_reference_std_Rb_tree_const_iterator_int(...$a) { }
+  __dtor() {
+  }
+}
+class std_add_rvalue_reference_helper_std_Rb_tree_const_iterator_int_value1 {
+  __init_std_add_rvalue_reference_helper_std_Rb_tree_const_iterator_int_value1(...$a) { }
+  __dtor() {
+  }
+}
+class std_add_rvalue_reference_std_Rb_tree_const_iterator_int extends std_add_rvalue_reference_helper_std_Rb_tree_const_iterator_int_value1 {
+  constructor(...$a) {
+    super();
+    this.__init_std_add_rvalue_reference_std_Rb_tree_const_iterator_int(...$a);
+  }
+  __init_std_add_rvalue_reference_std_Rb_tree_const_iterator_int(...$a) {
+  }
+  __dtor() {
+    std_add_rvalue_reference_helper_std_Rb_tree_const_iterator_int_value1.prototype.__dtor.call(this);
+  }
+}
+class std_is_convertible_bool_bool extends std_integral_constant_bool_value1 {
+  constructor(...$a) {
+    super();
+    this.__init_std_is_convertible_bool_bool(...$a);
+  }
+  __init_std_is_convertible_bool_bool(...$a) {
+  }
+  __dtor() {
+    std_integral_constant_bool_value1.prototype.__dtor.call(this);
+  }
+}
+class std_is_void_bool extends std_integral_constant_bool_value0 {
+  constructor(...$a) {
+    super();
+    this.__init_std_is_void_bool(...$a);
+  }
+  __init_std_is_void_bool(...$a) {
+  }
+  __dtor() {
+    std_integral_constant_bool_value0.prototype.__dtor.call(this);
+  }
+}
+class std_remove_cv_bool {
+  __init_std_remove_cv_bool(...$a) { }
+  __dtor() {
+  }
+}
+class std_remove_volatile_bool {
+  __init_std_remove_volatile_bool(...$a) { }
+  __dtor() {
+  }
+}
+class std_remove_const_bool {
+  __init_std_remove_const_bool(...$a) { }
+  __dtor() {
+  }
+}
+class std_is_void_helper_bool extends std_integral_constant_bool_value0 {
+  constructor(...$a) {
+    super();
+    this.__init_std_is_void_helper_bool(...$a);
+  }
+  __init_std_is_void_helper_bool(...$a) {
+  }
+  __dtor() {
+    std_integral_constant_bool_value0.prototype.__dtor.call(this);
+  }
+}
+class std_or_std_is_void_bool_std_is_function_bool_std_is_array_bool extends std_or_std_is_function_bool_std_is_array_bool {
+  constructor(...$a) {
+    super();
+    this.__init_std_or_std_is_void_bool_std_is_function_bool_std_is_array_bool(...$a);
+  }
+  __init_std_or_std_is_void_bool_std_is_function_bool_std_is_array_bool(...$a) {
+  }
+  __dtor() {
+    std_or_std_is_function_bool_std_is_array_bool.prototype.__dtor.call(this);
+  }
+}
+class std_conditional_value0_std_is_void_bool_std_or_std_is_function_bool_std_is_array_bool {
+  __init_std_conditional_value0_std_is_void_bool_std_or_std_is_function_bool_std_is_array_bool(...$a) { }
+  __dtor() {
+  }
+}
+class std_is_convertible_helper_bool_bool_value0 extends std_sfinae_types {
+  constructor(...$a) {
+    super();
+    this.__init_std_is_convertible_helper_bool_bool_value0(...$a);
+  }
+  __init_std_is_convertible_helper_bool_bool_value0(...$a) {
+  }
+  __dtor() {
+    std_sfinae_types.prototype.__dtor.call(this);
+  }
+  static value = 1;
+}
 class std_is_reference_bool extends std_integral_constant_bool_value0 {
   constructor(...$a) {
     super();
@@ -702,27 +1060,6 @@ class std_not_std_is_reference_bool extends std_integral_constant_bool_value1 {
     std_integral_constant_bool_value1.prototype.__dtor.call(this);
   }
 }
-class std_is_void_bool extends std_integral_constant_bool_value0 {
-  constructor(...$a) {
-    super();
-    this.__init_std_is_void_bool(...$a);
-  }
-  __init_std_is_void_bool(...$a) {
-  }
-  __dtor() {
-    std_integral_constant_bool_value0.prototype.__dtor.call(this);
-  }
-}
-class std_remove_cv_bool {
-  __init_std_remove_cv_bool(...$a) { }
-  __dtor() {
-  }
-}
-class std_remove_volatile_bool {
-  __init_std_remove_volatile_bool(...$a) { }
-  __dtor() {
-  }
-}
 class std_not_std_is_void_bool extends std_integral_constant_bool_value1 {
   constructor(...$a) {
     super();
@@ -765,105 +1102,6 @@ class std_add_rvalue_reference_bool extends std_add_rvalue_reference_helper_bool
   __dtor() {
     std_add_rvalue_reference_helper_bool_value1.prototype.__dtor.call(this);
   }
-}
-class std_and_std_is_convertible_std_Rb_tree_const_iterator_int_R_std_Rb_tree_const_iterator_int_std_is_convertible_bool_R_bool extends std_is_convertible_bool_R_bool {
-  constructor(...$a) {
-    super();
-    this.__init_std_and_std_is_convertible_std_Rb_tree_const_iterator_int_R_std_Rb_tree_const_iterator_int_std_is_convertible_bool_R_bool(...$a);
-  }
-  __init_std_and_std_is_convertible_std_Rb_tree_const_iterator_int_R_std_Rb_tree_const_iterator_int_std_is_convertible_bool_R_bool(...$a) {
-  }
-  __dtor() {
-    std_is_convertible_bool_R_bool.prototype.__dtor.call(this);
-  }
-}
-class std_conditional_value1_std_is_convertible_bool_R_bool_std_is_convertible_std_Rb_tree_const_iterator_int_R_std_Rb_tree_const_iterator_int {
-  __init_std_conditional_value1_std_is_convertible_bool_R_bool_std_is_convertible_std_Rb_tree_const_iterator_int_R_std_Rb_tree_const_iterator_int(...$a) { }
-  __dtor() {
-  }
-}
-class std_enable_if_value1_void {
-  __init_std_enable_if_value1_void(...$a) { }
-  __dtor() {
-  }
-}
-class std_is_convertible_std_Rb_tree_const_iterator_int_std_Rb_tree_const_iterator_int extends std_integral_constant_bool_value1 {
-  constructor(...$a) {
-    super();
-    this.__init_std_is_convertible_std_Rb_tree_const_iterator_int_std_Rb_tree_const_iterator_int(...$a);
-  }
-  __init_std_is_convertible_std_Rb_tree_const_iterator_int_std_Rb_tree_const_iterator_int(...$a) {
-  }
-  __dtor() {
-    std_integral_constant_bool_value1.prototype.__dtor.call(this);
-  }
-}
-class std_or_std_is_void_std_Rb_tree_const_iterator_int_std_is_function_std_Rb_tree_const_iterator_int_std_is_array_std_Rb_tree_const_iterator_int extends std_or_std_is_function_std_Rb_tree_const_iterator_int_std_is_array_std_Rb_tree_const_iterator_int {
-  constructor(...$a) {
-    super();
-    this.__init_std_or_std_is_void_std_Rb_tree_const_iterator_int_std_is_function_std_Rb_tree_const_iterator_int_std_is_array_std_Rb_tree_const_iterator_int(...$a);
-  }
-  __init_std_or_std_is_void_std_Rb_tree_const_iterator_int_std_is_function_std_Rb_tree_const_iterator_int_std_is_array_std_Rb_tree_const_iterator_int(...$a) {
-  }
-  __dtor() {
-    std_or_std_is_function_std_Rb_tree_const_iterator_int_std_is_array_std_Rb_tree_const_iterator_int.prototype.__dtor.call(this);
-  }
-}
-class std_conditional_value0_std_is_void_std_Rb_tree_const_iterator_int_std_or_std_is_function_std_Rb_tree_const_iterator_int_std_is_array_std_Rb_tree_const_iterator_int {
-  __init_std_conditional_value0_std_is_void_std_Rb_tree_const_iterator_int_std_or_std_is_function_std_Rb_tree_const_iterator_int_std_is_array_std_Rb_tree_const_iterator_int(...$a) { }
-  __dtor() {
-  }
-}
-class std_is_convertible_helper_std_Rb_tree_const_iterator_int_std_Rb_tree_const_iterator_int_value0 extends std_sfinae_types {
-  constructor(...$a) {
-    super();
-    this.__init_std_is_convertible_helper_std_Rb_tree_const_iterator_int_std_Rb_tree_const_iterator_int_value0(...$a);
-  }
-  __init_std_is_convertible_helper_std_Rb_tree_const_iterator_int_std_Rb_tree_const_iterator_int_value0(...$a) {
-  }
-  __dtor() {
-    std_sfinae_types.prototype.__dtor.call(this);
-  }
-  static value = 1;
-}
-class std_is_convertible_bool_bool extends std_integral_constant_bool_value1 {
-  constructor(...$a) {
-    super();
-    this.__init_std_is_convertible_bool_bool(...$a);
-  }
-  __init_std_is_convertible_bool_bool(...$a) {
-  }
-  __dtor() {
-    std_integral_constant_bool_value1.prototype.__dtor.call(this);
-  }
-}
-class std_or_std_is_void_bool_std_is_function_bool_std_is_array_bool extends std_or_std_is_function_bool_std_is_array_bool {
-  constructor(...$a) {
-    super();
-    this.__init_std_or_std_is_void_bool_std_is_function_bool_std_is_array_bool(...$a);
-  }
-  __init_std_or_std_is_void_bool_std_is_function_bool_std_is_array_bool(...$a) {
-  }
-  __dtor() {
-    std_or_std_is_function_bool_std_is_array_bool.prototype.__dtor.call(this);
-  }
-}
-class std_conditional_value0_std_is_void_bool_std_or_std_is_function_bool_std_is_array_bool {
-  __init_std_conditional_value0_std_is_void_bool_std_or_std_is_function_bool_std_is_array_bool(...$a) { }
-  __dtor() {
-  }
-}
-class std_is_convertible_helper_bool_bool_value0 extends std_sfinae_types {
-  constructor(...$a) {
-    super();
-    this.__init_std_is_convertible_helper_bool_bool_value0(...$a);
-  }
-  __init_std_is_convertible_helper_bool_bool_value0(...$a) {
-  }
-  __dtor() {
-    std_sfinae_types.prototype.__dtor.call(this);
-  }
-  static value = 1;
 }
 class std_and_std_is_convertible_std_Rb_tree_const_iterator_int_std_Rb_tree_const_iterator_int_std_is_convertible_bool_bool extends std_is_convertible_bool_bool {
   constructor(...$a) {
@@ -935,17 +1173,17 @@ class std_remove_volatile_std_Rb_tree_iterator_int_R {
   __dtor() {
   }
 }
-class std_remove_const_std_Rb_tree_iterator_int {
-  __init_std_remove_const_std_Rb_tree_iterator_int(...$a) { }
+class std_remove_const_std_Rb_tree_iterator_int_R {
+  __init_std_remove_const_std_Rb_tree_iterator_int_R(...$a) { }
   __dtor() {
   }
 }
-class std_is_void_helper_std_Rb_tree_iterator_int extends std_integral_constant_bool_value0 {
+class std_is_void_helper_std_Rb_tree_iterator_int_R extends std_integral_constant_bool_value0 {
   constructor(...$a) {
     super();
-    this.__init_std_is_void_helper_std_Rb_tree_iterator_int(...$a);
+    this.__init_std_is_void_helper_std_Rb_tree_iterator_int_R(...$a);
   }
-  __init_std_is_void_helper_std_Rb_tree_iterator_int(...$a) {
+  __init_std_is_void_helper_std_Rb_tree_iterator_int_R(...$a) {
   }
   __dtor() {
     std_integral_constant_bool_value0.prototype.__dtor.call(this);
@@ -1017,6 +1255,201 @@ class std_is_convertible_helper_std_Rb_tree_iterator_int_R_std_Rb_tree_iterator_
   }
   static value = 1;
 }
+class std_is_reference_std_Rb_tree_iterator_int_R extends std_integral_constant_bool_value1 {
+  constructor(...$a) {
+    super();
+    this.__init_std_is_reference_std_Rb_tree_iterator_int_R(...$a);
+  }
+  __init_std_is_reference_std_Rb_tree_iterator_int_R(...$a) {
+  }
+  __dtor() {
+    std_integral_constant_bool_value1.prototype.__dtor.call(this);
+  }
+}
+class std_is_lvalue_reference_std_Rb_tree_iterator_int_R extends std_integral_constant_bool_value1 {
+  constructor(...$a) {
+    super();
+    this.__init_std_is_lvalue_reference_std_Rb_tree_iterator_int_R(...$a);
+  }
+  __init_std_is_lvalue_reference_std_Rb_tree_iterator_int_R(...$a) {
+  }
+  __dtor() {
+    std_integral_constant_bool_value1.prototype.__dtor.call(this);
+  }
+}
+class std_is_rvalue_reference_std_Rb_tree_iterator_int_R extends std_integral_constant_bool_value0 {
+  constructor(...$a) {
+    super();
+    this.__init_std_is_rvalue_reference_std_Rb_tree_iterator_int_R(...$a);
+  }
+  __init_std_is_rvalue_reference_std_Rb_tree_iterator_int_R(...$a) {
+  }
+  __dtor() {
+    std_integral_constant_bool_value0.prototype.__dtor.call(this);
+  }
+}
+class std_or_std_is_lvalue_reference_std_Rb_tree_iterator_int_R_std_is_rvalue_reference_std_Rb_tree_iterator_int_R extends std_is_lvalue_reference_std_Rb_tree_iterator_int_R {
+  constructor(...$a) {
+    super();
+    this.__init_std_or_std_is_lvalue_reference_std_Rb_tree_iterator_int_R_std_is_rvalue_reference_std_Rb_tree_iterator_int_R(...$a);
+  }
+  __init_std_or_std_is_lvalue_reference_std_Rb_tree_iterator_int_R_std_is_rvalue_reference_std_Rb_tree_iterator_int_R(...$a) {
+  }
+  __dtor() {
+    std_is_lvalue_reference_std_Rb_tree_iterator_int_R.prototype.__dtor.call(this);
+  }
+}
+class std_conditional_value1_std_is_lvalue_reference_std_Rb_tree_iterator_int_R_std_is_rvalue_reference_std_Rb_tree_iterator_int_R {
+  __init_std_conditional_value1_std_is_lvalue_reference_std_Rb_tree_iterator_int_R_std_is_rvalue_reference_std_Rb_tree_iterator_int_R(...$a) { }
+  __dtor() {
+  }
+}
+class std_not_std_is_reference_std_Rb_tree_iterator_int_R extends std_integral_constant_bool_value0 {
+  constructor(...$a) {
+    super();
+    this.__init_std_not_std_is_reference_std_Rb_tree_iterator_int_R(...$a);
+  }
+  __init_std_not_std_is_reference_std_Rb_tree_iterator_int_R(...$a) {
+  }
+  __dtor() {
+    std_integral_constant_bool_value0.prototype.__dtor.call(this);
+  }
+}
+class std_not_std_is_void_std_Rb_tree_iterator_int_R extends std_integral_constant_bool_value1 {
+  constructor(...$a) {
+    super();
+    this.__init_std_not_std_is_void_std_Rb_tree_iterator_int_R(...$a);
+  }
+  __init_std_not_std_is_void_std_Rb_tree_iterator_int_R(...$a) {
+  }
+  __dtor() {
+    std_integral_constant_bool_value1.prototype.__dtor.call(this);
+  }
+}
+class std_and_std_not_std_is_reference_std_Rb_tree_iterator_int_R_std_not_std_is_void_std_Rb_tree_iterator_int_R extends std_not_std_is_reference_std_Rb_tree_iterator_int_R {
+  constructor(...$a) {
+    super();
+    this.__init_std_and_std_not_std_is_reference_std_Rb_tree_iterator_int_R_std_not_std_is_void_std_Rb_tree_iterator_int_R(...$a);
+  }
+  __init_std_and_std_not_std_is_reference_std_Rb_tree_iterator_int_R_std_not_std_is_void_std_Rb_tree_iterator_int_R(...$a) {
+  }
+  __dtor() {
+    std_not_std_is_reference_std_Rb_tree_iterator_int_R.prototype.__dtor.call(this);
+  }
+}
+class std_conditional_value0_std_not_std_is_void_std_Rb_tree_iterator_int_R_std_not_std_is_reference_std_Rb_tree_iterator_int_R {
+  __init_std_conditional_value0_std_not_std_is_void_std_Rb_tree_iterator_int_R_std_not_std_is_reference_std_Rb_tree_iterator_int_R(...$a) { }
+  __dtor() {
+  }
+}
+class std_add_rvalue_reference_helper_std_Rb_tree_iterator_int_R_value0 {
+  __init_std_add_rvalue_reference_helper_std_Rb_tree_iterator_int_R_value0(...$a) { }
+  __dtor() {
+  }
+}
+class std_add_rvalue_reference_std_Rb_tree_iterator_int_R extends std_add_rvalue_reference_helper_std_Rb_tree_iterator_int_R_value0 {
+  constructor(...$a) {
+    super();
+    this.__init_std_add_rvalue_reference_std_Rb_tree_iterator_int_R(...$a);
+  }
+  __init_std_add_rvalue_reference_std_Rb_tree_iterator_int_R(...$a) {
+  }
+  __dtor() {
+    std_add_rvalue_reference_helper_std_Rb_tree_iterator_int_R_value0.prototype.__dtor.call(this);
+  }
+}
+class std_and_std_is_convertible_std_Rb_tree_iterator_int_R_std_Rb_tree_iterator_int_std_is_convertible_bool_R_bool extends std_is_convertible_bool_R_bool {
+  constructor(...$a) {
+    super();
+    this.__init_std_and_std_is_convertible_std_Rb_tree_iterator_int_R_std_Rb_tree_iterator_int_std_is_convertible_bool_R_bool(...$a);
+  }
+  __init_std_and_std_is_convertible_std_Rb_tree_iterator_int_R_std_Rb_tree_iterator_int_std_is_convertible_bool_R_bool(...$a) {
+  }
+  __dtor() {
+    std_is_convertible_bool_R_bool.prototype.__dtor.call(this);
+  }
+}
+class std_conditional_value1_std_is_convertible_bool_R_bool_std_is_convertible_std_Rb_tree_iterator_int_R_std_Rb_tree_iterator_int {
+  __init_std_conditional_value1_std_is_convertible_bool_R_bool_std_is_convertible_std_Rb_tree_iterator_int_R_std_Rb_tree_iterator_int(...$a) { }
+  __dtor() {
+  }
+}
+class std_is_convertible_std_Rb_tree_iterator_int_std_Rb_tree_iterator_int extends std_integral_constant_bool_value1 {
+  constructor(...$a) {
+    super();
+    this.__init_std_is_convertible_std_Rb_tree_iterator_int_std_Rb_tree_iterator_int(...$a);
+  }
+  __init_std_is_convertible_std_Rb_tree_iterator_int_std_Rb_tree_iterator_int(...$a) {
+  }
+  __dtor() {
+    std_integral_constant_bool_value1.prototype.__dtor.call(this);
+  }
+}
+class std_is_void_std_Rb_tree_iterator_int extends std_integral_constant_bool_value0 {
+  constructor(...$a) {
+    super();
+    this.__init_std_is_void_std_Rb_tree_iterator_int(...$a);
+  }
+  __init_std_is_void_std_Rb_tree_iterator_int(...$a) {
+  }
+  __dtor() {
+    std_integral_constant_bool_value0.prototype.__dtor.call(this);
+  }
+}
+class std_remove_cv_std_Rb_tree_iterator_int {
+  __init_std_remove_cv_std_Rb_tree_iterator_int(...$a) { }
+  __dtor() {
+  }
+}
+class std_remove_volatile_std_Rb_tree_iterator_int {
+  __init_std_remove_volatile_std_Rb_tree_iterator_int(...$a) { }
+  __dtor() {
+  }
+}
+class std_remove_const_std_Rb_tree_iterator_int {
+  __init_std_remove_const_std_Rb_tree_iterator_int(...$a) { }
+  __dtor() {
+  }
+}
+class std_is_void_helper_std_Rb_tree_iterator_int extends std_integral_constant_bool_value0 {
+  constructor(...$a) {
+    super();
+    this.__init_std_is_void_helper_std_Rb_tree_iterator_int(...$a);
+  }
+  __init_std_is_void_helper_std_Rb_tree_iterator_int(...$a) {
+  }
+  __dtor() {
+    std_integral_constant_bool_value0.prototype.__dtor.call(this);
+  }
+}
+class std_or_std_is_void_std_Rb_tree_iterator_int_std_is_function_std_Rb_tree_iterator_int_std_is_array_std_Rb_tree_iterator_int extends std_or_std_is_function_std_Rb_tree_iterator_int_std_is_array_std_Rb_tree_iterator_int {
+  constructor(...$a) {
+    super();
+    this.__init_std_or_std_is_void_std_Rb_tree_iterator_int_std_is_function_std_Rb_tree_iterator_int_std_is_array_std_Rb_tree_iterator_int(...$a);
+  }
+  __init_std_or_std_is_void_std_Rb_tree_iterator_int_std_is_function_std_Rb_tree_iterator_int_std_is_array_std_Rb_tree_iterator_int(...$a) {
+  }
+  __dtor() {
+    std_or_std_is_function_std_Rb_tree_iterator_int_std_is_array_std_Rb_tree_iterator_int.prototype.__dtor.call(this);
+  }
+}
+class std_conditional_value0_std_is_void_std_Rb_tree_iterator_int_std_or_std_is_function_std_Rb_tree_iterator_int_std_is_array_std_Rb_tree_iterator_int {
+  __init_std_conditional_value0_std_is_void_std_Rb_tree_iterator_int_std_or_std_is_function_std_Rb_tree_iterator_int_std_is_array_std_Rb_tree_iterator_int(...$a) { }
+  __dtor() {
+  }
+}
+class std_is_convertible_helper_std_Rb_tree_iterator_int_std_Rb_tree_iterator_int_value0 extends std_sfinae_types {
+  constructor(...$a) {
+    super();
+    this.__init_std_is_convertible_helper_std_Rb_tree_iterator_int_std_Rb_tree_iterator_int_value0(...$a);
+  }
+  __init_std_is_convertible_helper_std_Rb_tree_iterator_int_std_Rb_tree_iterator_int_value0(...$a) {
+  }
+  __dtor() {
+    std_sfinae_types.prototype.__dtor.call(this);
+  }
+  static value = 1;
+}
 class std_is_reference_std_Rb_tree_iterator_int extends std_integral_constant_bool_value0 {
   constructor(...$a) {
     super();
@@ -1077,27 +1510,6 @@ class std_not_std_is_reference_std_Rb_tree_iterator_int extends std_integral_con
     std_integral_constant_bool_value1.prototype.__dtor.call(this);
   }
 }
-class std_is_void_std_Rb_tree_iterator_int extends std_integral_constant_bool_value0 {
-  constructor(...$a) {
-    super();
-    this.__init_std_is_void_std_Rb_tree_iterator_int(...$a);
-  }
-  __init_std_is_void_std_Rb_tree_iterator_int(...$a) {
-  }
-  __dtor() {
-    std_integral_constant_bool_value0.prototype.__dtor.call(this);
-  }
-}
-class std_remove_cv_std_Rb_tree_iterator_int {
-  __init_std_remove_cv_std_Rb_tree_iterator_int(...$a) { }
-  __dtor() {
-  }
-}
-class std_remove_volatile_std_Rb_tree_iterator_int {
-  __init_std_remove_volatile_std_Rb_tree_iterator_int(...$a) { }
-  __dtor() {
-  }
-}
 class std_not_std_is_void_std_Rb_tree_iterator_int extends std_integral_constant_bool_value1 {
   constructor(...$a) {
     super();
@@ -1140,61 +1552,6 @@ class std_add_rvalue_reference_std_Rb_tree_iterator_int extends std_add_rvalue_r
   __dtor() {
     std_add_rvalue_reference_helper_std_Rb_tree_iterator_int_value1.prototype.__dtor.call(this);
   }
-}
-class std_and_std_is_convertible_std_Rb_tree_iterator_int_R_std_Rb_tree_iterator_int_std_is_convertible_bool_R_bool extends std_is_convertible_bool_R_bool {
-  constructor(...$a) {
-    super();
-    this.__init_std_and_std_is_convertible_std_Rb_tree_iterator_int_R_std_Rb_tree_iterator_int_std_is_convertible_bool_R_bool(...$a);
-  }
-  __init_std_and_std_is_convertible_std_Rb_tree_iterator_int_R_std_Rb_tree_iterator_int_std_is_convertible_bool_R_bool(...$a) {
-  }
-  __dtor() {
-    std_is_convertible_bool_R_bool.prototype.__dtor.call(this);
-  }
-}
-class std_conditional_value1_std_is_convertible_bool_R_bool_std_is_convertible_std_Rb_tree_iterator_int_R_std_Rb_tree_iterator_int {
-  __init_std_conditional_value1_std_is_convertible_bool_R_bool_std_is_convertible_std_Rb_tree_iterator_int_R_std_Rb_tree_iterator_int(...$a) { }
-  __dtor() {
-  }
-}
-class std_is_convertible_std_Rb_tree_iterator_int_std_Rb_tree_iterator_int extends std_integral_constant_bool_value1 {
-  constructor(...$a) {
-    super();
-    this.__init_std_is_convertible_std_Rb_tree_iterator_int_std_Rb_tree_iterator_int(...$a);
-  }
-  __init_std_is_convertible_std_Rb_tree_iterator_int_std_Rb_tree_iterator_int(...$a) {
-  }
-  __dtor() {
-    std_integral_constant_bool_value1.prototype.__dtor.call(this);
-  }
-}
-class std_or_std_is_void_std_Rb_tree_iterator_int_std_is_function_std_Rb_tree_iterator_int_std_is_array_std_Rb_tree_iterator_int extends std_or_std_is_function_std_Rb_tree_iterator_int_std_is_array_std_Rb_tree_iterator_int {
-  constructor(...$a) {
-    super();
-    this.__init_std_or_std_is_void_std_Rb_tree_iterator_int_std_is_function_std_Rb_tree_iterator_int_std_is_array_std_Rb_tree_iterator_int(...$a);
-  }
-  __init_std_or_std_is_void_std_Rb_tree_iterator_int_std_is_function_std_Rb_tree_iterator_int_std_is_array_std_Rb_tree_iterator_int(...$a) {
-  }
-  __dtor() {
-    std_or_std_is_function_std_Rb_tree_iterator_int_std_is_array_std_Rb_tree_iterator_int.prototype.__dtor.call(this);
-  }
-}
-class std_conditional_value0_std_is_void_std_Rb_tree_iterator_int_std_or_std_is_function_std_Rb_tree_iterator_int_std_is_array_std_Rb_tree_iterator_int {
-  __init_std_conditional_value0_std_is_void_std_Rb_tree_iterator_int_std_or_std_is_function_std_Rb_tree_iterator_int_std_is_array_std_Rb_tree_iterator_int(...$a) { }
-  __dtor() {
-  }
-}
-class std_is_convertible_helper_std_Rb_tree_iterator_int_std_Rb_tree_iterator_int_value0 extends std_sfinae_types {
-  constructor(...$a) {
-    super();
-    this.__init_std_is_convertible_helper_std_Rb_tree_iterator_int_std_Rb_tree_iterator_int_value0(...$a);
-  }
-  __init_std_is_convertible_helper_std_Rb_tree_iterator_int_std_Rb_tree_iterator_int_value0(...$a) {
-  }
-  __dtor() {
-    std_sfinae_types.prototype.__dtor.call(this);
-  }
-  static value = 1;
 }
 class std_and_std_is_convertible_std_Rb_tree_iterator_int_std_Rb_tree_iterator_int_std_is_convertible_bool_bool extends std_is_convertible_bool_bool {
   constructor(...$a) {
@@ -1266,6 +1623,26 @@ class std_conditional_value1_std_is_convertible_bool_bool_std_is_convertible_std
   __init_std_conditional_value1_std_is_convertible_bool_bool_std_is_convertible_std_Rb_tree_iterator_int_std_Rb_tree_const_iterator_int(...$a) { }
   __dtor() {
   }
+}
+class std_declval_protector_std_Rb_tree_const_iterator_int_R {
+  constructor(...$a) {
+    this.__init_std_declval_protector_std_Rb_tree_const_iterator_int_R(...$a);
+  }
+  __init_std_declval_protector_std_Rb_tree_const_iterator_int_R(...$a) {
+  }
+  __dtor() {
+  }
+  static __stop = 0;
+}
+class std_declval_protector_bool_R {
+  constructor(...$a) {
+    this.__init_std_declval_protector_bool_R(...$a);
+  }
+  __init_std_declval_protector_bool_R(...$a) {
+  }
+  __dtor() {
+  }
+  static __stop = 0;
 }
 class std_declval_protector_std_Rb_tree_const_iterator_int {
   constructor(...$a) {
@@ -1344,17 +1721,17 @@ class std_remove_volatile_std_Rb_tree_node_base_P_R {
   __dtor() {
   }
 }
-class std_remove_const_std_Rb_tree_node_base_P {
-  __init_std_remove_const_std_Rb_tree_node_base_P(...$a) { }
+class std_remove_const_std_Rb_tree_node_base_P_R {
+  __init_std_remove_const_std_Rb_tree_node_base_P_R(...$a) { }
   __dtor() {
   }
 }
-class std_is_void_helper_std_Rb_tree_node_base_P extends std_integral_constant_bool_value0 {
+class std_is_void_helper_std_Rb_tree_node_base_P_R extends std_integral_constant_bool_value0 {
   constructor(...$a) {
     super();
-    this.__init_std_is_void_helper_std_Rb_tree_node_base_P(...$a);
+    this.__init_std_is_void_helper_std_Rb_tree_node_base_P_R(...$a);
   }
-  __init_std_is_void_helper_std_Rb_tree_node_base_P(...$a) {
+  __init_std_is_void_helper_std_Rb_tree_node_base_P_R(...$a) {
   }
   __dtor() {
     std_integral_constant_bool_value0.prototype.__dtor.call(this);
@@ -1426,6 +1803,201 @@ class std_is_convertible_helper_std_Rb_tree_node_base_P_R_std_Rb_tree_node_base_
   }
   static value = 1;
 }
+class std_is_reference_std_Rb_tree_node_base_P_R extends std_integral_constant_bool_value1 {
+  constructor(...$a) {
+    super();
+    this.__init_std_is_reference_std_Rb_tree_node_base_P_R(...$a);
+  }
+  __init_std_is_reference_std_Rb_tree_node_base_P_R(...$a) {
+  }
+  __dtor() {
+    std_integral_constant_bool_value1.prototype.__dtor.call(this);
+  }
+}
+class std_is_lvalue_reference_std_Rb_tree_node_base_P_R extends std_integral_constant_bool_value1 {
+  constructor(...$a) {
+    super();
+    this.__init_std_is_lvalue_reference_std_Rb_tree_node_base_P_R(...$a);
+  }
+  __init_std_is_lvalue_reference_std_Rb_tree_node_base_P_R(...$a) {
+  }
+  __dtor() {
+    std_integral_constant_bool_value1.prototype.__dtor.call(this);
+  }
+}
+class std_is_rvalue_reference_std_Rb_tree_node_base_P_R extends std_integral_constant_bool_value0 {
+  constructor(...$a) {
+    super();
+    this.__init_std_is_rvalue_reference_std_Rb_tree_node_base_P_R(...$a);
+  }
+  __init_std_is_rvalue_reference_std_Rb_tree_node_base_P_R(...$a) {
+  }
+  __dtor() {
+    std_integral_constant_bool_value0.prototype.__dtor.call(this);
+  }
+}
+class std_or_std_is_lvalue_reference_std_Rb_tree_node_base_P_R_std_is_rvalue_reference_std_Rb_tree_node_base_P_R extends std_is_lvalue_reference_std_Rb_tree_node_base_P_R {
+  constructor(...$a) {
+    super();
+    this.__init_std_or_std_is_lvalue_reference_std_Rb_tree_node_base_P_R_std_is_rvalue_reference_std_Rb_tree_node_base_P_R(...$a);
+  }
+  __init_std_or_std_is_lvalue_reference_std_Rb_tree_node_base_P_R_std_is_rvalue_reference_std_Rb_tree_node_base_P_R(...$a) {
+  }
+  __dtor() {
+    std_is_lvalue_reference_std_Rb_tree_node_base_P_R.prototype.__dtor.call(this);
+  }
+}
+class std_conditional_value1_std_is_lvalue_reference_std_Rb_tree_node_base_P_R_std_is_rvalue_reference_std_Rb_tree_node_base_P_R {
+  __init_std_conditional_value1_std_is_lvalue_reference_std_Rb_tree_node_base_P_R_std_is_rvalue_reference_std_Rb_tree_node_base_P_R(...$a) { }
+  __dtor() {
+  }
+}
+class std_not_std_is_reference_std_Rb_tree_node_base_P_R extends std_integral_constant_bool_value0 {
+  constructor(...$a) {
+    super();
+    this.__init_std_not_std_is_reference_std_Rb_tree_node_base_P_R(...$a);
+  }
+  __init_std_not_std_is_reference_std_Rb_tree_node_base_P_R(...$a) {
+  }
+  __dtor() {
+    std_integral_constant_bool_value0.prototype.__dtor.call(this);
+  }
+}
+class std_not_std_is_void_std_Rb_tree_node_base_P_R extends std_integral_constant_bool_value1 {
+  constructor(...$a) {
+    super();
+    this.__init_std_not_std_is_void_std_Rb_tree_node_base_P_R(...$a);
+  }
+  __init_std_not_std_is_void_std_Rb_tree_node_base_P_R(...$a) {
+  }
+  __dtor() {
+    std_integral_constant_bool_value1.prototype.__dtor.call(this);
+  }
+}
+class std_and_std_not_std_is_reference_std_Rb_tree_node_base_P_R_std_not_std_is_void_std_Rb_tree_node_base_P_R extends std_not_std_is_reference_std_Rb_tree_node_base_P_R {
+  constructor(...$a) {
+    super();
+    this.__init_std_and_std_not_std_is_reference_std_Rb_tree_node_base_P_R_std_not_std_is_void_std_Rb_tree_node_base_P_R(...$a);
+  }
+  __init_std_and_std_not_std_is_reference_std_Rb_tree_node_base_P_R_std_not_std_is_void_std_Rb_tree_node_base_P_R(...$a) {
+  }
+  __dtor() {
+    std_not_std_is_reference_std_Rb_tree_node_base_P_R.prototype.__dtor.call(this);
+  }
+}
+class std_conditional_value0_std_not_std_is_void_std_Rb_tree_node_base_P_R_std_not_std_is_reference_std_Rb_tree_node_base_P_R {
+  __init_std_conditional_value0_std_not_std_is_void_std_Rb_tree_node_base_P_R_std_not_std_is_reference_std_Rb_tree_node_base_P_R(...$a) { }
+  __dtor() {
+  }
+}
+class std_add_rvalue_reference_helper_std_Rb_tree_node_base_P_R_value0 {
+  __init_std_add_rvalue_reference_helper_std_Rb_tree_node_base_P_R_value0(...$a) { }
+  __dtor() {
+  }
+}
+class std_add_rvalue_reference_std_Rb_tree_node_base_P_R extends std_add_rvalue_reference_helper_std_Rb_tree_node_base_P_R_value0 {
+  constructor(...$a) {
+    super();
+    this.__init_std_add_rvalue_reference_std_Rb_tree_node_base_P_R(...$a);
+  }
+  __init_std_add_rvalue_reference_std_Rb_tree_node_base_P_R(...$a) {
+  }
+  __dtor() {
+    std_add_rvalue_reference_helper_std_Rb_tree_node_base_P_R_value0.prototype.__dtor.call(this);
+  }
+}
+class std_and_std_is_convertible_std_Rb_tree_node_base_P_R_std_Rb_tree_node_base_P_std_is_convertible_std_Rb_tree_node_base_P_R_std_Rb_tree_node_base_P extends std_is_convertible_std_Rb_tree_node_base_P_R_std_Rb_tree_node_base_P {
+  constructor(...$a) {
+    super();
+    this.__init_std_and_std_is_convertible_std_Rb_tree_node_base_P_R_std_Rb_tree_node_base_P_std_is_convertible_std_Rb_tree_node_base_P_R_std_Rb_tree_node_base_P(...$a);
+  }
+  __init_std_and_std_is_convertible_std_Rb_tree_node_base_P_R_std_Rb_tree_node_base_P_std_is_convertible_std_Rb_tree_node_base_P_R_std_Rb_tree_node_base_P(...$a) {
+  }
+  __dtor() {
+    std_is_convertible_std_Rb_tree_node_base_P_R_std_Rb_tree_node_base_P.prototype.__dtor.call(this);
+  }
+}
+class std_conditional_value1_std_is_convertible_std_Rb_tree_node_base_P_R_std_Rb_tree_node_base_P_std_is_convertible_std_Rb_tree_node_base_P_R_std_Rb_tree_node_base_P {
+  __init_std_conditional_value1_std_is_convertible_std_Rb_tree_node_base_P_R_std_Rb_tree_node_base_P_std_is_convertible_std_Rb_tree_node_base_P_R_std_Rb_tree_node_base_P(...$a) { }
+  __dtor() {
+  }
+}
+class std_is_convertible_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P extends std_integral_constant_bool_value1 {
+  constructor(...$a) {
+    super();
+    this.__init_std_is_convertible_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P(...$a);
+  }
+  __init_std_is_convertible_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P(...$a) {
+  }
+  __dtor() {
+    std_integral_constant_bool_value1.prototype.__dtor.call(this);
+  }
+}
+class std_is_void_std_Rb_tree_node_base_P extends std_integral_constant_bool_value0 {
+  constructor(...$a) {
+    super();
+    this.__init_std_is_void_std_Rb_tree_node_base_P(...$a);
+  }
+  __init_std_is_void_std_Rb_tree_node_base_P(...$a) {
+  }
+  __dtor() {
+    std_integral_constant_bool_value0.prototype.__dtor.call(this);
+  }
+}
+class std_remove_cv_std_Rb_tree_node_base_P {
+  __init_std_remove_cv_std_Rb_tree_node_base_P(...$a) { }
+  __dtor() {
+  }
+}
+class std_remove_volatile_std_Rb_tree_node_base_P {
+  __init_std_remove_volatile_std_Rb_tree_node_base_P(...$a) { }
+  __dtor() {
+  }
+}
+class std_remove_const_std_Rb_tree_node_base_P {
+  __init_std_remove_const_std_Rb_tree_node_base_P(...$a) { }
+  __dtor() {
+  }
+}
+class std_is_void_helper_std_Rb_tree_node_base_P extends std_integral_constant_bool_value0 {
+  constructor(...$a) {
+    super();
+    this.__init_std_is_void_helper_std_Rb_tree_node_base_P(...$a);
+  }
+  __init_std_is_void_helper_std_Rb_tree_node_base_P(...$a) {
+  }
+  __dtor() {
+    std_integral_constant_bool_value0.prototype.__dtor.call(this);
+  }
+}
+class std_or_std_is_void_std_Rb_tree_node_base_P_std_is_function_std_Rb_tree_node_base_P_std_is_array_std_Rb_tree_node_base_P extends std_or_std_is_function_std_Rb_tree_node_base_P_std_is_array_std_Rb_tree_node_base_P {
+  constructor(...$a) {
+    super();
+    this.__init_std_or_std_is_void_std_Rb_tree_node_base_P_std_is_function_std_Rb_tree_node_base_P_std_is_array_std_Rb_tree_node_base_P(...$a);
+  }
+  __init_std_or_std_is_void_std_Rb_tree_node_base_P_std_is_function_std_Rb_tree_node_base_P_std_is_array_std_Rb_tree_node_base_P(...$a) {
+  }
+  __dtor() {
+    std_or_std_is_function_std_Rb_tree_node_base_P_std_is_array_std_Rb_tree_node_base_P.prototype.__dtor.call(this);
+  }
+}
+class std_conditional_value0_std_is_void_std_Rb_tree_node_base_P_std_or_std_is_function_std_Rb_tree_node_base_P_std_is_array_std_Rb_tree_node_base_P {
+  __init_std_conditional_value0_std_is_void_std_Rb_tree_node_base_P_std_or_std_is_function_std_Rb_tree_node_base_P_std_is_array_std_Rb_tree_node_base_P(...$a) { }
+  __dtor() {
+  }
+}
+class std_is_convertible_helper_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P_value0 extends std_sfinae_types {
+  constructor(...$a) {
+    super();
+    this.__init_std_is_convertible_helper_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P_value0(...$a);
+  }
+  __init_std_is_convertible_helper_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P_value0(...$a) {
+  }
+  __dtor() {
+    std_sfinae_types.prototype.__dtor.call(this);
+  }
+  static value = 1;
+}
 class std_is_reference_std_Rb_tree_node_base_P extends std_integral_constant_bool_value0 {
   constructor(...$a) {
     super();
@@ -1486,27 +2058,6 @@ class std_not_std_is_reference_std_Rb_tree_node_base_P extends std_integral_cons
     std_integral_constant_bool_value1.prototype.__dtor.call(this);
   }
 }
-class std_is_void_std_Rb_tree_node_base_P extends std_integral_constant_bool_value0 {
-  constructor(...$a) {
-    super();
-    this.__init_std_is_void_std_Rb_tree_node_base_P(...$a);
-  }
-  __init_std_is_void_std_Rb_tree_node_base_P(...$a) {
-  }
-  __dtor() {
-    std_integral_constant_bool_value0.prototype.__dtor.call(this);
-  }
-}
-class std_remove_cv_std_Rb_tree_node_base_P {
-  __init_std_remove_cv_std_Rb_tree_node_base_P(...$a) { }
-  __dtor() {
-  }
-}
-class std_remove_volatile_std_Rb_tree_node_base_P {
-  __init_std_remove_volatile_std_Rb_tree_node_base_P(...$a) { }
-  __dtor() {
-  }
-}
 class std_not_std_is_void_std_Rb_tree_node_base_P extends std_integral_constant_bool_value1 {
   constructor(...$a) {
     super();
@@ -1550,61 +2101,6 @@ class std_add_rvalue_reference_std_Rb_tree_node_base_P extends std_add_rvalue_re
     std_add_rvalue_reference_helper_std_Rb_tree_node_base_P_value1.prototype.__dtor.call(this);
   }
 }
-class std_and_std_is_convertible_std_Rb_tree_node_base_P_R_std_Rb_tree_node_base_P_std_is_convertible_std_Rb_tree_node_base_P_R_std_Rb_tree_node_base_P extends std_is_convertible_std_Rb_tree_node_base_P_R_std_Rb_tree_node_base_P {
-  constructor(...$a) {
-    super();
-    this.__init_std_and_std_is_convertible_std_Rb_tree_node_base_P_R_std_Rb_tree_node_base_P_std_is_convertible_std_Rb_tree_node_base_P_R_std_Rb_tree_node_base_P(...$a);
-  }
-  __init_std_and_std_is_convertible_std_Rb_tree_node_base_P_R_std_Rb_tree_node_base_P_std_is_convertible_std_Rb_tree_node_base_P_R_std_Rb_tree_node_base_P(...$a) {
-  }
-  __dtor() {
-    std_is_convertible_std_Rb_tree_node_base_P_R_std_Rb_tree_node_base_P.prototype.__dtor.call(this);
-  }
-}
-class std_conditional_value1_std_is_convertible_std_Rb_tree_node_base_P_R_std_Rb_tree_node_base_P_std_is_convertible_std_Rb_tree_node_base_P_R_std_Rb_tree_node_base_P {
-  __init_std_conditional_value1_std_is_convertible_std_Rb_tree_node_base_P_R_std_Rb_tree_node_base_P_std_is_convertible_std_Rb_tree_node_base_P_R_std_Rb_tree_node_base_P(...$a) { }
-  __dtor() {
-  }
-}
-class std_is_convertible_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P extends std_integral_constant_bool_value1 {
-  constructor(...$a) {
-    super();
-    this.__init_std_is_convertible_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P(...$a);
-  }
-  __init_std_is_convertible_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P(...$a) {
-  }
-  __dtor() {
-    std_integral_constant_bool_value1.prototype.__dtor.call(this);
-  }
-}
-class std_or_std_is_void_std_Rb_tree_node_base_P_std_is_function_std_Rb_tree_node_base_P_std_is_array_std_Rb_tree_node_base_P extends std_or_std_is_function_std_Rb_tree_node_base_P_std_is_array_std_Rb_tree_node_base_P {
-  constructor(...$a) {
-    super();
-    this.__init_std_or_std_is_void_std_Rb_tree_node_base_P_std_is_function_std_Rb_tree_node_base_P_std_is_array_std_Rb_tree_node_base_P(...$a);
-  }
-  __init_std_or_std_is_void_std_Rb_tree_node_base_P_std_is_function_std_Rb_tree_node_base_P_std_is_array_std_Rb_tree_node_base_P(...$a) {
-  }
-  __dtor() {
-    std_or_std_is_function_std_Rb_tree_node_base_P_std_is_array_std_Rb_tree_node_base_P.prototype.__dtor.call(this);
-  }
-}
-class std_conditional_value0_std_is_void_std_Rb_tree_node_base_P_std_or_std_is_function_std_Rb_tree_node_base_P_std_is_array_std_Rb_tree_node_base_P {
-  __init_std_conditional_value0_std_is_void_std_Rb_tree_node_base_P_std_or_std_is_function_std_Rb_tree_node_base_P_std_is_array_std_Rb_tree_node_base_P(...$a) { }
-  __dtor() {
-  }
-}
-class std_is_convertible_helper_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P_value0 extends std_sfinae_types {
-  constructor(...$a) {
-    super();
-    this.__init_std_is_convertible_helper_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P_value0(...$a);
-  }
-  __init_std_is_convertible_helper_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P_value0(...$a) {
-  }
-  __dtor() {
-    std_sfinae_types.prototype.__dtor.call(this);
-  }
-  static value = 1;
-}
 class std_and_std_is_convertible_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P_std_is_convertible_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P extends std_is_convertible_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P {
   constructor(...$a) {
     super();
@@ -1625,6 +2121,16 @@ class std_remove_reference_int {
   __init_std_remove_reference_int(...$a) { }
   __dtor() {
   }
+}
+class std_declval_protector_std_Rb_tree_iterator_int_R {
+  constructor(...$a) {
+    this.__init_std_declval_protector_std_Rb_tree_iterator_int_R(...$a);
+  }
+  __init_std_declval_protector_std_Rb_tree_iterator_int_R(...$a) {
+  }
+  __dtor() {
+  }
+  static __stop = 0;
 }
 class std_declval_protector_std_Rb_tree_iterator_int {
   constructor(...$a) {
@@ -2389,6 +2895,16 @@ class std_conditional_value1_std_is_convertible_int_std_Rb_tree_node_base_P_std_
   __init_std_conditional_value1_std_is_convertible_int_std_Rb_tree_node_base_P_std_is_convertible_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P(...$a) { }
   __dtor() {
   }
+}
+class std_declval_protector_std_Rb_tree_node_base_P_R {
+  constructor(...$a) {
+    this.__init_std_declval_protector_std_Rb_tree_node_base_P_R(...$a);
+  }
+  __init_std_declval_protector_std_Rb_tree_node_base_P_R(...$a) {
+  }
+  __dtor() {
+  }
+  static __stop = 0;
 }
 class std_declval_protector_std_Rb_tree_node_base_P {
   constructor(...$a) {
@@ -3425,6 +3941,22 @@ class std_remove_volatile_std_Rb_tree_node_int_R {
   __dtor() {
   }
 }
+class std_remove_const_std_Rb_tree_node_int_R {
+  __init_std_remove_const_std_Rb_tree_node_int_R(...$a) { }
+  __dtor() {
+  }
+}
+class std_is_void_helper_std_Rb_tree_node_int_R extends std_integral_constant_bool_value0 {
+  constructor(...$a) {
+    super();
+    this.__init_std_is_void_helper_std_Rb_tree_node_int_R(...$a);
+  }
+  __init_std_is_void_helper_std_Rb_tree_node_int_R(...$a) {
+  }
+  __dtor() {
+    std_integral_constant_bool_value0.prototype.__dtor.call(this);
+  }
+}
 class std_not_std_is_void_std_Rb_tree_node_int_R extends std_integral_constant_bool_value1 {
   constructor(...$a) {
     super();
@@ -3549,14 +4081,26 @@ function main() {
   (console.log((s.size__c())));
   return 0;
 }
+function std_declval_std_Rb_tree_const_iterator_int_R() {
+  return std_declval_protector_std_Rb_tree_const_iterator_int_R.__delegate();
+}
+function std_declval_bool_R() {
+  return std_declval_protector_bool_R.__delegate();
+}
 function std_declval_std_Rb_tree_const_iterator_int() {
   return std_declval_protector_std_Rb_tree_const_iterator_int.__delegate();
 }
 function std_declval_bool() {
   return std_declval_protector_bool.__delegate();
 }
+function std_declval_std_Rb_tree_iterator_int_R() {
+  return std_declval_protector_std_Rb_tree_iterator_int_R.__delegate();
+}
 function std_declval_std_Rb_tree_iterator_int() {
   return std_declval_protector_std_Rb_tree_iterator_int.__delegate();
+}
+function std_declval_std_Rb_tree_node_base_P_R() {
+  return std_declval_protector_std_Rb_tree_node_base_P_R.__delegate();
 }
 function std_declval_std_Rb_tree_node_base_P() {
   return std_declval_protector_std_Rb_tree_node_base_P.__delegate();

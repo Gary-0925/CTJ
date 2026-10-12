@@ -5992,6 +5992,10 @@ var CTJ;
                 c.segs = t.segs;
                 c.ptr = t.ptr - tn.ptr;
                 c.dims = t.dims.slice();
+                // A reference in the pattern is the pattern's own; without one the
+                // argument keeps its reference, as in "conditional<false, _Iftrue,
+                // _Iffalse>" where "_Iffalse" is bound to a "_Value&" argument.
+                c.ref = tn.ref ? "" : t.ref;
                 c.isFunc = t.isFunc;
                 c.ret = t.ret;
                 c.funcParams = t.funcParams;
@@ -9320,6 +9324,11 @@ var CTJ;
             // after substitution) is a concrete type: it is matched against the
             // argument by conversion, so there is nothing to deduce.
             if (!typeNamesMatch(tn.parts[0].n, t.segs[0].n)) {
+                // The argument may be a class derived from the one the pattern names:
+                // "_Node_iterator<_Value, __constant_iterators, __cache>" binds to a
+                // "_Node_iterator_base<_Value, __cache>&" parameter through its base.
+                if (deduceFromBases(cx, tn, t, env, venv, packs, keepRef, names, fixedNames))
+                    return true;
                 // An alias like "__void_t<...>" is spelled as a template-id but denotes
                 // the type it expands to, so a plain "void" argument still matches it.
                 const head = t.segs[0].n;
@@ -16478,4 +16487,4 @@ var CTJ;
     g["CTJ"] = CTJ;
 })();
 
-CTJ.version = "f7998b8 2026-10-12 05:21:48Z";
+CTJ.version = "4a41975 2026-10-12 05:29:38Z";

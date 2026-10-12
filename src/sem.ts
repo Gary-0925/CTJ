@@ -1851,6 +1851,10 @@ export class Cx {
       c.segs = t.segs;
       c.ptr = t.ptr - tn.ptr;
       c.dims = t.dims.slice();
+      // A reference in the pattern is the pattern's own; without one the
+      // argument keeps its reference, as in "conditional<false, _Iftrue,
+      // _Iffalse>" where "_Iffalse" is bound to a "_Value&" argument.
+      c.ref = tn.ref ? "" : t.ref;
       c.isFunc = t.isFunc;
       c.ret = t.ret;
       c.funcParams = t.funcParams;

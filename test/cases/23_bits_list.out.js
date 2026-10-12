@@ -1230,12 +1230,12 @@ class std_detail_Results {
     throw new Error("pure virtual called");
   }
 }
-class std_unary_function_std_detail_PatternCursor_bool {
-  __init_std_unary_function_std_detail_PatternCursor_bool(...$a) { }
+class std_unary_function_std_detail_PatternCursor_R_bool {
+  __init_std_unary_function_std_detail_PatternCursor_R_bool(...$a) { }
   __dtor() {
   }
 }
-class std_Maybe_unary_or_binary_function_bool_std_detail_PatternCursor_R extends std_unary_function_std_detail_PatternCursor_bool {
+class std_Maybe_unary_or_binary_function_bool_std_detail_PatternCursor_R extends std_unary_function_std_detail_PatternCursor_R_bool {
   constructor(...$a) {
     super();
     this.__init_std_Maybe_unary_or_binary_function_bool_std_detail_PatternCursor_R(...$a);
@@ -1243,7 +1243,7 @@ class std_Maybe_unary_or_binary_function_bool_std_detail_PatternCursor_R extends
   __init_std_Maybe_unary_or_binary_function_bool_std_detail_PatternCursor_R(...$a) {
   }
   __dtor() {
-    std_unary_function_std_detail_PatternCursor_bool.prototype.__dtor.call(this);
+    std_unary_function_std_detail_PatternCursor_R_bool.prototype.__dtor.call(this);
   }
 }
 class std_function_func_bool_std_detail_PatternCursor_R extends std_Maybe_unary_or_binary_function_bool_std_detail_PatternCursor_R {
@@ -1269,12 +1269,12 @@ for (let $b = std_Function_base; $b && $b.prototype; $b = Object.getPrototypeOf(
     if ($k !== "prototype" && $k !== "name" && $k !== "length" && !($k in std_function_func_bool_std_detail_PatternCursor_R)) std_function_func_bool_std_detail_PatternCursor_R[$k] = $b[$k];
   }
 }
-class std_binary_function_std_detail_PatternCursor_std_detail_Results_void {
-  __init_std_binary_function_std_detail_PatternCursor_std_detail_Results_void(...$a) { }
+class std_binary_function_std_detail_PatternCursor_R_std_detail_Results_R_void {
+  __init_std_binary_function_std_detail_PatternCursor_R_std_detail_Results_R_void(...$a) { }
   __dtor() {
   }
 }
-class std_Maybe_unary_or_binary_function_void_std_detail_PatternCursor_R_std_detail_Results_R extends std_binary_function_std_detail_PatternCursor_std_detail_Results_void {
+class std_Maybe_unary_or_binary_function_void_std_detail_PatternCursor_R_std_detail_Results_R extends std_binary_function_std_detail_PatternCursor_R_std_detail_Results_R_void {
   constructor(...$a) {
     super();
     this.__init_std_Maybe_unary_or_binary_function_void_std_detail_PatternCursor_R_std_detail_Results_R(...$a);
@@ -1282,7 +1282,7 @@ class std_Maybe_unary_or_binary_function_void_std_detail_PatternCursor_R_std_det
   __init_std_Maybe_unary_or_binary_function_void_std_detail_PatternCursor_R_std_detail_Results_R(...$a) {
   }
   __dtor() {
-    std_binary_function_std_detail_PatternCursor_std_detail_Results_void.prototype.__dtor.call(this);
+    std_binary_function_std_detail_PatternCursor_R_std_detail_Results_R_void.prototype.__dtor.call(this);
   }
 }
 class std_function_func_void_std_detail_PatternCursor_R_std_detail_Results_R extends std_Maybe_unary_or_binary_function_void_std_detail_PatternCursor_R_std_detail_Results_R {

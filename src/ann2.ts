@@ -1238,6 +1238,10 @@ function deduceOne(cx: Cx, tn: TypeNode, t: CppType, env: Map<string, CppType>, 
     // after substitution) is a concrete type: it is matched against the
     // argument by conversion, so there is nothing to deduce.
     if (!typeNamesMatch(tn.parts[0].n, t.segs[0].n)) {
+      // The argument may be a class derived from the one the pattern names:
+      // "_Node_iterator<_Value, __constant_iterators, __cache>" binds to a
+      // "_Node_iterator_base<_Value, __cache>&" parameter through its base.
+      if (deduceFromBases(cx, tn, t, env, venv, packs, keepRef, names, fixedNames)) return true;
       // An alias like "__void_t<...>" is spelled as a template-id but denotes
       // the type it expands to, so a plain "void" argument still matches it.
       const head = t.segs[0].n;
