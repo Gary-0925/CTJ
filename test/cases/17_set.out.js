@@ -1,6 +1,7 @@
 "use strict";
 function _ctj_peq(a, b) { return a === b || (!!a && !!b && a.a === b.a && a.i === b.i); }
 class std_sfinae_types {
+  __init_std_sfinae_types(...$a) { }
   __dtor() {
   }
 }
@@ -16,14 +17,17 @@ class std_sfinae_types_class_47 {
   }
 }
 class std_do_is_destructible_impl {
+  __init_std_do_is_destructible_impl(...$a) { }
   __dtor() {
   }
 }
 class std_do_is_static_castable_impl {
+  __init_std_do_is_static_castable_impl(...$a) { }
   __dtor() {
   }
 }
 class std_do_is_direct_constructible_impl {
+  __init_std_do_is_direct_constructible_impl(...$a) { }
   __dtor() {
   }
 }
@@ -32,7 +36,7 @@ class std_piecewise_construct_t {
     this.__init_std_piecewise_construct_t(...$a);
   }
   __init_std_piecewise_construct_t(...$a) {
-    if ($a.length >= 1 && $a.length <= 1 && ($a[0] !== null && typeof $a[0] === "object" && $a[0].a[$a[0].i] instanceof std_piecewise_construct_t)) {
+    if ($a.length >= 1 && $a.length <= 1 && ($a[0] !== null && typeof $a[0] === "object" && !Array.isArray($a[0]) && $a[0].a !== undefined && $a[0].i !== undefined && $a[0].a[$a[0].i] instanceof std_piecewise_construct_t)) {
     }
     else if ($a.length >= 0 && $a.length <= 0) {
     }
@@ -42,6 +46,7 @@ class std_piecewise_construct_t {
   }
 }
 class std_input_iterator_tag {
+  __init_std_input_iterator_tag(...$a) { }
   __dtor() {
   }
 }
@@ -128,6 +133,7 @@ class std_less_int extends std_binary_function_int_int_bool {
   }
 }
 class gnu_cxx_new_allocator_int {
+  __init_gnu_cxx_new_allocator_int(...$a) { }
   __dtor() {
   }
 }
@@ -179,6 +185,7 @@ class std_Identity_int extends std_unary_function_int_int {
   }
 }
 class std_allocator_int_rebind_int {
+  __init_std_allocator_int_rebind_int(...$a) { }
   __dtor() {
   }
 }
@@ -188,7 +195,7 @@ class std_Rb_tree_const_iterator_int {
     this.__init_std_Rb_tree_const_iterator_int(...$a);
   }
   __init_std_Rb_tree_const_iterator_int(...$a) {
-    if ($a.length >= 1 && $a.length <= 1 && ($a[0] !== null && typeof $a[0] === "object" && $a[0].a[$a[0].i] instanceof std_Rb_tree_iterator_int)) {
+    if ($a.length >= 1 && $a.length <= 1 && ($a[0] !== null && typeof $a[0] === "object" && !Array.isArray($a[0]) && $a[0].a !== undefined && $a[0].i !== undefined && $a[0].a[$a[0].i] instanceof std_Rb_tree_iterator_int)) {
       this._M_node = (((($a[0]).a[($a[0]).i])._M_node) ? {a: ((($a[0]).a[($a[0]).i])._M_node).a, i: ((($a[0]).a[($a[0]).i])._M_node).i} : null);
     }
     else if ($a.length >= 0 && $a.length <= 0) {
@@ -219,7 +226,7 @@ class std_Rb_tree_iterator_int {
     this.__init_std_Rb_tree_iterator_int(...$a);
   }
   __init_std_Rb_tree_iterator_int(...$a) {
-    if ($a.length >= 1 && $a.length <= 1 && ($a[0] !== null && typeof $a[0] === "object" && $a[0].a[$a[0].i] instanceof std_Rb_tree_iterator_int)) {
+    if ($a.length >= 1 && $a.length <= 1 && ($a[0] !== null && typeof $a[0] === "object" && !Array.isArray($a[0]) && $a[0].a !== undefined && $a[0].i !== undefined && $a[0].a[$a[0].i] instanceof std_Rb_tree_iterator_int)) {
       this._M_node = (((($a[0]).a[($a[0]).i])._M_node) ? {a: ((($a[0]).a[($a[0]).i])._M_node).a, i: ((($a[0]).a[($a[0]).i])._M_node).i} : null);
     }
     else if ($a.length >= 0 && $a.length <= 0) {
@@ -248,12 +255,14 @@ class std_pair_std_Rb_tree_const_iterator_int_bool {
     this.__init_std_pair_std_Rb_tree_const_iterator_int_bool(...$a);
   }
   __init_std_pair_std_Rb_tree_const_iterator_int_bool(...$a) {
-    if ($a.length >= 1 && $a.length <= 1 && ($a[0] !== null && typeof $a[0] === "object" && $a[0].a[$a[0].i] instanceof std_pair_std_Rb_tree_const_iterator_int_bool)) {
+    if ($a.length >= 1 && $a.length <= 1 && ($a[0] !== null && typeof $a[0] === "object" && !Array.isArray($a[0]) && $a[0].a !== undefined && $a[0].i !== undefined && $a[0].a[$a[0].i] instanceof std_pair_std_Rb_tree_const_iterator_int_bool)) {
       this.first = ($a[0] && $a[0].a ? $a[0].a[$a[0].i] : $a[0]).first;
+      this.first.ctj_a = this; this.first.ctj_i = "first";
       this.second = ($a[0] && $a[0].a ? $a[0].a[$a[0].i] : $a[0]).second;
     }
-    else if ($a.length >= 2 && $a.length <= 2 && ($a[0] !== null && typeof $a[0] === "object" && $a[0].a[$a[0].i] instanceof std_Rb_tree_iterator_int) && ($a[1] === null || typeof $a[1] === "object")) {
+    else if ($a.length >= 2 && $a.length <= 2 && ($a[0] !== null && typeof $a[0] === "object" && !Array.isArray($a[0]) && $a[0].a !== undefined && $a[0].i !== undefined && $a[0].a[$a[0].i] instanceof std_Rb_tree_iterator_int) && ($a[1] === null || typeof $a[1] === "object")) {
       this.first = new std_Rb_tree_const_iterator_int(std_forward_1_std_Rb_tree_iterator_int($a[0]));
+      this.first.ctj_a = this; this.first.ctj_i = "first";
       this.second = ($a[1]).a[($a[1]).i];
     }
     else { throw new Error("no matching constructor"); }
@@ -262,14 +271,17 @@ class std_pair_std_Rb_tree_const_iterator_int_bool {
   }
 }
 class std_remove_cv_std_Rb_tree_const_iterator_int_R {
+  __init_std_remove_cv_std_Rb_tree_const_iterator_int_R(...$a) { }
   __dtor() {
   }
 }
 class std_remove_volatile_std_Rb_tree_const_iterator_int_R {
+  __init_std_remove_volatile_std_Rb_tree_const_iterator_int_R(...$a) { }
   __dtor() {
   }
 }
 class std_remove_const_std_Rb_tree_const_iterator_int {
+  __init_std_remove_const_std_Rb_tree_const_iterator_int(...$a) { }
   __dtor() {
   }
 }
@@ -350,10 +362,12 @@ class std_or_std_is_void_std_Rb_tree_const_iterator_int_R_std_is_function_std_Rb
   }
 }
 class std_conditional_value0_std_is_function_std_Rb_tree_const_iterator_int_std_is_array_std_Rb_tree_const_iterator_int {
+  __init_std_conditional_value0_std_is_function_std_Rb_tree_const_iterator_int_std_is_array_std_Rb_tree_const_iterator_int(...$a) { }
   __dtor() {
   }
 }
 class std_conditional_value0_std_is_void_std_Rb_tree_const_iterator_int_R_std_or_std_is_function_std_Rb_tree_const_iterator_int_std_is_array_std_Rb_tree_const_iterator_int {
+  __init_std_conditional_value0_std_is_void_std_Rb_tree_const_iterator_int_R_std_or_std_is_function_std_Rb_tree_const_iterator_int_std_is_array_std_Rb_tree_const_iterator_int(...$a) { }
   __dtor() {
   }
 }
@@ -414,6 +428,7 @@ class std_or_std_is_lvalue_reference_std_Rb_tree_const_iterator_int_std_is_rvalu
   }
 }
 class std_conditional_value0_std_is_lvalue_reference_std_Rb_tree_const_iterator_int_std_is_rvalue_reference_std_Rb_tree_const_iterator_int {
+  __init_std_conditional_value0_std_is_lvalue_reference_std_Rb_tree_const_iterator_int_std_is_rvalue_reference_std_Rb_tree_const_iterator_int(...$a) { }
   __dtor() {
   }
 }
@@ -461,10 +476,12 @@ class std_is_void_std_Rb_tree_const_iterator_int extends std_integral_constant_b
   }
 }
 class std_remove_cv_std_Rb_tree_const_iterator_int {
+  __init_std_remove_cv_std_Rb_tree_const_iterator_int(...$a) { }
   __dtor() {
   }
 }
 class std_remove_volatile_std_Rb_tree_const_iterator_int {
+  __init_std_remove_volatile_std_Rb_tree_const_iterator_int(...$a) { }
   __dtor() {
   }
 }
@@ -491,10 +508,12 @@ class std_and_std_not_std_is_reference_std_Rb_tree_const_iterator_int_std_not_st
   }
 }
 class std_conditional_value1_std_not_std_is_void_std_Rb_tree_const_iterator_int_std_not_std_is_reference_std_Rb_tree_const_iterator_int {
+  __init_std_conditional_value1_std_not_std_is_void_std_Rb_tree_const_iterator_int_std_not_std_is_reference_std_Rb_tree_const_iterator_int(...$a) { }
   __dtor() {
   }
 }
 class std_add_rvalue_reference_helper_std_Rb_tree_const_iterator_int_value1 {
+  __init_std_add_rvalue_reference_helper_std_Rb_tree_const_iterator_int_value1(...$a) { }
   __dtor() {
   }
 }
@@ -532,14 +551,17 @@ class std_is_void_bool_R extends std_integral_constant_bool_value0 {
   }
 }
 class std_remove_cv_bool_R {
+  __init_std_remove_cv_bool_R(...$a) { }
   __dtor() {
   }
 }
 class std_remove_volatile_bool_R {
+  __init_std_remove_volatile_bool_R(...$a) { }
   __dtor() {
   }
 }
 class std_remove_const_bool {
+  __init_std_remove_const_bool(...$a) { }
   __dtor() {
   }
 }
@@ -599,10 +621,12 @@ class std_or_std_is_void_bool_R_std_is_function_bool_std_is_array_bool extends s
   }
 }
 class std_conditional_value0_std_is_function_bool_std_is_array_bool {
+  __init_std_conditional_value0_std_is_function_bool_std_is_array_bool(...$a) { }
   __dtor() {
   }
 }
 class std_conditional_value0_std_is_void_bool_R_std_or_std_is_function_bool_std_is_array_bool {
+  __init_std_conditional_value0_std_is_void_bool_R_std_or_std_is_function_bool_std_is_array_bool(...$a) { }
   __dtor() {
   }
 }
@@ -663,6 +687,7 @@ class std_or_std_is_lvalue_reference_bool_std_is_rvalue_reference_bool extends s
   }
 }
 class std_conditional_value0_std_is_lvalue_reference_bool_std_is_rvalue_reference_bool {
+  __init_std_conditional_value0_std_is_lvalue_reference_bool_std_is_rvalue_reference_bool(...$a) { }
   __dtor() {
   }
 }
@@ -689,10 +714,12 @@ class std_is_void_bool extends std_integral_constant_bool_value0 {
   }
 }
 class std_remove_cv_bool {
+  __init_std_remove_cv_bool(...$a) { }
   __dtor() {
   }
 }
 class std_remove_volatile_bool {
+  __init_std_remove_volatile_bool(...$a) { }
   __dtor() {
   }
 }
@@ -719,10 +746,12 @@ class std_and_std_not_std_is_reference_bool_std_not_std_is_void_bool extends std
   }
 }
 class std_conditional_value1_std_not_std_is_void_bool_std_not_std_is_reference_bool {
+  __init_std_conditional_value1_std_not_std_is_void_bool_std_not_std_is_reference_bool(...$a) { }
   __dtor() {
   }
 }
 class std_add_rvalue_reference_helper_bool_value1 {
+  __init_std_add_rvalue_reference_helper_bool_value1(...$a) { }
   __dtor() {
   }
 }
@@ -749,10 +778,12 @@ class std_and_std_is_convertible_std_Rb_tree_const_iterator_int_R_std_Rb_tree_co
   }
 }
 class std_conditional_value1_std_is_convertible_bool_R_bool_std_is_convertible_std_Rb_tree_const_iterator_int_R_std_Rb_tree_const_iterator_int {
+  __init_std_conditional_value1_std_is_convertible_bool_R_bool_std_is_convertible_std_Rb_tree_const_iterator_int_R_std_Rb_tree_const_iterator_int(...$a) { }
   __dtor() {
   }
 }
 class std_enable_if_value1_void {
+  __init_std_enable_if_value1_void(...$a) { }
   __dtor() {
   }
 }
@@ -779,6 +810,7 @@ class std_or_std_is_void_std_Rb_tree_const_iterator_int_std_is_function_std_Rb_t
   }
 }
 class std_conditional_value0_std_is_void_std_Rb_tree_const_iterator_int_std_or_std_is_function_std_Rb_tree_const_iterator_int_std_is_array_std_Rb_tree_const_iterator_int {
+  __init_std_conditional_value0_std_is_void_std_Rb_tree_const_iterator_int_std_or_std_is_function_std_Rb_tree_const_iterator_int_std_is_array_std_Rb_tree_const_iterator_int(...$a) { }
   __dtor() {
   }
 }
@@ -817,6 +849,7 @@ class std_or_std_is_void_bool_std_is_function_bool_std_is_array_bool extends std
   }
 }
 class std_conditional_value0_std_is_void_bool_std_or_std_is_function_bool_std_is_array_bool {
+  __init_std_conditional_value0_std_is_void_bool_std_or_std_is_function_bool_std_is_array_bool(...$a) { }
   __dtor() {
   }
 }
@@ -844,6 +877,7 @@ class std_and_std_is_convertible_std_Rb_tree_const_iterator_int_std_Rb_tree_cons
   }
 }
 class std_conditional_value1_std_is_convertible_bool_bool_std_is_convertible_std_Rb_tree_const_iterator_int_std_Rb_tree_const_iterator_int {
+  __init_std_conditional_value1_std_is_convertible_bool_bool_std_is_convertible_std_Rb_tree_const_iterator_int_std_Rb_tree_const_iterator_int(...$a) { }
   __dtor() {
   }
 }
@@ -854,12 +888,14 @@ class std_pair_std_Rb_tree_iterator_int_bool {
     this.__init_std_pair_std_Rb_tree_iterator_int_bool(...$a);
   }
   __init_std_pair_std_Rb_tree_iterator_int_bool(...$a) {
-    if ($a.length >= 2 && $a.length <= 2 && ($a[0] !== null && typeof $a[0] === "object" && $a[0].a[$a[0].i] instanceof std_Rb_tree_iterator_int) && ($a[1] === null || typeof $a[1] === "object")) {
+    if ($a.length >= 2 && $a.length <= 2 && ($a[0] !== null && typeof $a[0] === "object" && !Array.isArray($a[0]) && $a[0].a !== undefined && $a[0].i !== undefined && $a[0].a[$a[0].i] instanceof std_Rb_tree_iterator_int) && ($a[1] === null || typeof $a[1] === "object")) {
       this.first = new std_Rb_tree_iterator_int($a[0]);
+      this.first.ctj_a = this; this.first.ctj_i = "first";
       this.second = ($a[1]).a[($a[1]).i];
     }
-    else if ($a.length >= 1 && $a.length <= 1 && ($a[0] !== null && typeof $a[0] === "object" && $a[0].a[$a[0].i] instanceof std_pair_std_Rb_tree_iterator_int_bool)) {
+    else if ($a.length >= 1 && $a.length <= 1 && ($a[0] !== null && typeof $a[0] === "object" && !Array.isArray($a[0]) && $a[0].a !== undefined && $a[0].i !== undefined && $a[0].a[$a[0].i] instanceof std_pair_std_Rb_tree_iterator_int_bool)) {
       this.first = ($a[0] && $a[0].a ? $a[0].a[$a[0].i] : $a[0]).first;
+      this.first.ctj_a = this; this.first.ctj_i = "first";
       this.second = ($a[0] && $a[0].a ? $a[0].a[$a[0].i] : $a[0]).second;
     }
     else { throw new Error("no matching constructor"); }
@@ -890,14 +926,17 @@ class std_is_void_std_Rb_tree_iterator_int_R extends std_integral_constant_bool_
   }
 }
 class std_remove_cv_std_Rb_tree_iterator_int_R {
+  __init_std_remove_cv_std_Rb_tree_iterator_int_R(...$a) { }
   __dtor() {
   }
 }
 class std_remove_volatile_std_Rb_tree_iterator_int_R {
+  __init_std_remove_volatile_std_Rb_tree_iterator_int_R(...$a) { }
   __dtor() {
   }
 }
 class std_remove_const_std_Rb_tree_iterator_int {
+  __init_std_remove_const_std_Rb_tree_iterator_int(...$a) { }
   __dtor() {
   }
 }
@@ -957,10 +996,12 @@ class std_or_std_is_void_std_Rb_tree_iterator_int_R_std_is_function_std_Rb_tree_
   }
 }
 class std_conditional_value0_std_is_function_std_Rb_tree_iterator_int_std_is_array_std_Rb_tree_iterator_int {
+  __init_std_conditional_value0_std_is_function_std_Rb_tree_iterator_int_std_is_array_std_Rb_tree_iterator_int(...$a) { }
   __dtor() {
   }
 }
 class std_conditional_value0_std_is_void_std_Rb_tree_iterator_int_R_std_or_std_is_function_std_Rb_tree_iterator_int_std_is_array_std_Rb_tree_iterator_int {
+  __init_std_conditional_value0_std_is_void_std_Rb_tree_iterator_int_R_std_or_std_is_function_std_Rb_tree_iterator_int_std_is_array_std_Rb_tree_iterator_int(...$a) { }
   __dtor() {
   }
 }
@@ -1021,6 +1062,7 @@ class std_or_std_is_lvalue_reference_std_Rb_tree_iterator_int_std_is_rvalue_refe
   }
 }
 class std_conditional_value0_std_is_lvalue_reference_std_Rb_tree_iterator_int_std_is_rvalue_reference_std_Rb_tree_iterator_int {
+  __init_std_conditional_value0_std_is_lvalue_reference_std_Rb_tree_iterator_int_std_is_rvalue_reference_std_Rb_tree_iterator_int(...$a) { }
   __dtor() {
   }
 }
@@ -1047,10 +1089,12 @@ class std_is_void_std_Rb_tree_iterator_int extends std_integral_constant_bool_va
   }
 }
 class std_remove_cv_std_Rb_tree_iterator_int {
+  __init_std_remove_cv_std_Rb_tree_iterator_int(...$a) { }
   __dtor() {
   }
 }
 class std_remove_volatile_std_Rb_tree_iterator_int {
+  __init_std_remove_volatile_std_Rb_tree_iterator_int(...$a) { }
   __dtor() {
   }
 }
@@ -1077,10 +1121,12 @@ class std_and_std_not_std_is_reference_std_Rb_tree_iterator_int_std_not_std_is_v
   }
 }
 class std_conditional_value1_std_not_std_is_void_std_Rb_tree_iterator_int_std_not_std_is_reference_std_Rb_tree_iterator_int {
+  __init_std_conditional_value1_std_not_std_is_void_std_Rb_tree_iterator_int_std_not_std_is_reference_std_Rb_tree_iterator_int(...$a) { }
   __dtor() {
   }
 }
 class std_add_rvalue_reference_helper_std_Rb_tree_iterator_int_value1 {
+  __init_std_add_rvalue_reference_helper_std_Rb_tree_iterator_int_value1(...$a) { }
   __dtor() {
   }
 }
@@ -1107,6 +1153,7 @@ class std_and_std_is_convertible_std_Rb_tree_iterator_int_R_std_Rb_tree_iterator
   }
 }
 class std_conditional_value1_std_is_convertible_bool_R_bool_std_is_convertible_std_Rb_tree_iterator_int_R_std_Rb_tree_iterator_int {
+  __init_std_conditional_value1_std_is_convertible_bool_R_bool_std_is_convertible_std_Rb_tree_iterator_int_R_std_Rb_tree_iterator_int(...$a) { }
   __dtor() {
   }
 }
@@ -1133,6 +1180,7 @@ class std_or_std_is_void_std_Rb_tree_iterator_int_std_is_function_std_Rb_tree_it
   }
 }
 class std_conditional_value0_std_is_void_std_Rb_tree_iterator_int_std_or_std_is_function_std_Rb_tree_iterator_int_std_is_array_std_Rb_tree_iterator_int {
+  __init_std_conditional_value0_std_is_void_std_Rb_tree_iterator_int_std_or_std_is_function_std_Rb_tree_iterator_int_std_is_array_std_Rb_tree_iterator_int(...$a) { }
   __dtor() {
   }
 }
@@ -1160,6 +1208,7 @@ class std_and_std_is_convertible_std_Rb_tree_iterator_int_std_Rb_tree_iterator_i
   }
 }
 class std_conditional_value1_std_is_convertible_bool_bool_std_is_convertible_std_Rb_tree_iterator_int_std_Rb_tree_iterator_int {
+  __init_std_conditional_value1_std_is_convertible_bool_bool_std_is_convertible_std_Rb_tree_iterator_int_std_Rb_tree_iterator_int(...$a) { }
   __dtor() {
   }
 }
@@ -1186,6 +1235,7 @@ class std_or_std_is_void_std_Rb_tree_iterator_int_std_is_function_std_Rb_tree_co
   }
 }
 class std_conditional_value0_std_is_void_std_Rb_tree_iterator_int_std_or_std_is_function_std_Rb_tree_const_iterator_int_std_is_array_std_Rb_tree_const_iterator_int {
+  __init_std_conditional_value0_std_is_void_std_Rb_tree_iterator_int_std_or_std_is_function_std_Rb_tree_const_iterator_int_std_is_array_std_Rb_tree_const_iterator_int(...$a) { }
   __dtor() {
   }
 }
@@ -1213,6 +1263,7 @@ class std_and_std_is_convertible_std_Rb_tree_iterator_int_std_Rb_tree_const_iter
   }
 }
 class std_conditional_value1_std_is_convertible_bool_bool_std_is_convertible_std_Rb_tree_iterator_int_std_Rb_tree_const_iterator_int {
+  __init_std_conditional_value1_std_is_convertible_bool_bool_std_is_convertible_std_Rb_tree_iterator_int_std_Rb_tree_const_iterator_int(...$a) { }
   __dtor() {
   }
 }
@@ -1244,7 +1295,7 @@ class std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P {
   }
   __init_std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P(...$a) {
     let $t2, $t3, $t4, $t5;
-    if ($a.length >= 1 && $a.length <= 1 && ($a[0] !== null && typeof $a[0] === "object" && $a[0].a[$a[0].i] instanceof std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P)) {
+    if ($a.length >= 1 && $a.length <= 1 && ($a[0] !== null && typeof $a[0] === "object" && !Array.isArray($a[0]) && $a[0].a !== undefined && $a[0].i !== undefined && $a[0].a[$a[0].i] instanceof std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P)) {
       this.first = ($a[0] && $a[0].a ? $a[0].a[$a[0].i] : $a[0]).first;
       this.second = ($a[0] && $a[0].a ? $a[0].a[$a[0].i] : $a[0]).second;
     }
@@ -1253,8 +1304,8 @@ class std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P {
       this.second = ((($a[1]).a[($a[1]).i]) ? {a: (($a[1]).a[($a[1]).i]).a, i: (($a[1]).a[($a[1]).i]).i} : null);
     }
     else if ($a.length >= 2 && $a.length <= 2 && ($a[0] === null || typeof $a[0] === "object") && ($a[1] === null || typeof $a[1] === "object")) {
-      this.first = ($t2 = std_forward_1_std_Rb_tree_node_int_P(($a[0]).a[($a[0]).i]), $t3 = ($t2 ? $t2.a[$t2.i] : null), $t3 && $t3.a !== undefined ? {a: $t3.a, i: $t3.i} : $t3);
-      this.second = ($t4 = std_forward_1_std_Rb_tree_node_int_P(($a[1]).a[($a[1]).i]), $t5 = ($t4 ? $t4.a[$t4.i] : null), $t5 && $t5.a !== undefined ? {a: $t5.a, i: $t5.i} : $t5);
+      this.first = ($t2 = std_forward_1_std_Rb_tree_node_int_P($a[0]), $t3 = ($t2 ? $t2.a[$t2.i] : null), $t3 && $t3.a !== undefined ? {a: $t3.a, i: $t3.i} : $t3);
+      this.second = ($t4 = std_forward_1_std_Rb_tree_node_int_P($a[1]), $t5 = ($t4 ? $t4.a[$t4.i] : null), $t5 && $t5.a !== undefined ? {a: $t5.a, i: $t5.i} : $t5);
     }
     else { throw new Error("no matching constructor"); }
   }
@@ -1284,14 +1335,17 @@ class std_is_void_std_Rb_tree_node_base_P_R extends std_integral_constant_bool_v
   }
 }
 class std_remove_cv_std_Rb_tree_node_base_P_R {
+  __init_std_remove_cv_std_Rb_tree_node_base_P_R(...$a) { }
   __dtor() {
   }
 }
 class std_remove_volatile_std_Rb_tree_node_base_P_R {
+  __init_std_remove_volatile_std_Rb_tree_node_base_P_R(...$a) { }
   __dtor() {
   }
 }
 class std_remove_const_std_Rb_tree_node_base_P {
+  __init_std_remove_const_std_Rb_tree_node_base_P(...$a) { }
   __dtor() {
   }
 }
@@ -1351,10 +1405,12 @@ class std_or_std_is_void_std_Rb_tree_node_base_P_R_std_is_function_std_Rb_tree_n
   }
 }
 class std_conditional_value0_std_is_function_std_Rb_tree_node_base_P_std_is_array_std_Rb_tree_node_base_P {
+  __init_std_conditional_value0_std_is_function_std_Rb_tree_node_base_P_std_is_array_std_Rb_tree_node_base_P(...$a) { }
   __dtor() {
   }
 }
 class std_conditional_value0_std_is_void_std_Rb_tree_node_base_P_R_std_or_std_is_function_std_Rb_tree_node_base_P_std_is_array_std_Rb_tree_node_base_P {
+  __init_std_conditional_value0_std_is_void_std_Rb_tree_node_base_P_R_std_or_std_is_function_std_Rb_tree_node_base_P_std_is_array_std_Rb_tree_node_base_P(...$a) { }
   __dtor() {
   }
 }
@@ -1415,6 +1471,7 @@ class std_or_std_is_lvalue_reference_std_Rb_tree_node_base_P_std_is_rvalue_refer
   }
 }
 class std_conditional_value0_std_is_lvalue_reference_std_Rb_tree_node_base_P_std_is_rvalue_reference_std_Rb_tree_node_base_P {
+  __init_std_conditional_value0_std_is_lvalue_reference_std_Rb_tree_node_base_P_std_is_rvalue_reference_std_Rb_tree_node_base_P(...$a) { }
   __dtor() {
   }
 }
@@ -1441,10 +1498,12 @@ class std_is_void_std_Rb_tree_node_base_P extends std_integral_constant_bool_val
   }
 }
 class std_remove_cv_std_Rb_tree_node_base_P {
+  __init_std_remove_cv_std_Rb_tree_node_base_P(...$a) { }
   __dtor() {
   }
 }
 class std_remove_volatile_std_Rb_tree_node_base_P {
+  __init_std_remove_volatile_std_Rb_tree_node_base_P(...$a) { }
   __dtor() {
   }
 }
@@ -1471,10 +1530,12 @@ class std_and_std_not_std_is_reference_std_Rb_tree_node_base_P_std_not_std_is_vo
   }
 }
 class std_conditional_value1_std_not_std_is_void_std_Rb_tree_node_base_P_std_not_std_is_reference_std_Rb_tree_node_base_P {
+  __init_std_conditional_value1_std_not_std_is_void_std_Rb_tree_node_base_P_std_not_std_is_reference_std_Rb_tree_node_base_P(...$a) { }
   __dtor() {
   }
 }
 class std_add_rvalue_reference_helper_std_Rb_tree_node_base_P_value1 {
+  __init_std_add_rvalue_reference_helper_std_Rb_tree_node_base_P_value1(...$a) { }
   __dtor() {
   }
 }
@@ -1501,6 +1562,7 @@ class std_and_std_is_convertible_std_Rb_tree_node_base_P_R_std_Rb_tree_node_base
   }
 }
 class std_conditional_value1_std_is_convertible_std_Rb_tree_node_base_P_R_std_Rb_tree_node_base_P_std_is_convertible_std_Rb_tree_node_base_P_R_std_Rb_tree_node_base_P {
+  __init_std_conditional_value1_std_is_convertible_std_Rb_tree_node_base_P_R_std_Rb_tree_node_base_P_std_is_convertible_std_Rb_tree_node_base_P_R_std_Rb_tree_node_base_P(...$a) { }
   __dtor() {
   }
 }
@@ -1527,6 +1589,7 @@ class std_or_std_is_void_std_Rb_tree_node_base_P_std_is_function_std_Rb_tree_nod
   }
 }
 class std_conditional_value0_std_is_void_std_Rb_tree_node_base_P_std_or_std_is_function_std_Rb_tree_node_base_P_std_is_array_std_Rb_tree_node_base_P {
+  __init_std_conditional_value0_std_is_void_std_Rb_tree_node_base_P_std_or_std_is_function_std_Rb_tree_node_base_P_std_is_array_std_Rb_tree_node_base_P(...$a) { }
   __dtor() {
   }
 }
@@ -1554,10 +1617,12 @@ class std_and_std_is_convertible_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P
   }
 }
 class std_conditional_value1_std_is_convertible_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P_std_is_convertible_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P {
+  __init_std_conditional_value1_std_is_convertible_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P_std_is_convertible_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P(...$a) { }
   __dtor() {
   }
 }
 class std_remove_reference_int {
+  __init_std_remove_reference_int(...$a) { }
   __dtor() {
   }
 }
@@ -1572,14 +1637,17 @@ class std_declval_protector_std_Rb_tree_iterator_int {
   static __stop = 0;
 }
 class std_remove_reference_std_Rb_tree_iterator_int {
+  __init_std_remove_reference_std_Rb_tree_iterator_int(...$a) { }
   __dtor() {
   }
 }
 class std_allocator_int_rebind_std_Rb_tree_node_int {
+  __init_std_allocator_int_rebind_std_Rb_tree_node_int(...$a) { }
   __dtor() {
   }
 }
 class gnu_cxx_new_allocator_std_Rb_tree_node_int {
+  __init_gnu_cxx_new_allocator_std_Rb_tree_node_int(...$a) { }
   __dtor() {
   }
   allocate(__n, $p1 = {a: [0], i: 0}) {
@@ -1595,7 +1663,7 @@ class gnu_cxx_new_allocator_std_Rb_tree_node_int {
   max_size__c() {
     return (Math.trunc(((-(1)) >>> 0) / 32));
   }
-  construct(__p, __args_0) {
+  construct__rv(__p, __args_0) {
     (__p.a[__p.i] = new std_Rb_tree_node_int(std_forward_1_int(__args_0)), __p.a[__p.i].ctj_a = __p.a, __p.a[__p.i].ctj_i = __p.i, {a: __p.a, i: __p.i});
   }
 }
@@ -1620,7 +1688,9 @@ class std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int_Rb_tre
   }
   __init_std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int_Rb_tree_impl_std_less_int_value1(...$a) {
     this._M_key_compare = new std_less_int();
+    this._M_key_compare.ctj_a = this; this._M_key_compare.ctj_i = "_M_key_compare";
     this._M_header = new std_Rb_tree_node_base();
+    this._M_header.ctj_a = this; this._M_header.ctj_i = "_M_header";
     this._M_node_count = 0;
     this._M_initialize();
   }
@@ -1641,6 +1711,7 @@ class std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int {
   }
   __init_std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int(...$a) {
     this._M_impl = new std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int_Rb_tree_impl_std_less_int_value1();
+    this._M_impl.ctj_a = this; this._M_impl.ctj_i = "_M_impl";
   }
   __dtor() {
   }
@@ -1711,7 +1782,7 @@ class std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int {
     if (this._M_impl._M_key_compare.op_call__c(std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int._S_key((__j._M_node ? {a: __j._M_node.a, i: __j._M_node.i} : null)), __k)) {
       return new std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P({a: [__x], i: 0}, {a: [__y], i: 0});
     }
-    return new std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P({a: [__j._M_node], i: 0}, {a: [null], i: 0});
+    return new std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P({a: __j, i: "_M_node"}, {a: [null], i: 0});
   }
   begin() {
     return new std_Rb_tree_iterator_int((this._M_impl._M_header._M_left ? {a: this._M_impl._M_header._M_left.a, i: this._M_impl._M_header._M_left.i} : null));
@@ -1719,28 +1790,28 @@ class std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int {
   size__c() {
     return this._M_impl._M_node_count;
   }
-  _M_insert_unique(__v) {
+  _M_insert_unique__rv(__v) {
     let $t13;
     let __res = new std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P({a: [new std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P({a: [this._M_get_insert_unique_pos((($t13 = new std_Identity_int(), $t13)).op_call__c(__v))], i: 0})], i: 0});
     if (__res.second) {
-      return new std_pair_std_Rb_tree_iterator_int_bool({a: [new std_Rb_tree_iterator_int({a: [this._M_insert_((__res.first ? {a: __res.first.a, i: __res.first.i} : null), (__res.second ? {a: __res.second.a, i: __res.second.i} : null), std_forward_1_int(__v))], i: 0})], i: 0}, {a: [true], i: 0});
+      return new std_pair_std_Rb_tree_iterator_int_bool({a: [new std_Rb_tree_iterator_int({a: [this._M_insert___rv((__res.first ? {a: __res.first.a, i: __res.first.i} : null), (__res.second ? {a: __res.second.a, i: __res.second.i} : null), std_forward_1_int(__v))], i: 0})], i: 0}, {a: [true], i: 0});
     }
     return new std_pair_std_Rb_tree_iterator_int_bool({a: [new std_Rb_tree_iterator_int((__res.first ? {a: __res.first.a, i: __res.first.i} : null))], i: 0}, {a: [false], i: 0});
   }
-  _M_insert_(__x, __p, __v) {
+  _M_insert___rv(__x, __p, __v) {
     let $t14, $t15, $t16, $t17;
     let __insert_left = (((__x !== null) || ($t15 = ($t14 = this._M_end(), $t14), (__p === $t15 || (__p && $t15 && __p.a === $t15.a && __p.i === $t15.i)))) || this._M_impl._M_key_compare.op_call__c((($t16 = new std_Identity_int(), $t16)).op_call__c(__v), std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int._S_key((__p ? {a: __p.a, i: __p.i} : null))));
-    let __z = ($t17 = this._M_create_node(std_forward_1_int(__v)), $t17 ? {a: $t17.a, i: $t17.i} : null);
+    let __z = ($t17 = this._M_create_node__rv(std_forward_1_int(__v)), $t17 ? {a: $t17.a, i: $t17.i} : null);
     std_Rb_tree_insert_and_rebalance(__insert_left, (__z ? {a: __z.a, i: __z.i} : null), (__p ? {a: __p.a, i: __p.i} : null), {a: this._M_impl, i: "_M_header"});
     ++this._M_impl._M_node_count;
     return new std_Rb_tree_iterator_int((__z ? {a: __z.a, i: __z.i} : null));
   }
-  _M_create_node(__args_0) {
+  _M_create_node__rv(__args_0) {
     let $t18;
     let __tmp = ($t18 = this._M_get_node(), $t18 ? {a: $t18.a, i: $t18.i} : null);
     if (true) {
        {
-        std_allocator_traits_std_allocator_std_Rb_tree_node_int.construct(this._M_get_Node_allocator(), (__tmp ? {a: __tmp.a, i: __tmp.i} : null), std_forward_1_int(__args_0));
+        std_allocator_traits_std_allocator_std_Rb_tree_node_int.construct__rv(this._M_get_Node_allocator(), (__tmp ? {a: __tmp.a, i: __tmp.i} : null), std_forward_1_int(__args_0));
       }
     }
     if (false) {
@@ -1758,6 +1829,7 @@ class std_set_int_std_less_int_std_allocator_int {
   }
   __init_std_set_int_std_less_int_std_allocator_int(...$a) {
     this._M_t = new std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int();
+    this._M_t.ctj_a = this; this._M_t.ctj_i = "_M_t";
   }
   __dtor() {
   }
@@ -1765,73 +1837,8 @@ class std_set_int_std_less_int_std_allocator_int {
     return this._M_t.size__c();
   }
   insert(__x) {
-    let __p = new std_pair_std_Rb_tree_iterator_int_bool({a: [new std_pair_std_Rb_tree_iterator_int_bool({a: [this._M_t._M_insert_unique(__x)], i: 0})], i: 0});
+    let __p = new std_pair_std_Rb_tree_iterator_int_bool({a: [new std_pair_std_Rb_tree_iterator_int_bool({a: [this._M_t._M_insert_unique__rv(__x)], i: 0})], i: 0});
     return new std_pair_std_Rb_tree_const_iterator_int_bool({a: __p, i: "first"}, {a: __p, i: "second"});
-  }
-}
-class std_reverse_iterator_int {
-  __dtor() {
-  }
-}
-class std_has_iterator_category_int extends std_integral_constant_bool_value0 {
-  constructor(...$a) {
-    super();
-    this.__init_std_has_iterator_category_int(...$a);
-  }
-  __init_std_has_iterator_category_int(...$a) {
-  }
-  __dtor() {
-    std_integral_constant_bool_value0.prototype.__dtor.call(this);
-  }
-}
-class std_remove_cv_int {
-  __dtor() {
-  }
-}
-class std_remove_volatile_int {
-  __dtor() {
-  }
-}
-class std_remove_const_int {
-  __dtor() {
-  }
-}
-class std_has_iterator_category_helper_int extends std_sfinae_types {
-  constructor(...$a) {
-    super();
-    this.__init_std_has_iterator_category_helper_int(...$a);
-  }
-  __init_std_has_iterator_category_helper_int(...$a) {
-  }
-  __dtor() {
-    std_sfinae_types.prototype.__dtor.call(this);
-  }
-  static value = 0;
-}
-class std_iterator_traits_int_value0 {
-  __dtor() {
-  }
-}
-class std_iterator_traits_int extends std_iterator_traits_int_value0 {
-  constructor(...$a) {
-    super();
-    this.__init_std_iterator_traits_int(...$a);
-  }
-  __init_std_iterator_traits_int(...$a) {
-  }
-  __dtor() {
-    std_iterator_traits_int_value0.prototype.__dtor.call(this);
-  }
-}
-class std_move_iterator_int {
-  _M_current;
-  constructor(...$a) {
-    this.__init_std_move_iterator_int(...$a);
-  }
-  __init_std_move_iterator_int(...$a) {
-    this._M_current = 0;
-  }
-  __dtor() {
   }
 }
 class std_is_convertible_std_Rb_tree_node_int_P_std_Rb_tree_node_int_P extends std_integral_constant_bool_value1 {
@@ -1857,14 +1864,17 @@ class std_is_void_std_Rb_tree_node_int_P extends std_integral_constant_bool_valu
   }
 }
 class std_remove_cv_std_Rb_tree_node_int_P {
+  __init_std_remove_cv_std_Rb_tree_node_int_P(...$a) { }
   __dtor() {
   }
 }
 class std_remove_volatile_std_Rb_tree_node_int_P {
+  __init_std_remove_volatile_std_Rb_tree_node_int_P(...$a) { }
   __dtor() {
   }
 }
 class std_remove_const_std_Rb_tree_node_int_P {
+  __init_std_remove_const_std_Rb_tree_node_int_P(...$a) { }
   __dtor() {
   }
 }
@@ -1924,10 +1934,12 @@ class std_or_std_is_void_std_Rb_tree_node_int_P_std_is_function_std_Rb_tree_node
   }
 }
 class std_conditional_value0_std_is_function_std_Rb_tree_node_int_P_std_is_array_std_Rb_tree_node_int_P {
+  __init_std_conditional_value0_std_is_function_std_Rb_tree_node_int_P_std_is_array_std_Rb_tree_node_int_P(...$a) { }
   __dtor() {
   }
 }
 class std_conditional_value0_std_is_void_std_Rb_tree_node_int_P_std_or_std_is_function_std_Rb_tree_node_int_P_std_is_array_std_Rb_tree_node_int_P {
+  __init_std_conditional_value0_std_is_void_std_Rb_tree_node_int_P_std_or_std_is_function_std_Rb_tree_node_int_P_std_is_array_std_Rb_tree_node_int_P(...$a) { }
   __dtor() {
   }
 }
@@ -1988,6 +2000,7 @@ class std_or_std_is_lvalue_reference_std_Rb_tree_node_int_P_std_is_rvalue_refere
   }
 }
 class std_conditional_value0_std_is_lvalue_reference_std_Rb_tree_node_int_P_std_is_rvalue_reference_std_Rb_tree_node_int_P {
+  __init_std_conditional_value0_std_is_lvalue_reference_std_Rb_tree_node_int_P_std_is_rvalue_reference_std_Rb_tree_node_int_P(...$a) { }
   __dtor() {
   }
 }
@@ -2025,10 +2038,12 @@ class std_and_std_not_std_is_reference_std_Rb_tree_node_int_P_std_not_std_is_voi
   }
 }
 class std_conditional_value1_std_not_std_is_void_std_Rb_tree_node_int_P_std_not_std_is_reference_std_Rb_tree_node_int_P {
+  __init_std_conditional_value1_std_not_std_is_void_std_Rb_tree_node_int_P_std_not_std_is_reference_std_Rb_tree_node_int_P(...$a) { }
   __dtor() {
   }
 }
 class std_add_rvalue_reference_helper_std_Rb_tree_node_int_P_value1 {
+  __init_std_add_rvalue_reference_helper_std_Rb_tree_node_int_P_value1(...$a) { }
   __dtor() {
   }
 }
@@ -2066,6 +2081,7 @@ class std_or_std_is_void_std_Rb_tree_node_int_P_std_is_function_std_Rb_tree_node
   }
 }
 class std_conditional_value0_std_is_void_std_Rb_tree_node_int_P_std_or_std_is_function_std_Rb_tree_node_base_P_std_is_array_std_Rb_tree_node_base_P {
+  __init_std_conditional_value0_std_is_void_std_Rb_tree_node_int_P_std_or_std_is_function_std_Rb_tree_node_base_P_std_is_array_std_Rb_tree_node_base_P(...$a) { }
   __dtor() {
   }
 }
@@ -2093,6 +2109,7 @@ class std_and_std_is_convertible_std_Rb_tree_node_int_P_std_Rb_tree_node_base_P_
   }
 }
 class std_conditional_value1_std_is_convertible_std_Rb_tree_node_int_P_std_Rb_tree_node_base_P_std_is_convertible_std_Rb_tree_node_int_P_std_Rb_tree_node_base_P {
+  __init_std_conditional_value1_std_is_convertible_std_Rb_tree_node_int_P_std_Rb_tree_node_base_P_std_is_convertible_std_Rb_tree_node_int_P_std_Rb_tree_node_base_P(...$a) { }
   __dtor() {
   }
 }
@@ -2152,10 +2169,12 @@ class std_or_std_is_void_std_Rb_tree_node_base_P_std_is_function_int_P_std_is_ar
   }
 }
 class std_conditional_value0_std_is_function_int_P_std_is_array_int_P {
+  __init_std_conditional_value0_std_is_function_int_P_std_is_array_int_P(...$a) { }
   __dtor() {
   }
 }
 class std_conditional_value0_std_is_void_std_Rb_tree_node_base_P_std_or_std_is_function_int_P_std_is_array_int_P {
+  __init_std_conditional_value0_std_is_void_std_Rb_tree_node_base_P_std_or_std_is_function_int_P_std_is_array_int_P(...$a) { }
   __dtor() {
   }
 }
@@ -2172,6 +2191,7 @@ class std_is_convertible_helper_std_Rb_tree_node_base_P_int_P_value0 extends std
   static value = 0;
 }
 class std_enable_if_value0_void {
+  __init_std_enable_if_value0_void(...$a) { }
   __dtor() {
   }
 }
@@ -2197,6 +2217,21 @@ class std_is_void_int extends std_integral_constant_bool_value0 {
     std_integral_constant_bool_value0.prototype.__dtor.call(this);
   }
 }
+class std_remove_cv_int {
+  __init_std_remove_cv_int(...$a) { }
+  __dtor() {
+  }
+}
+class std_remove_volatile_int {
+  __init_std_remove_volatile_int(...$a) { }
+  __dtor() {
+  }
+}
+class std_remove_const_int {
+  __init_std_remove_const_int(...$a) { }
+  __dtor() {
+  }
+}
 class std_is_void_helper_int extends std_integral_constant_bool_value0 {
   constructor(...$a) {
     super();
@@ -2220,6 +2255,7 @@ class std_or_std_is_void_int_std_is_function_std_Rb_tree_node_base_P_std_is_arra
   }
 }
 class std_conditional_value0_std_is_void_int_std_or_std_is_function_std_Rb_tree_node_base_P_std_is_array_std_Rb_tree_node_base_P {
+  __init_std_conditional_value0_std_is_void_int_std_or_std_is_function_std_Rb_tree_node_base_P_std_is_array_std_Rb_tree_node_base_P(...$a) { }
   __dtor() {
   }
 }
@@ -2280,6 +2316,7 @@ class std_or_std_is_lvalue_reference_int_std_is_rvalue_reference_int extends std
   }
 }
 class std_conditional_value0_std_is_lvalue_reference_int_std_is_rvalue_reference_int {
+  __init_std_conditional_value0_std_is_lvalue_reference_int_std_is_rvalue_reference_int(...$a) { }
   __dtor() {
   }
 }
@@ -2317,10 +2354,12 @@ class std_and_std_not_std_is_reference_int_std_not_std_is_void_int extends std_n
   }
 }
 class std_conditional_value1_std_not_std_is_void_int_std_not_std_is_reference_int {
+  __init_std_conditional_value1_std_not_std_is_void_int_std_not_std_is_reference_int(...$a) { }
   __dtor() {
   }
 }
 class std_add_rvalue_reference_helper_int_value1 {
+  __init_std_add_rvalue_reference_helper_int_value1(...$a) { }
   __dtor() {
   }
 }
@@ -2347,6 +2386,7 @@ class std_and_std_is_convertible_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P
   }
 }
 class std_conditional_value1_std_is_convertible_int_std_Rb_tree_node_base_P_std_is_convertible_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P {
+  __init_std_conditional_value1_std_is_convertible_int_std_Rb_tree_node_base_P_std_is_convertible_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P(...$a) { }
   __dtor() {
   }
 }
@@ -2371,6 +2411,7 @@ class std_declval_protector_std_Rb_tree_node_int_P {
   static __stop = 0;
 }
 class std_remove_reference_std_Rb_tree_node_int_P {
+  __init_std_remove_reference_std_Rb_tree_node_int_P(...$a) { }
   __dtor() {
   }
 }
@@ -2385,13 +2426,14 @@ class std_declval_protector_int {
   static __stop = 0;
 }
 class std_allocator_traits_std_allocator_std_Rb_tree_node_int {
+  __init_std_allocator_traits_std_allocator_std_Rb_tree_node_int(...$a) { }
   __dtor() {
   }
-  static construct(__a, __p, __args_0) {
-    std_allocator_traits_std_allocator_std_Rb_tree_node_int._S_construct(__a, (__p ? {a: __p.a, i: __p.i} : null), std_forward_1_int(__args_0));
+  static construct__rv(__a, __p, __args_0) {
+    std_allocator_traits_std_allocator_std_Rb_tree_node_int._S_construct__rv(__a, (__p ? {a: __p.a, i: __p.i} : null), std_forward_1_int(__args_0));
   }
-  static _S_construct(__a, __p, __args_0) {
-    (__a.a[__a.i]).construct((__p ? {a: __p.a, i: __p.i} : null), std_forward_1_int(__args_0));
+  static _S_construct__rv(__a, __p, __args_0) {
+    (__a.a[__a.i]).construct__rv((__p ? {a: __p.a, i: __p.i} : null), std_forward_1_int(__args_0));
   }
 }
 class std_allocator_traits_std_allocator_std_Rb_tree_node_int_construct_helper_std_Rb_tree_node_int_int {
@@ -2449,6 +2491,7 @@ class std_or_std_is_lvalue_reference_std_allocator_std_Rb_tree_node_int_P_std_is
   }
 }
 class std_conditional_value0_std_is_lvalue_reference_std_allocator_std_Rb_tree_node_int_P_std_is_rvalue_reference_std_allocator_std_Rb_tree_node_int_P {
+  __init_std_conditional_value0_std_is_lvalue_reference_std_allocator_std_Rb_tree_node_int_P_std_is_rvalue_reference_std_allocator_std_Rb_tree_node_int_P(...$a) { }
   __dtor() {
   }
 }
@@ -2475,14 +2518,17 @@ class std_is_void_std_allocator_std_Rb_tree_node_int_P extends std_integral_cons
   }
 }
 class std_remove_cv_std_allocator_std_Rb_tree_node_int_P {
+  __init_std_remove_cv_std_allocator_std_Rb_tree_node_int_P(...$a) { }
   __dtor() {
   }
 }
 class std_remove_volatile_std_allocator_std_Rb_tree_node_int_P {
+  __init_std_remove_volatile_std_allocator_std_Rb_tree_node_int_P(...$a) { }
   __dtor() {
   }
 }
 class std_remove_const_std_allocator_std_Rb_tree_node_int_P {
+  __init_std_remove_const_std_allocator_std_Rb_tree_node_int_P(...$a) { }
   __dtor() {
   }
 }
@@ -2520,10 +2566,12 @@ class std_and_std_not_std_is_reference_std_allocator_std_Rb_tree_node_int_P_std_
   }
 }
 class std_conditional_value1_std_not_std_is_void_std_allocator_std_Rb_tree_node_int_P_std_not_std_is_reference_std_allocator_std_Rb_tree_node_int_P {
+  __init_std_conditional_value1_std_not_std_is_void_std_allocator_std_Rb_tree_node_int_P_std_not_std_is_reference_std_allocator_std_Rb_tree_node_int_P(...$a) { }
   __dtor() {
   }
 }
 class std_add_rvalue_reference_helper_std_allocator_std_Rb_tree_node_int_P_value1 {
+  __init_std_add_rvalue_reference_helper_std_allocator_std_Rb_tree_node_int_P_value1(...$a) { }
   __dtor() {
   }
 }
@@ -2627,6 +2675,7 @@ class std_or_std_is_lvalue_reference_std_Rb_tree_node_int_std_is_rvalue_referenc
   }
 }
 class std_conditional_value0_std_is_lvalue_reference_std_Rb_tree_node_int_std_is_rvalue_reference_std_Rb_tree_node_int {
+  __init_std_conditional_value0_std_is_lvalue_reference_std_Rb_tree_node_int_std_is_rvalue_reference_std_Rb_tree_node_int(...$a) { }
   __dtor() {
   }
 }
@@ -2697,6 +2746,7 @@ class std_or_std_is_void_int_std_is_function_int extends std_is_function_int {
   }
 }
 class std_conditional_value0_std_is_void_int_std_is_function_int {
+  __init_std_conditional_value0_std_is_void_int_std_is_function_int(...$a) { }
   __dtor() {
   }
 }
@@ -2733,6 +2783,7 @@ class std_and_std_is_lvalue_reference_int_std_is_rvalue_reference_std_Rb_tree_no
   }
 }
 class std_conditional_value0_std_is_rvalue_reference_std_Rb_tree_node_int_std_is_lvalue_reference_int {
+  __init_std_conditional_value0_std_is_rvalue_reference_std_Rb_tree_node_int_std_is_lvalue_reference_int(...$a) { }
   __dtor() {
   }
 }
@@ -2759,18 +2810,22 @@ class std_or_std_is_base_to_derived_ref_int_std_Rb_tree_node_int_value1_std_is_l
   }
 }
 class std_remove_reference_std_Rb_tree_node_int {
+  __init_std_remove_reference_std_Rb_tree_node_int(...$a) { }
   __dtor() {
   }
 }
 class std_remove_cv_std_Rb_tree_node_int {
+  __init_std_remove_cv_std_Rb_tree_node_int(...$a) { }
   __dtor() {
   }
 }
 class std_remove_volatile_std_Rb_tree_node_int {
+  __init_std_remove_volatile_std_Rb_tree_node_int(...$a) { }
   __dtor() {
   }
 }
 class std_remove_const_std_Rb_tree_node_int {
+  __init_std_remove_const_std_Rb_tree_node_int(...$a) { }
   __dtor() {
   }
 }
@@ -2819,10 +2874,12 @@ class std_and_std_not_std_is_same_int_std_Rb_tree_node_int_std_is_base_of_int_st
   }
 }
 class std_conditional_value1_std_is_base_of_int_std_Rb_tree_node_int_std_not_std_is_same_int_std_Rb_tree_node_int {
+  __init_std_conditional_value1_std_is_base_of_int_std_Rb_tree_node_int_std_not_std_is_same_int_std_Rb_tree_node_int(...$a) { }
   __dtor() {
   }
 }
 class std_conditional_value0_std_is_base_to_derived_ref_int_std_Rb_tree_node_int_value1_std_is_lvalue_to_rvalue_ref_int_std_Rb_tree_node_int_value0 {
+  __init_std_conditional_value0_std_is_base_to_derived_ref_int_std_Rb_tree_node_int_value1_std_is_lvalue_to_rvalue_ref_int_std_Rb_tree_node_int_value0(...$a) { }
   __dtor() {
   }
 }
@@ -2849,6 +2906,7 @@ class std_and_std_is_static_castable_int_std_Rb_tree_node_int_std_not_std_or_std
   }
 }
 class std_conditional_value1_std_not_std_or_std_is_base_to_derived_ref_int_std_Rb_tree_node_int_value1_std_is_lvalue_to_rvalue_ref_int_std_Rb_tree_node_int_value0_std_is_static_castable_int_std_Rb_tree_node_int {
+  __init_std_conditional_value1_std_not_std_or_std_is_base_to_derived_ref_int_std_Rb_tree_node_int_value1_std_is_lvalue_to_rvalue_ref_int_std_Rb_tree_node_int_value0_std_is_static_castable_int_std_Rb_tree_node_int(...$a) { }
   __dtor() {
   }
 }
@@ -2973,6 +3031,7 @@ class std_and_std_is_array_std_Rb_tree_node_int_std_not_std_extent_std_Rb_tree_n
   }
 }
 class std_conditional_value0_std_not_std_extent_std_Rb_tree_node_int_value0_std_is_array_std_Rb_tree_node_int {
+  __init_std_conditional_value0_std_not_std_extent_std_Rb_tree_node_int_value0_std_is_array_std_Rb_tree_node_int(...$a) { }
   __dtor() {
   }
 }
@@ -3010,10 +3069,12 @@ class std_or_std_is_void_std_Rb_tree_node_int_std_is_array_unknown_bounds_std_Rb
   }
 }
 class std_conditional_value0_std_is_array_unknown_bounds_std_Rb_tree_node_int_std_is_function_std_Rb_tree_node_int {
+  __init_std_conditional_value0_std_is_array_unknown_bounds_std_Rb_tree_node_int_std_is_function_std_Rb_tree_node_int(...$a) { }
   __dtor() {
   }
 }
 class std_conditional_value0_std_is_void_std_Rb_tree_node_int_std_or_std_is_array_unknown_bounds_std_Rb_tree_node_int_std_is_function_std_Rb_tree_node_int {
+  __init_std_conditional_value0_std_is_void_std_Rb_tree_node_int_std_or_std_is_array_unknown_bounds_std_Rb_tree_node_int_std_is_function_std_Rb_tree_node_int(...$a) { }
   __dtor() {
   }
 }
@@ -3095,6 +3156,7 @@ class std_or_std_is_integral_std_Rb_tree_node_int_std_is_floating_point_std_Rb_t
   }
 }
 class std_conditional_value0_std_is_integral_std_Rb_tree_node_int_std_is_floating_point_std_Rb_tree_node_int {
+  __init_std_conditional_value0_std_is_integral_std_Rb_tree_node_int_std_is_floating_point_std_Rb_tree_node_int(...$a) { }
   __dtor() {
   }
 }
@@ -3220,18 +3282,22 @@ class std_or_std_is_arithmetic_std_Rb_tree_node_int_std_is_enum_std_Rb_tree_node
   }
 }
 class std_conditional_value0_std_is_member_pointer_std_Rb_tree_node_int_std_is_nullptr_t_std_Rb_tree_node_int {
+  __init_std_conditional_value0_std_is_member_pointer_std_Rb_tree_node_int_std_is_nullptr_t_std_Rb_tree_node_int(...$a) { }
   __dtor() {
   }
 }
 class std_conditional_value0_std_is_pointer_std_Rb_tree_node_int_std_or_std_is_member_pointer_std_Rb_tree_node_int_std_is_nullptr_t_std_Rb_tree_node_int {
+  __init_std_conditional_value0_std_is_pointer_std_Rb_tree_node_int_std_or_std_is_member_pointer_std_Rb_tree_node_int_std_is_nullptr_t_std_Rb_tree_node_int(...$a) { }
   __dtor() {
   }
 }
 class std_conditional_value0_std_is_enum_std_Rb_tree_node_int_std_or_std_is_pointer_std_Rb_tree_node_int_std_is_member_pointer_std_Rb_tree_node_int_std_is_nullptr_t_std_Rb_tree_node_int {
+  __init_std_conditional_value0_std_is_enum_std_Rb_tree_node_int_std_or_std_is_pointer_std_Rb_tree_node_int_std_is_member_pointer_std_Rb_tree_node_int_std_is_nullptr_t_std_Rb_tree_node_int(...$a) { }
   __dtor() {
   }
 }
 class std_conditional_value0_std_is_arithmetic_std_Rb_tree_node_int_std_or_std_is_enum_std_Rb_tree_node_int_std_is_pointer_std_Rb_tree_node_int_std_is_member_pointer_std_Rb_tree_node_int_std_is_nullptr_t_std_Rb_tree_node_int {
+  __init_std_conditional_value0_std_is_arithmetic_std_Rb_tree_node_int_std_or_std_is_enum_std_Rb_tree_node_int_std_is_pointer_std_Rb_tree_node_int_std_is_member_pointer_std_Rb_tree_node_int_std_is_nullptr_t_std_Rb_tree_node_int(...$a) { }
   __dtor() {
   }
 }
@@ -3247,6 +3313,7 @@ class std_or_std_is_reference_std_Rb_tree_node_int_std_is_scalar_std_Rb_tree_nod
   }
 }
 class std_conditional_value0_std_is_reference_std_Rb_tree_node_int_std_is_scalar_std_Rb_tree_node_int {
+  __init_std_conditional_value0_std_is_reference_std_Rb_tree_node_int_std_is_scalar_std_Rb_tree_node_int(...$a) { }
   __dtor() {
   }
 }
@@ -3262,6 +3329,7 @@ class std_is_destructible_safe_std_Rb_tree_node_int_value0_value0 extends std_in
   }
 }
 class std_remove_all_extents_std_Rb_tree_node_int {
+  __init_std_remove_all_extents_std_Rb_tree_node_int(...$a) { }
   __dtor() {
   }
 }
@@ -3321,6 +3389,7 @@ class std_or_std_is_lvalue_reference_std_Rb_tree_node_int_R_std_is_rvalue_refere
   }
 }
 class std_conditional_value1_std_is_lvalue_reference_std_Rb_tree_node_int_R_std_is_rvalue_reference_std_Rb_tree_node_int_R {
+  __init_std_conditional_value1_std_is_lvalue_reference_std_Rb_tree_node_int_R_std_is_rvalue_reference_std_Rb_tree_node_int_R(...$a) { }
   __dtor() {
   }
 }
@@ -3347,10 +3416,12 @@ class std_is_void_std_Rb_tree_node_int_R extends std_integral_constant_bool_valu
   }
 }
 class std_remove_cv_std_Rb_tree_node_int_R {
+  __init_std_remove_cv_std_Rb_tree_node_int_R(...$a) { }
   __dtor() {
   }
 }
 class std_remove_volatile_std_Rb_tree_node_int_R {
+  __init_std_remove_volatile_std_Rb_tree_node_int_R(...$a) { }
   __dtor() {
   }
 }
@@ -3377,10 +3448,12 @@ class std_and_std_not_std_is_reference_std_Rb_tree_node_int_R_std_not_std_is_voi
   }
 }
 class std_conditional_value0_std_not_std_is_void_std_Rb_tree_node_int_R_std_not_std_is_reference_std_Rb_tree_node_int_R {
+  __init_std_conditional_value0_std_not_std_is_void_std_Rb_tree_node_int_R_std_not_std_is_reference_std_Rb_tree_node_int_R(...$a) { }
   __dtor() {
   }
 }
 class std_add_rvalue_reference_helper_std_Rb_tree_node_int_R_value0 {
+  __init_std_add_rvalue_reference_helper_std_Rb_tree_node_int_R_value0(...$a) { }
   __dtor() {
   }
 }
@@ -3418,10 +3491,12 @@ class std_and_std_is_destructible_std_Rb_tree_node_int_std_is_direct_constructib
   }
 }
 class std_conditional_value1_std_is_direct_constructible_impl_std_Rb_tree_node_int_int_std_is_destructible_std_Rb_tree_node_int {
+  __init_std_conditional_value1_std_is_direct_constructible_impl_std_Rb_tree_node_int_int_std_is_destructible_std_Rb_tree_node_int(...$a) { }
   __dtor() {
   }
 }
 class std_conditional_value0_std_is_direct_constructible_ref_cast_std_Rb_tree_node_int_int_std_is_direct_constructible_new_safe_std_Rb_tree_node_int_int {
+  __init_std_conditional_value0_std_is_direct_constructible_ref_cast_std_Rb_tree_node_int_int_std_is_direct_constructible_new_safe_std_Rb_tree_node_int_int(...$a) { }
   __dtor() {
   }
 }
@@ -3437,6 +3512,7 @@ class std_and_std_not_std_allocator_traits_std_allocator_std_Rb_tree_node_int_co
   }
 }
 class std_conditional_value0_std_is_constructible_std_Rb_tree_node_int_int_std_not_std_allocator_traits_std_allocator_std_Rb_tree_node_int_construct_helper_std_Rb_tree_node_int_int {
+  __init_std_conditional_value0_std_is_constructible_std_Rb_tree_node_int_int_std_not_std_allocator_traits_std_allocator_std_Rb_tree_node_int_construct_helper_std_Rb_tree_node_int_int(...$a) { }
   __dtor() {
   }
 }
@@ -3477,8 +3553,7 @@ function std_declval_std_Rb_tree_const_iterator_int() {
   return std_declval_protector_std_Rb_tree_const_iterator_int.__delegate();
 }
 function std_declval_bool() {
-  let $t19;
-  return (($t19 = std_declval_protector_bool.__delegate(), $t19.a[$t19.i]) != null);
+  return std_declval_protector_bool.__delegate();
 }
 function std_declval_std_Rb_tree_iterator_int() {
   return std_declval_protector_std_Rb_tree_iterator_int.__delegate();
@@ -3505,7 +3580,7 @@ function std_forward_1_std_Rb_tree_iterator_int(__t) {
   return __t;
 }
 function std_forward_1_std_Rb_tree_node_int_P(__t) {
-  return __t.a[__t.i];
+  return __t;
 }
 let std_piecewise_construct = new std_piecewise_construct_t();
 main();

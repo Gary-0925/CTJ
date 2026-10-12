@@ -55,7 +55,9 @@ export function substTypeNode(tn: TypeNode, env: SubstEnv): TypeNode {
   out.decltypeOf = tn.decltypeOf ? substExpr(tn.decltypeOf, env) : null;
   out.valueArg = tn.valueArg ? substExpr(tn.valueArg, env) : null;
   out.dims = tn.dims.map(d => substExpr(d, env));
-  out.func = tn.func ? { params: tn.func.params.map(p => substTypeNode(p, env)), variadic: tn.func.variadic } : null;
+  // The parameter list may hold a pack ("_Signature_type(_ArgTypes...)"), which
+  // expands to one node per bound argument.
+  out.func = tn.func ? { params: substTArgs(tn.func.params, env), variadic: tn.func.variadic } : null;
   if (!tn.parts.length) return out;
   const first = tn.parts[0].n;
   const rep = env.types.get(first);

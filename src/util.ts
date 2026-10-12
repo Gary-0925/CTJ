@@ -82,4 +82,18 @@ export function last<T>(a: T[]): T {
   return a[a.length - 1];
 }
 
+// The last "A::B" part of a name, looking past the template arguments: the
+// short name of "std::hash<std::basic_string<char> >" is the "hash<...>" it
+// spells, not the class named inside the arguments.
+export function shortName(name: string): string {
+  let depth = 0;
+  for (let i = name.length - 1; i >= 0; i--) {
+    const ch = name[i];
+    if (ch === ">") depth++;
+    else if (ch === "<") depth--;
+    else if (depth === 0 && ch === ":" && i > 0 && name[i - 1] === ":") return name.slice(i + 1);
+  }
+  return name;
+}
+
 }

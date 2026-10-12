@@ -1,6 +1,6 @@
 "use strict";
 var __ctj_obuf = "";
-function __ctj_fmt(v) { for (var n = 0; n < 4 && v && typeof v === "object" && v.a !== undefined && !Array.isArray(v) && !Array.isArray(v.a); n++) v = v.a[v.i]; if (v == null) return "0"; if (typeof v === "boolean") return v ? "1" : "0"; if (typeof v === "number") return String(v); if (typeof v === "string") return v; var a = v && v.a, i = v && v.i; if (Array.isArray(v)) { a = v; i = 0; } if (Array.isArray(a)) { var s = ""; for (var k = i | 0; k < a.length && a[k]; k++) s += String.fromCharCode(a[k]); return s; } return String(v); }
+function __ctj_fmt(v) { for (var n = 0; n < 4 && v && typeof v === "object" && v.a !== undefined; n++) { var nv = v.a[v.i]; if (nv !== null && typeof nv === "object") { v = nv; continue; } if (!Array.isArray(v.a)) { v = nv; continue; } break; } if (v != null && typeof v === "object" && v._M_dataplus !== undefined) { v = v._M_dataplus._M_p; if (v == null) return ""; } if (v == null) return "0"; if (typeof v === "boolean") return v ? "1" : "0"; if (typeof v === "number") return String(v); if (typeof v === "string") return v; var a = v && v.a, i = v && v.i; if (Array.isArray(v)) { a = v; i = 0; } if (Array.isArray(a)) { var s = ""; for (var k = i | 0; k < a.length && a[k]; k++) s += String.fromCharCode(a[k]); return s; } return String(v); }
 function __ctj_write(s) { s = String(s); if (typeof process !== "undefined" && process.stdout && process.stdout.write) { process.stdout.write(s); return; } __ctj_obuf += s; for (;;) { var n = __ctj_obuf.indexOf("\n"); if (n < 0) break; console.log(__ctj_obuf.slice(0, n)); __ctj_obuf = __ctj_obuf.slice(n + 1); } }
 function __ctj_flush() { if (__ctj_obuf) { console.log(__ctj_obuf); __ctj_obuf = ""; } }
 function _ctj_peq(a, b) { return a === b || (!!a && !!b && a.a === b.a && a.i === b.i); }
@@ -18,7 +18,8 @@ function _ctj_cstr(p, n) {
   return s;
 }
 function _ctj_fmt(v) {
-  for (let n = 0; n < 4 && v && typeof v === "object" && v.a !== undefined && !Array.isArray(v) && !Array.isArray(v.a); n++) v = v.a[v.i];
+  for (let n = 0; n < 4 && v && typeof v === "object" && v.a !== undefined; n++) { var nv = v.a[v.i]; if (nv !== null && typeof nv === "object") { v = nv; continue; } if (!Array.isArray(v.a)) { v = nv; continue; } break; }
+  if (v !== null && typeof v === "object" && v._M_dataplus !== undefined) v = v._M_dataplus._M_p;
   if (v === null || v === undefined) return "0";
   if (typeof v === "boolean") return v ? "1" : "0";
   if (typeof v === "number") return String(v);
@@ -27,6 +28,7 @@ function _ctj_fmt(v) {
   return String(v);
 }
 class std_sfinae_types {
+  __init_std_sfinae_types(...$a) { }
   __dtor() {
   }
 }
@@ -42,18 +44,22 @@ class std_sfinae_types_class_47 {
   }
 }
 class std_do_is_destructible_impl {
+  __init_std_do_is_destructible_impl(...$a) { }
   __dtor() {
   }
 }
 class std_do_is_static_castable_impl {
+  __init_std_do_is_static_castable_impl(...$a) { }
   __dtor() {
   }
 }
 class std_do_is_direct_constructible_impl {
+  __init_std_do_is_direct_constructible_impl(...$a) { }
   __dtor() {
   }
 }
 class std_do_is_nary_constructible_impl {
+  __init_std_do_is_nary_constructible_impl(...$a) { }
   __dtor() {
   }
 }
@@ -62,7 +68,7 @@ class std_piecewise_construct_t {
     this.__init_std_piecewise_construct_t(...$a);
   }
   __init_std_piecewise_construct_t(...$a) {
-    if ($a.length >= 1 && $a.length <= 1 && ($a[0] !== null && typeof $a[0] === "object" && $a[0].a[$a[0].i] instanceof std_piecewise_construct_t)) {
+    if ($a.length >= 1 && $a.length <= 1 && ($a[0] !== null && typeof $a[0] === "object" && !Array.isArray($a[0]) && $a[0].a !== undefined && $a[0].i !== undefined && $a[0].a[$a[0].i] instanceof std_piecewise_construct_t)) {
     }
     else if ($a.length >= 0 && $a.length <= 0) {
     }
@@ -72,10 +78,12 @@ class std_piecewise_construct_t {
   }
 }
 class std_input_iterator_tag {
+  __init_std_input_iterator_tag(...$a) { }
   __dtor() {
   }
 }
 class std_output_iterator_tag {
+  __init_std_output_iterator_tag(...$a) { }
   __dtor() {
   }
 }
@@ -278,6 +286,7 @@ class std_locale {
   static _S_once = new std_locale();
 }
 class std_hash_base_unsigned_long_long_long_long {
+  __init_std_hash_base_unsigned_long_long_long_long(...$a) { }
   __dtor() {
   }
 }
@@ -293,6 +302,7 @@ class std_hash_long_long extends std_hash_base_unsigned_long_long_long_long {
   }
 }
 class std_char_traits_char {
+  __init_std_char_traits_char(...$a) { }
   __dtor() {
   }
   static assign(__c1, __c2) {
@@ -316,6 +326,7 @@ class std_char_traits_char {
   }
 }
 class gnu_cxx_new_allocator_char {
+  __init_gnu_cxx_new_allocator_char(...$a) { }
   __dtor() {
   }
 }
@@ -365,16 +376,19 @@ class std_basic_string_char_std_char_traits_char_std_allocator_char {
   }
   __init_std_basic_string_char_std_char_traits_char_std_allocator_char(...$a) {
     this._M_dataplus = new std_basic_string_char_std_char_traits_char_std_allocator_char_Alloc_hider();
+    this._M_dataplus.ctj_a = this; this._M_dataplus.ctj_i = "_M_dataplus";
   }
   __dtor() {
   }
   static npos = 4294967295;
 }
 class std_allocator_char_rebind_char {
+  __init_std_allocator_char_rebind_char(...$a) { }
   __dtor() {
   }
 }
 class std_hash_base_unsigned_long_long_std_basic_string_char_std_char_traits_char_std_allocator_char {
+  __init_std_hash_base_unsigned_long_long_std_basic_string_char_std_char_traits_char_std_allocator_char(...$a) { }
   __dtor() {
   }
 }
@@ -390,6 +404,7 @@ class std_hash_std_basic_string_char_std_char_traits_char_std_allocator_char ext
   }
 }
 class std_char_traits_wchar_t {
+  __init_std_char_traits_wchar_t(...$a) { }
   __dtor() {
   }
   static assign(__c1, __c2) {
@@ -397,7 +412,7 @@ class std_char_traits_wchar_t {
   }
   static copy(__s1, __s2, __n) {
     let $t1;
-    return ($t1 = wmemcpy((__s1 ? {a: __s1.a, i: __s1.i} : null), (__s2 ? {a: __s2.a, i: __s2.i} : null), __n), $t1 ? {a: $t1.a, i: $t1.i} : null);
+    return ($t1 = wmemcpy((__s1 ? {a: __s1.a, i: __s1.i} : null), (__s2 ? {a: __s2.a, i: __s2.i} : null), Math.trunc((__n) / 4)), $t1 ? {a: $t1.a, i: $t1.i} : null);
   }
   static to_char_type(__c) {
     return __c.a[__c.i];
@@ -413,6 +428,7 @@ class std_char_traits_wchar_t {
   }
 }
 class gnu_cxx_new_allocator_wchar_t {
+  __init_gnu_cxx_new_allocator_wchar_t(...$a) { }
   __dtor() {
   }
 }
@@ -462,16 +478,19 @@ class std_basic_string_wchar_t_std_char_traits_wchar_t_std_allocator_wchar_t {
   }
   __init_std_basic_string_wchar_t_std_char_traits_wchar_t_std_allocator_wchar_t(...$a) {
     this._M_dataplus = new std_basic_string_wchar_t_std_char_traits_wchar_t_std_allocator_wchar_t_Alloc_hider();
+    this._M_dataplus.ctj_a = this; this._M_dataplus.ctj_i = "_M_dataplus";
   }
   __dtor() {
   }
   static npos = 4294967295;
 }
 class std_allocator_wchar_t_rebind_wchar_t {
+  __init_std_allocator_wchar_t_rebind_wchar_t(...$a) { }
   __dtor() {
   }
 }
 class std_hash_base_unsigned_long_long_std_basic_string_wchar_t_std_char_traits_wchar_t_std_allocator_wchar_t {
+  __init_std_hash_base_unsigned_long_long_std_basic_string_wchar_t_std_char_traits_wchar_t_std_allocator_wchar_t(...$a) { }
   __dtor() {
   }
 }
@@ -487,10 +506,12 @@ class std_hash_std_basic_string_wchar_t_std_char_traits_wchar_t_std_allocator_wc
   }
 }
 class std_char_traits_char16_t {
+  __init_std_char_traits_char16_t(...$a) { }
   __dtor() {
   }
 }
 class gnu_cxx_new_allocator_char16_t {
+  __init_gnu_cxx_new_allocator_char16_t(...$a) { }
   __dtor() {
   }
 }
@@ -540,16 +561,19 @@ class std_basic_string_char16_t_std_char_traits_char16_t_std_allocator_char16_t 
   }
   __init_std_basic_string_char16_t_std_char_traits_char16_t_std_allocator_char16_t(...$a) {
     this._M_dataplus = new std_basic_string_char16_t_std_char_traits_char16_t_std_allocator_char16_t_Alloc_hider();
+    this._M_dataplus.ctj_a = this; this._M_dataplus.ctj_i = "_M_dataplus";
   }
   __dtor() {
   }
   static npos = 4294967295;
 }
 class std_allocator_char16_t_rebind_char16_t {
+  __init_std_allocator_char16_t_rebind_char16_t(...$a) { }
   __dtor() {
   }
 }
 class std_hash_base_unsigned_long_long_std_basic_string_char16_t_std_char_traits_char16_t_std_allocator_char16_t {
+  __init_std_hash_base_unsigned_long_long_std_basic_string_char16_t_std_char_traits_char16_t_std_allocator_char16_t(...$a) { }
   __dtor() {
   }
 }
@@ -565,10 +589,12 @@ class std_hash_std_basic_string_char16_t_std_char_traits_char16_t_std_allocator_
   }
 }
 class std_char_traits_char32_t {
+  __init_std_char_traits_char32_t(...$a) { }
   __dtor() {
   }
 }
 class gnu_cxx_new_allocator_char32_t {
+  __init_gnu_cxx_new_allocator_char32_t(...$a) { }
   __dtor() {
   }
 }
@@ -618,16 +644,19 @@ class std_basic_string_char32_t_std_char_traits_char32_t_std_allocator_char32_t 
   }
   __init_std_basic_string_char32_t_std_char_traits_char32_t_std_allocator_char32_t(...$a) {
     this._M_dataplus = new std_basic_string_char32_t_std_char_traits_char32_t_std_allocator_char32_t_Alloc_hider();
+    this._M_dataplus.ctj_a = this; this._M_dataplus.ctj_i = "_M_dataplus";
   }
   __dtor() {
   }
   static npos = 4294967295;
 }
 class std_allocator_char32_t_rebind_char32_t {
+  __init_std_allocator_char32_t_rebind_char32_t(...$a) { }
   __dtor() {
   }
 }
 class std_hash_base_unsigned_long_long_std_basic_string_char32_t_std_char_traits_char32_t_std_allocator_char32_t {
+  __init_std_hash_base_unsigned_long_long_std_basic_string_char32_t_std_char_traits_char32_t_std_allocator_char32_t(...$a) { }
   __dtor() {
   }
 }
@@ -647,7 +676,7 @@ class std_allocator_arg_t {
     this.__init_std_allocator_arg_t(...$a);
   }
   __init_std_allocator_arg_t(...$a) {
-    if ($a.length >= 1 && $a.length <= 1 && ($a[0] !== null && typeof $a[0] === "object" && $a[0].a[$a[0].i] instanceof std_allocator_arg_t)) {
+    if ($a.length >= 1 && $a.length <= 1 && ($a[0] !== null && typeof $a[0] === "object" && !Array.isArray($a[0]) && $a[0].a !== undefined && $a[0].i !== undefined && $a[0].a[$a[0].i] instanceof std_allocator_arg_t)) {
     }
     else if ($a.length >= 0 && $a.length <= 0) {
     }
@@ -657,6 +686,7 @@ class std_allocator_arg_t {
   }
 }
 class std_uses_alloc_base {
+  __init_std_uses_alloc_base(...$a) { }
   __dtor() {
   }
 }
@@ -677,6 +707,7 @@ class std_uses_alloc0 extends std_uses_alloc_base {
   }
   __init_std_uses_alloc0(...$a) {
     this._M_a = new std_uses_alloc0_Anything();
+    this._M_a.ctj_a = this; this._M_a.ctj_i = "_M_a";
   }
   __dtor() {
     std_uses_alloc_base.prototype.__dtor.call(this);
@@ -779,12 +810,22 @@ class std_ios_base {
     this._M_streambuf_state = 0;
     this._M_callbacks = null;
     this._M_word_zero = new std_ios_base_Words();
-    this._M_local_word = [];
+    this._M_word_zero.ctj_a = this; this._M_word_zero.ctj_i = "_M_word_zero";
+    this._M_local_word = Array.from({length: 8}, () => new std_ios_base_Words());
     this._M_word_size = 0;
     this._M_word = null;
     this._M_ios_locale = new std_locale();
+    this._M_ios_locale.ctj_a = this; this._M_ios_locale.ctj_i = "_M_ios_locale";
   }
   __dtor() {
+  }
+  flags__c() {
+    return this._M_flags;
+  }
+  flags(__fmtfl) {
+    let __old = this._M_flags;
+    this._M_flags = __fmtfl;
+    return __old;
   }
   static boolalpha = 1;
   static dec = 2;
@@ -829,6 +870,7 @@ class std_ios_base_Callback_list {
   __init_std_ios_base_Callback_list(...$a) {
     this._M_next = null;
     this._M_fn = new std_ios_base();
+    this._M_fn.ctj_a = this; this._M_fn.ctj_i = "_M_fn";
     this._M_index = 0;
     this._M_refcount = 0;
   }
@@ -880,7 +922,7 @@ class std_ctype_char extends std_locale_facet {
     if ($a.length >= 1 && $a.length <= 1 && (typeof $a[0] === "number" || typeof $a[0] === "boolean")) {
       return $a[0];
     }
-    else if ($a.length >= 3 && $a.length <= 3 && ($a[0] === null || typeof $a[0] === "object") && ($a[1] === null || typeof $a[1] === "object") && ($a[2] === null || typeof $a[2] === "object")) {
+    else if ($a.length >= 3 && $a.length <= 3 && ($a[0] === null || (typeof $a[0] === "object" && ($a[0].a === undefined || typeof $a[0].a[$a[0].i] !== "object"))) && ($a[1] === null || (typeof $a[1] === "object" && ($a[1].a === undefined || typeof $a[1].a[$a[1].i] !== "object"))) && ($a[2] === null || (typeof $a[2] === "object" && ($a[2].a === undefined || typeof $a[2].a[$a[2].i] !== "object")))) {
       (($d, $s, $n) => { for (let $k = 0; $k < $n; $k++) $d.a[$d.i + $k] = $s.a[$s.i + $k]; return $d; })((($q) => ($q && $q.a !== undefined ? $q : { a: $q, i: 0 }))($a[2]), (($q) => ($q && $q.a !== undefined ? $q : { a: $q, i: 0 }))($a[0]), ((($a[1]) ? (($a[1])).i : 0) - (($a[0]) ? (($a[0])).i : 0)));
       return (($a[1]) ? {a: ($a[1]).a, i: ($a[1]).i} : null);
     }
@@ -890,7 +932,7 @@ class std_ctype_char extends std_locale_facet {
     if ($a.length >= 2 && $a.length <= 2 && (typeof $a[0] === "number" || typeof $a[0] === "boolean") && (typeof $a[1] === "number" || typeof $a[1] === "boolean")) {
       return $a[0];
     }
-    else if ($a.length >= 4 && $a.length <= 4 && ($a[0] === null || typeof $a[0] === "object") && ($a[1] === null || typeof $a[1] === "object") && (typeof $a[2] === "number" || typeof $a[2] === "boolean") && ($a[3] === null || typeof $a[3] === "object")) {
+    else if ($a.length >= 4 && $a.length <= 4 && ($a[0] === null || (typeof $a[0] === "object" && ($a[0].a === undefined || typeof $a[0].a[$a[0].i] !== "object"))) && ($a[1] === null || (typeof $a[1] === "object" && ($a[1].a === undefined || typeof $a[1].a[$a[1].i] !== "object"))) && (typeof $a[2] === "number" || typeof $a[2] === "boolean") && ($a[3] === null || (typeof $a[3] === "object" && ($a[3].a === undefined || typeof $a[3].a[$a[3].i] !== "object")))) {
       (($d, $s, $n) => { for (let $k = 0; $k < $n; $k++) $d.a[$d.i + $k] = $s.a[$s.i + $k]; return $d; })((($q) => ($q && $q.a !== undefined ? $q : { a: $q, i: 0 }))($a[3]), (($q) => ($q && $q.a !== undefined ? $q : { a: $q, i: 0 }))($a[0]), ((($a[1]) ? (($a[1])).i : 0) - (($a[0]) ? (($a[0])).i : 0)));
       return (($a[1]) ? {a: ($a[1]).a, i: ($a[1]).i} : null);
     }
@@ -899,11 +941,13 @@ class std_ctype_char extends std_locale_facet {
   static id = new std_ctype_char();
   static table_size = 256;
 }
-for (const $k of Object.getOwnPropertyNames(std_ctype_base.prototype)) {
-  if ($k !== "constructor" && !($k in std_ctype_char.prototype)) std_ctype_char.prototype[$k] = std_ctype_base.prototype[$k];
-}
-for (const $k of Object.getOwnPropertyNames(std_ctype_base)) {
-  if ($k !== "prototype" && $k !== "name" && $k !== "length" && !($k in std_ctype_char)) std_ctype_char[$k] = std_ctype_base[$k];
+for (let $b = std_ctype_base; $b && $b.prototype; $b = Object.getPrototypeOf($b)) {
+  for (const $k of Object.getOwnPropertyNames($b.prototype)) {
+    if ($k !== "constructor" && !($k in std_ctype_char.prototype)) std_ctype_char.prototype[$k] = $b.prototype[$k];
+  }
+  for (const $k of Object.getOwnPropertyNames($b)) {
+    if ($k !== "prototype" && $k !== "name" && $k !== "length" && !($k in std_ctype_char)) std_ctype_char[$k] = $b[$k];
+  }
 }
 class std_basic_ios_char_std_char_traits_char extends std_ios_base {
   _M_tie;
@@ -965,6 +1009,7 @@ class std_basic_streambuf_char_std_char_traits_char {
     this._M_out_cur = null;
     this._M_out_end = null;
     this._M_buf_locale = new std_locale();
+    this._M_buf_locale.ctj_a = this; this._M_buf_locale.ctj_i = "_M_buf_locale";
   }
   __dtor() {
   }
@@ -986,7 +1031,7 @@ class std_basic_streambuf_char_std_char_traits_char {
   imbue(__loc) {
   }
   setbuf($p0, $p1) {
-    return (this ? {a: this.a, i: this.i} : null);
+    return {a: (this.ctj_a || (this.ctj_a = [])), i: (this.ctj_i || 0)};
   }
   seekoff($p0, $p1, $p2 = (std_ios_base.in_ | std_ios_base.out)) {
     return new std_fpos_class_176((-(1)));
@@ -1167,6 +1212,7 @@ class std_basic_streambuf_wchar_t_std_char_traits_wchar_t {
     this._M_out_cur = null;
     this._M_out_end = null;
     this._M_buf_locale = new std_locale();
+    this._M_buf_locale.ctj_a = this; this._M_buf_locale.ctj_i = "_M_buf_locale";
   }
   __dtor() {
   }
@@ -1188,7 +1234,7 @@ class std_basic_streambuf_wchar_t_std_char_traits_wchar_t {
   imbue(__loc) {
   }
   setbuf($p0, $p1) {
-    return (this ? {a: this.a, i: this.i} : null);
+    return {a: (this.ctj_a || (this.ctj_a = [])), i: (this.ctj_i || 0)};
   }
   seekoff($p0, $p1, $p2 = (std_ios_base.in_ | std_ios_base.out)) {
     return new std_fpos_class_176((-(1)));
@@ -1318,6 +1364,7 @@ class std_fpos_class_176 {
   __init_std_fpos_class_176(...$a) {
     this._M_off = $a[0];
     this._M_state = new class_176();
+    this._M_state.ctj_a = this; this._M_state.ctj_i = "_M_state";
   }
   __dtor() {
   }
@@ -1327,7 +1374,7 @@ class std_binary_function_int_int_bool {
     this.__init_std_binary_function_int_int_bool(...$a);
   }
   __init_std_binary_function_int_int_bool(...$a) {
-    if ($a.length >= 1 && $a.length <= 1 && ($a[0] !== null && typeof $a[0] === "object" && $a[0].a[$a[0].i] instanceof std_binary_function_int_int_bool)) {
+    if ($a.length >= 1 && $a.length <= 1 && ($a[0] !== null && typeof $a[0] === "object" && !Array.isArray($a[0]) && $a[0].a !== undefined && $a[0].i !== undefined && $a[0].a[$a[0].i] instanceof std_binary_function_int_int_bool)) {
     }
     else if ($a.length >= 0 && $a.length <= 0) {
     }
@@ -1338,11 +1385,11 @@ class std_binary_function_int_int_bool {
 }
 class std_less_int extends std_binary_function_int_int_bool {
   constructor(...$a) {
-    super(...($a.length >= 0 && $a.length <= 0 ? [] : $a.length >= 1 && $a.length <= 1 && ($a[0] !== null && typeof $a[0] === "object" && $a[0].a[$a[0].i] instanceof std_less_int) ? [$a[0]] : []));
+    super(...($a.length >= 0 && $a.length <= 0 ? [] : $a.length >= 1 && $a.length <= 1 && ($a[0] !== null && typeof $a[0] === "object" && !Array.isArray($a[0]) && $a[0].a !== undefined && $a[0].i !== undefined && $a[0].a[$a[0].i] instanceof std_less_int) ? [$a[0]] : []));
     this.__init_std_less_int(...$a);
   }
   __init_std_less_int(...$a) {
-    if ($a.length >= 1 && $a.length <= 1 && ($a[0] !== null && typeof $a[0] === "object" && $a[0].a[$a[0].i] instanceof std_less_int)) {
+    if ($a.length >= 1 && $a.length <= 1 && ($a[0] !== null && typeof $a[0] === "object" && !Array.isArray($a[0]) && $a[0].a !== undefined && $a[0].i !== undefined && $a[0].a[$a[0].i] instanceof std_less_int)) {
     }
     else if ($a.length >= 0 && $a.length <= 0) {
     }
@@ -1363,18 +1410,18 @@ class std_pair_int_int {
   }
   __init_std_pair_int_int(...$a) {
     let $t26, $t27, $t28;
-    if ($a.length >= 1 && $a.length <= 1 && ($a[0] !== null && typeof $a[0] === "object" && $a[0].a[$a[0].i] instanceof std_pair_int_int) && !($a[0] instanceof std_piecewise_construct_t)) {
+    if ($a.length >= 1 && $a.length <= 1 && ($a[0] !== null && typeof $a[0] === "object" && !Array.isArray($a[0]) && $a[0].a !== undefined && $a[0].i !== undefined && $a[0].a[$a[0].i] instanceof std_pair_int_int) && !((($a[0] && $a[0].a !== undefined && $a[0].i !== undefined && !Array.isArray($a[0].a)) ? $a[0].a[$a[0].i] : $a[0]) instanceof std_piecewise_construct_t)) {
       this.first = ($a[0] && $a[0].a ? $a[0].a[$a[0].i] : $a[0]).first;
       this.second = ($a[0] && $a[0].a ? $a[0].a[$a[0].i] : $a[0]).second;
     }
-    else if ($a.length >= 1 && $a.length <= 1 && ($a[0] !== null && typeof $a[0] === "object" && $a[0].a[$a[0].i] instanceof std_pair_int_int) && !($a[0] instanceof std_piecewise_construct_t)) {
+    else if ($a.length >= 1 && $a.length <= 1 && ($a[0] !== null && typeof $a[0] === "object" && !Array.isArray($a[0]) && $a[0].a !== undefined && $a[0].i !== undefined && $a[0].a[$a[0].i] instanceof std_pair_int_int) && !((($a[0] && $a[0].a !== undefined && $a[0].i !== undefined && !Array.isArray($a[0].a)) ? $a[0].a[$a[0].i] : $a[0]) instanceof std_piecewise_construct_t)) {
       this.first = ($a[0] && $a[0].a ? $a[0].a[$a[0].i] : $a[0]).first;
       this.second = ($a[0] && $a[0].a ? $a[0].a[$a[0].i] : $a[0]).second;
     }
     else if ($a.length >= 3 && $a.length <= 3 && $a[0] instanceof std_piecewise_construct_t && $a[1] instanceof std_tuple_int_R && $a[2] instanceof std_tuple) {
       this.__init_std_pair_int_int({a: [$a[1]], i: 0}, {a: [$a[2]], i: 0}, new std_Index_tuple_value0(), new std_Index_tuple());
     }
-    else if ($a.length >= 4 && $a.length <= 4 && ($a[0] !== null && typeof $a[0] === "object" && $a[0].a[$a[0].i] instanceof std_tuple_int_R) && !($a[0] instanceof std_piecewise_construct_t) && ($a[1] !== null && typeof $a[1] === "object" && $a[1].a[$a[1].i] instanceof std_tuple) && !($a[1] instanceof std_tuple_int_R) && $a[2] instanceof std_Index_tuple_value0 && $a[3] instanceof std_Index_tuple) {
+    else if ($a.length >= 4 && $a.length <= 4 && ($a[0] !== null && typeof $a[0] === "object" && !Array.isArray($a[0]) && $a[0].a !== undefined && $a[0].i !== undefined && $a[0].a[$a[0].i] instanceof std_tuple_int_R) && !((($a[0] && $a[0].a !== undefined && $a[0].i !== undefined && !Array.isArray($a[0].a)) ? $a[0].a[$a[0].i] : $a[0]) instanceof std_piecewise_construct_t) && ($a[1] !== null && typeof $a[1] === "object" && !Array.isArray($a[1]) && $a[1].a !== undefined && $a[1].i !== undefined && $a[1].a[$a[1].i] instanceof std_tuple) && !((($a[1] && $a[1].a !== undefined && $a[1].i !== undefined && !Array.isArray($a[1].a)) ? $a[1].a[$a[1].i] : $a[1]) instanceof std_tuple_int_R) && $a[2] instanceof std_Index_tuple_value0 && $a[3] instanceof std_Index_tuple) {
       this.first = ($t26 = std_forward_int_R(std_get_4_value0_int_R($a[0])), $t26.a[$t26.i]);
       this.second = 0;
     }
@@ -1382,7 +1429,7 @@ class std_pair_int_int {
       this.first = 0;
       this.second = 0;
     }
-    else if ($a.length >= 2 && $a.length <= 2 && ($a[0] === null || typeof $a[0] === "object") && !($a[0] instanceof std_piecewise_construct_t) && ($a[1] === null || typeof $a[1] === "object") && !($a[1] instanceof std_tuple_int_R)) {
+    else if ($a.length >= 2 && $a.length <= 2 && ($a[0] === null || typeof $a[0] === "object") && !((($a[0] && $a[0].a !== undefined && $a[0].i !== undefined && !Array.isArray($a[0].a)) ? $a[0].a[$a[0].i] : $a[0]) instanceof std_piecewise_construct_t) && ($a[1] === null || typeof $a[1] === "object") && !((($a[1] && $a[1].a !== undefined && $a[1].i !== undefined && !Array.isArray($a[1].a)) ? $a[1].a[$a[1].i] : $a[1]) instanceof std_tuple_int_R)) {
       this.first = ($t27 = std_forward_1_int($a[0]), $t27.a[$t27.i]);
       this.second = ($t28 = std_forward_1_int($a[1]), $t28.a[$t28.i]);
     }
@@ -1392,6 +1439,7 @@ class std_pair_int_int {
   }
 }
 class gnu_cxx_new_allocator_std_pair_int_int {
+  __init_gnu_cxx_new_allocator_std_pair_int_int(...$a) { }
   __dtor() {
   }
 }
@@ -1407,6 +1455,7 @@ class std_allocator_std_pair_int_int extends gnu_cxx_new_allocator_std_pair_int_
   }
 }
 class std_binary_function_std_pair_int_int_std_pair_int_int_bool {
+  __init_std_binary_function_std_pair_int_int_std_pair_int_int_bool(...$a) { }
   __dtor() {
   }
 }
@@ -1424,14 +1473,17 @@ class std_initializer_list_std_pair_int_int {
   }
 }
 class std_decay_and_strip_int {
+  __init_std_decay_and_strip_int(...$a) { }
   __dtor() {
   }
 }
 class std_decay_int {
+  __init_std_decay_int(...$a) { }
   __dtor() {
   }
 }
 class std_remove_reference_int {
+  __init_std_remove_reference_int(...$a) { }
   __dtor() {
   }
 }
@@ -1468,22 +1520,27 @@ class std_is_function_int extends std_integral_constant_bool_value0 {
   }
 }
 class std_decay_selector_int_value0_value0 {
+  __init_std_decay_selector_int_value0_value0(...$a) { }
   __dtor() {
   }
 }
 class std_remove_cv_int {
+  __init_std_remove_cv_int(...$a) { }
   __dtor() {
   }
 }
 class std_remove_volatile_int {
+  __init_std_remove_volatile_int(...$a) { }
   __dtor() {
   }
 }
 class std_remove_const_int {
+  __init_std_remove_const_int(...$a) { }
   __dtor() {
   }
 }
 class std_strip_reference_wrapper_int {
+  __init_std_strip_reference_wrapper_int(...$a) { }
   __dtor() {
   }
 }
@@ -1499,10 +1556,12 @@ class std_is_void_int_R extends std_integral_constant_bool_value0 {
   }
 }
 class std_remove_cv_int_R {
+  __init_std_remove_cv_int_R(...$a) { }
   __dtor() {
   }
 }
 class std_remove_volatile_int_R {
+  __init_std_remove_volatile_int_R(...$a) { }
   __dtor() {
   }
 }
@@ -1540,10 +1599,12 @@ class std_or_std_is_void_int_R_std_is_function_int_std_is_array_int extends std_
   }
 }
 class std_conditional_value0_std_is_function_int_std_is_array_int {
+  __init_std_conditional_value0_std_is_function_int_std_is_array_int(...$a) { }
   __dtor() {
   }
 }
 class std_conditional_value0_std_is_void_int_R_std_or_std_is_function_int_std_is_array_int {
+  __init_std_conditional_value0_std_is_void_int_R_std_or_std_is_function_int_std_is_array_int(...$a) { }
   __dtor() {
   }
 }
@@ -1604,6 +1665,7 @@ class std_or_std_is_lvalue_reference_int_std_is_rvalue_reference_int extends std
   }
 }
 class std_conditional_value0_std_is_lvalue_reference_int_std_is_rvalue_reference_int {
+  __init_std_conditional_value0_std_is_lvalue_reference_int_std_is_rvalue_reference_int(...$a) { }
   __dtor() {
   }
 }
@@ -1673,10 +1735,12 @@ class std_and_std_not_std_is_reference_int_std_not_std_is_void_int extends std_n
   }
 }
 class std_conditional_value1_std_not_std_is_void_int_std_not_std_is_reference_int {
+  __init_std_conditional_value1_std_not_std_is_void_int_std_not_std_is_reference_int(...$a) { }
   __dtor() {
   }
 }
 class std_add_rvalue_reference_helper_int_value1 {
+  __init_std_add_rvalue_reference_helper_int_value1(...$a) { }
   __dtor() {
   }
 }
@@ -1703,10 +1767,12 @@ class std_and_std_is_convertible_int_R_int_std_is_convertible_int_R_int extends 
   }
 }
 class std_conditional_value1_std_is_convertible_int_R_int_std_is_convertible_int_R_int {
+  __init_std_conditional_value1_std_is_convertible_int_R_int_std_is_convertible_int_R_int(...$a) { }
   __dtor() {
   }
 }
 class std_enable_if_value1_void {
+  __init_std_enable_if_value1_void(...$a) { }
   __dtor() {
   }
 }
@@ -1733,6 +1799,7 @@ class std_or_std_is_void_int_std_is_function_int_std_is_array_int extends std_or
   }
 }
 class std_conditional_value0_std_is_void_int_std_or_std_is_function_int_std_is_array_int {
+  __init_std_conditional_value0_std_is_void_int_std_or_std_is_function_int_std_is_array_int(...$a) { }
   __dtor() {
   }
 }
@@ -1760,6 +1827,7 @@ class std_and_std_is_convertible_int_int_std_is_convertible_int_int extends std_
   }
 }
 class std_conditional_value1_std_is_convertible_int_int_std_is_convertible_int_int {
+  __init_std_conditional_value1_std_is_convertible_int_int_std_is_convertible_int_int(...$a) { }
   __dtor() {
   }
 }
@@ -1841,6 +1909,7 @@ class std_or_std_is_lvalue_reference_std_pair_int_int_std_is_rvalue_reference_st
   }
 }
 class std_conditional_value0_std_is_lvalue_reference_std_pair_int_int_std_is_rvalue_reference_std_pair_int_int {
+  __init_std_conditional_value0_std_is_lvalue_reference_std_pair_int_int_std_is_rvalue_reference_std_pair_int_int(...$a) { }
   __dtor() {
   }
 }
@@ -1911,14 +1980,17 @@ class std_is_void_std_pair_int_int extends std_integral_constant_bool_value0 {
   }
 }
 class std_remove_cv_std_pair_int_int {
+  __init_std_remove_cv_std_pair_int_int(...$a) { }
   __dtor() {
   }
 }
 class std_remove_volatile_std_pair_int_int {
+  __init_std_remove_volatile_std_pair_int_int(...$a) { }
   __dtor() {
   }
 }
 class std_remove_const_std_pair_int_int {
+  __init_std_remove_const_std_pair_int_int(...$a) { }
   __dtor() {
   }
 }
@@ -1956,10 +2028,12 @@ class std_and_std_not_std_is_reference_std_pair_int_int_std_not_std_is_void_std_
   }
 }
 class std_conditional_value1_std_not_std_is_void_std_pair_int_int_std_not_std_is_reference_std_pair_int_int {
+  __init_std_conditional_value1_std_not_std_is_void_std_pair_int_int_std_not_std_is_reference_std_pair_int_int(...$a) { }
   __dtor() {
   }
 }
 class std_add_rvalue_reference_helper_std_pair_int_int_value1 {
+  __init_std_add_rvalue_reference_helper_std_pair_int_int_value1(...$a) { }
   __dtor() {
   }
 }
@@ -1997,6 +2071,7 @@ class std_or_std_is_void_std_pair_int_int_std_is_function_std_pair_int_int exten
   }
 }
 class std_conditional_value0_std_is_void_std_pair_int_int_std_is_function_std_pair_int_int {
+  __init_std_conditional_value0_std_is_void_std_pair_int_int_std_is_function_std_pair_int_int(...$a) { }
   __dtor() {
   }
 }
@@ -2033,6 +2108,7 @@ class std_and_std_is_lvalue_reference_std_pair_int_int_std_is_rvalue_reference_s
   }
 }
 class std_conditional_value0_std_is_rvalue_reference_std_pair_int_int_std_is_lvalue_reference_std_pair_int_int {
+  __init_std_conditional_value0_std_is_rvalue_reference_std_pair_int_int_std_is_lvalue_reference_std_pair_int_int(...$a) { }
   __dtor() {
   }
 }
@@ -2059,6 +2135,7 @@ class std_or_std_is_base_to_derived_ref_std_pair_int_int_std_pair_int_int_value1
   }
 }
 class std_remove_reference_std_pair_int_int {
+  __init_std_remove_reference_std_pair_int_int(...$a) { }
   __dtor() {
   }
 }
@@ -2107,10 +2184,12 @@ class std_and_std_not_std_is_same_std_pair_int_int_std_pair_int_int_std_is_base_
   }
 }
 class std_conditional_value0_std_is_base_of_std_pair_int_int_std_pair_int_int_std_not_std_is_same_std_pair_int_int_std_pair_int_int {
+  __init_std_conditional_value0_std_is_base_of_std_pair_int_int_std_pair_int_int_std_not_std_is_same_std_pair_int_int_std_pair_int_int(...$a) { }
   __dtor() {
   }
 }
 class std_conditional_value0_std_is_base_to_derived_ref_std_pair_int_int_std_pair_int_int_value1_std_is_lvalue_to_rvalue_ref_std_pair_int_int_std_pair_int_int_value0 {
+  __init_std_conditional_value0_std_is_base_to_derived_ref_std_pair_int_int_std_pair_int_int_value1_std_is_lvalue_to_rvalue_ref_std_pair_int_int_std_pair_int_int_value0(...$a) { }
   __dtor() {
   }
 }
@@ -2137,6 +2216,7 @@ class std_and_std_is_static_castable_std_pair_int_int_std_pair_int_int_std_not_s
   }
 }
 class std_conditional_value1_std_not_std_or_std_is_base_to_derived_ref_std_pair_int_int_std_pair_int_int_value1_std_is_lvalue_to_rvalue_ref_std_pair_int_int_std_pair_int_int_value0_std_is_static_castable_std_pair_int_int_std_pair_int_int {
+  __init_std_conditional_value1_std_not_std_or_std_is_base_to_derived_ref_std_pair_int_int_std_pair_int_int_value1_std_is_lvalue_to_rvalue_ref_std_pair_int_int_std_pair_int_int_value0_std_is_static_castable_std_pair_int_int_std_pair_int_int(...$a) { }
   __dtor() {
   }
 }
@@ -2239,6 +2319,7 @@ class std_and_std_is_array_std_pair_int_int_std_not_std_extent_std_pair_int_int_
   }
 }
 class std_conditional_value0_std_not_std_extent_std_pair_int_int_value0_std_is_array_std_pair_int_int {
+  __init_std_conditional_value0_std_not_std_extent_std_pair_int_int_value0_std_is_array_std_pair_int_int(...$a) { }
   __dtor() {
   }
 }
@@ -2265,10 +2346,12 @@ class std_or_std_is_void_std_pair_int_int_std_is_array_unknown_bounds_std_pair_i
   }
 }
 class std_conditional_value0_std_is_array_unknown_bounds_std_pair_int_int_std_is_function_std_pair_int_int {
+  __init_std_conditional_value0_std_is_array_unknown_bounds_std_pair_int_int_std_is_function_std_pair_int_int(...$a) { }
   __dtor() {
   }
 }
 class std_conditional_value0_std_is_void_std_pair_int_int_std_or_std_is_array_unknown_bounds_std_pair_int_int_std_is_function_std_pair_int_int {
+  __init_std_conditional_value0_std_is_void_std_pair_int_int_std_or_std_is_array_unknown_bounds_std_pair_int_int_std_is_function_std_pair_int_int(...$a) { }
   __dtor() {
   }
 }
@@ -2350,6 +2433,7 @@ class std_or_std_is_integral_std_pair_int_int_std_is_floating_point_std_pair_int
   }
 }
 class std_conditional_value0_std_is_integral_std_pair_int_int_std_is_floating_point_std_pair_int_int {
+  __init_std_conditional_value0_std_is_integral_std_pair_int_int_std_is_floating_point_std_pair_int_int(...$a) { }
   __dtor() {
   }
 }
@@ -2475,18 +2559,22 @@ class std_or_std_is_arithmetic_std_pair_int_int_std_is_enum_std_pair_int_int_std
   }
 }
 class std_conditional_value0_std_is_member_pointer_std_pair_int_int_std_is_nullptr_t_std_pair_int_int {
+  __init_std_conditional_value0_std_is_member_pointer_std_pair_int_int_std_is_nullptr_t_std_pair_int_int(...$a) { }
   __dtor() {
   }
 }
 class std_conditional_value0_std_is_pointer_std_pair_int_int_std_or_std_is_member_pointer_std_pair_int_int_std_is_nullptr_t_std_pair_int_int {
+  __init_std_conditional_value0_std_is_pointer_std_pair_int_int_std_or_std_is_member_pointer_std_pair_int_int_std_is_nullptr_t_std_pair_int_int(...$a) { }
   __dtor() {
   }
 }
 class std_conditional_value0_std_is_enum_std_pair_int_int_std_or_std_is_pointer_std_pair_int_int_std_is_member_pointer_std_pair_int_int_std_is_nullptr_t_std_pair_int_int {
+  __init_std_conditional_value0_std_is_enum_std_pair_int_int_std_or_std_is_pointer_std_pair_int_int_std_is_member_pointer_std_pair_int_int_std_is_nullptr_t_std_pair_int_int(...$a) { }
   __dtor() {
   }
 }
 class std_conditional_value0_std_is_arithmetic_std_pair_int_int_std_or_std_is_enum_std_pair_int_int_std_is_pointer_std_pair_int_int_std_is_member_pointer_std_pair_int_int_std_is_nullptr_t_std_pair_int_int {
+  __init_std_conditional_value0_std_is_arithmetic_std_pair_int_int_std_or_std_is_enum_std_pair_int_int_std_is_pointer_std_pair_int_int_std_is_member_pointer_std_pair_int_int_std_is_nullptr_t_std_pair_int_int(...$a) { }
   __dtor() {
   }
 }
@@ -2502,6 +2590,7 @@ class std_or_std_is_reference_std_pair_int_int_std_is_scalar_std_pair_int_int ex
   }
 }
 class std_conditional_value0_std_is_reference_std_pair_int_int_std_is_scalar_std_pair_int_int {
+  __init_std_conditional_value0_std_is_reference_std_pair_int_int_std_is_scalar_std_pair_int_int(...$a) { }
   __dtor() {
   }
 }
@@ -2517,6 +2606,7 @@ class std_is_destructible_safe_std_pair_int_int_value0_value0 extends std_integr
   }
 }
 class std_remove_all_extents_std_pair_int_int {
+  __init_std_remove_all_extents_std_pair_int_int(...$a) { }
   __dtor() {
   }
 }
@@ -2576,6 +2666,7 @@ class std_or_std_is_lvalue_reference_std_pair_int_int_R_std_is_rvalue_reference_
   }
 }
 class std_conditional_value1_std_is_lvalue_reference_std_pair_int_int_R_std_is_rvalue_reference_std_pair_int_int_R {
+  __init_std_conditional_value1_std_is_lvalue_reference_std_pair_int_int_R_std_is_rvalue_reference_std_pair_int_int_R(...$a) { }
   __dtor() {
   }
 }
@@ -2602,10 +2693,12 @@ class std_is_void_std_pair_int_int_R extends std_integral_constant_bool_value0 {
   }
 }
 class std_remove_cv_std_pair_int_int_R {
+  __init_std_remove_cv_std_pair_int_int_R(...$a) { }
   __dtor() {
   }
 }
 class std_remove_volatile_std_pair_int_int_R {
+  __init_std_remove_volatile_std_pair_int_int_R(...$a) { }
   __dtor() {
   }
 }
@@ -2632,10 +2725,12 @@ class std_and_std_not_std_is_reference_std_pair_int_int_R_std_not_std_is_void_st
   }
 }
 class std_conditional_value0_std_not_std_is_void_std_pair_int_int_R_std_not_std_is_reference_std_pair_int_int_R {
+  __init_std_conditional_value0_std_not_std_is_void_std_pair_int_int_R_std_not_std_is_reference_std_pair_int_int_R(...$a) { }
   __dtor() {
   }
 }
 class std_add_rvalue_reference_helper_std_pair_int_int_R_value0 {
+  __init_std_add_rvalue_reference_helper_std_pair_int_int_R_value0(...$a) { }
   __dtor() {
   }
 }
@@ -2673,10 +2768,12 @@ class std_and_std_is_destructible_std_pair_int_int_std_is_direct_constructible_i
   }
 }
 class std_conditional_value1_std_is_direct_constructible_impl_std_pair_int_int_std_pair_int_int_std_is_destructible_std_pair_int_int {
+  __init_std_conditional_value1_std_is_direct_constructible_impl_std_pair_int_int_std_pair_int_int_std_is_destructible_std_pair_int_int(...$a) { }
   __dtor() {
   }
 }
 class std_conditional_value0_std_is_direct_constructible_ref_cast_std_pair_int_int_std_pair_int_int_std_is_direct_constructible_new_safe_std_pair_int_int_std_pair_int_int {
+  __init_std_conditional_value0_std_is_direct_constructible_ref_cast_std_pair_int_int_std_pair_int_int_std_is_direct_constructible_new_safe_std_pair_int_int_std_pair_int_int(...$a) { }
   __dtor() {
   }
 }
@@ -2704,6 +2801,7 @@ class std_Select1st_std_pair_int_int extends std_unary_function_std_pair_int_int
   }
 }
 class std_allocator_std_pair_int_int_rebind_std_pair_int_int {
+  __init_std_allocator_std_pair_int_int_rebind_std_pair_int_int(...$a) { }
   __dtor() {
   }
 }
@@ -2713,7 +2811,7 @@ class std_Rb_tree_iterator_std_pair_int_int {
     this.__init_std_Rb_tree_iterator_std_pair_int_int(...$a);
   }
   __init_std_Rb_tree_iterator_std_pair_int_int(...$a) {
-    if ($a.length >= 1 && $a.length <= 1 && ($a[0] !== null && typeof $a[0] === "object" && $a[0].a[$a[0].i] instanceof std_Rb_tree_iterator_std_pair_int_int)) {
+    if ($a.length >= 1 && $a.length <= 1 && ($a[0] !== null && typeof $a[0] === "object" && !Array.isArray($a[0]) && $a[0].a !== undefined && $a[0].i !== undefined && $a[0].a[$a[0].i] instanceof std_Rb_tree_iterator_std_pair_int_int)) {
       this._M_node = (((($a[0]).a[($a[0]).i])._M_node) ? {a: ((($a[0]).a[($a[0]).i])._M_node).a, i: ((($a[0]).a[($a[0]).i])._M_node).i} : null);
     }
     else if ($a.length >= 0 && $a.length <= 0) {
@@ -2750,16 +2848,18 @@ class std_Rb_tree_iterator_std_pair_int_int {
 class std_Rb_tree_node_std_pair_int_int extends std_Rb_tree_node_base {
   _M_value_field;
   constructor(...$a) {
-    super(...($a.length >= 1 && $a.length <= 1 && ($a[0] !== null && typeof $a[0] === "object" && $a[0].a[$a[0].i] instanceof std_pair_int_int) ? [] : $a.length >= 3 && $a.length <= 3 && ($a[0] !== null && typeof $a[0] === "object" && $a[0].a[$a[0].i] instanceof std_piecewise_construct_t) && ($a[1] !== null && typeof $a[1] === "object" && $a[1].a[$a[1].i] instanceof std_tuple_int_R) && ($a[2] !== null && typeof $a[2] === "object" && $a[2].a[$a[2].i] instanceof std_tuple) ? [] : []));
+    super(...($a.length >= 1 && $a.length <= 1 && ($a[0] !== null && typeof $a[0] === "object" && !Array.isArray($a[0]) && $a[0].a !== undefined && $a[0].i !== undefined && $a[0].a[$a[0].i] instanceof std_pair_int_int) ? [] : $a.length >= 3 && $a.length <= 3 && ($a[0] !== null && typeof $a[0] === "object" && !Array.isArray($a[0]) && $a[0].a !== undefined && $a[0].i !== undefined && $a[0].a[$a[0].i] instanceof std_piecewise_construct_t) && ($a[1] !== null && typeof $a[1] === "object" && !Array.isArray($a[1]) && $a[1].a !== undefined && $a[1].i !== undefined && $a[1].a[$a[1].i] instanceof std_tuple_int_R) && ($a[2] !== null && typeof $a[2] === "object" && !Array.isArray($a[2]) && $a[2].a !== undefined && $a[2].i !== undefined && $a[2].a[$a[2].i] instanceof std_tuple) ? [] : []));
     this.__init_std_Rb_tree_node_std_pair_int_int(...$a);
   }
   __init_std_Rb_tree_node_std_pair_int_int(...$a) {
     let $t31, $t32, $t33;
-    if ($a.length >= 1 && $a.length <= 1 && ($a[0] !== null && typeof $a[0] === "object" && $a[0].a[$a[0].i] instanceof std_pair_int_int)) {
+    if ($a.length >= 1 && $a.length <= 1 && ($a[0] !== null && typeof $a[0] === "object" && !Array.isArray($a[0]) && $a[0].a !== undefined && $a[0].i !== undefined && $a[0].a[$a[0].i] instanceof std_pair_int_int)) {
       this._M_value_field = new std_pair_int_int(std_forward_1_std_pair_int_int($a[0]));
+      this._M_value_field.ctj_a = this; this._M_value_field.ctj_i = "_M_value_field";
     }
-    else if ($a.length >= 3 && $a.length <= 3 && ($a[0] !== null && typeof $a[0] === "object" && $a[0].a[$a[0].i] instanceof std_piecewise_construct_t) && ($a[1] !== null && typeof $a[1] === "object" && $a[1].a[$a[1].i] instanceof std_tuple_int_R) && ($a[2] !== null && typeof $a[2] === "object" && $a[2].a[$a[2].i] instanceof std_tuple)) {
+    else if ($a.length >= 3 && $a.length <= 3 && ($a[0] !== null && typeof $a[0] === "object" && !Array.isArray($a[0]) && $a[0].a !== undefined && $a[0].i !== undefined && $a[0].a[$a[0].i] instanceof std_piecewise_construct_t) && ($a[1] !== null && typeof $a[1] === "object" && !Array.isArray($a[1]) && $a[1].a !== undefined && $a[1].i !== undefined && $a[1].a[$a[1].i] instanceof std_tuple_int_R) && ($a[2] !== null && typeof $a[2] === "object" && !Array.isArray($a[2]) && $a[2].a !== undefined && $a[2].i !== undefined && $a[2].a[$a[2].i] instanceof std_tuple)) {
       this._M_value_field = new std_pair_int_int(($t31 = std_forward_1_std_piecewise_construct_t($a[0]), $t31.a[$t31.i]), ($t32 = std_forward_1_std_tuple_int_R($a[1]), $t32.a[$t32.i]), ($t33 = std_forward_1_std_tuple($a[2]), $t33.a[$t33.i]));
+      this._M_value_field.ctj_a = this; this._M_value_field.ctj_i = "_M_value_field";
     }
     else { throw new Error("no matching constructor"); }
   }
@@ -2774,12 +2874,14 @@ class std_pair_std_Rb_tree_iterator_std_pair_int_int_bool {
     this.__init_std_pair_std_Rb_tree_iterator_std_pair_int_int_bool(...$a);
   }
   __init_std_pair_std_Rb_tree_iterator_std_pair_int_int_bool(...$a) {
-    if ($a.length >= 2 && $a.length <= 2 && ($a[0] !== null && typeof $a[0] === "object" && $a[0].a[$a[0].i] instanceof std_Rb_tree_iterator_std_pair_int_int) && ($a[1] === null || typeof $a[1] === "object")) {
+    if ($a.length >= 2 && $a.length <= 2 && ($a[0] !== null && typeof $a[0] === "object" && !Array.isArray($a[0]) && $a[0].a !== undefined && $a[0].i !== undefined && $a[0].a[$a[0].i] instanceof std_Rb_tree_iterator_std_pair_int_int) && ($a[1] === null || typeof $a[1] === "object")) {
       this.first = new std_Rb_tree_iterator_std_pair_int_int($a[0]);
+      this.first.ctj_a = this; this.first.ctj_i = "first";
       this.second = ($a[1]).a[($a[1]).i];
     }
-    else if ($a.length >= 1 && $a.length <= 1 && ($a[0] !== null && typeof $a[0] === "object" && $a[0].a[$a[0].i] instanceof std_pair_std_Rb_tree_iterator_std_pair_int_int_bool)) {
+    else if ($a.length >= 1 && $a.length <= 1 && ($a[0] !== null && typeof $a[0] === "object" && !Array.isArray($a[0]) && $a[0].a !== undefined && $a[0].i !== undefined && $a[0].a[$a[0].i] instanceof std_pair_std_Rb_tree_iterator_std_pair_int_int_bool)) {
       this.first = ($a[0] && $a[0].a ? $a[0].a[$a[0].i] : $a[0]).first;
+      this.first.ctj_a = this; this.first.ctj_i = "first";
       this.second = ($a[0] && $a[0].a ? $a[0].a[$a[0].i] : $a[0]).second;
     }
     else { throw new Error("no matching constructor"); }
@@ -2824,14 +2926,17 @@ class std_is_void_std_Rb_tree_iterator_std_pair_int_int_R extends std_integral_c
   }
 }
 class std_remove_cv_std_Rb_tree_iterator_std_pair_int_int_R {
+  __init_std_remove_cv_std_Rb_tree_iterator_std_pair_int_int_R(...$a) { }
   __dtor() {
   }
 }
 class std_remove_volatile_std_Rb_tree_iterator_std_pair_int_int_R {
+  __init_std_remove_volatile_std_Rb_tree_iterator_std_pair_int_int_R(...$a) { }
   __dtor() {
   }
 }
 class std_remove_const_std_Rb_tree_iterator_std_pair_int_int {
+  __init_std_remove_const_std_Rb_tree_iterator_std_pair_int_int(...$a) { }
   __dtor() {
   }
 }
@@ -2891,10 +2996,12 @@ class std_or_std_is_void_std_Rb_tree_iterator_std_pair_int_int_R_std_is_function
   }
 }
 class std_conditional_value0_std_is_function_std_Rb_tree_iterator_std_pair_int_int_std_is_array_std_Rb_tree_iterator_std_pair_int_int {
+  __init_std_conditional_value0_std_is_function_std_Rb_tree_iterator_std_pair_int_int_std_is_array_std_Rb_tree_iterator_std_pair_int_int(...$a) { }
   __dtor() {
   }
 }
 class std_conditional_value0_std_is_void_std_Rb_tree_iterator_std_pair_int_int_R_std_or_std_is_function_std_Rb_tree_iterator_std_pair_int_int_std_is_array_std_Rb_tree_iterator_std_pair_int_int {
+  __init_std_conditional_value0_std_is_void_std_Rb_tree_iterator_std_pair_int_int_R_std_or_std_is_function_std_Rb_tree_iterator_std_pair_int_int_std_is_array_std_Rb_tree_iterator_std_pair_int_int(...$a) { }
   __dtor() {
   }
 }
@@ -2955,6 +3062,7 @@ class std_or_std_is_lvalue_reference_std_Rb_tree_iterator_std_pair_int_int_std_i
   }
 }
 class std_conditional_value0_std_is_lvalue_reference_std_Rb_tree_iterator_std_pair_int_int_std_is_rvalue_reference_std_Rb_tree_iterator_std_pair_int_int {
+  __init_std_conditional_value0_std_is_lvalue_reference_std_Rb_tree_iterator_std_pair_int_int_std_is_rvalue_reference_std_Rb_tree_iterator_std_pair_int_int(...$a) { }
   __dtor() {
   }
 }
@@ -2981,10 +3089,12 @@ class std_is_void_std_Rb_tree_iterator_std_pair_int_int extends std_integral_con
   }
 }
 class std_remove_cv_std_Rb_tree_iterator_std_pair_int_int {
+  __init_std_remove_cv_std_Rb_tree_iterator_std_pair_int_int(...$a) { }
   __dtor() {
   }
 }
 class std_remove_volatile_std_Rb_tree_iterator_std_pair_int_int {
+  __init_std_remove_volatile_std_Rb_tree_iterator_std_pair_int_int(...$a) { }
   __dtor() {
   }
 }
@@ -3011,10 +3121,12 @@ class std_and_std_not_std_is_reference_std_Rb_tree_iterator_std_pair_int_int_std
   }
 }
 class std_conditional_value1_std_not_std_is_void_std_Rb_tree_iterator_std_pair_int_int_std_not_std_is_reference_std_Rb_tree_iterator_std_pair_int_int {
+  __init_std_conditional_value1_std_not_std_is_void_std_Rb_tree_iterator_std_pair_int_int_std_not_std_is_reference_std_Rb_tree_iterator_std_pair_int_int(...$a) { }
   __dtor() {
   }
 }
 class std_add_rvalue_reference_helper_std_Rb_tree_iterator_std_pair_int_int_value1 {
+  __init_std_add_rvalue_reference_helper_std_Rb_tree_iterator_std_pair_int_int_value1(...$a) { }
   __dtor() {
   }
 }
@@ -3052,14 +3164,17 @@ class std_is_void_bool_R extends std_integral_constant_bool_value0 {
   }
 }
 class std_remove_cv_bool_R {
+  __init_std_remove_cv_bool_R(...$a) { }
   __dtor() {
   }
 }
 class std_remove_volatile_bool_R {
+  __init_std_remove_volatile_bool_R(...$a) { }
   __dtor() {
   }
 }
 class std_remove_const_bool {
+  __init_std_remove_const_bool(...$a) { }
   __dtor() {
   }
 }
@@ -3119,10 +3234,12 @@ class std_or_std_is_void_bool_R_std_is_function_bool_std_is_array_bool extends s
   }
 }
 class std_conditional_value0_std_is_function_bool_std_is_array_bool {
+  __init_std_conditional_value0_std_is_function_bool_std_is_array_bool(...$a) { }
   __dtor() {
   }
 }
 class std_conditional_value0_std_is_void_bool_R_std_or_std_is_function_bool_std_is_array_bool {
+  __init_std_conditional_value0_std_is_void_bool_R_std_or_std_is_function_bool_std_is_array_bool(...$a) { }
   __dtor() {
   }
 }
@@ -3183,6 +3300,7 @@ class std_or_std_is_lvalue_reference_bool_std_is_rvalue_reference_bool extends s
   }
 }
 class std_conditional_value0_std_is_lvalue_reference_bool_std_is_rvalue_reference_bool {
+  __init_std_conditional_value0_std_is_lvalue_reference_bool_std_is_rvalue_reference_bool(...$a) { }
   __dtor() {
   }
 }
@@ -3209,10 +3327,12 @@ class std_is_void_bool extends std_integral_constant_bool_value0 {
   }
 }
 class std_remove_cv_bool {
+  __init_std_remove_cv_bool(...$a) { }
   __dtor() {
   }
 }
 class std_remove_volatile_bool {
+  __init_std_remove_volatile_bool(...$a) { }
   __dtor() {
   }
 }
@@ -3239,10 +3359,12 @@ class std_and_std_not_std_is_reference_bool_std_not_std_is_void_bool extends std
   }
 }
 class std_conditional_value1_std_not_std_is_void_bool_std_not_std_is_reference_bool {
+  __init_std_conditional_value1_std_not_std_is_void_bool_std_not_std_is_reference_bool(...$a) { }
   __dtor() {
   }
 }
 class std_add_rvalue_reference_helper_bool_value1 {
+  __init_std_add_rvalue_reference_helper_bool_value1(...$a) { }
   __dtor() {
   }
 }
@@ -3269,6 +3391,7 @@ class std_and_std_is_convertible_std_Rb_tree_iterator_std_pair_int_int_R_std_Rb_
   }
 }
 class std_conditional_value1_std_is_convertible_bool_R_bool_std_is_convertible_std_Rb_tree_iterator_std_pair_int_int_R_std_Rb_tree_iterator_std_pair_int_int {
+  __init_std_conditional_value1_std_is_convertible_bool_R_bool_std_is_convertible_std_Rb_tree_iterator_std_pair_int_int_R_std_Rb_tree_iterator_std_pair_int_int(...$a) { }
   __dtor() {
   }
 }
@@ -3295,6 +3418,7 @@ class std_or_std_is_void_std_Rb_tree_iterator_std_pair_int_int_std_is_function_s
   }
 }
 class std_conditional_value0_std_is_void_std_Rb_tree_iterator_std_pair_int_int_std_or_std_is_function_std_Rb_tree_iterator_std_pair_int_int_std_is_array_std_Rb_tree_iterator_std_pair_int_int {
+  __init_std_conditional_value0_std_is_void_std_Rb_tree_iterator_std_pair_int_int_std_or_std_is_function_std_Rb_tree_iterator_std_pair_int_int_std_is_array_std_Rb_tree_iterator_std_pair_int_int(...$a) { }
   __dtor() {
   }
 }
@@ -3333,6 +3457,7 @@ class std_or_std_is_void_bool_std_is_function_bool_std_is_array_bool extends std
   }
 }
 class std_conditional_value0_std_is_void_bool_std_or_std_is_function_bool_std_is_array_bool {
+  __init_std_conditional_value0_std_is_void_bool_std_or_std_is_function_bool_std_is_array_bool(...$a) { }
   __dtor() {
   }
 }
@@ -3360,6 +3485,7 @@ class std_and_std_is_convertible_std_Rb_tree_iterator_std_pair_int_int_std_Rb_tr
   }
 }
 class std_conditional_value1_std_is_convertible_bool_bool_std_is_convertible_std_Rb_tree_iterator_std_pair_int_int_std_Rb_tree_iterator_std_pair_int_int {
+  __init_std_conditional_value1_std_is_convertible_bool_bool_std_is_convertible_std_Rb_tree_iterator_std_pair_int_int_std_Rb_tree_iterator_std_pair_int_int(...$a) { }
   __dtor() {
   }
 }
@@ -3413,135 +3539,6 @@ class std_declval_protector_bool {
   }
   static __stop = 0;
 }
-class std_reverse_iterator_std_pair_int_int {
-  __dtor() {
-  }
-}
-class std_has_iterator_category_std_pair_int_int extends std_integral_constant_bool_value0 {
-  constructor(...$a) {
-    super();
-    this.__init_std_has_iterator_category_std_pair_int_int(...$a);
-  }
-  __init_std_has_iterator_category_std_pair_int_int(...$a) {
-  }
-  __dtor() {
-    std_integral_constant_bool_value0.prototype.__dtor.call(this);
-  }
-}
-class std_has_iterator_category_helper_std_pair_int_int extends std_sfinae_types {
-  constructor(...$a) {
-    super();
-    this.__init_std_has_iterator_category_helper_std_pair_int_int(...$a);
-  }
-  __init_std_has_iterator_category_helper_std_pair_int_int(...$a) {
-  }
-  __dtor() {
-    std_sfinae_types.prototype.__dtor.call(this);
-  }
-  static value = 0;
-}
-class std_iterator_traits_std_pair_int_int_value0 {
-  __dtor() {
-  }
-}
-class std_iterator_traits_std_pair_int_int extends std_iterator_traits_std_pair_int_int_value0 {
-  constructor(...$a) {
-    super();
-    this.__init_std_iterator_traits_std_pair_int_int(...$a);
-  }
-  __init_std_iterator_traits_std_pair_int_int(...$a) {
-  }
-  __dtor() {
-    std_iterator_traits_std_pair_int_int_value0.prototype.__dtor.call(this);
-  }
-}
-class std_move_iterator_std_pair_int_int {
-  _M_current;
-  constructor(...$a) {
-    this.__init_std_move_iterator_std_pair_int_int(...$a);
-  }
-  __init_std_move_iterator_std_pair_int_int(...$a) {
-    this._M_current = new std_pair_int_int();
-  }
-  __dtor() {
-  }
-}
-class std_fpos_std_pair_int_int {
-  _M_off;
-  _M_state;
-  constructor(...$a) {
-    this.__init_std_fpos_std_pair_int_int(...$a);
-  }
-  __init_std_fpos_std_pair_int_int(...$a) {
-    this._M_off = 0;
-    this._M_state = new std_pair_int_int();
-  }
-  __dtor() {
-  }
-}
-class gnu_cxx_char_traits_std_pair_int_int {
-  __dtor() {
-  }
-}
-class std_char_traits_std_pair_int_int extends gnu_cxx_char_traits_std_pair_int_int {
-  constructor(...$a) {
-    super();
-    this.__init_std_char_traits_std_pair_int_int(...$a);
-  }
-  __init_std_char_traits_std_pair_int_int(...$a) {
-  }
-  __dtor() {
-    gnu_cxx_char_traits_std_pair_int_int.prototype.__dtor.call(this);
-  }
-}
-class std_basic_string_std_pair_int_int_std_char_traits_std_pair_int_int_std_allocator_std_pair_int_int_Rep_base {
-  _M_length;
-  _M_capacity;
-  _M_refcount;
-  constructor(...$a) {
-    this.__init_std_basic_string_std_pair_int_int_std_char_traits_std_pair_int_int_std_allocator_std_pair_int_int_Rep_base(...$a);
-  }
-  __init_std_basic_string_std_pair_int_int_std_char_traits_std_pair_int_int_std_allocator_std_pair_int_int_Rep_base(...$a) {
-    this._M_length = 0;
-    this._M_capacity = 0;
-    this._M_refcount = 0;
-  }
-  __dtor() {
-  }
-}
-class std_basic_string_std_pair_int_int_std_char_traits_std_pair_int_int_std_allocator_std_pair_int_int_Alloc_hider extends std_allocator_std_pair_int_int {
-  _M_p;
-  constructor(...$a) {
-    super();
-    this.__init_std_basic_string_std_pair_int_int_std_char_traits_std_pair_int_int_std_allocator_std_pair_int_int_Alloc_hider(...$a);
-  }
-  __init_std_basic_string_std_pair_int_int_std_char_traits_std_pair_int_int_std_allocator_std_pair_int_int_Alloc_hider(...$a) {
-    this._M_p = null;
-  }
-  __dtor() {
-    std_allocator_std_pair_int_int.prototype.__dtor.call(this);
-  }
-}
-class std_basic_string_std_pair_int_int_std_char_traits_std_pair_int_int_std_allocator_std_pair_int_int {
-  _M_dataplus;
-  constructor(...$a) {
-    this.__init_std_basic_string_std_pair_int_int_std_char_traits_std_pair_int_int_std_allocator_std_pair_int_int(...$a);
-  }
-  __init_std_basic_string_std_pair_int_int_std_char_traits_std_pair_int_int_std_allocator_std_pair_int_int(...$a) {
-    this._M_dataplus = new std_basic_string_std_pair_int_int_std_char_traits_std_pair_int_int_std_allocator_std_pair_int_int_Alloc_hider();
-  }
-  __dtor() {
-  }
-  static npos = 4294967295;
-}
-class std_is_char_std_pair_int_int {
-  __dtor() {
-  }
-}
-class gnu_cxx_enable_if_value0_bool {
-  __dtor() {
-  }
-}
 class std_Tuple_impl_value1 {
   constructor(...$a) {
     this.__init_std_Tuple_impl_value1(...$a);
@@ -3549,62 +3546,6 @@ class std_Tuple_impl_value1 {
   __init_std_Tuple_impl_value1(...$a) {
   }
   __dtor() {
-  }
-}
-class std_is_empty_non_tuple_std_pair_int_int extends std_integral_constant_bool_value0 {
-  constructor(...$a) {
-    super();
-    this.__init_std_is_empty_non_tuple_std_pair_int_int(...$a);
-  }
-  __init_std_is_empty_non_tuple_std_pair_int_int(...$a) {
-  }
-  __dtor() {
-    std_integral_constant_bool_value0.prototype.__dtor.call(this);
-  }
-}
-class std_conditional_value0_std_integral_constant_bool_value0_std_is_empty_non_tuple_std_pair_int_int {
-  __dtor() {
-  }
-}
-class std_Head_base_value0_std_pair_int_int_value0 {
-  _M_head_impl;
-  constructor(...$a) {
-    this.__init_std_Head_base_value0_std_pair_int_int_value0(...$a);
-  }
-  __init_std_Head_base_value0_std_pair_int_int_value0(...$a) {
-    this._M_head_impl = new std_pair_int_int();
-  }
-  __dtor() {
-  }
-}
-class std_Tuple_impl_value0_std_pair_int_int extends std_Tuple_impl_value1 {
-  constructor(...$a) {
-    super();
-    this.__init_std_Tuple_impl_value0_std_pair_int_int(...$a);
-  }
-  __init_std_Tuple_impl_value0_std_pair_int_int(...$a) {
-    std_Head_base_value0_std_pair_int_int_value0.prototype.__init_std_Head_base_value0_std_pair_int_int_value0.call(this);
-  }
-  __dtor() {
-    std_Tuple_impl_value1.prototype.__dtor.call(this);
-    std_Head_base_value0_std_pair_int_int_value0.prototype.__dtor.call(this);
-  }
-}
-for (const $k of Object.getOwnPropertyNames(std_Head_base_value0_std_pair_int_int_value0.prototype)) {
-  if ($k !== "constructor" && !($k in std_Tuple_impl_value0_std_pair_int_int.prototype)) std_Tuple_impl_value0_std_pair_int_int.prototype[$k] = std_Head_base_value0_std_pair_int_int_value0.prototype[$k];
-}
-for (const $k of Object.getOwnPropertyNames(std_Head_base_value0_std_pair_int_int_value0)) {
-  if ($k !== "prototype" && $k !== "name" && $k !== "length" && !($k in std_Tuple_impl_value0_std_pair_int_int)) std_Tuple_impl_value0_std_pair_int_int[$k] = std_Head_base_value0_std_pair_int_int_value0[$k];
-}
-class std_tuple_std_pair_int_int extends std_Tuple_impl_value0_std_pair_int_int {
-  constructor(...$a) {
-    super();
-    this.__init_std_tuple_std_pair_int_int(...$a);
-  }
-  __init_std_tuple_std_pair_int_int(...$a) {
-  }
-  __dtor() {
-    std_Tuple_impl_value0_std_pair_int_int.prototype.__dtor.call(this);
   }
 }
 class std_is_empty_int extends std_integral_constant_bool_value0 {
@@ -3630,6 +3571,7 @@ class std_is_empty_non_tuple_int extends std_is_empty_int {
   }
 }
 class std_conditional_value0_std_integral_constant_bool_value0_std_is_empty_non_tuple_int {
+  __init_std_conditional_value0_std_integral_constant_bool_value0_std_is_empty_non_tuple_int(...$a) { }
   __dtor() {
   }
 }
@@ -3663,11 +3605,13 @@ class std_Tuple_impl_value0_int_R extends std_Tuple_impl_value1 {
     return std_Head_base_value0_int_value0._M_head(__t);
   }
 }
-for (const $k of Object.getOwnPropertyNames(std_Head_base_value0_int_value0.prototype)) {
-  if ($k !== "constructor" && !($k in std_Tuple_impl_value0_int_R.prototype)) std_Tuple_impl_value0_int_R.prototype[$k] = std_Head_base_value0_int_value0.prototype[$k];
-}
-for (const $k of Object.getOwnPropertyNames(std_Head_base_value0_int_value0)) {
-  if ($k !== "prototype" && $k !== "name" && $k !== "length" && !($k in std_Tuple_impl_value0_int_R)) std_Tuple_impl_value0_int_R[$k] = std_Head_base_value0_int_value0[$k];
+for (let $b = std_Head_base_value0_int_value0; $b && $b.prototype; $b = Object.getPrototypeOf($b)) {
+  for (const $k of Object.getOwnPropertyNames($b.prototype)) {
+    if ($k !== "constructor" && !($k in std_Tuple_impl_value0_int_R.prototype)) std_Tuple_impl_value0_int_R.prototype[$k] = $b.prototype[$k];
+  }
+  for (const $k of Object.getOwnPropertyNames($b)) {
+    if ($k !== "prototype" && $k !== "name" && $k !== "length" && !($k in std_Tuple_impl_value0_int_R)) std_Tuple_impl_value0_int_R[$k] = $b[$k];
+  }
 }
 class std_tuple_int_R extends std_Tuple_impl_value0_int_R {
   constructor(...$a) {
@@ -3697,7 +3641,7 @@ class std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P {
   }
   __init_std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P(...$a) {
     let $t34, $t35, $t36, $t37;
-    if ($a.length >= 1 && $a.length <= 1 && ($a[0] !== null && typeof $a[0] === "object" && $a[0].a[$a[0].i] instanceof std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P)) {
+    if ($a.length >= 1 && $a.length <= 1 && ($a[0] !== null && typeof $a[0] === "object" && !Array.isArray($a[0]) && $a[0].a !== undefined && $a[0].i !== undefined && $a[0].a[$a[0].i] instanceof std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P)) {
       this.first = ($a[0] && $a[0].a ? $a[0].a[$a[0].i] : $a[0]).first;
       this.second = ($a[0] && $a[0].a ? $a[0].a[$a[0].i] : $a[0]).second;
     }
@@ -3706,8 +3650,8 @@ class std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P {
       this.second = ((($a[1]).a[($a[1]).i]) ? {a: (($a[1]).a[($a[1]).i]).a, i: (($a[1]).a[($a[1]).i]).i} : null);
     }
     else if ($a.length >= 2 && $a.length <= 2 && ($a[0] === null || typeof $a[0] === "object") && ($a[1] === null || typeof $a[1] === "object")) {
-      this.first = ($t34 = std_forward_1_std_Rb_tree_node_std_pair_int_int_P(($a[0]).a[($a[0]).i]), $t35 = ($t34 ? $t34.a[$t34.i] : null), $t35 && $t35.a !== undefined ? {a: $t35.a, i: $t35.i} : $t35);
-      this.second = ($t36 = std_forward_1_std_Rb_tree_node_std_pair_int_int_P(($a[1]).a[($a[1]).i]), $t37 = ($t36 ? $t36.a[$t36.i] : null), $t37 && $t37.a !== undefined ? {a: $t37.a, i: $t37.i} : $t37);
+      this.first = ($t34 = std_forward_1_std_Rb_tree_node_std_pair_int_int_P($a[0]), $t35 = ($t34 ? $t34.a[$t34.i] : null), $t35 && $t35.a !== undefined ? {a: $t35.a, i: $t35.i} : $t35);
+      this.second = ($t36 = std_forward_1_std_Rb_tree_node_std_pair_int_int_P($a[1]), $t37 = ($t36 ? $t36.a[$t36.i] : null), $t37 && $t37.a !== undefined ? {a: $t37.a, i: $t37.i} : $t37);
     }
     else { throw new Error("no matching constructor"); }
   }
@@ -3737,14 +3681,17 @@ class std_is_void_std_Rb_tree_node_base_P_R extends std_integral_constant_bool_v
   }
 }
 class std_remove_cv_std_Rb_tree_node_base_P_R {
+  __init_std_remove_cv_std_Rb_tree_node_base_P_R(...$a) { }
   __dtor() {
   }
 }
 class std_remove_volatile_std_Rb_tree_node_base_P_R {
+  __init_std_remove_volatile_std_Rb_tree_node_base_P_R(...$a) { }
   __dtor() {
   }
 }
 class std_remove_const_std_Rb_tree_node_base_P {
+  __init_std_remove_const_std_Rb_tree_node_base_P(...$a) { }
   __dtor() {
   }
 }
@@ -3804,10 +3751,12 @@ class std_or_std_is_void_std_Rb_tree_node_base_P_R_std_is_function_std_Rb_tree_n
   }
 }
 class std_conditional_value0_std_is_function_std_Rb_tree_node_base_P_std_is_array_std_Rb_tree_node_base_P {
+  __init_std_conditional_value0_std_is_function_std_Rb_tree_node_base_P_std_is_array_std_Rb_tree_node_base_P(...$a) { }
   __dtor() {
   }
 }
 class std_conditional_value0_std_is_void_std_Rb_tree_node_base_P_R_std_or_std_is_function_std_Rb_tree_node_base_P_std_is_array_std_Rb_tree_node_base_P {
+  __init_std_conditional_value0_std_is_void_std_Rb_tree_node_base_P_R_std_or_std_is_function_std_Rb_tree_node_base_P_std_is_array_std_Rb_tree_node_base_P(...$a) { }
   __dtor() {
   }
 }
@@ -3868,6 +3817,7 @@ class std_or_std_is_lvalue_reference_std_Rb_tree_node_base_P_std_is_rvalue_refer
   }
 }
 class std_conditional_value0_std_is_lvalue_reference_std_Rb_tree_node_base_P_std_is_rvalue_reference_std_Rb_tree_node_base_P {
+  __init_std_conditional_value0_std_is_lvalue_reference_std_Rb_tree_node_base_P_std_is_rvalue_reference_std_Rb_tree_node_base_P(...$a) { }
   __dtor() {
   }
 }
@@ -3894,10 +3844,12 @@ class std_is_void_std_Rb_tree_node_base_P extends std_integral_constant_bool_val
   }
 }
 class std_remove_cv_std_Rb_tree_node_base_P {
+  __init_std_remove_cv_std_Rb_tree_node_base_P(...$a) { }
   __dtor() {
   }
 }
 class std_remove_volatile_std_Rb_tree_node_base_P {
+  __init_std_remove_volatile_std_Rb_tree_node_base_P(...$a) { }
   __dtor() {
   }
 }
@@ -3924,10 +3876,12 @@ class std_and_std_not_std_is_reference_std_Rb_tree_node_base_P_std_not_std_is_vo
   }
 }
 class std_conditional_value1_std_not_std_is_void_std_Rb_tree_node_base_P_std_not_std_is_reference_std_Rb_tree_node_base_P {
+  __init_std_conditional_value1_std_not_std_is_void_std_Rb_tree_node_base_P_std_not_std_is_reference_std_Rb_tree_node_base_P(...$a) { }
   __dtor() {
   }
 }
 class std_add_rvalue_reference_helper_std_Rb_tree_node_base_P_value1 {
+  __init_std_add_rvalue_reference_helper_std_Rb_tree_node_base_P_value1(...$a) { }
   __dtor() {
   }
 }
@@ -3954,6 +3908,7 @@ class std_and_std_is_convertible_std_Rb_tree_node_base_P_R_std_Rb_tree_node_base
   }
 }
 class std_conditional_value1_std_is_convertible_std_Rb_tree_node_base_P_R_std_Rb_tree_node_base_P_std_is_convertible_std_Rb_tree_node_base_P_R_std_Rb_tree_node_base_P {
+  __init_std_conditional_value1_std_is_convertible_std_Rb_tree_node_base_P_R_std_Rb_tree_node_base_P_std_is_convertible_std_Rb_tree_node_base_P_R_std_Rb_tree_node_base_P(...$a) { }
   __dtor() {
   }
 }
@@ -3980,6 +3935,7 @@ class std_or_std_is_void_std_Rb_tree_node_base_P_std_is_function_std_Rb_tree_nod
   }
 }
 class std_conditional_value0_std_is_void_std_Rb_tree_node_base_P_std_or_std_is_function_std_Rb_tree_node_base_P_std_is_array_std_Rb_tree_node_base_P {
+  __init_std_conditional_value0_std_is_void_std_Rb_tree_node_base_P_std_or_std_is_function_std_Rb_tree_node_base_P_std_is_array_std_Rb_tree_node_base_P(...$a) { }
   __dtor() {
   }
 }
@@ -4007,14 +3963,17 @@ class std_and_std_is_convertible_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P
   }
 }
 class std_conditional_value1_std_is_convertible_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P_std_is_convertible_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P {
+  __init_std_conditional_value1_std_is_convertible_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P_std_is_convertible_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P(...$a) { }
   __dtor() {
   }
 }
 class std_allocator_std_pair_int_int_rebind_std_Rb_tree_node_std_pair_int_int {
+  __init_std_allocator_std_pair_int_int_rebind_std_Rb_tree_node_std_pair_int_int(...$a) { }
   __dtor() {
   }
 }
 class gnu_cxx_new_allocator_std_Rb_tree_node_std_pair_int_int {
+  __init_gnu_cxx_new_allocator_std_Rb_tree_node_std_pair_int_int(...$a) { }
   __dtor() {
   }
   allocate(__n, $p1 = {a: [0], i: 0}) {
@@ -4030,11 +3989,11 @@ class gnu_cxx_new_allocator_std_Rb_tree_node_std_pair_int_int {
   max_size__c() {
     return (Math.trunc(((-(1)) >>> 0) / 36));
   }
-  construct(...$a) {
-    if ($a.length >= 4 && $a.length <= 4 && ($a[0] === null || typeof $a[0] === "object") && ($a[1] !== null && typeof $a[1] === "object" && $a[1].a[$a[1].i] instanceof std_piecewise_construct_t) && ($a[2] !== null && typeof $a[2] === "object" && $a[2].a[$a[2].i] instanceof std_tuple_int_R) && ($a[3] !== null && typeof $a[3] === "object" && $a[3].a[$a[3].i] instanceof std_tuple)) {
+  construct__rv(...$a) {
+    if ($a.length >= 4 && $a.length <= 4 && ($a[0] === null || typeof $a[0] === "object") && ($a[1] !== null && typeof $a[1] === "object" && !Array.isArray($a[1]) && $a[1].a !== undefined && $a[1].i !== undefined && $a[1].a[$a[1].i] instanceof std_piecewise_construct_t) && ($a[2] !== null && typeof $a[2] === "object" && !Array.isArray($a[2]) && $a[2].a !== undefined && $a[2].i !== undefined && $a[2].a[$a[2].i] instanceof std_tuple_int_R) && ($a[3] !== null && typeof $a[3] === "object" && !Array.isArray($a[3]) && $a[3].a !== undefined && $a[3].i !== undefined && $a[3].a[$a[3].i] instanceof std_tuple)) {
       (($a[0]).a[($a[0]).i] = new std_Rb_tree_node_std_pair_int_int(std_forward_1_std_piecewise_construct_t($a[1]), std_forward_1_std_tuple_int_R($a[2]), std_forward_1_std_tuple($a[3])), ($a[0]).a[($a[0]).i].ctj_a = ($a[0]).a, ($a[0]).a[($a[0]).i].ctj_i = ($a[0]).i, {a: ($a[0]).a, i: ($a[0]).i});
     }
-    else if ($a.length >= 2 && $a.length <= 2 && ($a[0] === null || typeof $a[0] === "object") && ($a[1] !== null && typeof $a[1] === "object" && $a[1].a[$a[1].i] instanceof std_pair_int_int)) {
+    else if ($a.length >= 2 && $a.length <= 2 && ($a[0] === null || typeof $a[0] === "object") && ($a[1] !== null && typeof $a[1] === "object" && !Array.isArray($a[1]) && $a[1].a !== undefined && $a[1].i !== undefined && $a[1].a[$a[1].i] instanceof std_pair_int_int)) {
       (($a[0]).a[($a[0]).i] = new std_Rb_tree_node_std_pair_int_int(std_forward_1_std_pair_int_int($a[1])), ($a[0]).a[($a[0]).i].ctj_a = ($a[0]).a, ($a[0]).a[($a[0]).i].ctj_i = ($a[0]).i, {a: ($a[0]).a, i: ($a[0]).i});
     }
     else { throw new Error("no matching overload"); }
@@ -4064,7 +4023,9 @@ class std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_i
   }
   __init_std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int_Rb_tree_impl_std_less_int_value1(...$a) {
     this._M_key_compare = new std_less_int();
+    this._M_key_compare.ctj_a = this; this._M_key_compare.ctj_i = "_M_key_compare";
     this._M_header = new std_Rb_tree_node_base();
+    this._M_header.ctj_a = this; this._M_header.ctj_i = "_M_header";
     this._M_node_count = 0;
     this._M_initialize();
   }
@@ -4085,6 +4046,7 @@ class std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_i
   }
   __init_std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int(...$a) {
     this._M_impl = new std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int_Rb_tree_impl_std_less_int_value1();
+    this._M_impl.ctj_a = this; this._M_impl.ctj_i = "_M_impl";
   }
   __dtor() {
   }
@@ -4104,10 +4066,10 @@ class std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_i
     this._M_put_node((__p ? {a: __p.a, i: __p.i} : null));
   }
   _M_leftmost() {
-    return {a: [this._M_impl._M_header._M_left], i: 0};
+    return {a: this._M_impl._M_header, i: "_M_left"};
   }
   _M_rightmost() {
-    return {a: [this._M_impl._M_header._M_right], i: 0};
+    return {a: this._M_impl._M_header, i: "_M_right"};
   }
   _M_begin() {
     return (this._M_impl._M_header._M_parent ? {a: this._M_impl._M_header._M_parent.a, i: this._M_impl._M_header._M_parent.i} : null);
@@ -4166,7 +4128,7 @@ class std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_i
     if (this._M_impl._M_key_compare.op_call__c(std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int._S_key((__j._M_node ? {a: __j._M_node.a, i: __j._M_node.i} : null)), __k)) {
       return new std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P({a: [__x], i: 0}, {a: [__y], i: 0});
     }
-    return new std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P({a: [__j._M_node], i: 0}, {a: [null], i: 0});
+    return new std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P({a: __j, i: "_M_node"}, {a: [null], i: 0});
   }
   _M_get_insert_hint_unique_pos(__position, __k) {
     let $t46, $t47, $t48, $t49, $t50, $t51, $t52, $t53, $t54, $t55, $t56, $t57;
@@ -4192,10 +4154,10 @@ class std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_i
             if (this._M_impl._M_key_compare.op_call__c(std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int._S_key(($t53 = (($t52 = __before.op_dec(), $t52.a[$t52.i]))._M_node, $t53 ? {a: $t53.a, i: $t53.i} : null)), __k)) {
                {
                 if ((std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int._S_right((__before._M_node ? {a: __before._M_node.a, i: __before._M_node.i} : null)) === null)) {
-                  return new std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P({a: [null], i: 0}, {a: [__before._M_node], i: 0});
+                  return new std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P({a: [null], i: 0}, {a: __before, i: "_M_node"});
                 }
                 else {
-                  return new std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P({a: [__pos._M_node], i: 0}, {a: [__pos._M_node], i: 0});
+                  return new std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P({a: __pos, i: "_M_node"}, {a: __pos, i: "_M_node"});
                 }
               }
             }
@@ -4216,10 +4178,10 @@ class std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_i
               if (this._M_impl._M_key_compare.op_call__c(__k, std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int._S_key(($t57 = (($t56 = __after.op_inc(), $t56.a[$t56.i]))._M_node, $t57 ? {a: $t57.a, i: $t57.i} : null)))) {
                  {
                   if ((std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int._S_right((__pos._M_node ? {a: __pos._M_node.a, i: __pos._M_node.i} : null)) === null)) {
-                    return new std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P({a: [null], i: 0}, {a: [__pos._M_node], i: 0});
+                    return new std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P({a: [null], i: 0}, {a: __pos, i: "_M_node"});
                   }
                   else {
-                    return new std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P({a: [__after._M_node], i: 0}, {a: [__after._M_node], i: 0});
+                    return new std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P({a: __after, i: "_M_node"}, {a: __after, i: "_M_node"});
                   }
                 }
               }
@@ -4230,7 +4192,7 @@ class std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_i
           }
         }
         else {
-          return new std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P({a: [__pos._M_node], i: 0}, {a: [null], i: 0});
+          return new std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P({a: __pos, i: "_M_node"}, {a: [null], i: 0});
         }
       }
     }
@@ -4270,17 +4232,17 @@ class std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_i
     let $t62, $t63;
     return new std_Rb_tree_iterator_std_pair_int_int({a: [this._M_lower_bound(($t62 = this._M_begin(), $t62 ? {a: $t62.a, i: $t62.i} : null), ($t63 = this._M_end(), $t63 ? {a: $t63.a, i: $t63.i} : null), __k)], i: 0});
   }
-  _M_insert_unique(__v) {
+  _M_insert_unique__rv(__v) {
     let $t64;
     let __res = new std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P({a: [new std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P({a: [this._M_get_insert_unique_pos((($t64 = new std_Select1st_std_pair_int_int(), $t64)).op_call__c(__v))], i: 0})], i: 0});
     if (__res.second) {
-      return new std_pair_std_Rb_tree_iterator_std_pair_int_int_bool({a: [new std_Rb_tree_iterator_std_pair_int_int({a: [this._M_insert_((__res.first ? {a: __res.first.a, i: __res.first.i} : null), (__res.second ? {a: __res.second.a, i: __res.second.i} : null), std_forward_1_std_pair_int_int(__v))], i: 0})], i: 0}, {a: [true], i: 0});
+      return new std_pair_std_Rb_tree_iterator_std_pair_int_int_bool({a: [new std_Rb_tree_iterator_std_pair_int_int({a: [this._M_insert___rv((__res.first ? {a: __res.first.a, i: __res.first.i} : null), (__res.second ? {a: __res.second.a, i: __res.second.i} : null), std_forward_1_std_pair_int_int(__v))], i: 0})], i: 0}, {a: [true], i: 0});
     }
     return new std_pair_std_Rb_tree_iterator_std_pair_int_int_bool({a: [new std_Rb_tree_iterator_std_pair_int_int((__res.first ? {a: __res.first.a, i: __res.first.i} : null))], i: 0}, {a: [false], i: 0});
   }
-  _M_emplace_hint_unique(__pos, __args_0, __args_1, __args_2) {
+  _M_emplace_hint_unique__rv(__pos, __args_0, __args_1, __args_2) {
     let $t65;
-    let __z = ($t65 = this._M_create_node(std_forward_1_std_piecewise_construct_t(__args_0), std_forward_1_std_tuple_int_R(__args_1), std_forward_1_std_tuple(__args_2)), $t65 ? {a: $t65.a, i: $t65.i} : null);
+    let __z = ($t65 = this._M_create_node__rv(std_forward_1_std_piecewise_construct_t(__args_0), std_forward_1_std_tuple_int_R(__args_1), std_forward_1_std_tuple(__args_2)), $t65 ? {a: $t65.a, i: $t65.i} : null);
     if (true) {
        {
         let __res = new std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P({a: [new std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P({a: [this._M_get_insert_hint_unique_pos(__pos, std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int._S_key((__z ? {a: __z.a, i: __z.i} : null)))], i: 0})], i: 0});
@@ -4297,21 +4259,21 @@ class std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_i
       }
     }
   }
-  _M_insert_(__x, __p, __v) {
+  _M_insert___rv(__x, __p, __v) {
     let $t66, $t67, $t68, $t69;
     let __insert_left = (((__x !== null) || ($t67 = ($t66 = this._M_end(), $t66), (__p === $t67 || (__p && $t67 && __p.a === $t67.a && __p.i === $t67.i)))) || this._M_impl._M_key_compare.op_call__c((($t68 = new std_Select1st_std_pair_int_int(), $t68)).op_call__c(__v), std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int._S_key((__p ? {a: __p.a, i: __p.i} : null))));
-    let __z = ($t69 = this._M_create_node(std_forward_1_std_pair_int_int(__v)), $t69 ? {a: $t69.a, i: $t69.i} : null);
+    let __z = ($t69 = this._M_create_node__rv(std_forward_1_std_pair_int_int(__v)), $t69 ? {a: $t69.a, i: $t69.i} : null);
     std_Rb_tree_insert_and_rebalance(__insert_left, (__z ? {a: __z.a, i: __z.i} : null), (__p ? {a: __p.a, i: __p.i} : null), {a: this._M_impl, i: "_M_header"});
     ++this._M_impl._M_node_count;
     return new std_Rb_tree_iterator_std_pair_int_int((__z ? {a: __z.a, i: __z.i} : null));
   }
-  _M_create_node(...$a) {
+  _M_create_node__rv(...$a) {
     let $t70, $t71;
-    if ($a.length >= 3 && $a.length <= 3 && ($a[0] !== null && typeof $a[0] === "object" && $a[0].a[$a[0].i] instanceof std_piecewise_construct_t) && ($a[1] !== null && typeof $a[1] === "object" && $a[1].a[$a[1].i] instanceof std_tuple_int_R) && ($a[2] !== null && typeof $a[2] === "object" && $a[2].a[$a[2].i] instanceof std_tuple)) {
+    if ($a.length >= 3 && $a.length <= 3 && ($a[0] !== null && typeof $a[0] === "object" && !Array.isArray($a[0]) && $a[0].a !== undefined && $a[0].i !== undefined && $a[0].a[$a[0].i] instanceof std_piecewise_construct_t) && ($a[1] !== null && typeof $a[1] === "object" && !Array.isArray($a[1]) && $a[1].a !== undefined && $a[1].i !== undefined && $a[1].a[$a[1].i] instanceof std_tuple_int_R) && ($a[2] !== null && typeof $a[2] === "object" && !Array.isArray($a[2]) && $a[2].a !== undefined && $a[2].i !== undefined && $a[2].a[$a[2].i] instanceof std_tuple)) {
       let __tmp = ($t70 = this._M_get_node(), $t70 ? {a: $t70.a, i: $t70.i} : null);
       if (true) {
          {
-          std_allocator_traits_std_allocator_std_Rb_tree_node_std_pair_int_int.construct(this._M_get_Node_allocator(), (__tmp ? {a: __tmp.a, i: __tmp.i} : null), std_forward_1_std_piecewise_construct_t($a[0]), std_forward_1_std_tuple_int_R($a[1]), std_forward_1_std_tuple($a[2]));
+          std_allocator_traits_std_allocator_std_Rb_tree_node_std_pair_int_int.construct__rv(this._M_get_Node_allocator(), (__tmp ? {a: __tmp.a, i: __tmp.i} : null), std_forward_1_std_piecewise_construct_t($a[0]), std_forward_1_std_tuple_int_R($a[1]), std_forward_1_std_tuple($a[2]));
         }
       }
       if (false) {
@@ -4321,11 +4283,11 @@ class std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_i
       }
       return (__tmp ? {a: __tmp.a, i: __tmp.i} : null);
     }
-    else if ($a.length >= 1 && $a.length <= 1 && ($a[0] !== null && typeof $a[0] === "object" && $a[0].a[$a[0].i] instanceof std_pair_int_int)) {
+    else if ($a.length >= 1 && $a.length <= 1 && ($a[0] !== null && typeof $a[0] === "object" && !Array.isArray($a[0]) && $a[0].a !== undefined && $a[0].i !== undefined && $a[0].a[$a[0].i] instanceof std_pair_int_int)) {
       let __tmp = ($t71 = this._M_get_node(), $t71 ? {a: $t71.a, i: $t71.i} : null);
       if (true) {
          {
-          std_allocator_traits_std_allocator_std_Rb_tree_node_std_pair_int_int.construct(this._M_get_Node_allocator(), (__tmp ? {a: __tmp.a, i: __tmp.i} : null), std_forward_1_std_pair_int_int($a[0]));
+          std_allocator_traits_std_allocator_std_Rb_tree_node_std_pair_int_int.construct__rv(this._M_get_Node_allocator(), (__tmp ? {a: __tmp.a, i: __tmp.i} : null), std_forward_1_std_pair_int_int($a[0]));
         }
       }
       if (false) {
@@ -4345,6 +4307,7 @@ class std_map_int_int_std_less_int_std_allocator_std_pair_int_int {
   }
   __init_std_map_int_int_std_less_int_std_allocator_std_pair_int_int(...$a) {
     this._M_t = new std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int();
+    this._M_t.ctj_a = this; this._M_t.ctj_i = "_M_t";
   }
   __dtor() {
   }
@@ -4358,12 +4321,12 @@ class std_map_int_int_std_less_int_std_allocator_std_pair_int_int {
     let $t72;
     let __i = {v: new std_Rb_tree_iterator_std_pair_int_int({a: [new std_Rb_tree_iterator_std_pair_int_int({a: [this.lower_bound(__k)], i: 0})], i: 0})};
     if ((__i.v.op_eq__c({a: [new std_Rb_tree_iterator_std_pair_int_int({a: [this.end()], i: 0})], i: 0}) || (($t72 = new std_less_int({a: [this.key_comp__c()], i: 0}), $t72)).op_call__c(__k, {a: (__i.v.op_mul__c()).a[(__i.v.op_mul__c()).i], i: "first"}))) {
-      __i.v.op_assign({a: [new std_Rb_tree_iterator_std_pair_int_int({a: [this._M_t._M_emplace_hint_unique(new std_Rb_tree_const_iterator_std_pair_int_int({a: __i, i: "v"}), {a: std_piecewise_construct, i: "v"}, {a: [new std_tuple_int_R(__k)], i: 0}, {a: [new std_tuple()], i: 0})], i: 0})], i: 0});
+      __i.v.op_assign({a: [new std_Rb_tree_iterator_std_pair_int_int({a: [this._M_t._M_emplace_hint_unique__rv(new std_Rb_tree_const_iterator_std_pair_int_int({a: __i, i: "v"}), {a: std_piecewise_construct, i: "v"}, {a: [new std_tuple_int_R(__k)], i: 0}, {a: [new std_tuple()], i: 0})], i: 0})], i: 0});
     }
     return {a: (__i.v.op_mul__c()).a[(__i.v.op_mul__c()).i], i: "second"};
   }
   insert(__x) {
-    return new std_pair_std_Rb_tree_iterator_std_pair_int_int_bool({a: [this._M_t._M_insert_unique(__x)], i: 0});
+    return new std_pair_std_Rb_tree_iterator_std_pair_int_int_bool({a: [this._M_t._M_insert_unique__rv(__x)], i: 0});
   }
   key_comp__c() {
     return new std_less_int({a: [this._M_t.key_comp__c()], i: 0});
@@ -4373,14 +4336,17 @@ class std_map_int_int_std_less_int_std_allocator_std_pair_int_int {
   }
 }
 class std_remove_reference_std_piecewise_construct_t {
+  __init_std_remove_reference_std_piecewise_construct_t(...$a) { }
   __dtor() {
   }
 }
 class std_remove_reference_std_tuple_int_R {
+  __init_std_remove_reference_std_tuple_int_R(...$a) { }
   __dtor() {
   }
 }
 class std_remove_reference_std_tuple {
+  __init_std_remove_reference_std_tuple(...$a) { }
   __dtor() {
   }
 }
@@ -4407,14 +4373,17 @@ class std_is_void_std_Rb_tree_node_std_pair_int_int_P extends std_integral_const
   }
 }
 class std_remove_cv_std_Rb_tree_node_std_pair_int_int_P {
+  __init_std_remove_cv_std_Rb_tree_node_std_pair_int_int_P(...$a) { }
   __dtor() {
   }
 }
 class std_remove_volatile_std_Rb_tree_node_std_pair_int_int_P {
+  __init_std_remove_volatile_std_Rb_tree_node_std_pair_int_int_P(...$a) { }
   __dtor() {
   }
 }
 class std_remove_const_std_Rb_tree_node_std_pair_int_int_P {
+  __init_std_remove_const_std_Rb_tree_node_std_pair_int_int_P(...$a) { }
   __dtor() {
   }
 }
@@ -4474,10 +4443,12 @@ class std_or_std_is_void_std_Rb_tree_node_std_pair_int_int_P_std_is_function_std
   }
 }
 class std_conditional_value0_std_is_function_std_Rb_tree_node_std_pair_int_int_P_std_is_array_std_Rb_tree_node_std_pair_int_int_P {
+  __init_std_conditional_value0_std_is_function_std_Rb_tree_node_std_pair_int_int_P_std_is_array_std_Rb_tree_node_std_pair_int_int_P(...$a) { }
   __dtor() {
   }
 }
 class std_conditional_value0_std_is_void_std_Rb_tree_node_std_pair_int_int_P_std_or_std_is_function_std_Rb_tree_node_std_pair_int_int_P_std_is_array_std_Rb_tree_node_std_pair_int_int_P {
+  __init_std_conditional_value0_std_is_void_std_Rb_tree_node_std_pair_int_int_P_std_or_std_is_function_std_Rb_tree_node_std_pair_int_int_P_std_is_array_std_Rb_tree_node_std_pair_int_int_P(...$a) { }
   __dtor() {
   }
 }
@@ -4538,6 +4509,7 @@ class std_or_std_is_lvalue_reference_std_Rb_tree_node_std_pair_int_int_P_std_is_
   }
 }
 class std_conditional_value0_std_is_lvalue_reference_std_Rb_tree_node_std_pair_int_int_P_std_is_rvalue_reference_std_Rb_tree_node_std_pair_int_int_P {
+  __init_std_conditional_value0_std_is_lvalue_reference_std_Rb_tree_node_std_pair_int_int_P_std_is_rvalue_reference_std_Rb_tree_node_std_pair_int_int_P(...$a) { }
   __dtor() {
   }
 }
@@ -4575,10 +4547,12 @@ class std_and_std_not_std_is_reference_std_Rb_tree_node_std_pair_int_int_P_std_n
   }
 }
 class std_conditional_value1_std_not_std_is_void_std_Rb_tree_node_std_pair_int_int_P_std_not_std_is_reference_std_Rb_tree_node_std_pair_int_int_P {
+  __init_std_conditional_value1_std_not_std_is_void_std_Rb_tree_node_std_pair_int_int_P_std_not_std_is_reference_std_Rb_tree_node_std_pair_int_int_P(...$a) { }
   __dtor() {
   }
 }
 class std_add_rvalue_reference_helper_std_Rb_tree_node_std_pair_int_int_P_value1 {
+  __init_std_add_rvalue_reference_helper_std_Rb_tree_node_std_pair_int_int_P_value1(...$a) { }
   __dtor() {
   }
 }
@@ -4616,6 +4590,7 @@ class std_or_std_is_void_std_Rb_tree_node_std_pair_int_int_P_std_is_function_std
   }
 }
 class std_conditional_value0_std_is_void_std_Rb_tree_node_std_pair_int_int_P_std_or_std_is_function_std_Rb_tree_node_base_P_std_is_array_std_Rb_tree_node_base_P {
+  __init_std_conditional_value0_std_is_void_std_Rb_tree_node_std_pair_int_int_P_std_or_std_is_function_std_Rb_tree_node_base_P_std_is_array_std_Rb_tree_node_base_P(...$a) { }
   __dtor() {
   }
 }
@@ -4643,6 +4618,7 @@ class std_and_std_is_convertible_std_Rb_tree_node_std_pair_int_int_P_std_Rb_tree
   }
 }
 class std_conditional_value1_std_is_convertible_std_Rb_tree_node_std_pair_int_int_P_std_Rb_tree_node_base_P_std_is_convertible_std_Rb_tree_node_std_pair_int_int_P_std_Rb_tree_node_base_P {
+  __init_std_conditional_value1_std_is_convertible_std_Rb_tree_node_std_pair_int_int_P_std_Rb_tree_node_base_P_std_is_convertible_std_Rb_tree_node_std_pair_int_int_P_std_Rb_tree_node_base_P(...$a) { }
   __dtor() {
   }
 }
@@ -4702,10 +4678,12 @@ class std_or_std_is_void_std_Rb_tree_node_base_P_std_is_function_int_P_std_is_ar
   }
 }
 class std_conditional_value0_std_is_function_int_P_std_is_array_int_P {
+  __init_std_conditional_value0_std_is_function_int_P_std_is_array_int_P(...$a) { }
   __dtor() {
   }
 }
 class std_conditional_value0_std_is_void_std_Rb_tree_node_base_P_std_or_std_is_function_int_P_std_is_array_int_P {
+  __init_std_conditional_value0_std_is_void_std_Rb_tree_node_base_P_std_or_std_is_function_int_P_std_is_array_int_P(...$a) { }
   __dtor() {
   }
 }
@@ -4722,6 +4700,7 @@ class std_is_convertible_helper_std_Rb_tree_node_base_P_int_P_value0 extends std
   static value = 0;
 }
 class std_enable_if_value0_void {
+  __init_std_enable_if_value0_void(...$a) { }
   __dtor() {
   }
 }
@@ -4748,6 +4727,7 @@ class std_or_std_is_void_int_std_is_function_std_Rb_tree_node_base_P_std_is_arra
   }
 }
 class std_conditional_value0_std_is_void_int_std_or_std_is_function_std_Rb_tree_node_base_P_std_is_array_std_Rb_tree_node_base_P {
+  __init_std_conditional_value0_std_is_void_int_std_or_std_is_function_std_Rb_tree_node_base_P_std_is_array_std_Rb_tree_node_base_P(...$a) { }
   __dtor() {
   }
 }
@@ -4775,6 +4755,7 @@ class std_and_std_is_convertible_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P
   }
 }
 class std_conditional_value1_std_is_convertible_int_std_Rb_tree_node_base_P_std_is_convertible_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P {
+  __init_std_conditional_value1_std_is_convertible_int_std_Rb_tree_node_base_P_std_is_convertible_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P(...$a) { }
   __dtor() {
   }
 }
@@ -4844,10 +4825,12 @@ class std_or_std_is_void_int_std_is_function_std_uses_alloc_base_std_is_array_st
   }
 }
 class std_conditional_value0_std_is_function_std_uses_alloc_base_std_is_array_std_uses_alloc_base {
+  __init_std_conditional_value0_std_is_function_std_uses_alloc_base_std_is_array_std_uses_alloc_base(...$a) { }
   __dtor() {
   }
 }
 class std_conditional_value0_std_is_void_int_std_or_std_is_function_std_uses_alloc_base_std_is_array_std_uses_alloc_base {
+  __init_std_conditional_value0_std_is_void_int_std_or_std_is_function_std_uses_alloc_base_std_is_array_std_uses_alloc_base(...$a) { }
   __dtor() {
   }
 }
@@ -4864,23 +4847,24 @@ class std_is_convertible_helper_int_std_uses_alloc_base_value0 extends std_sfina
   static value = 0;
 }
 class std_allocator_traits_std_allocator_std_Rb_tree_node_std_pair_int_int {
+  __init_std_allocator_traits_std_allocator_std_Rb_tree_node_std_pair_int_int(...$a) { }
   __dtor() {
   }
-  static construct(...$a) {
-    if ($a.length >= 5 && $a.length <= 5 && ($a[0] !== null && typeof $a[0] === "object" && $a[0].a[$a[0].i] instanceof std_allocator_std_Rb_tree_node_std_pair_int_int) && ($a[1] === null || typeof $a[1] === "object") && ($a[2] !== null && typeof $a[2] === "object" && $a[2].a[$a[2].i] instanceof std_piecewise_construct_t) && ($a[3] !== null && typeof $a[3] === "object" && $a[3].a[$a[3].i] instanceof std_tuple_int_R) && ($a[4] !== null && typeof $a[4] === "object" && $a[4].a[$a[4].i] instanceof std_tuple)) {
-      std_allocator_traits_std_allocator_std_Rb_tree_node_std_pair_int_int._S_construct($a[0], (($a[1]) ? {a: ($a[1]).a, i: ($a[1]).i} : null), std_forward_1_std_piecewise_construct_t($a[2]), std_forward_1_std_tuple_int_R($a[3]), std_forward_1_std_tuple($a[4]));
+  static construct__rv(...$a) {
+    if ($a.length >= 5 && $a.length <= 5 && ($a[0] !== null && typeof $a[0] === "object" && !Array.isArray($a[0]) && $a[0].a !== undefined && $a[0].i !== undefined && $a[0].a[$a[0].i] instanceof std_allocator_std_Rb_tree_node_std_pair_int_int) && ($a[1] === null || typeof $a[1] === "object") && ($a[2] !== null && typeof $a[2] === "object" && !Array.isArray($a[2]) && $a[2].a !== undefined && $a[2].i !== undefined && $a[2].a[$a[2].i] instanceof std_piecewise_construct_t) && ($a[3] !== null && typeof $a[3] === "object" && !Array.isArray($a[3]) && $a[3].a !== undefined && $a[3].i !== undefined && $a[3].a[$a[3].i] instanceof std_tuple_int_R) && ($a[4] !== null && typeof $a[4] === "object" && !Array.isArray($a[4]) && $a[4].a !== undefined && $a[4].i !== undefined && $a[4].a[$a[4].i] instanceof std_tuple)) {
+      std_allocator_traits_std_allocator_std_Rb_tree_node_std_pair_int_int._S_construct__rv($a[0], (($a[1]) ? {a: ($a[1]).a, i: ($a[1]).i} : null), std_forward_1_std_piecewise_construct_t($a[2]), std_forward_1_std_tuple_int_R($a[3]), std_forward_1_std_tuple($a[4]));
     }
-    else if ($a.length >= 3 && $a.length <= 3 && ($a[0] !== null && typeof $a[0] === "object" && $a[0].a[$a[0].i] instanceof std_allocator_std_Rb_tree_node_std_pair_int_int) && ($a[1] === null || typeof $a[1] === "object") && ($a[2] !== null && typeof $a[2] === "object" && $a[2].a[$a[2].i] instanceof std_pair_int_int)) {
-      std_allocator_traits_std_allocator_std_Rb_tree_node_std_pair_int_int._S_construct($a[0], (($a[1]) ? {a: ($a[1]).a, i: ($a[1]).i} : null), std_forward_1_std_pair_int_int($a[2]));
+    else if ($a.length >= 3 && $a.length <= 3 && ($a[0] !== null && typeof $a[0] === "object" && !Array.isArray($a[0]) && $a[0].a !== undefined && $a[0].i !== undefined && $a[0].a[$a[0].i] instanceof std_allocator_std_Rb_tree_node_std_pair_int_int) && ($a[1] === null || typeof $a[1] === "object") && ($a[2] !== null && typeof $a[2] === "object" && !Array.isArray($a[2]) && $a[2].a !== undefined && $a[2].i !== undefined && $a[2].a[$a[2].i] instanceof std_pair_int_int)) {
+      std_allocator_traits_std_allocator_std_Rb_tree_node_std_pair_int_int._S_construct__rv($a[0], (($a[1]) ? {a: ($a[1]).a, i: ($a[1]).i} : null), std_forward_1_std_pair_int_int($a[2]));
     }
     else { throw new Error("no matching overload"); }
   }
-  static _S_construct(...$a) {
-    if ($a.length >= 5 && $a.length <= 5 && ($a[0] !== null && typeof $a[0] === "object" && $a[0].a[$a[0].i] instanceof std_allocator_std_Rb_tree_node_std_pair_int_int) && ($a[1] === null || typeof $a[1] === "object") && ($a[2] !== null && typeof $a[2] === "object" && $a[2].a[$a[2].i] instanceof std_piecewise_construct_t) && ($a[3] !== null && typeof $a[3] === "object" && $a[3].a[$a[3].i] instanceof std_tuple_int_R) && ($a[4] !== null && typeof $a[4] === "object" && $a[4].a[$a[4].i] instanceof std_tuple)) {
-      (($a[0]).a[($a[0]).i]).construct((($a[1]) ? {a: ($a[1]).a, i: ($a[1]).i} : null), std_forward_1_std_piecewise_construct_t($a[2]), std_forward_1_std_tuple_int_R($a[3]), std_forward_1_std_tuple($a[4]));
+  static _S_construct__rv(...$a) {
+    if ($a.length >= 5 && $a.length <= 5 && ($a[0] !== null && typeof $a[0] === "object" && !Array.isArray($a[0]) && $a[0].a !== undefined && $a[0].i !== undefined && $a[0].a[$a[0].i] instanceof std_allocator_std_Rb_tree_node_std_pair_int_int) && ($a[1] === null || typeof $a[1] === "object") && ($a[2] !== null && typeof $a[2] === "object" && !Array.isArray($a[2]) && $a[2].a !== undefined && $a[2].i !== undefined && $a[2].a[$a[2].i] instanceof std_piecewise_construct_t) && ($a[3] !== null && typeof $a[3] === "object" && !Array.isArray($a[3]) && $a[3].a !== undefined && $a[3].i !== undefined && $a[3].a[$a[3].i] instanceof std_tuple_int_R) && ($a[4] !== null && typeof $a[4] === "object" && !Array.isArray($a[4]) && $a[4].a !== undefined && $a[4].i !== undefined && $a[4].a[$a[4].i] instanceof std_tuple)) {
+      (($a[0]).a[($a[0]).i]).construct__rv((($a[1]) ? {a: ($a[1]).a, i: ($a[1]).i} : null), std_forward_1_std_piecewise_construct_t($a[2]), std_forward_1_std_tuple_int_R($a[3]), std_forward_1_std_tuple($a[4]));
     }
-    else if ($a.length >= 3 && $a.length <= 3 && ($a[0] !== null && typeof $a[0] === "object" && $a[0].a[$a[0].i] instanceof std_allocator_std_Rb_tree_node_std_pair_int_int) && ($a[1] === null || typeof $a[1] === "object") && ($a[2] !== null && typeof $a[2] === "object" && $a[2].a[$a[2].i] instanceof std_pair_int_int)) {
-      (($a[0]).a[($a[0]).i]).construct((($a[1]) ? {a: ($a[1]).a, i: ($a[1]).i} : null), std_forward_1_std_pair_int_int($a[2]));
+    else if ($a.length >= 3 && $a.length <= 3 && ($a[0] !== null && typeof $a[0] === "object" && !Array.isArray($a[0]) && $a[0].a !== undefined && $a[0].i !== undefined && $a[0].a[$a[0].i] instanceof std_allocator_std_Rb_tree_node_std_pair_int_int) && ($a[1] === null || typeof $a[1] === "object") && ($a[2] !== null && typeof $a[2] === "object" && !Array.isArray($a[2]) && $a[2].a !== undefined && $a[2].i !== undefined && $a[2].a[$a[2].i] instanceof std_pair_int_int)) {
+      (($a[0]).a[($a[0]).i]).construct__rv((($a[1]) ? {a: ($a[1]).a, i: ($a[1]).i} : null), std_forward_1_std_pair_int_int($a[2]));
     }
     else { throw new Error("no matching overload"); }
   }
@@ -4940,6 +4924,7 @@ class std_or_std_is_lvalue_reference_std_piecewise_construct_t_std_is_rvalue_ref
   }
 }
 class std_conditional_value0_std_is_lvalue_reference_std_piecewise_construct_t_std_is_rvalue_reference_std_piecewise_construct_t {
+  __init_std_conditional_value0_std_is_lvalue_reference_std_piecewise_construct_t_std_is_rvalue_reference_std_piecewise_construct_t(...$a) { }
   __dtor() {
   }
 }
@@ -4966,14 +4951,17 @@ class std_is_void_std_piecewise_construct_t extends std_integral_constant_bool_v
   }
 }
 class std_remove_cv_std_piecewise_construct_t {
+  __init_std_remove_cv_std_piecewise_construct_t(...$a) { }
   __dtor() {
   }
 }
 class std_remove_volatile_std_piecewise_construct_t {
+  __init_std_remove_volatile_std_piecewise_construct_t(...$a) { }
   __dtor() {
   }
 }
 class std_remove_const_std_piecewise_construct_t {
+  __init_std_remove_const_std_piecewise_construct_t(...$a) { }
   __dtor() {
   }
 }
@@ -5011,10 +4999,12 @@ class std_and_std_not_std_is_reference_std_piecewise_construct_t_std_not_std_is_
   }
 }
 class std_conditional_value1_std_not_std_is_void_std_piecewise_construct_t_std_not_std_is_reference_std_piecewise_construct_t {
+  __init_std_conditional_value1_std_not_std_is_void_std_piecewise_construct_t_std_not_std_is_reference_std_piecewise_construct_t(...$a) { }
   __dtor() {
   }
 }
 class std_add_rvalue_reference_helper_std_piecewise_construct_t_value1 {
+  __init_std_add_rvalue_reference_helper_std_piecewise_construct_t_value1(...$a) { }
   __dtor() {
   }
 }
@@ -5074,6 +5064,7 @@ class std_or_std_is_lvalue_reference_std_tuple_int_R_std_is_rvalue_reference_std
   }
 }
 class std_conditional_value0_std_is_lvalue_reference_std_tuple_int_R_std_is_rvalue_reference_std_tuple_int_R {
+  __init_std_conditional_value0_std_is_lvalue_reference_std_tuple_int_R_std_is_rvalue_reference_std_tuple_int_R(...$a) { }
   __dtor() {
   }
 }
@@ -5100,14 +5091,17 @@ class std_is_void_std_tuple_int_R extends std_integral_constant_bool_value0 {
   }
 }
 class std_remove_cv_std_tuple_int_R {
+  __init_std_remove_cv_std_tuple_int_R(...$a) { }
   __dtor() {
   }
 }
 class std_remove_volatile_std_tuple_int_R {
+  __init_std_remove_volatile_std_tuple_int_R(...$a) { }
   __dtor() {
   }
 }
 class std_remove_const_std_tuple_int_R {
+  __init_std_remove_const_std_tuple_int_R(...$a) { }
   __dtor() {
   }
 }
@@ -5145,10 +5139,12 @@ class std_and_std_not_std_is_reference_std_tuple_int_R_std_not_std_is_void_std_t
   }
 }
 class std_conditional_value1_std_not_std_is_void_std_tuple_int_R_std_not_std_is_reference_std_tuple_int_R {
+  __init_std_conditional_value1_std_not_std_is_void_std_tuple_int_R_std_not_std_is_reference_std_tuple_int_R(...$a) { }
   __dtor() {
   }
 }
 class std_add_rvalue_reference_helper_std_tuple_int_R_value1 {
+  __init_std_add_rvalue_reference_helper_std_tuple_int_R_value1(...$a) { }
   __dtor() {
   }
 }
@@ -5208,6 +5204,7 @@ class std_or_std_is_lvalue_reference_std_tuple_std_is_rvalue_reference_std_tuple
   }
 }
 class std_conditional_value0_std_is_lvalue_reference_std_tuple_std_is_rvalue_reference_std_tuple {
+  __init_std_conditional_value0_std_is_lvalue_reference_std_tuple_std_is_rvalue_reference_std_tuple(...$a) { }
   __dtor() {
   }
 }
@@ -5234,14 +5231,17 @@ class std_is_void_std_tuple extends std_integral_constant_bool_value0 {
   }
 }
 class std_remove_cv_std_tuple {
+  __init_std_remove_cv_std_tuple(...$a) { }
   __dtor() {
   }
 }
 class std_remove_volatile_std_tuple {
+  __init_std_remove_volatile_std_tuple(...$a) { }
   __dtor() {
   }
 }
 class std_remove_const_std_tuple {
+  __init_std_remove_const_std_tuple(...$a) { }
   __dtor() {
   }
 }
@@ -5279,10 +5279,12 @@ class std_and_std_not_std_is_reference_std_tuple_std_not_std_is_void_std_tuple e
   }
 }
 class std_conditional_value1_std_not_std_is_void_std_tuple_std_not_std_is_reference_std_tuple {
+  __init_std_conditional_value1_std_not_std_is_void_std_tuple_std_not_std_is_reference_std_tuple(...$a) { }
   __dtor() {
   }
 }
 class std_add_rvalue_reference_helper_std_tuple_value1 {
+  __init_std_add_rvalue_reference_helper_std_tuple_value1(...$a) { }
   __dtor() {
   }
 }
@@ -5342,6 +5344,7 @@ class std_or_std_is_lvalue_reference_std_allocator_std_Rb_tree_node_std_pair_int
   }
 }
 class std_conditional_value0_std_is_lvalue_reference_std_allocator_std_Rb_tree_node_std_pair_int_int_P_std_is_rvalue_reference_std_allocator_std_Rb_tree_node_std_pair_int_int_P {
+  __init_std_conditional_value0_std_is_lvalue_reference_std_allocator_std_Rb_tree_node_std_pair_int_int_P_std_is_rvalue_reference_std_allocator_std_Rb_tree_node_std_pair_int_int_P(...$a) { }
   __dtor() {
   }
 }
@@ -5368,14 +5371,17 @@ class std_is_void_std_allocator_std_Rb_tree_node_std_pair_int_int_P extends std_
   }
 }
 class std_remove_cv_std_allocator_std_Rb_tree_node_std_pair_int_int_P {
+  __init_std_remove_cv_std_allocator_std_Rb_tree_node_std_pair_int_int_P(...$a) { }
   __dtor() {
   }
 }
 class std_remove_volatile_std_allocator_std_Rb_tree_node_std_pair_int_int_P {
+  __init_std_remove_volatile_std_allocator_std_Rb_tree_node_std_pair_int_int_P(...$a) { }
   __dtor() {
   }
 }
 class std_remove_const_std_allocator_std_Rb_tree_node_std_pair_int_int_P {
+  __init_std_remove_const_std_allocator_std_Rb_tree_node_std_pair_int_int_P(...$a) { }
   __dtor() {
   }
 }
@@ -5413,10 +5419,12 @@ class std_and_std_not_std_is_reference_std_allocator_std_Rb_tree_node_std_pair_i
   }
 }
 class std_conditional_value1_std_not_std_is_void_std_allocator_std_Rb_tree_node_std_pair_int_int_P_std_not_std_is_reference_std_allocator_std_Rb_tree_node_std_pair_int_int_P {
+  __init_std_conditional_value1_std_not_std_is_void_std_allocator_std_Rb_tree_node_std_pair_int_int_P_std_not_std_is_reference_std_allocator_std_Rb_tree_node_std_pair_int_int_P(...$a) { }
   __dtor() {
   }
 }
 class std_add_rvalue_reference_helper_std_allocator_std_Rb_tree_node_std_pair_int_int_P_value1 {
+  __init_std_add_rvalue_reference_helper_std_allocator_std_Rb_tree_node_std_pair_int_int_P_value1(...$a) { }
   __dtor() {
   }
 }
@@ -5498,6 +5506,7 @@ class std_and_std_not_std_allocator_traits_std_allocator_std_Rb_tree_node_std_pa
   }
 }
 class std_conditional_value0_std_is_constructible_std_Rb_tree_node_std_pair_int_int_std_piecewise_construct_t_std_tuple_int_R_std_tuple_std_not_std_allocator_traits_std_allocator_std_Rb_tree_node_std_pair_int_int_construct_helper_std_Rb_tree_node_std_pair_int_int_std_piecewise_construct_t_std_tuple_int_R_std_tuple {
+  __init_std_conditional_value0_std_is_constructible_std_Rb_tree_node_std_pair_int_int_std_piecewise_construct_t_std_tuple_int_R_std_tuple_std_not_std_allocator_traits_std_allocator_std_Rb_tree_node_std_pair_int_int_construct_helper_std_Rb_tree_node_std_pair_int_int_std_piecewise_construct_t_std_tuple_int_R_std_tuple(...$a) { }
   __dtor() {
   }
 }
@@ -5513,6 +5522,7 @@ class std_and_std_is_convertible_int_std_Rb_tree_node_base_P_std_is_convertible_
   }
 }
 class std_conditional_value0_std_is_convertible_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P_std_is_convertible_int_std_Rb_tree_node_base_P {
+  __init_std_conditional_value0_std_is_convertible_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P_std_is_convertible_int_std_Rb_tree_node_base_P(...$a) { }
   __dtor() {
   }
 }
@@ -5527,6 +5537,7 @@ class std_declval_protector_std_Rb_tree_node_std_pair_int_int_P {
   static __stop = 0;
 }
 class std_remove_reference_std_Rb_tree_node_std_pair_int_int_P {
+  __init_std_remove_reference_std_Rb_tree_node_std_pair_int_int_P(...$a) { }
   __dtor() {
   }
 }
@@ -5629,6 +5640,7 @@ class std_or_std_is_lvalue_reference_std_Rb_tree_node_std_pair_int_int_std_is_rv
   }
 }
 class std_conditional_value0_std_is_lvalue_reference_std_Rb_tree_node_std_pair_int_int_std_is_rvalue_reference_std_Rb_tree_node_std_pair_int_int {
+  __init_std_conditional_value0_std_is_lvalue_reference_std_Rb_tree_node_std_pair_int_int_std_is_rvalue_reference_std_Rb_tree_node_std_pair_int_int(...$a) { }
   __dtor() {
   }
 }
@@ -5698,6 +5710,7 @@ class std_and_std_is_lvalue_reference_std_pair_int_int_std_is_rvalue_reference_s
   }
 }
 class std_conditional_value0_std_is_rvalue_reference_std_Rb_tree_node_std_pair_int_int_std_is_lvalue_reference_std_pair_int_int {
+  __init_std_conditional_value0_std_is_rvalue_reference_std_Rb_tree_node_std_pair_int_int_std_is_lvalue_reference_std_pair_int_int(...$a) { }
   __dtor() {
   }
 }
@@ -5724,18 +5737,22 @@ class std_or_std_is_base_to_derived_ref_std_pair_int_int_std_Rb_tree_node_std_pa
   }
 }
 class std_remove_reference_std_Rb_tree_node_std_pair_int_int {
+  __init_std_remove_reference_std_Rb_tree_node_std_pair_int_int(...$a) { }
   __dtor() {
   }
 }
 class std_remove_cv_std_Rb_tree_node_std_pair_int_int {
+  __init_std_remove_cv_std_Rb_tree_node_std_pair_int_int(...$a) { }
   __dtor() {
   }
 }
 class std_remove_volatile_std_Rb_tree_node_std_pair_int_int {
+  __init_std_remove_volatile_std_Rb_tree_node_std_pair_int_int(...$a) { }
   __dtor() {
   }
 }
 class std_remove_const_std_Rb_tree_node_std_pair_int_int {
+  __init_std_remove_const_std_Rb_tree_node_std_pair_int_int(...$a) { }
   __dtor() {
   }
 }
@@ -5784,10 +5801,12 @@ class std_and_std_not_std_is_same_std_pair_int_int_std_Rb_tree_node_std_pair_int
   }
 }
 class std_conditional_value1_std_is_base_of_std_pair_int_int_std_Rb_tree_node_std_pair_int_int_std_not_std_is_same_std_pair_int_int_std_Rb_tree_node_std_pair_int_int {
+  __init_std_conditional_value1_std_is_base_of_std_pair_int_int_std_Rb_tree_node_std_pair_int_int_std_not_std_is_same_std_pair_int_int_std_Rb_tree_node_std_pair_int_int(...$a) { }
   __dtor() {
   }
 }
 class std_conditional_value0_std_is_base_to_derived_ref_std_pair_int_int_std_Rb_tree_node_std_pair_int_int_value1_std_is_lvalue_to_rvalue_ref_std_pair_int_int_std_Rb_tree_node_std_pair_int_int_value0 {
+  __init_std_conditional_value0_std_is_base_to_derived_ref_std_pair_int_int_std_Rb_tree_node_std_pair_int_int_value1_std_is_lvalue_to_rvalue_ref_std_pair_int_int_std_Rb_tree_node_std_pair_int_int_value0(...$a) { }
   __dtor() {
   }
 }
@@ -5814,6 +5833,7 @@ class std_and_std_is_static_castable_std_pair_int_int_std_Rb_tree_node_std_pair_
   }
 }
 class std_conditional_value1_std_not_std_or_std_is_base_to_derived_ref_std_pair_int_int_std_Rb_tree_node_std_pair_int_int_value1_std_is_lvalue_to_rvalue_ref_std_pair_int_int_std_Rb_tree_node_std_pair_int_int_value0_std_is_static_castable_std_pair_int_int_std_Rb_tree_node_std_pair_int_int {
+  __init_std_conditional_value1_std_not_std_or_std_is_base_to_derived_ref_std_pair_int_int_std_Rb_tree_node_std_pair_int_int_value1_std_is_lvalue_to_rvalue_ref_std_pair_int_int_std_Rb_tree_node_std_pair_int_int_value0_std_is_static_castable_std_pair_int_int_std_Rb_tree_node_std_pair_int_int(...$a) { }
   __dtor() {
   }
 }
@@ -5928,6 +5948,7 @@ class std_and_std_is_array_std_Rb_tree_node_std_pair_int_int_std_not_std_extent_
   }
 }
 class std_conditional_value0_std_not_std_extent_std_Rb_tree_node_std_pair_int_int_value0_std_is_array_std_Rb_tree_node_std_pair_int_int {
+  __init_std_conditional_value0_std_not_std_extent_std_Rb_tree_node_std_pair_int_int_value0_std_is_array_std_Rb_tree_node_std_pair_int_int(...$a) { }
   __dtor() {
   }
 }
@@ -5965,10 +5986,12 @@ class std_or_std_is_void_std_Rb_tree_node_std_pair_int_int_std_is_array_unknown_
   }
 }
 class std_conditional_value0_std_is_array_unknown_bounds_std_Rb_tree_node_std_pair_int_int_std_is_function_std_Rb_tree_node_std_pair_int_int {
+  __init_std_conditional_value0_std_is_array_unknown_bounds_std_Rb_tree_node_std_pair_int_int_std_is_function_std_Rb_tree_node_std_pair_int_int(...$a) { }
   __dtor() {
   }
 }
 class std_conditional_value0_std_is_void_std_Rb_tree_node_std_pair_int_int_std_or_std_is_array_unknown_bounds_std_Rb_tree_node_std_pair_int_int_std_is_function_std_Rb_tree_node_std_pair_int_int {
+  __init_std_conditional_value0_std_is_void_std_Rb_tree_node_std_pair_int_int_std_or_std_is_array_unknown_bounds_std_Rb_tree_node_std_pair_int_int_std_is_function_std_Rb_tree_node_std_pair_int_int(...$a) { }
   __dtor() {
   }
 }
@@ -6050,6 +6073,7 @@ class std_or_std_is_integral_std_Rb_tree_node_std_pair_int_int_std_is_floating_p
   }
 }
 class std_conditional_value0_std_is_integral_std_Rb_tree_node_std_pair_int_int_std_is_floating_point_std_Rb_tree_node_std_pair_int_int {
+  __init_std_conditional_value0_std_is_integral_std_Rb_tree_node_std_pair_int_int_std_is_floating_point_std_Rb_tree_node_std_pair_int_int(...$a) { }
   __dtor() {
   }
 }
@@ -6175,18 +6199,22 @@ class std_or_std_is_arithmetic_std_Rb_tree_node_std_pair_int_int_std_is_enum_std
   }
 }
 class std_conditional_value0_std_is_member_pointer_std_Rb_tree_node_std_pair_int_int_std_is_nullptr_t_std_Rb_tree_node_std_pair_int_int {
+  __init_std_conditional_value0_std_is_member_pointer_std_Rb_tree_node_std_pair_int_int_std_is_nullptr_t_std_Rb_tree_node_std_pair_int_int(...$a) { }
   __dtor() {
   }
 }
 class std_conditional_value0_std_is_pointer_std_Rb_tree_node_std_pair_int_int_std_or_std_is_member_pointer_std_Rb_tree_node_std_pair_int_int_std_is_nullptr_t_std_Rb_tree_node_std_pair_int_int {
+  __init_std_conditional_value0_std_is_pointer_std_Rb_tree_node_std_pair_int_int_std_or_std_is_member_pointer_std_Rb_tree_node_std_pair_int_int_std_is_nullptr_t_std_Rb_tree_node_std_pair_int_int(...$a) { }
   __dtor() {
   }
 }
 class std_conditional_value0_std_is_enum_std_Rb_tree_node_std_pair_int_int_std_or_std_is_pointer_std_Rb_tree_node_std_pair_int_int_std_is_member_pointer_std_Rb_tree_node_std_pair_int_int_std_is_nullptr_t_std_Rb_tree_node_std_pair_int_int {
+  __init_std_conditional_value0_std_is_enum_std_Rb_tree_node_std_pair_int_int_std_or_std_is_pointer_std_Rb_tree_node_std_pair_int_int_std_is_member_pointer_std_Rb_tree_node_std_pair_int_int_std_is_nullptr_t_std_Rb_tree_node_std_pair_int_int(...$a) { }
   __dtor() {
   }
 }
 class std_conditional_value0_std_is_arithmetic_std_Rb_tree_node_std_pair_int_int_std_or_std_is_enum_std_Rb_tree_node_std_pair_int_int_std_is_pointer_std_Rb_tree_node_std_pair_int_int_std_is_member_pointer_std_Rb_tree_node_std_pair_int_int_std_is_nullptr_t_std_Rb_tree_node_std_pair_int_int {
+  __init_std_conditional_value0_std_is_arithmetic_std_Rb_tree_node_std_pair_int_int_std_or_std_is_enum_std_Rb_tree_node_std_pair_int_int_std_is_pointer_std_Rb_tree_node_std_pair_int_int_std_is_member_pointer_std_Rb_tree_node_std_pair_int_int_std_is_nullptr_t_std_Rb_tree_node_std_pair_int_int(...$a) { }
   __dtor() {
   }
 }
@@ -6202,6 +6230,7 @@ class std_or_std_is_reference_std_Rb_tree_node_std_pair_int_int_std_is_scalar_st
   }
 }
 class std_conditional_value0_std_is_reference_std_Rb_tree_node_std_pair_int_int_std_is_scalar_std_Rb_tree_node_std_pair_int_int {
+  __init_std_conditional_value0_std_is_reference_std_Rb_tree_node_std_pair_int_int_std_is_scalar_std_Rb_tree_node_std_pair_int_int(...$a) { }
   __dtor() {
   }
 }
@@ -6217,6 +6246,7 @@ class std_is_destructible_safe_std_Rb_tree_node_std_pair_int_int_value0_value0 e
   }
 }
 class std_remove_all_extents_std_Rb_tree_node_std_pair_int_int {
+  __init_std_remove_all_extents_std_Rb_tree_node_std_pair_int_int(...$a) { }
   __dtor() {
   }
 }
@@ -6276,6 +6306,7 @@ class std_or_std_is_lvalue_reference_std_Rb_tree_node_std_pair_int_int_R_std_is_
   }
 }
 class std_conditional_value1_std_is_lvalue_reference_std_Rb_tree_node_std_pair_int_int_R_std_is_rvalue_reference_std_Rb_tree_node_std_pair_int_int_R {
+  __init_std_conditional_value1_std_is_lvalue_reference_std_Rb_tree_node_std_pair_int_int_R_std_is_rvalue_reference_std_Rb_tree_node_std_pair_int_int_R(...$a) { }
   __dtor() {
   }
 }
@@ -6302,10 +6333,12 @@ class std_is_void_std_Rb_tree_node_std_pair_int_int_R extends std_integral_const
   }
 }
 class std_remove_cv_std_Rb_tree_node_std_pair_int_int_R {
+  __init_std_remove_cv_std_Rb_tree_node_std_pair_int_int_R(...$a) { }
   __dtor() {
   }
 }
 class std_remove_volatile_std_Rb_tree_node_std_pair_int_int_R {
+  __init_std_remove_volatile_std_Rb_tree_node_std_pair_int_int_R(...$a) { }
   __dtor() {
   }
 }
@@ -6332,10 +6365,12 @@ class std_and_std_not_std_is_reference_std_Rb_tree_node_std_pair_int_int_R_std_n
   }
 }
 class std_conditional_value0_std_not_std_is_void_std_Rb_tree_node_std_pair_int_int_R_std_not_std_is_reference_std_Rb_tree_node_std_pair_int_int_R {
+  __init_std_conditional_value0_std_not_std_is_void_std_Rb_tree_node_std_pair_int_int_R_std_not_std_is_reference_std_Rb_tree_node_std_pair_int_int_R(...$a) { }
   __dtor() {
   }
 }
 class std_add_rvalue_reference_helper_std_Rb_tree_node_std_pair_int_int_R_value0 {
+  __init_std_add_rvalue_reference_helper_std_Rb_tree_node_std_pair_int_int_R_value0(...$a) { }
   __dtor() {
   }
 }
@@ -6373,10 +6408,12 @@ class std_and_std_is_destructible_std_Rb_tree_node_std_pair_int_int_std_is_direc
   }
 }
 class std_conditional_value1_std_is_direct_constructible_impl_std_Rb_tree_node_std_pair_int_int_std_pair_int_int_std_is_destructible_std_Rb_tree_node_std_pair_int_int {
+  __init_std_conditional_value1_std_is_direct_constructible_impl_std_Rb_tree_node_std_pair_int_int_std_pair_int_int_std_is_destructible_std_Rb_tree_node_std_pair_int_int(...$a) { }
   __dtor() {
   }
 }
 class std_conditional_value0_std_is_direct_constructible_ref_cast_std_Rb_tree_node_std_pair_int_int_std_pair_int_int_std_is_direct_constructible_new_safe_std_Rb_tree_node_std_pair_int_int_std_pair_int_int {
+  __init_std_conditional_value0_std_is_direct_constructible_ref_cast_std_Rb_tree_node_std_pair_int_int_std_pair_int_int_std_is_direct_constructible_new_safe_std_Rb_tree_node_std_pair_int_int_std_pair_int_int(...$a) { }
   __dtor() {
   }
 }
@@ -6392,6 +6429,7 @@ class std_and_std_not_std_allocator_traits_std_allocator_std_Rb_tree_node_std_pa
   }
 }
 class std_conditional_value0_std_is_constructible_std_Rb_tree_node_std_pair_int_int_std_pair_int_int_std_not_std_allocator_traits_std_allocator_std_Rb_tree_node_std_pair_int_int_construct_helper_std_Rb_tree_node_std_pair_int_int_std_pair_int_int {
+  __init_std_conditional_value0_std_is_constructible_std_Rb_tree_node_std_pair_int_int_std_pair_int_int_std_not_std_allocator_traits_std_allocator_std_Rb_tree_node_std_pair_int_int_construct_helper_std_Rb_tree_node_std_pair_int_int_std_pair_int_int(...$a) { }
   __dtor() {
   }
 }
@@ -6501,10 +6539,12 @@ class std_or_std_is_void_std_piecewise_construct_t_std_is_function_std_tuple_int
   }
 }
 class std_conditional_value0_std_is_function_std_tuple_int_R_std_is_array_std_tuple_int_R {
+  __init_std_conditional_value0_std_is_function_std_tuple_int_R_std_is_array_std_tuple_int_R(...$a) { }
   __dtor() {
   }
 }
 class std_conditional_value0_std_is_void_std_piecewise_construct_t_std_or_std_is_function_std_tuple_int_R_std_is_array_std_tuple_int_R {
+  __init_std_conditional_value0_std_is_void_std_piecewise_construct_t_std_or_std_is_function_std_tuple_int_R_std_is_array_std_tuple_int_R(...$a) { }
   __dtor() {
   }
 }
@@ -6576,10 +6616,12 @@ class std_or_std_is_void_std_tuple_int_R_std_is_function_std_piecewise_construct
   }
 }
 class std_conditional_value0_std_is_function_std_piecewise_construct_t_std_is_array_std_piecewise_construct_t {
+  __init_std_conditional_value0_std_is_function_std_piecewise_construct_t_std_is_array_std_piecewise_construct_t(...$a) { }
   __dtor() {
   }
 }
 class std_conditional_value0_std_is_void_std_tuple_int_R_std_or_std_is_function_std_piecewise_construct_t_std_is_array_std_piecewise_construct_t {
+  __init_std_conditional_value0_std_is_void_std_tuple_int_R_std_or_std_is_function_std_piecewise_construct_t_std_is_array_std_piecewise_construct_t(...$a) { }
   __dtor() {
   }
 }
@@ -6618,6 +6660,7 @@ class std_or_std_is_void_std_piecewise_construct_t_std_is_function_int_std_is_ar
   }
 }
 class std_conditional_value0_std_is_void_std_piecewise_construct_t_std_or_std_is_function_int_std_is_array_int {
+  __init_std_conditional_value0_std_is_void_std_piecewise_construct_t_std_or_std_is_function_int_std_is_array_int(...$a) { }
   __dtor() {
   }
 }
@@ -6656,6 +6699,7 @@ class std_or_std_is_void_std_tuple_int_R_std_is_function_int_std_is_array_int ex
   }
 }
 class std_conditional_value0_std_is_void_std_tuple_int_R_std_or_std_is_function_int_std_is_array_int {
+  __init_std_conditional_value0_std_is_void_std_tuple_int_R_std_or_std_is_function_int_std_is_array_int(...$a) { }
   __dtor() {
   }
 }
@@ -6683,14 +6727,17 @@ class std_and_std_is_convertible_std_piecewise_construct_t_int_std_is_convertibl
   }
 }
 class std_conditional_value0_std_is_convertible_std_tuple_int_R_int_std_is_convertible_std_piecewise_construct_t_int {
+  __init_std_conditional_value0_std_is_convertible_std_tuple_int_R_int_std_is_convertible_std_piecewise_construct_t_int(...$a) { }
   __dtor() {
   }
 }
 class std_Build_index_tuple_value1 {
+  __init_std_Build_index_tuple_value1(...$a) { }
   __dtor() {
   }
 }
 class std_Build_index_tuple_value0 {
+  __init_std_Build_index_tuple_value0(...$a) { }
   __dtor() {
   }
 }
@@ -6768,10 +6815,12 @@ class std_or_std_is_void_std_tuple_int_R_std_is_function_std_tuple_std_is_array_
   }
 }
 class std_conditional_value0_std_is_function_std_tuple_std_is_array_std_tuple {
+  __init_std_conditional_value0_std_is_function_std_tuple_std_is_array_std_tuple(...$a) { }
   __dtor() {
   }
 }
 class std_conditional_value0_std_is_void_std_tuple_int_R_std_or_std_is_function_std_tuple_std_is_array_std_tuple {
+  __init_std_conditional_value0_std_is_void_std_tuple_int_R_std_or_std_is_function_std_tuple_std_is_array_std_tuple(...$a) { }
   __dtor() {
   }
 }
@@ -6810,6 +6859,7 @@ class std_or_std_is_void_std_tuple_std_is_function_std_tuple_int_R_std_is_array_
   }
 }
 class std_conditional_value0_std_is_void_std_tuple_std_or_std_is_function_std_tuple_int_R_std_is_array_std_tuple_int_R {
+  __init_std_conditional_value0_std_is_void_std_tuple_std_or_std_is_function_std_tuple_int_R_std_is_array_std_tuple_int_R(...$a) { }
   __dtor() {
   }
 }
@@ -6848,6 +6898,7 @@ class std_or_std_is_void_std_tuple_std_is_function_int_std_is_array_int extends 
   }
 }
 class std_conditional_value0_std_is_void_std_tuple_std_or_std_is_function_int_std_is_array_int {
+  __init_std_conditional_value0_std_is_void_std_tuple_std_or_std_is_function_int_std_is_array_int(...$a) { }
   __dtor() {
   }
 }
@@ -6875,101 +6926,42 @@ class std_and_std_is_convertible_std_tuple_int_R_int_std_is_convertible_std_tupl
   }
 }
 class std_conditional_value0_std_is_convertible_std_tuple_int_std_is_convertible_std_tuple_int_R_int {
+  __init_std_conditional_value0_std_is_convertible_std_tuple_int_std_is_convertible_std_tuple_int_R_int(...$a) { }
   __dtor() {
-  }
-}
-class std_is_empty_value0 extends std_integral_constant_bool_value0 {
-  constructor(...$a) {
-    super();
-    this.__init_std_is_empty_value0(...$a);
-  }
-  __init_std_is_empty_value0(...$a) {
-  }
-  __dtor() {
-    std_integral_constant_bool_value0.prototype.__dtor.call(this);
-  }
-}
-class std_is_empty_non_tuple_value0 extends std_is_empty_value0 {
-  constructor(...$a) {
-    super();
-    this.__init_std_is_empty_non_tuple_value0(...$a);
-  }
-  __init_std_is_empty_non_tuple_value0(...$a) {
-  }
-  __dtor() {
-    std_is_empty_value0.prototype.__dtor.call(this);
-  }
-}
-class std_conditional_value0_std_integral_constant_bool_value0_std_is_empty_non_tuple_value0 {
-  __dtor() {
-  }
-}
-class std_Head_base_value0_value0_value0 {
-  _M_head_impl;
-  constructor(...$a) {
-    this.__init_std_Head_base_value0_value0_value0(...$a);
-  }
-  __init_std_Head_base_value0_value0_value0(...$a) {
-    this._M_head_impl = 0;
-  }
-  __dtor() {
-  }
-}
-class std_Tuple_impl_value0_value0 extends std_Tuple_impl_value1 {
-  constructor(...$a) {
-    super();
-    this.__init_std_Tuple_impl_value0_value0(...$a);
-  }
-  __init_std_Tuple_impl_value0_value0(...$a) {
-    std_Head_base_value0_value0_value0.prototype.__init_std_Head_base_value0_value0_value0.call(this);
-  }
-  __dtor() {
-    std_Tuple_impl_value1.prototype.__dtor.call(this);
-    std_Head_base_value0_value0_value0.prototype.__dtor.call(this);
-  }
-}
-for (const $k of Object.getOwnPropertyNames(std_Head_base_value0_value0_value0.prototype)) {
-  if ($k !== "constructor" && !($k in std_Tuple_impl_value0_value0.prototype)) std_Tuple_impl_value0_value0.prototype[$k] = std_Head_base_value0_value0_value0.prototype[$k];
-}
-for (const $k of Object.getOwnPropertyNames(std_Head_base_value0_value0_value0)) {
-  if ($k !== "prototype" && $k !== "name" && $k !== "length" && !($k in std_Tuple_impl_value0_value0)) std_Tuple_impl_value0_value0[$k] = std_Head_base_value0_value0_value0[$k];
-}
-class std_tuple_value0 extends std_Tuple_impl_value0_value0 {
-  constructor(...$a) {
-    super();
-    this.__init_std_tuple_value0(...$a);
-  }
-  __init_std_tuple_value0(...$a) {
-  }
-  __dtor() {
-    std_Tuple_impl_value0_value0.prototype.__dtor.call(this);
   }
 }
 class std_tuple_element_value0_std_tuple_int_R {
+  __init_std_tuple_element_value0_std_tuple_int_R(...$a) { }
   __dtor() {
   }
 }
 class std_add_ref_int {
+  __init_std_add_ref_int(...$a) { }
   __dtor() {
   }
 }
 class std_add_c_ref_int {
+  __init_std_add_c_ref_int(...$a) { }
   __dtor() {
   }
 }
 class std_add_r_ref_int {
+  __init_std_add_r_ref_int(...$a) { }
   __dtor() {
   }
 }
 class std_remove_reference_int_R {
+  __init_std_remove_reference_int_R(...$a) { }
   __dtor() {
   }
 }
 class std_add_ref_int_R {
+  __init_std_add_ref_int_R(...$a) { }
   __dtor() {
   }
 }
 class std_add_c_ref_int_R {
+  __init_std_add_c_ref_int_R(...$a) { }
   __dtor() {
   }
 }
@@ -6996,6 +6988,12 @@ class std_ostreambuf_iterator_char_std_char_traits_char extends std_iterator_std
   __dtor() {
     std_iterator_std_output_iterator_tag_void_void_void_void.prototype.__dtor.call(this);
   }
+  op_assign(o) {
+    this.__assign_std_iterator_std_output_iterator_tag_void_void_void_void.call(this, $p0);
+    this._M_sbuf = (((o.a[o.i])._M_sbuf) ? {a: ((o.a[o.i])._M_sbuf).a, i: ((o.a[o.i])._M_sbuf).i} : null);
+    this._M_failed = (o.a[o.i])._M_failed;
+    return {a: [this], i: 0};
+  }
 }
 class std_num_put_char_std_ostreambuf_iterator_char_std_char_traits_char extends std_locale_facet {
   constructor(...$a) {
@@ -7008,17 +7006,25 @@ class std_num_put_char_std_ostreambuf_iterator_char_std_char_traits_char extends
     std_locale_facet.prototype.__dtor.call(this);
   }
   do_put__c(...$a) {
-    if ($a.length >= 4 && $a.length <= 4 && $a[0] instanceof std_ostreambuf_iterator_char_std_char_traits_char && ($a[1] !== null && typeof $a[1] === "object" && $a[1].a[$a[1].i] instanceof std_ios_base) && (typeof $a[2] === "number" || typeof $a[2] === "boolean") && (typeof $a[3] === "number" || typeof $a[3] === "boolean")) {
+    if ($a.length >= 4 && $a.length <= 4 && $a[0] instanceof std_ostreambuf_iterator_char_std_char_traits_char && ($a[1] !== null && typeof $a[1] === "object" && !Array.isArray($a[1]) && $a[1].a !== undefined && $a[1].i !== undefined && $a[1].a[$a[1].i] instanceof std_ios_base) && (typeof $a[2] === "number" || typeof $a[2] === "boolean") && (typeof $a[3] === "number" || typeof $a[3] === "boolean")) {
       return new std_ostreambuf_iterator_char_std_char_traits_char({a: [this._M_insert_int__c($a[0], $a[1], $a[2], $a[3])], i: 0});
     }
-    else if ($a.length >= 4 && $a.length <= 4 && $a[0] instanceof std_ostreambuf_iterator_char_std_char_traits_char && ($a[1] !== null && typeof $a[1] === "object" && $a[1].a[$a[1].i] instanceof std_ios_base) && (typeof $a[2] === "number" || typeof $a[2] === "boolean") && (typeof $a[3] === "number" || typeof $a[3] === "boolean")) {
+    else if ($a.length >= 4 && $a.length <= 4 && $a[0] instanceof std_ostreambuf_iterator_char_std_char_traits_char && ($a[1] !== null && typeof $a[1] === "object" && !Array.isArray($a[1]) && $a[1].a !== undefined && $a[1].i !== undefined && $a[1].a[$a[1].i] instanceof std_ios_base) && (typeof $a[2] === "number" || typeof $a[2] === "boolean") && (typeof $a[3] === "number" || typeof $a[3] === "boolean")) {
       return new std_ostreambuf_iterator_char_std_char_traits_char({a: [this._M_insert_int__c($a[0], $a[1], $a[2], $a[3])], i: 0});
     }
-    else if ($a.length >= 4 && $a.length <= 4 && $a[0] instanceof std_ostreambuf_iterator_char_std_char_traits_char && ($a[1] !== null && typeof $a[1] === "object" && $a[1].a[$a[1].i] instanceof std_ios_base) && (typeof $a[2] === "number" || typeof $a[2] === "boolean") && (typeof $a[3] === "number" || typeof $a[3] === "boolean")) {
+    else if ($a.length >= 4 && $a.length <= 4 && $a[0] instanceof std_ostreambuf_iterator_char_std_char_traits_char && ($a[1] !== null && typeof $a[1] === "object" && !Array.isArray($a[1]) && $a[1].a !== undefined && $a[1].i !== undefined && $a[1].a[$a[1].i] instanceof std_ios_base) && (typeof $a[2] === "number" || typeof $a[2] === "boolean") && (typeof $a[3] === "number" || typeof $a[3] === "boolean")) {
       return new std_ostreambuf_iterator_char_std_char_traits_char({a: [this._M_insert_int__c($a[0], $a[1], $a[2], $a[3])], i: 0});
     }
-    else if ($a.length >= 4 && $a.length <= 4 && $a[0] instanceof std_ostreambuf_iterator_char_std_char_traits_char && ($a[1] !== null && typeof $a[1] === "object" && $a[1].a[$a[1].i] instanceof std_ios_base) && (typeof $a[2] === "number" || typeof $a[2] === "boolean") && (typeof $a[3] === "number" || typeof $a[3] === "boolean")) {
+    else if ($a.length >= 4 && $a.length <= 4 && $a[0] instanceof std_ostreambuf_iterator_char_std_char_traits_char && ($a[1] !== null && typeof $a[1] === "object" && !Array.isArray($a[1]) && $a[1].a !== undefined && $a[1].i !== undefined && $a[1].a[$a[1].i] instanceof std_ios_base) && (typeof $a[2] === "number" || typeof $a[2] === "boolean") && (typeof $a[3] === "number" || typeof $a[3] === "boolean")) {
       return new std_ostreambuf_iterator_char_std_char_traits_char({a: [this._M_insert_int__c($a[0], $a[1], $a[2], $a[3])], i: 0});
+    }
+    else if ($a.length >= 4 && $a.length <= 4 && $a[0] instanceof std_ostreambuf_iterator_char_std_char_traits_char && ($a[1] !== null && typeof $a[1] === "object" && !Array.isArray($a[1]) && $a[1].a !== undefined && $a[1].i !== undefined && $a[1].a[$a[1].i] instanceof std_ios_base) && (typeof $a[2] === "number" || typeof $a[2] === "boolean") && ($a[3] === null || typeof $a[3] === "object")) {
+      let __flags = (($a[1]).a[($a[1]).i]).flags__c();
+      let __fmt = (~((std_ios_base.basefield | std_ios_base.uppercase)));
+      (($a[1]).a[($a[1]).i]).flags(((__flags & __fmt) | (std_ios_base.hex | std_ios_base.showbase)));
+      ($a[0]).op_assign({a: [new std_ostreambuf_iterator_char_std_char_traits_char({a: [this._M_insert_int__c($a[0], $a[1], $a[2], ($a[3] >>> 0))], i: 0})], i: 0});
+      (($a[1]).a[($a[1]).i]).flags(__flags);
+      return $a[0];
     }
     else { throw new Error("no matching overload"); }
   }
@@ -7047,6 +7053,12 @@ class std_istreambuf_iterator_char_std_char_traits_char extends std_iterator_std
   __dtor() {
     std_iterator_std_input_iterator_tag_char_long_long_char_P_char.prototype.__dtor.call(this);
   }
+  op_assign(o) {
+    this.__assign_std_iterator_std_input_iterator_tag_char_long_long_char_P_char.call(this, $p0);
+    this._M_sbuf = (((o.a[o.i])._M_sbuf) ? {a: ((o.a[o.i])._M_sbuf).a, i: ((o.a[o.i])._M_sbuf).i} : null);
+    this._M_c = (o.a[o.i])._M_c;
+    return {a: [this], i: 0};
+  }
 }
 class std_num_get_char_std_istreambuf_iterator_char_std_char_traits_char extends std_locale_facet {
   constructor(...$a) {
@@ -7059,23 +7071,32 @@ class std_num_get_char_std_istreambuf_iterator_char_std_char_traits_char extends
     std_locale_facet.prototype.__dtor.call(this);
   }
   do_get__c(...$a) {
-    if ($a.length >= 5 && $a.length <= 5 && $a[0] instanceof std_istreambuf_iterator_char_std_char_traits_char && $a[1] instanceof std_istreambuf_iterator_char_std_char_traits_char && ($a[2] !== null && typeof $a[2] === "object" && $a[2].a[$a[2].i] instanceof std_ios_base) && ($a[3] === null || typeof $a[3] === "object") && ($a[4] === null || typeof $a[4] === "object")) {
+    if ($a.length >= 5 && $a.length <= 5 && $a[0] instanceof std_istreambuf_iterator_char_std_char_traits_char && $a[1] instanceof std_istreambuf_iterator_char_std_char_traits_char && ($a[2] !== null && typeof $a[2] === "object" && !Array.isArray($a[2]) && $a[2].a !== undefined && $a[2].i !== undefined && $a[2].a[$a[2].i] instanceof std_ios_base) && ($a[3] === null || typeof $a[3] === "object") && ($a[4] === null || typeof $a[4] === "object")) {
       return new std_istreambuf_iterator_char_std_char_traits_char({a: [this._M_extract_int__c($a[0], $a[1], $a[2], $a[3], $a[4])], i: 0});
     }
-    else if ($a.length >= 5 && $a.length <= 5 && $a[0] instanceof std_istreambuf_iterator_char_std_char_traits_char && $a[1] instanceof std_istreambuf_iterator_char_std_char_traits_char && ($a[2] !== null && typeof $a[2] === "object" && $a[2].a[$a[2].i] instanceof std_ios_base) && ($a[3] === null || typeof $a[3] === "object") && ($a[4] === null || typeof $a[4] === "object")) {
+    else if ($a.length >= 5 && $a.length <= 5 && $a[0] instanceof std_istreambuf_iterator_char_std_char_traits_char && $a[1] instanceof std_istreambuf_iterator_char_std_char_traits_char && ($a[2] !== null && typeof $a[2] === "object" && !Array.isArray($a[2]) && $a[2].a !== undefined && $a[2].i !== undefined && $a[2].a[$a[2].i] instanceof std_ios_base) && ($a[3] === null || typeof $a[3] === "object") && ($a[4] === null || typeof $a[4] === "object")) {
       return new std_istreambuf_iterator_char_std_char_traits_char({a: [this._M_extract_int__c($a[0], $a[1], $a[2], $a[3], $a[4])], i: 0});
     }
-    else if ($a.length >= 5 && $a.length <= 5 && $a[0] instanceof std_istreambuf_iterator_char_std_char_traits_char && $a[1] instanceof std_istreambuf_iterator_char_std_char_traits_char && ($a[2] !== null && typeof $a[2] === "object" && $a[2].a[$a[2].i] instanceof std_ios_base) && ($a[3] === null || typeof $a[3] === "object") && ($a[4] === null || typeof $a[4] === "object")) {
+    else if ($a.length >= 5 && $a.length <= 5 && $a[0] instanceof std_istreambuf_iterator_char_std_char_traits_char && $a[1] instanceof std_istreambuf_iterator_char_std_char_traits_char && ($a[2] !== null && typeof $a[2] === "object" && !Array.isArray($a[2]) && $a[2].a !== undefined && $a[2].i !== undefined && $a[2].a[$a[2].i] instanceof std_ios_base) && ($a[3] === null || typeof $a[3] === "object") && ($a[4] === null || typeof $a[4] === "object")) {
       return new std_istreambuf_iterator_char_std_char_traits_char({a: [this._M_extract_int__c($a[0], $a[1], $a[2], $a[3], $a[4])], i: 0});
     }
-    else if ($a.length >= 5 && $a.length <= 5 && $a[0] instanceof std_istreambuf_iterator_char_std_char_traits_char && $a[1] instanceof std_istreambuf_iterator_char_std_char_traits_char && ($a[2] !== null && typeof $a[2] === "object" && $a[2].a[$a[2].i] instanceof std_ios_base) && ($a[3] === null || typeof $a[3] === "object") && ($a[4] === null || typeof $a[4] === "object")) {
+    else if ($a.length >= 5 && $a.length <= 5 && $a[0] instanceof std_istreambuf_iterator_char_std_char_traits_char && $a[1] instanceof std_istreambuf_iterator_char_std_char_traits_char && ($a[2] !== null && typeof $a[2] === "object" && !Array.isArray($a[2]) && $a[2].a !== undefined && $a[2].i !== undefined && $a[2].a[$a[2].i] instanceof std_ios_base) && ($a[3] === null || typeof $a[3] === "object") && ($a[4] === null || typeof $a[4] === "object")) {
       return new std_istreambuf_iterator_char_std_char_traits_char({a: [this._M_extract_int__c($a[0], $a[1], $a[2], $a[3], $a[4])], i: 0});
     }
-    else if ($a.length >= 5 && $a.length <= 5 && $a[0] instanceof std_istreambuf_iterator_char_std_char_traits_char && $a[1] instanceof std_istreambuf_iterator_char_std_char_traits_char && ($a[2] !== null && typeof $a[2] === "object" && $a[2].a[$a[2].i] instanceof std_ios_base) && ($a[3] === null || typeof $a[3] === "object") && ($a[4] === null || typeof $a[4] === "object")) {
+    else if ($a.length >= 5 && $a.length <= 5 && $a[0] instanceof std_istreambuf_iterator_char_std_char_traits_char && $a[1] instanceof std_istreambuf_iterator_char_std_char_traits_char && ($a[2] !== null && typeof $a[2] === "object" && !Array.isArray($a[2]) && $a[2].a !== undefined && $a[2].i !== undefined && $a[2].a[$a[2].i] instanceof std_ios_base) && ($a[3] === null || typeof $a[3] === "object") && ($a[4] === null || typeof $a[4] === "object")) {
       return new std_istreambuf_iterator_char_std_char_traits_char({a: [this._M_extract_int__c($a[0], $a[1], $a[2], $a[3], $a[4])], i: 0});
     }
-    else if ($a.length >= 5 && $a.length <= 5 && $a[0] instanceof std_istreambuf_iterator_char_std_char_traits_char && $a[1] instanceof std_istreambuf_iterator_char_std_char_traits_char && ($a[2] !== null && typeof $a[2] === "object" && $a[2].a[$a[2].i] instanceof std_ios_base) && ($a[3] === null || typeof $a[3] === "object") && ($a[4] === null || typeof $a[4] === "object")) {
+    else if ($a.length >= 5 && $a.length <= 5 && $a[0] instanceof std_istreambuf_iterator_char_std_char_traits_char && $a[1] instanceof std_istreambuf_iterator_char_std_char_traits_char && ($a[2] !== null && typeof $a[2] === "object" && !Array.isArray($a[2]) && $a[2].a !== undefined && $a[2].i !== undefined && $a[2].a[$a[2].i] instanceof std_ios_base) && ($a[3] === null || typeof $a[3] === "object") && ($a[4] === null || typeof $a[4] === "object")) {
       return new std_istreambuf_iterator_char_std_char_traits_char({a: [this._M_extract_int__c($a[0], $a[1], $a[2], $a[3], $a[4])], i: 0});
+    }
+    else if ($a.length >= 5 && $a.length <= 5 && $a[0] instanceof std_istreambuf_iterator_char_std_char_traits_char && $a[1] instanceof std_istreambuf_iterator_char_std_char_traits_char && ($a[2] !== null && typeof $a[2] === "object" && !Array.isArray($a[2]) && $a[2].a !== undefined && $a[2].i !== undefined && $a[2].a[$a[2].i] instanceof std_ios_base) && ($a[3] === null || typeof $a[3] === "object") && ($a[4] === null || typeof $a[4] === "object")) {
+      let __fmt = (($a[2]).a[($a[2]).i]).flags__c();
+      (($a[2]).a[($a[2]).i]).flags(((__fmt & (~std_ios_base.basefield)) | std_ios_base.hex));
+      let __ul = {v: 0};
+      ($a[0]).op_assign({a: [new std_istreambuf_iterator_char_std_char_traits_char({a: [this._M_extract_int__c($a[0], $a[1], $a[2], $a[3], {a: __ul, i: "v"})], i: 0})], i: 0});
+      (($a[2]).a[($a[2]).i]).flags(__fmt);
+      ($a[4]).a[($a[4]).i] = (__ul.v ? {a: __ul.v.a, i: __ul.v.i} : null);
+      return $a[0];
     }
     else { throw new Error("no matching overload"); }
   }
@@ -7096,7 +7117,7 @@ class std_ctype_abstract_base_wchar_t extends std_locale_facet {
   do_is__c(...$a) {
     if ($a.length >= 2 && $a.length <= 2 && (typeof $a[0] === "number" || typeof $a[0] === "boolean") && (typeof $a[1] === "number" || typeof $a[1] === "boolean")) {
     }
-    else if ($a.length >= 3 && $a.length <= 3 && ($a[0] === null || typeof $a[0] === "object") && ($a[1] === null || typeof $a[1] === "object") && ($a[2] === null || typeof $a[2] === "object")) {
+    else if ($a.length >= 3 && $a.length <= 3 && ($a[0] === null || (typeof $a[0] === "object" && ($a[0].a === undefined || typeof $a[0].a[$a[0].i] !== "object"))) && ($a[1] === null || (typeof $a[1] === "object" && ($a[1].a === undefined || typeof $a[1].a[$a[1].i] !== "object"))) && ($a[2] === null || typeof $a[2] === "object")) {
     }
     else { throw new Error("no matching overload"); }
   }
@@ -7109,37 +7130,39 @@ class std_ctype_abstract_base_wchar_t extends std_locale_facet {
   do_toupper__c(...$a) {
     if ($a.length >= 1 && $a.length <= 1 && (typeof $a[0] === "number" || typeof $a[0] === "boolean")) {
     }
-    else if ($a.length >= 2 && $a.length <= 2 && ($a[0] === null || typeof $a[0] === "object") && ($a[1] === null || typeof $a[1] === "object")) {
+    else if ($a.length >= 2 && $a.length <= 2 && ($a[0] === null || (typeof $a[0] === "object" && ($a[0].a === undefined || typeof $a[0].a[$a[0].i] !== "object"))) && ($a[1] === null || (typeof $a[1] === "object" && ($a[1].a === undefined || typeof $a[1].a[$a[1].i] !== "object")))) {
     }
     else { throw new Error("no matching overload"); }
   }
   do_tolower__c(...$a) {
     if ($a.length >= 1 && $a.length <= 1 && (typeof $a[0] === "number" || typeof $a[0] === "boolean")) {
     }
-    else if ($a.length >= 2 && $a.length <= 2 && ($a[0] === null || typeof $a[0] === "object") && ($a[1] === null || typeof $a[1] === "object")) {
+    else if ($a.length >= 2 && $a.length <= 2 && ($a[0] === null || (typeof $a[0] === "object" && ($a[0].a === undefined || typeof $a[0].a[$a[0].i] !== "object"))) && ($a[1] === null || (typeof $a[1] === "object" && ($a[1].a === undefined || typeof $a[1].a[$a[1].i] !== "object")))) {
     }
     else { throw new Error("no matching overload"); }
   }
   do_widen__c(...$a) {
     if ($a.length >= 1 && $a.length <= 1 && (typeof $a[0] === "number" || typeof $a[0] === "boolean")) {
     }
-    else if ($a.length >= 3 && $a.length <= 3 && ($a[0] === null || typeof $a[0] === "object") && ($a[1] === null || typeof $a[1] === "object") && ($a[2] === null || typeof $a[2] === "object")) {
+    else if ($a.length >= 3 && $a.length <= 3 && ($a[0] === null || (typeof $a[0] === "object" && ($a[0].a === undefined || typeof $a[0].a[$a[0].i] !== "object"))) && ($a[1] === null || (typeof $a[1] === "object" && ($a[1].a === undefined || typeof $a[1].a[$a[1].i] !== "object"))) && ($a[2] === null || (typeof $a[2] === "object" && ($a[2].a === undefined || typeof $a[2].a[$a[2].i] !== "object")))) {
     }
     else { throw new Error("no matching overload"); }
   }
   do_narrow__c(...$a) {
     if ($a.length >= 2 && $a.length <= 2 && (typeof $a[0] === "number" || typeof $a[0] === "boolean") && (typeof $a[1] === "number" || typeof $a[1] === "boolean")) {
     }
-    else if ($a.length >= 4 && $a.length <= 4 && ($a[0] === null || typeof $a[0] === "object") && ($a[1] === null || typeof $a[1] === "object") && (typeof $a[2] === "number" || typeof $a[2] === "boolean") && ($a[3] === null || typeof $a[3] === "object")) {
+    else if ($a.length >= 4 && $a.length <= 4 && ($a[0] === null || (typeof $a[0] === "object" && ($a[0].a === undefined || typeof $a[0].a[$a[0].i] !== "object"))) && ($a[1] === null || (typeof $a[1] === "object" && ($a[1].a === undefined || typeof $a[1].a[$a[1].i] !== "object"))) && (typeof $a[2] === "number" || typeof $a[2] === "boolean") && ($a[3] === null || (typeof $a[3] === "object" && ($a[3].a === undefined || typeof $a[3].a[$a[3].i] !== "object")))) {
     }
     else { throw new Error("no matching overload"); }
   }
 }
-for (const $k of Object.getOwnPropertyNames(std_ctype_base.prototype)) {
-  if ($k !== "constructor" && !($k in std_ctype_abstract_base_wchar_t.prototype)) std_ctype_abstract_base_wchar_t.prototype[$k] = std_ctype_base.prototype[$k];
-}
-for (const $k of Object.getOwnPropertyNames(std_ctype_base)) {
-  if ($k !== "prototype" && $k !== "name" && $k !== "length" && !($k in std_ctype_abstract_base_wchar_t)) std_ctype_abstract_base_wchar_t[$k] = std_ctype_base[$k];
+for (let $b = std_ctype_base; $b && $b.prototype; $b = Object.getPrototypeOf($b)) {
+  for (const $k of Object.getOwnPropertyNames($b.prototype)) {
+    if ($k !== "constructor" && !($k in std_ctype_abstract_base_wchar_t.prototype)) std_ctype_abstract_base_wchar_t.prototype[$k] = $b.prototype[$k];
+  }
+  for (const $k of Object.getOwnPropertyNames($b)) {
+    if ($k !== "prototype" && $k !== "name" && $k !== "length" && !($k in std_ctype_abstract_base_wchar_t)) std_ctype_abstract_base_wchar_t[$k] = $b[$k];
+  }
 }
 class std_ctype_wchar_t extends std_ctype_abstract_base_wchar_t {
   _M_c_locale_ctype;
@@ -7179,6 +7202,12 @@ class std_ostreambuf_iterator_wchar_t_std_char_traits_wchar_t extends std_iterat
   __dtor() {
     std_iterator_std_output_iterator_tag_void_void_void_void.prototype.__dtor.call(this);
   }
+  op_assign(o) {
+    this.__assign_std_iterator_std_output_iterator_tag_void_void_void_void.call(this, $p0);
+    this._M_sbuf = (((o.a[o.i])._M_sbuf) ? {a: ((o.a[o.i])._M_sbuf).a, i: ((o.a[o.i])._M_sbuf).i} : null);
+    this._M_failed = (o.a[o.i])._M_failed;
+    return {a: [this], i: 0};
+  }
 }
 class std_num_put_wchar_t_std_ostreambuf_iterator_wchar_t_std_char_traits_wchar_t extends std_locale_facet {
   constructor(...$a) {
@@ -7191,17 +7220,25 @@ class std_num_put_wchar_t_std_ostreambuf_iterator_wchar_t_std_char_traits_wchar_
     std_locale_facet.prototype.__dtor.call(this);
   }
   do_put__c(...$a) {
-    if ($a.length >= 4 && $a.length <= 4 && $a[0] instanceof std_ostreambuf_iterator_wchar_t_std_char_traits_wchar_t && ($a[1] !== null && typeof $a[1] === "object" && $a[1].a[$a[1].i] instanceof std_ios_base) && (typeof $a[2] === "number" || typeof $a[2] === "boolean") && (typeof $a[3] === "number" || typeof $a[3] === "boolean")) {
+    if ($a.length >= 4 && $a.length <= 4 && $a[0] instanceof std_ostreambuf_iterator_wchar_t_std_char_traits_wchar_t && ($a[1] !== null && typeof $a[1] === "object" && !Array.isArray($a[1]) && $a[1].a !== undefined && $a[1].i !== undefined && $a[1].a[$a[1].i] instanceof std_ios_base) && (typeof $a[2] === "number" || typeof $a[2] === "boolean") && (typeof $a[3] === "number" || typeof $a[3] === "boolean")) {
       return new std_ostreambuf_iterator_wchar_t_std_char_traits_wchar_t({a: [this._M_insert_int__c($a[0], $a[1], $a[2], $a[3])], i: 0});
     }
-    else if ($a.length >= 4 && $a.length <= 4 && $a[0] instanceof std_ostreambuf_iterator_wchar_t_std_char_traits_wchar_t && ($a[1] !== null && typeof $a[1] === "object" && $a[1].a[$a[1].i] instanceof std_ios_base) && (typeof $a[2] === "number" || typeof $a[2] === "boolean") && (typeof $a[3] === "number" || typeof $a[3] === "boolean")) {
+    else if ($a.length >= 4 && $a.length <= 4 && $a[0] instanceof std_ostreambuf_iterator_wchar_t_std_char_traits_wchar_t && ($a[1] !== null && typeof $a[1] === "object" && !Array.isArray($a[1]) && $a[1].a !== undefined && $a[1].i !== undefined && $a[1].a[$a[1].i] instanceof std_ios_base) && (typeof $a[2] === "number" || typeof $a[2] === "boolean") && (typeof $a[3] === "number" || typeof $a[3] === "boolean")) {
       return new std_ostreambuf_iterator_wchar_t_std_char_traits_wchar_t({a: [this._M_insert_int__c($a[0], $a[1], $a[2], $a[3])], i: 0});
     }
-    else if ($a.length >= 4 && $a.length <= 4 && $a[0] instanceof std_ostreambuf_iterator_wchar_t_std_char_traits_wchar_t && ($a[1] !== null && typeof $a[1] === "object" && $a[1].a[$a[1].i] instanceof std_ios_base) && (typeof $a[2] === "number" || typeof $a[2] === "boolean") && (typeof $a[3] === "number" || typeof $a[3] === "boolean")) {
+    else if ($a.length >= 4 && $a.length <= 4 && $a[0] instanceof std_ostreambuf_iterator_wchar_t_std_char_traits_wchar_t && ($a[1] !== null && typeof $a[1] === "object" && !Array.isArray($a[1]) && $a[1].a !== undefined && $a[1].i !== undefined && $a[1].a[$a[1].i] instanceof std_ios_base) && (typeof $a[2] === "number" || typeof $a[2] === "boolean") && (typeof $a[3] === "number" || typeof $a[3] === "boolean")) {
       return new std_ostreambuf_iterator_wchar_t_std_char_traits_wchar_t({a: [this._M_insert_int__c($a[0], $a[1], $a[2], $a[3])], i: 0});
     }
-    else if ($a.length >= 4 && $a.length <= 4 && $a[0] instanceof std_ostreambuf_iterator_wchar_t_std_char_traits_wchar_t && ($a[1] !== null && typeof $a[1] === "object" && $a[1].a[$a[1].i] instanceof std_ios_base) && (typeof $a[2] === "number" || typeof $a[2] === "boolean") && (typeof $a[3] === "number" || typeof $a[3] === "boolean")) {
+    else if ($a.length >= 4 && $a.length <= 4 && $a[0] instanceof std_ostreambuf_iterator_wchar_t_std_char_traits_wchar_t && ($a[1] !== null && typeof $a[1] === "object" && !Array.isArray($a[1]) && $a[1].a !== undefined && $a[1].i !== undefined && $a[1].a[$a[1].i] instanceof std_ios_base) && (typeof $a[2] === "number" || typeof $a[2] === "boolean") && (typeof $a[3] === "number" || typeof $a[3] === "boolean")) {
       return new std_ostreambuf_iterator_wchar_t_std_char_traits_wchar_t({a: [this._M_insert_int__c($a[0], $a[1], $a[2], $a[3])], i: 0});
+    }
+    else if ($a.length >= 4 && $a.length <= 4 && $a[0] instanceof std_ostreambuf_iterator_wchar_t_std_char_traits_wchar_t && ($a[1] !== null && typeof $a[1] === "object" && !Array.isArray($a[1]) && $a[1].a !== undefined && $a[1].i !== undefined && $a[1].a[$a[1].i] instanceof std_ios_base) && (typeof $a[2] === "number" || typeof $a[2] === "boolean") && ($a[3] === null || typeof $a[3] === "object")) {
+      let __flags = (($a[1]).a[($a[1]).i]).flags__c();
+      let __fmt = (~((std_ios_base.basefield | std_ios_base.uppercase)));
+      (($a[1]).a[($a[1]).i]).flags(((__flags & __fmt) | (std_ios_base.hex | std_ios_base.showbase)));
+      ($a[0]).op_assign({a: [new std_ostreambuf_iterator_wchar_t_std_char_traits_wchar_t({a: [this._M_insert_int__c($a[0], $a[1], $a[2], ($a[3] >>> 0))], i: 0})], i: 0});
+      (($a[1]).a[($a[1]).i]).flags(__flags);
+      return $a[0];
     }
     else { throw new Error("no matching overload"); }
   }
@@ -7230,6 +7267,12 @@ class std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t extends std_iterat
   __dtor() {
     std_iterator_std_input_iterator_tag_wchar_t_long_long_wchar_t_P_wchar_t.prototype.__dtor.call(this);
   }
+  op_assign(o) {
+    this.__assign_std_iterator_std_input_iterator_tag_wchar_t_long_long_wchar_t_P_wchar_t.call(this, $p0);
+    this._M_sbuf = (((o.a[o.i])._M_sbuf) ? {a: ((o.a[o.i])._M_sbuf).a, i: ((o.a[o.i])._M_sbuf).i} : null);
+    this._M_c = (o.a[o.i])._M_c;
+    return {a: [this], i: 0};
+  }
 }
 class std_num_get_wchar_t_std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t extends std_locale_facet {
   constructor(...$a) {
@@ -7242,27 +7285,41 @@ class std_num_get_wchar_t_std_istreambuf_iterator_wchar_t_std_char_traits_wchar_
     std_locale_facet.prototype.__dtor.call(this);
   }
   do_get__c(...$a) {
-    if ($a.length >= 5 && $a.length <= 5 && $a[0] instanceof std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t && $a[1] instanceof std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t && ($a[2] !== null && typeof $a[2] === "object" && $a[2].a[$a[2].i] instanceof std_ios_base) && ($a[3] === null || typeof $a[3] === "object") && ($a[4] === null || typeof $a[4] === "object")) {
+    if ($a.length >= 5 && $a.length <= 5 && $a[0] instanceof std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t && $a[1] instanceof std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t && ($a[2] !== null && typeof $a[2] === "object" && !Array.isArray($a[2]) && $a[2].a !== undefined && $a[2].i !== undefined && $a[2].a[$a[2].i] instanceof std_ios_base) && ($a[3] === null || typeof $a[3] === "object") && ($a[4] === null || typeof $a[4] === "object")) {
       return new std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t({a: [this._M_extract_int__c($a[0], $a[1], $a[2], $a[3], $a[4])], i: 0});
     }
-    else if ($a.length >= 5 && $a.length <= 5 && $a[0] instanceof std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t && $a[1] instanceof std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t && ($a[2] !== null && typeof $a[2] === "object" && $a[2].a[$a[2].i] instanceof std_ios_base) && ($a[3] === null || typeof $a[3] === "object") && ($a[4] === null || typeof $a[4] === "object")) {
+    else if ($a.length >= 5 && $a.length <= 5 && $a[0] instanceof std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t && $a[1] instanceof std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t && ($a[2] !== null && typeof $a[2] === "object" && !Array.isArray($a[2]) && $a[2].a !== undefined && $a[2].i !== undefined && $a[2].a[$a[2].i] instanceof std_ios_base) && ($a[3] === null || typeof $a[3] === "object") && ($a[4] === null || typeof $a[4] === "object")) {
       return new std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t({a: [this._M_extract_int__c($a[0], $a[1], $a[2], $a[3], $a[4])], i: 0});
     }
-    else if ($a.length >= 5 && $a.length <= 5 && $a[0] instanceof std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t && $a[1] instanceof std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t && ($a[2] !== null && typeof $a[2] === "object" && $a[2].a[$a[2].i] instanceof std_ios_base) && ($a[3] === null || typeof $a[3] === "object") && ($a[4] === null || typeof $a[4] === "object")) {
+    else if ($a.length >= 5 && $a.length <= 5 && $a[0] instanceof std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t && $a[1] instanceof std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t && ($a[2] !== null && typeof $a[2] === "object" && !Array.isArray($a[2]) && $a[2].a !== undefined && $a[2].i !== undefined && $a[2].a[$a[2].i] instanceof std_ios_base) && ($a[3] === null || typeof $a[3] === "object") && ($a[4] === null || typeof $a[4] === "object")) {
       return new std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t({a: [this._M_extract_int__c($a[0], $a[1], $a[2], $a[3], $a[4])], i: 0});
     }
-    else if ($a.length >= 5 && $a.length <= 5 && $a[0] instanceof std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t && $a[1] instanceof std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t && ($a[2] !== null && typeof $a[2] === "object" && $a[2].a[$a[2].i] instanceof std_ios_base) && ($a[3] === null || typeof $a[3] === "object") && ($a[4] === null || typeof $a[4] === "object")) {
+    else if ($a.length >= 5 && $a.length <= 5 && $a[0] instanceof std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t && $a[1] instanceof std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t && ($a[2] !== null && typeof $a[2] === "object" && !Array.isArray($a[2]) && $a[2].a !== undefined && $a[2].i !== undefined && $a[2].a[$a[2].i] instanceof std_ios_base) && ($a[3] === null || typeof $a[3] === "object") && ($a[4] === null || typeof $a[4] === "object")) {
       return new std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t({a: [this._M_extract_int__c($a[0], $a[1], $a[2], $a[3], $a[4])], i: 0});
     }
-    else if ($a.length >= 5 && $a.length <= 5 && $a[0] instanceof std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t && $a[1] instanceof std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t && ($a[2] !== null && typeof $a[2] === "object" && $a[2].a[$a[2].i] instanceof std_ios_base) && ($a[3] === null || typeof $a[3] === "object") && ($a[4] === null || typeof $a[4] === "object")) {
+    else if ($a.length >= 5 && $a.length <= 5 && $a[0] instanceof std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t && $a[1] instanceof std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t && ($a[2] !== null && typeof $a[2] === "object" && !Array.isArray($a[2]) && $a[2].a !== undefined && $a[2].i !== undefined && $a[2].a[$a[2].i] instanceof std_ios_base) && ($a[3] === null || typeof $a[3] === "object") && ($a[4] === null || typeof $a[4] === "object")) {
       return new std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t({a: [this._M_extract_int__c($a[0], $a[1], $a[2], $a[3], $a[4])], i: 0});
     }
-    else if ($a.length >= 5 && $a.length <= 5 && $a[0] instanceof std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t && $a[1] instanceof std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t && ($a[2] !== null && typeof $a[2] === "object" && $a[2].a[$a[2].i] instanceof std_ios_base) && ($a[3] === null || typeof $a[3] === "object") && ($a[4] === null || typeof $a[4] === "object")) {
+    else if ($a.length >= 5 && $a.length <= 5 && $a[0] instanceof std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t && $a[1] instanceof std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t && ($a[2] !== null && typeof $a[2] === "object" && !Array.isArray($a[2]) && $a[2].a !== undefined && $a[2].i !== undefined && $a[2].a[$a[2].i] instanceof std_ios_base) && ($a[3] === null || typeof $a[3] === "object") && ($a[4] === null || typeof $a[4] === "object")) {
       return new std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t({a: [this._M_extract_int__c($a[0], $a[1], $a[2], $a[3], $a[4])], i: 0});
+    }
+    else if ($a.length >= 5 && $a.length <= 5 && $a[0] instanceof std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t && $a[1] instanceof std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t && ($a[2] !== null && typeof $a[2] === "object" && !Array.isArray($a[2]) && $a[2].a !== undefined && $a[2].i !== undefined && $a[2].a[$a[2].i] instanceof std_ios_base) && ($a[3] === null || typeof $a[3] === "object") && ($a[4] === null || typeof $a[4] === "object")) {
+      let __fmt = (($a[2]).a[($a[2]).i]).flags__c();
+      (($a[2]).a[($a[2]).i]).flags(((__fmt & (~std_ios_base.basefield)) | std_ios_base.hex));
+      let __ul = {v: 0};
+      ($a[0]).op_assign({a: [new std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t({a: [this._M_extract_int__c($a[0], $a[1], $a[2], $a[3], {a: __ul, i: "v"})], i: 0})], i: 0});
+      (($a[2]).a[($a[2]).i]).flags(__fmt);
+      ($a[4]).a[($a[4]).i] = (__ul.v ? {a: __ul.v.a, i: __ul.v.i} : null);
+      return $a[0];
     }
     else { throw new Error("no matching overload"); }
   }
   static id = new std_num_get_wchar_t_std_istreambuf_iterator_wchar_t_std_char_traits_wchar_t();
+}
+class gnu_cxx_conditional_type_value1_unsigned_long_unsigned_long_long {
+  __init_gnu_cxx_conditional_type_value1_unsigned_long_unsigned_long_long(...$a) { }
+  __dtor() {
+  }
 }
 function std_throw_bad_alloc(...$a) { throw new Error("unresolved external: std::__throw_bad_alloc"); }
 function operatornew__unsigned_long_long(...$a) { return {a: new Array($a[0]).fill(0), i: 0}; }
@@ -7272,7 +7329,7 @@ function std_Rb_tree_decrement__std_Rb_tree_node_baseP(...$a) { var x=$a[0]; if(
 function std_Rb_tree_insert_and_rebalance(...$a) { var left=$a[0],x=$a[1],p=$a[2],h=$a[3];var xn=x.a[x.i],pn=p.a[p.i],hn=h.a[h.i];xn._M_parent={a:p.a,i:p.i};xn._M_left=null;xn._M_right=null;xn._M_color=0;if(left){pn._M_left={a:x.a,i:x.i};if(_ctj_peq(p,h)){hn._M_parent={a:x.a,i:x.i};hn._M_right={a:x.a,i:x.i};}else if(_ctj_peq(p,hn._M_left)) hn._M_left={a:x.a,i:x.i};}else{pn._M_right={a:x.a,i:x.i};if(_ctj_peq(p,hn._M_right)) hn._M_right={a:x.a,i:x.i};}if(hn._M_parent){var r=hn._M_parent.a[hn._M_parent.i];if(r) r._M_color=1;} }
 function wmemcpy(...$a) { throw new Error("unresolved external: wmemcpy"); }
 function main() {
-  let $t73, $t74, $t75, $t76, $t77, $t78, $t79, $t80, $t81, $t82, $t83, $t84, $t85;
+  let $t73, $t74, $t75, $t76, $t77, $t78, $t79, $t80, $t81, $t82, $t83, $t84, $t85, $t86, $t87, $t88, $t89;
   let m = new std_map_int_int_std_less_int_std_allocator_std_pair_int_int();
   new std_pair_std_Rb_tree_iterator_std_pair_int_int_bool({a: [m.insert({a: [new std_pair_int_int({a: [std_make_pair_int_int({a: [1], i: 0}, {a: [2], i: 0})], i: 0})], i: 0})], i: 0});
   new std_pair_std_Rb_tree_iterator_std_pair_int_int_bool({a: [m.insert({a: [new std_pair_int_int({a: [std_make_pair_int_int({a: [3], i: 0}, {a: [4], i: 0})], i: 0})], i: 0})], i: 0});
@@ -7284,8 +7341,8 @@ function main() {
   ($t75 = n.op_index({a: [5], i: 0}), $t75.a[$t75.i] = 50);
   ($t76 = n.op_index({a: [3], i: 0}), $t76.a[$t76.i] = 30);
   ($t77 = n.op_index({a: [1], i: 0}), $t77.a[$t77.i] = 11);
-  ($t84 = ($t83 = ($t82 = ($t81 = ($t80 = ($t79 = ($t78 = (__ctj_write(__ctj_fmt(n.op_index({a: [1], i: 0}))), std_cout), __ctj_write(__ctj_fmt([32, 0])), $t78), __ctj_write(__ctj_fmt(n.op_index({a: [2], i: 0}))), $t79), __ctj_write(__ctj_fmt([32, 0])), $t80), __ctj_write(__ctj_fmt(n.op_index({a: [3], i: 0}))), $t81), __ctj_write(__ctj_fmt([32, 0])), $t82), __ctj_write(__ctj_fmt(n.op_index({a: [5], i: 0}))), $t83), __ctj_write("\n"), $t84);
-  ($t85 = (__ctj_write(__ctj_fmt(n.size__c())), std_cout), __ctj_write("\n"), $t85);
+  ($t88 = ($t87 = ($t86 = ($t85 = ($t84 = ($t83 = ($t82 = (__ctj_write(__ctj_fmt(($t81 = n.op_index({a: [1], i: 0}), $t81.a[$t81.i]))), std_cout), __ctj_write(__ctj_fmt([32, 0])), $t82), __ctj_write(__ctj_fmt(($t80 = n.op_index({a: [2], i: 0}), $t80.a[$t80.i]))), $t83), __ctj_write(__ctj_fmt([32, 0])), $t84), __ctj_write(__ctj_fmt(($t79 = n.op_index({a: [3], i: 0}), $t79.a[$t79.i]))), $t85), __ctj_write(__ctj_fmt([32, 0])), $t86), __ctj_write(__ctj_fmt(($t78 = n.op_index({a: [5], i: 0}), $t78.a[$t78.i]))), $t87), __ctj_write("\n"), $t88);
+  ($t89 = (__ctj_write(__ctj_fmt(n.size__c())), std_cout), __ctj_write("\n"), $t89);
   return 0;
 }
 function std_min_long(__a, __b) {
@@ -7310,8 +7367,7 @@ function std_declval_std_Rb_tree_iterator_std_pair_int_int() {
   return std_declval_protector_std_Rb_tree_iterator_std_pair_int_int.__delegate();
 }
 function std_declval_bool() {
-  let $t86;
-  return (($t86 = std_declval_protector_bool.__delegate(), $t86.a[$t86.i]) != null);
+  return std_declval_protector_bool.__delegate();
 }
 function std_declval_std_Rb_tree_node_base_P() {
   return std_declval_protector_std_Rb_tree_node_base_P.__delegate();
@@ -7350,7 +7406,7 @@ function std_forward_1_std_tuple(__t) {
   return __t;
 }
 function std_forward_1_std_Rb_tree_node_std_pair_int_int_P(__t) {
-  return __t.a[__t.i];
+  return __t;
 }
 function std_forward_int_R(__t) {
   return __t;

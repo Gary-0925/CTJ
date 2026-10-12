@@ -1,5 +1,62 @@
 namespace CTJ {
 
+// The bucket counts libstdc++'s unordered containers grow through, from
+// libstdc++-v3/src/shared/hashtable-aux.cc (the 64-bit table).
+const PRIME_BUCKETS: number[] = [
+  2, 3, 5, 7, 11, 13,
+  17, 19, 23, 29, 31, 37,
+  41, 43, 47, 53, 59, 61,
+  67, 71, 73, 79, 83, 89,
+  97, 103, 109, 113, 127, 137,
+  139, 149, 157, 167, 179, 193,
+  199, 211, 227, 241, 257, 277,
+  293, 313, 337, 359, 383, 409,
+  439, 467, 503, 541, 577, 619,
+  661, 709, 761, 823, 887, 953,
+  1031, 1109, 1193, 1289, 1381, 1493,
+  1613, 1741, 1879, 2029, 2179, 2357,
+  2549, 2753, 2971, 3209, 3469, 3739,
+  4027, 4349, 4703, 5087, 5503, 5953,
+  6427, 6949, 7517, 8123, 8783, 9497,
+  10273, 11113, 12011, 12983, 14033, 15173,
+  16411, 17749, 19183, 20753, 22447, 24281,
+  26267, 28411, 30727, 33223, 35933, 38873,
+  42043, 45481, 49201, 53201, 57557, 62233,
+  67307, 72817, 78779, 85229, 92203, 99733,
+  107897, 116731, 126271, 136607, 147793, 159871,
+  172933, 187091, 202409, 218971, 236897, 256279,
+  277261, 299951, 324503, 351061, 379787, 410857,
+  444487, 480881, 520241, 562841, 608903, 658753,
+  712697, 771049, 834181, 902483, 976369, 1056323,
+  1142821, 1236397, 1337629, 1447153, 1565659, 1693859,
+  1832561, 1982627, 2144977, 2320627, 2510653, 2716249,
+  2938679, 3179303, 3439651, 3721303, 4026031, 4355707,
+  4712381, 5098259, 5515729, 5967347, 6456007, 6984629,
+  7556579, 8175383, 8844859, 9569143, 10352717, 11200489,
+  12117689, 13109983, 14183539, 15345007, 16601593, 17961079,
+  19431899, 21023161, 22744717, 24607243, 26622317, 28802401,
+  31160981, 33712729, 36473443, 39460231, 42691603, 46187573,
+  49969847, 54061849, 58488943, 63278561, 68460391, 74066549,
+  80131819, 86693767, 93793069, 101473717, 109783337, 118773397,
+  128499677, 139022417, 150406843, 162723577, 176048909, 190465427,
+  206062531, 222936881, 241193053, 260944219, 282312799, 305431229,
+  330442829, 357502601, 386778277, 418451333, 452718089, 489790921,
+  529899637, 573292817, 620239453, 671030513, 725980837, 785430967,
+  849749479, 919334987, 994618837, 1076067617, 1164186217, 1259520799,
+  1362662261, 1474249943, 1594975441, 1725587117, 1866894511, 2019773507,
+  2185171673, 2364114217, 2557710269, 2767159799, 2993761039, 3238918481,
+  3504151727, 3791104843, 4101556399, 4294967291, 6442450933, 8589934583,
+  12884901857, 17179869143, 25769803693, 34359738337, 51539607367, 68719476731,
+  103079215087, 137438953447, 206158430123, 274877906899, 412316860387, 549755813881,
+  824633720731, 1099511627689, 1649267441579, 2199023255531, 3298534883309, 4398046511093,
+  6597069766607, 8796093022151, 13194139533241, 17592186044399, 26388279066581, 35184372088777,
+  52776558133177, 70368744177643, 105553116266399, 140737488355213, 211106232532861, 281474976710597,
+  562949953421231, 1125899906842597, 2251799813685119, 4503599627370449, 9007199254740881, 18014398509481951,
+  36028797018963913, 72057594037927931, 144115188075855859, 288230376151711717, 576460752303423433, 1152921504606846883,
+  2305843009213693951, 4611686018427387847, 9223372036854775783, 18446744073709551557,
+];
+
+
 const OP_METHOD: Record<string, string> = {
   "+": "op_add", "-": "op_sub", "*": "op_mul", "/": "op_div", "%": "op_mod",
   "^": "op_xor", "&": "op_and", "|": "op_or", "~": "op_inv", "!": "op_not",
@@ -16,7 +73,11 @@ const OP_METHOD: Record<string, string> = {
 export function methodJsName(fn: FuncInfo): string {
   if (fn.short === "#ctor") return "constructor";
   if (fn.short === "#dtor") return "__dtor";
-  const suf = fn.isConst && !fn.isStatic ? "__c" : "";
+  // "f(T&)" and "f(T&&)" take the same argument shape at run time, so a name
+  // of their own keeps the rvalue one from being taken for the other
+  // ("merge(list&)" delegates to "merge(list&&)", "set(int&)" to "set(int&&)").
+  const rv = fn.decl.params.some(p => p.type && p.type.ref === "&&") ? "__rv" : "";
+  const suf = (fn.isConst && !fn.isStatic ? "__c" : "") + rv;
   if (fn.short.startsWith("#conv:")) return "op_conv_" + safeJsName(fn.short.slice(6)) + suf;
   if (fn.short.startsWith("operator")) {
     const op = fn.short.slice(8);
@@ -90,7 +151,7 @@ class JsGen {
   streamHelper(): string {
     return [
       `var __ctj_obuf = "";`,
-      `function __ctj_fmt(v) { for (var n = 0; n < 4 && v && typeof v === "object" && v.a !== undefined && !Array.isArray(v) && !Array.isArray(v.a); n++) v = v.a[v.i]; if (v == null) return "0"; if (typeof v === "boolean") return v ? "1" : "0"; if (typeof v === "number") return String(v); if (typeof v === "string") return v; var a = v && v.a, i = v && v.i; if (Array.isArray(v)) { a = v; i = 0; } if (Array.isArray(a)) { var s = ""; for (var k = i | 0; k < a.length && a[k]; k++) s += String.fromCharCode(a[k]); return s; } return String(v); }`,
+      `function __ctj_fmt(v) { for (var n = 0; n < 4 && v && typeof v === "object" && v.a !== undefined; n++) { var nv = v.a[v.i]; if (nv !== null && typeof nv === "object") { v = nv; continue; } if (!Array.isArray(v.a)) { v = nv; continue; } break; } if (v != null && typeof v === "object" && v._M_dataplus !== undefined) { v = v._M_dataplus._M_p; if (v == null) return ""; } if (v == null) return "0"; if (typeof v === "boolean") return v ? "1" : "0"; if (typeof v === "number") return String(v); if (typeof v === "string") return v; var a = v && v.a, i = v && v.i; if (Array.isArray(v)) { a = v; i = 0; } if (Array.isArray(a)) { var s = ""; for (var k = i | 0; k < a.length && a[k]; k++) s += String.fromCharCode(a[k]); return s; } return String(v); }`,
       `function __ctj_write(s) { s = String(s); if (typeof process !== "undefined" && process.stdout && process.stdout.write) { process.stdout.write(s); return; } __ctj_obuf += s; for (;;) { var n = __ctj_obuf.indexOf("\\n"); if (n < 0) break; console.log(__ctj_obuf.slice(0, n)); __ctj_obuf = __ctj_obuf.slice(n + 1); } }`,
       `function __ctj_flush() { if (__ctj_obuf) { console.log(__ctj_obuf); __ctj_obuf = ""; } }`,
     ].join("\n");
@@ -185,6 +246,10 @@ class JsGen {
       const ctors = (c.methods.get("#ctor") || []).filter(f => f.referenced);
       const inherited = this.inheritedCtors(c);
       if (ctors.length || inherited.length || c.fields.size || c.bases.length) this.emitCtor(c, ctors, inherited);
+      // A class with nothing to initialize is still a base of others, and a
+      // base constructor runs "Base.prototype.__init_Base.call(this)": the
+      // entry point has to exist even when the class itself needs no fields.
+      else this.line(`__init_${cn}(...$a) { }`);
       this.emitDtor(c);
       for (const [key, fns] of c.methods) {
         if (key === "#ctor") continue;
@@ -219,11 +284,16 @@ class JsGen {
     });
     for (let i = 1; i < c.bases.length; i++) {
       const b = (this.cx.classes.get(c.bases[i].fq) as ClsInfo).mangled as string;
-      this.line(`for (const $k of Object.getOwnPropertyNames(${b}.prototype)) {`);
-      this.line(`  if ($k !== "constructor" && !($k in ${cn}.prototype)) ${cn}.prototype[$k] = ${b}.prototype[$k];`);
-      this.line(`}`);
-      this.line(`for (const $k of Object.getOwnPropertyNames(${b})) {`);
-      this.line(`  if ($k !== "prototype" && $k !== "name" && $k !== "length" && !($k in ${cn})) ${cn}[$k] = ${b}[$k];`);
+      // A base brings its own bases along: the methods of "std::hash<int>",
+      // reached through an empty-base helper, answer "op_call" on the object
+      // just as its own would.
+      this.line(`for (let $b = ${b}; $b && $b.prototype; $b = Object.getPrototypeOf($b)) {`);
+      this.line(`  for (const $k of Object.getOwnPropertyNames($b.prototype)) {`);
+      this.line(`    if ($k !== "constructor" && !($k in ${cn}.prototype)) ${cn}.prototype[$k] = $b.prototype[$k];`);
+      this.line(`  }`);
+      this.line(`  for (const $k of Object.getOwnPropertyNames($b)) {`);
+      this.line(`    if ($k !== "prototype" && $k !== "name" && $k !== "length" && !($k in ${cn})) ${cn}[$k] = $b[$k];`);
+      this.line(`  }`);
       this.line(`}`);
     }
   }
@@ -271,6 +341,36 @@ class JsGen {
       // short name.  Fall back to ctorBase which resolves the alias.
       if (!hit && !inh) {
         hit = list.find(x => this.cx.ctorBase(c, x.name) === b.fq) || null;
+      }
+      // A delegating constructor ("_Hashtable(...) : _Hashtable(args)")
+      // initializes the base through the constructor it delegates to, so that
+      // constructor's own base initializer says what the base receives.
+      if (!hit && !inh) {
+        const deleg = list.find(x => this.cx.isDelegatingCtorInit(c, x));
+        if (deleg) {
+          const target = this.cx.getAnn(deleg).call as FuncInfo | undefined;
+          const tinit = target ? target.decl.ctorInit.find(x => this.cx.ctorBase(c, x.name) === b.fq) : undefined;
+          if (target && tinit) {
+            const ta = this.cx.getAnn(tinit);
+            const bfn = ta.call as FuncInfo | undefined;
+            const bps = bfn ? this.cx.funcParams(bfn) : [];
+            const tps = this.cx.funcParams(target);
+            const aa = tinit.args.map((x, i) => {
+              // A base argument that names one of the delegated-to
+              // constructor's parameters is what the delegating call passes
+              // there; anything else (a default-constructed functor, say) is
+              // emitted as written.
+              let src: Expr = x;
+              if (x.kind === "id" && (x as IdExpr).parts.length === 1) {
+                const j = tps.findIndex(q => q.name === (x as IdExpr).parts[0].n);
+                if (j >= 0 && j < deleg.args.length) src = deleg.args[j];
+              }
+              const p = bps[i] ? bps[i].type : null;
+              return p ? this.argFor(p, src, null) : this.ex(src);
+            });
+            return `...[${aa.join(", ")}]`;
+          }
+        }
       }
       if (inh && b.fq === inh) {
         const ps = this.cx.funcParams(fn);
@@ -342,6 +442,14 @@ class JsGen {
     });
   }
 
+  // An argument that is a reference arrives as an {a, i} box around the object,
+  // so a guard that names a class has to look through it: otherwise
+  // "basic_string(const _CharT*)" matches the box of a string and copies the
+  // object itself as if it were a character array.
+  peel(v: string): string {
+    return `((${v} && ${v}.a !== undefined && ${v}.i !== undefined && !Array.isArray(${v}.a)) ? ${v}.a[${v}.i] : ${v})`;
+  }
+
   matchCond(fn: FuncInfo, _i: number, sib?: Map<string, string[]>): string {
     const ps = this.cx.funcParams(fn);
     const named = ps.filter(p => !p.variadic);
@@ -349,12 +457,16 @@ class JsGen {
     const parts = [`$a.length >= ${min}`, `$a.length <= ${named.length}`];
     named.forEach((p, i) => {
       const v = `$a[${i}]`;
+      // A parameter with a default argument is absent from the call, so the
+      // guard has to let "std::string(__s)" reach the two-parameter
+      // constructor "basic_string(const _CharT*, const _Alloc& = _Alloc())".
+      const wrap = (x: string): string => p.def ? `($a.length <= ${i} || ${x})` : x;
       const chk = this.typeCheck(v, p.type);
-      if (chk) parts.push(chk);
+      if (chk) parts.push(wrap(chk));
       // A pointer or reference arrives as an {a, i} pair, which "typeof" cannot
       // tell apart from the object of a sibling overload.
       if (sib && (p.type.ptr > 0 || p.type.ref) && !p.type.isFunc) {
-        for (const c of sib.get(v) || []) parts.push(`!(${v} instanceof ${c})`);
+        for (const c of sib.get(v) || []) parts.push(wrap(`!(${this.peel(v)} instanceof ${c})`));
       }
     });
     return parts.join(" && ");
@@ -387,7 +499,18 @@ class JsGen {
     if (t.isBox()) {
       if (t.ref && !t.ptr && !t.dims.length && !t.isFunc) {
         const c = this.cx.classes.get(this.cx.stripAll(t));
-        if (c) return `(${v} !== null && typeof ${v} === "object" && ${v}.a[${v}.i] instanceof ${c.mangled})`;
+        // The box is pierced only when it really is one: an initializer list
+        // reaches a reference parameter as the plain array of its elements.
+        if (c) return `(${v} !== null && typeof ${v} === "object" && !Array.isArray(${v}) && ${v}.a !== undefined && ${v}.i !== undefined && ${v}.a[${v}.i] instanceof ${c.mangled})`;
+      }
+      // A string parameter is spelled either as a pointer to a character
+      // ("const _CharT*") or as a reference to a string; a box that holds a
+      // class object is the second one, and taking it for the first makes the
+      // constructor copy the object as if it were an array of characters.
+      const n0 = coreName(t);
+      if (t.ptr > 0 && !t.ref && (n0 === "char" || n0 === "signed char" || n0 === "unsigned char" ||
+        n0 === "wchar_t" || n0 === "char16_t" || n0 === "char32_t")) {
+        return `(${v} === null || (typeof ${v} === "object" && (${v}.a === undefined || typeof ${v}.a[${v}.i] !== "object")))`;
       }
       if (t.ptr > 0 || t.ref) return `(${v} === null || typeof ${v} === "object")`;
       return "";
@@ -397,7 +520,13 @@ class JsGen {
     if (n === "bool") return `typeof ${v} === "boolean"`;
     if (isNumericName(n) || this.cx.enums.has(this.cx.stripAll(t))) return `(typeof ${v} === "number" || typeof ${v} === "boolean")`;
     const fq = this.cx.stripAll(t);
-    if (this.cx.classes.has(fq)) return `${v} instanceof ${(this.cx.classes.get(fq) as ClsInfo).mangled}`;
+    if (this.cx.classes.has(fq)) {
+      const c = this.cx.classes.get(fq) as ClsInfo;
+      // "std::initializer_list<T>" is the array its elements are made of, and
+      // that array is what is passed, so the guard has to accept it.
+      if ((c.fromTmpl || "").split("::").pop() === "initializer_list") return `Array.isArray(${v})`;
+      return `${v} instanceof ${c.mangled}`;
+    }
     return "";
   }
 
@@ -465,9 +594,9 @@ class JsGen {
       const hit = !inh ? fn.decl.ctorInit.find(x => last(x.name).n === name) : null;
       const fname = safeJsName(name);
       if (!hit && copyDefault) {
-        this.line(`this.${fname} = ${copySrc}.${fname};`);
+        this.fieldAssign(name, ft, `${copySrc}.${fname}`);
       } else {
-        this.line(`this.${fname} = ${this.fieldInit(c, ft, fd, hit || null)};`);
+        this.fieldAssign(name, ft, this.fieldInit(c, ft, fd, hit || null));
       }
     }
     if (!inh) {
@@ -485,7 +614,7 @@ class JsGen {
     }
     for (const [name, fd] of c.fields) {
       if (c.fieldStatic.has(name)) continue;
-      this.line(`this.${safeJsName(name)} = ${this.fieldInit(c, this.cx.fieldType(c, name), fd, null)};`);
+      this.fieldAssign(name, this.cx.fieldType(c, name), this.fieldInit(c, this.cx.fieldType(c, name), fd, null));
     }
   }
 
@@ -524,9 +653,19 @@ class JsGen {
 
   ctorExpr(cn: string, fn: FuncInfo, args: Expr[], convs: ({ kind: string; fn: FuncInfo } | null)[], _t: CppType): string {
     const ps = this.cx.funcParams(fn);
-    if (ps.length === 1 && this.isInitListParam(ps[0].type) && args.length === 1 && args[0].kind === "initlist") {
-      const items = (args[0] as InitListExpr).items.map(x => this.ex(x));
+    const ilParam = ps.length && !ps[0].variadic && this.isInitListParam(ps[0].type) ? ps[0].type : null;
+    if (ilParam && args.length === 1 && args[0].kind === "initlist") {
+      const et = ilParam.segs[0].a[0];
+      const items = (args[0] as InitListExpr).items.map(x => this.initListItem(et, x));
       return `new ${cn}([${items.join(", ")}])`;
+    }
+    // "vector<int> v{a, b, c}" gives the constructor one initializer_list made
+    // of the elements, not one argument per element.
+    if (ilParam && args.length) {
+      const et = ilParam.segs[0].a[0];
+      const aa = [`[${args.map(x => this.initListItem(et, x)).join(", ")}]`];
+      for (let i = 1; i < ps.length && !ps[i].variadic; i++) aa.push(ps[i].def ? this.defArg(ps[i]) : "undefined");
+      return `new ${cn}(${aa.join(", ")})`;
     }
     const aa = args.map((x, i) => {
       const pt = i < ps.length && !ps[i].variadic ? ps[i].type : null;
@@ -545,26 +684,42 @@ class JsGen {
     return t.segs.length === 1 && t.segs[0].a.length === 1 && !t.isBox() && !t.dims.length;
   }
 
+  // One element of an initializer_list argument: a braced sub-list builds the
+  // element itself, with the constructor the annotator recorded on it.
+  initListItem(et: CppType, x: Expr): string {
+    const ann = this.cx.getAnn(x);
+    const fq = !et.isBox() && !et.dims.length && !et.isFunc ? this.cx.stripAll(et) : "";
+    const cls = fq ? this.cx.classes.get(fq) : null;
+    if (x.kind !== "initlist") {
+      // An element of another type builds the element here, so that the array
+      // the list is holds elements of the element type.
+      if (cls && ann.conv) return this.argFor(et, x, ann.conv as { kind: string; fn: FuncInfo });
+      return this.ex(x);
+    }
+    if (!cls || !ann.call) return this.ex(x);
+    return this.ctorExpr(cls.mangled, ann.call as FuncInfo, (x as InitListExpr).items, ann.convs, et);
+  }
+
   emitDtor(c: ClsInfo): void {
     const fns = c.methods.get("#dtor") || [];
     const fn = fns.find(f => f.referenced);
-    this.line(`__dtor() {`);
-    this.ind += "  ";
-    if (fn) {
-      this.fnStack.push(fn);
-      this.bodyStmts(fn.decl.body || []);
-      this.fnStack.pop();
-    }
-    for (const b of c.bases) {
-      const bc = this.cx.classes.get(b.fq);
-      if (bc && bc.referenced) this.line(`${bc.mangled}.prototype.__dtor.call(this);`);
-    }
-    this.ind = this.ind.slice(0, -2);
-    this.line(`}`);
+    // A destructor body that reaches a member through a reference needs a
+    // temporary of its own, which the declarations have to follow.
+    this.withTmpDecl(`__dtor() {`, () => {
+      if (fn) {
+        this.fnStack.push(fn);
+        this.bodyStmts(fn.decl.body || []);
+        this.fnStack.pop();
+      }
+      for (const b of c.bases) {
+        const bc = this.cx.classes.get(b.fq);
+        if (bc && bc.referenced) this.line(`${bc.mangled}.prototype.__dtor.call(this);`);
+      }
+    });
   }
 
   emitMethod(c: ClsInfo, fns: FuncInfo[]): void {
-    const use = fns.filter(f => f.referenced && ((f.decl.body || []).length || f.decl.flags.includes("pure") || !!ioRuntimeKind(f)));
+    const use = fns.filter(f => f.referenced && ((f.decl.body || []).length || f.decl.flags.includes("pure") || !!ioRuntimeKind(f) || !!this.listNodeStub(f) || !!this.hashPolicyStub(f) || !!this.hashBytesStub(f)));
     if (!use.length) return;
     const groups = new Map<string, FuncInfo[]>();
     for (const f of use) {
@@ -582,6 +737,21 @@ class JsGen {
     const io = ioRuntimeKind(use[0]);
     if (io) {
       this.line(`${pre}${m}(...$a) { ${this.ioStubBody(io, true)} }`);
+      return;
+    }
+    const list = this.listNodeStub(use[0]);
+    if (list !== null) {
+      this.line(`${pre}${m}(...$a) { ${list} }`);
+      return;
+    }
+    const hp = this.hashPolicyStub(use[0]);
+    if (hp !== null) {
+      this.line(`${pre}${m}(...$a) { ${hp} }`);
+      return;
+    }
+    const hb = this.hashBytesStub(use[0]);
+    if (hb !== null) {
+      this.line(`${pre}${m}(...$a) { ${hb} }`);
       return;
     }
     if (use.length === 1) {
@@ -682,7 +852,8 @@ class JsGen {
     this.line(`  return s;`);
     this.line(`}`);
     this.line(`function _ctj_fmt(v) {`);
-    this.line(`  for (let n = 0; n < 4 && v && typeof v === "object" && v.a !== undefined && !Array.isArray(v) && !Array.isArray(v.a); n++) v = v.a[v.i];`);
+    this.line(`  for (let n = 0; n < 4 && v && typeof v === "object" && v.a !== undefined; n++) { var nv = v.a[v.i]; if (nv !== null && typeof nv === "object") { v = nv; continue; } if (!Array.isArray(v.a)) { v = nv; continue; } break; }`);
+    this.line(`  if (v !== null && typeof v === "object" && v._M_dataplus !== undefined) v = v._M_dataplus._M_p;`);
     this.line(`  if (v === null || v === undefined) return "0";`);
     this.line(`  if (typeof v === "boolean") return v ? "1" : "0";`);
     this.line(`  if (typeof v === "number") return String(v);`);
@@ -731,6 +902,88 @@ class JsGen {
     return null;
   }
 
+  // libstdc++ defines the node operations of an intrusive list in
+  // src/c++98/list.cc, which is not a header: without them a list cannot
+  // insert, erase, splice or reverse anything. The bodies are the ones from
+  // that file, written against the fat pointers the generator uses.
+  listNodeStub(f: FuncInfo): string | null {
+    if (!f.isMethod || !f.fq.endsWith("_List_node_base::" + f.short)) return null;
+    const ad = `const $ad = (o) => (o.ctj_a ? {a: o.ctj_a, i: o.ctj_i} : {a: (o.ctj_a = []), i: (o.ctj_i = 0)});`;
+    switch (f.short) {
+      case "_M_hook":
+        // __position->_M_prev->_M_next = this; __position->_M_prev = this;
+        return [
+          ad + `const $me = $ad(this), $pos = $a[0].a[$a[0].i], $prev = $pos._M_prev;`,
+          `this._M_next = $a[0];`,
+          `this._M_prev = $prev;`,
+          `$prev.a[$prev.i]._M_next = $me;`,
+          `$pos._M_prev = $me;`,
+        ].join("");
+      case "_M_unhook":
+        // __prev_node->_M_next = __next_node; __next_node->_M_prev = __prev_node;
+        return [
+          `const $next = this._M_next, $prev = this._M_prev;`,
+          `$prev.a[$prev.i]._M_next = $next;`,
+          `$next.a[$next.i]._M_prev = $prev;`,
+        ].join("");
+      case "_M_transfer":
+        // The members of "this" are moved in front of __last from the range
+        // that starts at __first, by rewiring the four nodes around them.
+        return [
+          ad,
+          `if ($a[1].a[$a[1].i] === this) return;`,
+          `const $me = $ad(this), $fp = $a[0], $lp = $a[1];`,
+          `$lp.a[$lp.i]._M_prev.a[$lp.a[$lp.i]._M_prev.i]._M_next = $me;`,
+          `$fp.a[$fp.i]._M_prev.a[$fp.a[$fp.i]._M_prev.i]._M_next = $lp;`,
+          `this._M_prev.a[this._M_prev.i]._M_next = $fp;`,
+          `const $tmp = this._M_prev;`,
+          `this._M_prev = $lp.a[$lp.i]._M_prev;`,
+          `$lp.a[$lp.i]._M_prev = $fp.a[$fp.i]._M_prev;`,
+          `$fp.a[$fp.i]._M_prev = $tmp;`,
+        ].join("");
+      case "_M_reverse":
+        // Every node swaps its two links; the walk follows _M_prev, which is
+        // the next node of the reversed list.
+        return [
+          ad + `let $p = $ad(this);`,
+          `do {`,
+          `const $t = $p.a[$p.i]._M_next;`,
+          `$p.a[$p.i]._M_next = $p.a[$p.i]._M_prev;`,
+          `$p.a[$p.i]._M_prev = $t;`,
+          `$p = $p.a[$p.i]._M_prev;`,
+          `} while ($p.a[$p.i] !== this);`,
+        ].join("");
+      case "swap":
+        // The nodes that end up next to a sentinel have to be pointed back at
+        // it: after the links are exchanged, the first and last node of each
+        // list still name the other sentinel (LWG 953).
+        return [
+          ad,
+          `const $x = $a[0].a[$a[0].i], $y = $a[1].a[$a[1].i];`,
+          `if ($x === $y) return;`,
+          `const $xa = $ad($x), $ya = $ad($y);`,
+          `const $xe = $x._M_next && $x._M_next.a === $xa.a && $x._M_next.i === $xa.i;`,
+          `const $ye = $y._M_next && $y._M_next.a === $ya.a && $y._M_next.i === $ya.i;`,
+          `if (!$xe && !$ye) {`,
+          `let $t = $x._M_next; $x._M_next = $y._M_next; $y._M_next = $t;`,
+          `$t = $x._M_prev; $x._M_prev = $y._M_prev; $y._M_prev = $t;`,
+          `$x._M_next.a[$x._M_next.i]._M_prev = $xa; $x._M_prev.a[$x._M_prev.i]._M_next = $xa;`,
+          `$y._M_next.a[$y._M_next.i]._M_prev = $ya; $y._M_prev.a[$y._M_prev.i]._M_next = $ya;`,
+          `} else if (!$xe) {`,
+          `$y._M_next = $x._M_next; $y._M_prev = $x._M_prev;`,
+          `$y._M_next.a[$y._M_next.i]._M_prev = $ya; $y._M_prev.a[$y._M_prev.i]._M_next = $ya;`,
+          `$x._M_next = $xa; $x._M_prev = $xa;`,
+          `} else if (!$ye) {`,
+          `$x._M_next = $y._M_next; $x._M_prev = $y._M_prev;`,
+          `$x._M_next.a[$x._M_next.i]._M_prev = $xa; $x._M_prev.a[$x._M_prev.i]._M_next = $xa;`,
+          `$y._M_next = $ya; $y._M_prev = $ya;`,
+          `}`,
+        ].join("");
+      default:
+        return null;
+    }
+  }
+
   // libstdc++ defines these in src/c++98/tree.cc, which is not a header.
   rbTreeStub(f: FuncInfo): string | null {
     if (f.fq === "std::_Rb_tree_insert_and_rebalance") {
@@ -773,13 +1026,104 @@ class JsGen {
     return null;
   }
 
+  // libstdc++ defines these in src/c++11/hashtable_c++0x.cc, which is not a
+  // header: the bucket-count policy the unordered containers rehash through.
+  hashPolicyStub(f: FuncInfo): string | null {
+    if (!f.isMethod || !f.fq.endsWith("_Prime_rehash_policy::" + f.short)) return null;
+    if (f.short === "_M_next_bkt") {
+      // Prime no smaller than n, with the next resize threshold cached on the
+      // policy: the first entries are the fast-path table of the original.
+      return [
+        "const $fast = [2,2,2,3,5,5,7,7,11,11,11,11,13,13];",
+        "const $n = $a[0];",
+        "if ($n < $fast.length) { if ($n === 0) return 1;",
+        "  this._M_next_resize = Math.floor($fast[$n] * this._M_max_load_factor); return $fast[$n]; }",
+        "const $P = PRIME_BUCKETS, $last = $P.length - 1;",
+        "let $i = 6; while ($i < $last && $P[$i] < $n) $i++;",
+        "if ($i === $last) { this._M_next_resize = 18446744073709551615; return $P[$i]; }",
+        "this._M_next_resize = Math.floor($P[$i] * this._M_max_load_factor); return $P[$i];",
+      ].join(" ");
+    }
+    if (f.short === "_M_need_rehash") {
+      // "pair<bool, size_type>" comes back boxed, as any class value does.
+      const cls = this.cx.classes.get(this.cx.stripAll(this.cx.funcRet(f)));
+      const pn = cls ? (cls.mangled as string) : "";
+      const mk = pn
+        ? `const $mk = (b, s) => { const o = Object.create(${pn}.prototype); o.first = b; o.second = s; return {a: [o], i: 0}; };`
+        : "const $mk = (b, s) => ({a: [{first: b, second: s}], i: 0});";
+      return [
+        "const $nbkt = $a[0], $nelt = $a[1], $nins = $a[2];",
+        mk,
+        "if ($nelt + $nins > this._M_next_resize) {",
+        "  const $mb = Math.max($nelt + $nins, this._M_next_resize ? 0 : 11) / this._M_max_load_factor;",
+        "  if ($mb >= $nbkt) return $mk(true, this._M_next_bkt__c(Math.max(Math.floor($mb) + 1, $nbkt * 2)));",
+        "  this._M_next_resize = Math.floor($nbkt * this._M_max_load_factor);",
+        "}",
+        "return $mk(false, 0);",
+      ].join(" ");
+    }
+    return null;
+  }
+
+  // libstdc++ defines these in libsupc++/hash_bytes.cc, which is not a header:
+  // they are the byte hashes the string and pointer specializations of
+  // "std::hash" mix their data with.  "size_t" is the target language's number,
+  // so a hash is exact only below 2^53; the 64-bit variant of the original is
+  // still the one carried over, in the integers of the target language.
+  hashBytesStub(f: FuncInfo): string | null {
+    if (f.isMethod) return null;
+    if (f.fq === "std::_Hash_bytes") {
+      return [
+        "const $M = (1n << 64n) - 1n;",
+        "const $mul = (0xc6a4a793n << 32n) + 0x5bd1e995n;",
+        "const $mix = (v) => (v ^ (v >> 47n)) & $M;",
+        "const $ptr = $a[0];",
+        "if ($ptr === null || $ptr === undefined) return 0;",
+        "const $arr = Array.isArray($ptr) ? $ptr : $ptr.a, $base = Array.isArray($ptr) ? 0 : $ptr.i;",
+        "const $byte = (k) => BigInt($arr[$base + k] & 255);",
+        "const $len = $a[1] === undefined ? 0 : $a[1];",
+        "const $seed = $a[2] === undefined ? 0xc70f6907 : $a[2];",
+        "const $aligned = $len & ~7;",
+        "let $h = (BigInt($seed) ^ (BigInt($len) * $mul)) & $M;",
+        "for (let $p = 0; $p < $aligned; $p += 8) {",
+        "  let $w = 0n; for (let $k = 0; $k < 8; $k++) $w |= $byte($p + $k) << BigInt(8 * $k);",
+        "  $w = ($mix(($w * $mul) & $M) * $mul) & $M;",
+        "  $h = (($h ^ $w) * $mul) & $M;",
+        "}",
+        "const $rem = $len & 7;",
+        "if ($rem) {",
+        "  let $w = 0n; for (let $k = $rem - 1; $k >= 0; $k--) $w = (($w << 8n) + $byte($aligned + $k)) & $M;",
+        "  $h = (($h ^ $w) * $mul) & $M;",
+        "}",
+        "$h = ($mix($h) * $mul) & $M;",
+        "return Number($mix($h));",
+      ].join(" ");
+    }
+    if (f.fq === "std::_Fnv_hash_bytes") {
+      return [
+        "const $M = (1n << 64n) - 1n;",
+        "const $ptr = $a[0];",
+        "if ($ptr === null || $ptr === undefined) return 0;",
+        "const $arr = Array.isArray($ptr) ? $ptr : $ptr.a, $base = Array.isArray($ptr) ? 0 : $ptr.i;",
+        "const $len = $a[1] === undefined ? 0 : $a[1];",
+        "let $h = BigInt($a[2] === undefined ? 0 : $a[2]) & $M;",
+        "for (let $k = 0; $k < $len; $k++) {",
+        "  const $c = $arr[$base + $k] & 255;",
+        "  $h = ((($h ^ BigInt($c < 128 ? $c : $c - 256)) & $M) * 1099511628211n) & $M;",
+        "}",
+        "return Number($h);",
+      ].join(" ");
+    }
+    return null;
+  }
+
   emitFunc(f: FuncInfo): void {
     const io = ioRuntimeKind(f);
     if (io) {
       this.line(`function ${f.mangled}(...$a) { ${this.ioStubBody(io, false)} }`);
       return;
     }    if (!(f.decl.body || []).length) {
-      const stub = this.allocStub(f) ?? this.rbTreeStub(f);
+      const stub = this.allocStub(f) ?? this.rbTreeStub(f) ?? this.hashBytesStub(f);
       if (stub !== null) this.line(`function ${f.mangled}(...$a) { ${stub} }`);
       else this.line(`function ${f.mangled}(...$a) { throw new Error("unresolved external: ${f.fq}"); }`);
       return;
@@ -932,7 +1276,7 @@ class JsGen {
           });
           return;
         }
-        this.block(`if (${this.ex(s.cond)})`, () => this.stmt(s.then));
+        this.block(`if (${this.exVal(s.cond)})`, () => this.stmt(s.then));
         if (s.els) this.block(`else`, () => this.stmt(s.els as Stmt));
         return;
       }
@@ -946,7 +1290,7 @@ class JsGen {
           });
           return;
         }
-        this.block(`switch (${this.ex(s.cond)})`, () => this.stmt(s.body));
+        this.block(`switch (${this.exVal(s.cond)})`, () => this.stmt(s.body));
         return;
       case "case":
         this.line(s.value ? `case ${this.constStr(s.value)}:` : `default:`);
@@ -964,14 +1308,14 @@ class JsGen {
           });
           return;
         }
-        this.block(`while (${this.ex(s.cond)})`, () => this.stmt(s.body));
+        this.block(`while (${this.exVal(s.cond)})`, () => this.stmt(s.body));
         return;
       case "do":
         this.line(`do {`);
         this.ind += "  ";
         this.stmt(s.body);
         this.ind = this.ind.slice(0, -2);
-        this.line(`} while (${this.ex(s.cond)});`);
+        this.line(`} while (${this.exVal(s.cond)});`);
         return;
       case "for": {
         if (s.init && s.init.kind === "decl") {
@@ -985,12 +1329,12 @@ class JsGen {
             this.varDeclFor(d, v, t);
             this.out = save;
             const head = lines.length === 1 ? lines[0].trim().replace(/;$/, "") : `let ${v.mangled}`;
-            this.block(`for (${head}; ${s.cond ? this.ex(s.cond) : ""}; ${s.step ? this.ex(s.step) : ""})`, () => this.stmt(s.body));
+            this.block(`for (${head}; ${s.cond ? this.exVal(s.cond) : ""}; ${s.step ? this.ex(s.step) : ""})`, () => this.stmt(s.body));
             return;
           }
         }
         if (s.init) this.stmt(s.init);
-        this.block(`for (; ${s.cond ? this.ex(s.cond) : ""}; ${s.step ? this.ex(s.step) : ""})`, () => this.stmt(s.body));
+        this.block(`for (; ${s.cond ? this.exVal(s.cond) : ""}; ${s.step ? this.ex(s.step) : ""})`, () => this.stmt(s.body));
         return;
       }
       case "rangefor":
@@ -1116,9 +1460,12 @@ class JsGen {
     if (vd.init) {
       if (fcls && this.cx.classes.has(fcls)) {
         const cn = (this.cx.classes.get(fcls) as ClsInfo).mangled as string;
-        if (a.call) {
+        // "vector<int> v{1, 2, 3}" resolves the initializer-list constructor
+        // while annotating the list itself, not the declaration.
+        const ca = vd.init.kind === "initlist" ? this.cx.getAnn(vd.init) : a;
+        if (ca.call) {
           const items = vd.init.kind === "initlist" ? (vd.init as InitListExpr).items : [vd.init];
-          return this.ctorExpr(cn, a.call as FuncInfo, items, a.convs, t);
+          return this.ctorExpr(cn, ca.call as FuncInfo, items, ca.convs, t);
         }
       }
       if (t.dims.length && vd.init.kind === "initlist") {
@@ -1185,19 +1532,54 @@ class JsGen {
       });
       return;
     }
-    const info = this.cx.getAnn(s).range as { beginFn: FuncInfo; endFn: FuncInfo; neFn: FuncInfo; incFn: FuncInfo; starFn: FuncInfo };
+    const info = this.cx.getAnn(s).range as RangeInfo;
     const obj = this.complex(this.ex(s.range), s.range);
     const b = `$b${ri}`;
     const e = `$e${ri}`;
     const bm = methodJsName(info.beginFn);
     const em = methodJsName(info.endFn);
-    const nm = methodJsName(info.neFn);
-    const im = methodJsName(info.incFn);
-    const sm = methodJsName(info.starFn);
-    this.block(`for (let ${b} = ${obj}.${bm}(), ${e} = ${obj}.${em}(); ${b}.${nm}(${e}); ${b}.${im}())`, () => {
-      this.rangeVar(v, t, `${b}.${sm}()`, "", "");
+    const itRet = this.cx.funcRet(info.beginFn);
+    const itT = itRet.core();
+    const cond = this.rangeOp(info.ne, itT, b, e);
+    const step = this.rangeOp(info.inc, itT, b, "");
+    const deref = this.rangeOp(info.star, itT, b, "");
+    // "begin()" returns the iterator by value, so the loop variable is a copy:
+    // without it "++" would walk the container's own "_M_start".
+    const copyNew = (x: string): string => {
+      if (!info.copyCtor) return x;
+      const fq = !itRet.isBox() && !itRet.dims.length && !itRet.isFunc ? this.cx.stripAll(itRet) : "";
+      const c = fq ? this.cx.classes.get(fq) : null;
+      if (!c) return x;
+      return `new ${c.mangled}(${this.copyArg(x, itRet)})`;
+    };
+    this.block(`for (let ${b} = ${copyNew(`${obj}.${bm}()`)}, ${e} = ${copyNew(`${obj}.${em}()`)}; ${cond}; ${step})`, () => {
+      this.rangeVar(v, t, deref, "", "");
       this.stmt(s.body);
     });
+  }
+
+  // The body of an iterator operation, which may live in the class itself or
+  // be a free function ("operator!=" of __normal_iterator, for instance).
+  rangeOp(op: RangeOp, itT: CppType, a: string, b: string): string {
+    if (op.builtin === "ptr") {
+      if (op.op === "!=") return `!(${a} === ${b} || (${a} && ${b} && ${a}.a === ${b}.a && ${a}.i === ${b}.i))`;
+      if (op.op === "++") return `(${a} = {a: ${a}.a, i: ${a}.i + 1})`;
+      return a;
+    }
+    const fn = op.fn as FuncInfo;
+    const ps = this.cx.funcParams(fn);
+    if (op.isMember) {
+      return `${a}.${methodJsName(fn)}(${b ? this.boxFor(ps[0].type, itT, b) : ""})`;
+    }
+    const aa = (b ? [a, b] : [a]).map((x, i) => this.boxFor(ps[i] ? ps[i].type : null, itT, x));
+    return `${fn.mangled}(${aa.join(", ")})`;
+  }
+
+  // An argument a parameter reads through a box has to be put in one, the way
+  // argFor does for an ordinary call.
+  boxFor(p: CppType | null, a: CppType, s: string): string {
+    if (p && isBoxLike(p) && !isBoxLike(a)) return `{a: [${s}], i: 0}`;
+    return s;
   }
 
   rangeVar(v: VarInfo, t: CppType, elem: string, arr: string, idx: string): void {
@@ -1248,7 +1630,7 @@ class JsGen {
       case "unary": return this.exUnary(e);
       case "binary": return this.exBinary(e);
       case "assign": return this.exAssign(e);
-      case "cond": return `(${this.ex(e.c)} ? ${this.ex(e.a)} : ${this.ex(e.b)})`;
+      case "cond": return `(${this.exVal(e.c)} ? ${this.ex(e.a)} : ${this.ex(e.b)})`;
       case "new": return this.exNew(e);
       case "delete": return "void 0";
       case "cast": return this.exCast(e);
@@ -1322,6 +1704,23 @@ class JsGen {
   }
 
 
+  // The memory builtins copy elements rather than bytes, but the C++ count is a
+  // byte count ("sizeof(_Tp) * _Num" in the __copy_move specializations), so it
+  // is divided by the size of the element the destination points at. Character
+  // buffers and pointers to void keep the count they were given.
+  memCount(e: CallExpr, pi: number, ci: number): string {
+    const s = this.ex(e.args[ci]);
+    const pt = this.cx.getAnn(e.args[pi]).t as CppType | null;
+    if (!pt || pt.ptr === 0) return s;
+    const el = new CppType(pt.name);
+    el.segs = pt.segs;
+    el.ptr = pt.ptr - 1;
+    let sz = 0;
+    try { sz = constSizeof(this.cx, el, new Set()); } catch { sz = 0; }
+    if (sz <= 1) return s;
+    return `Math.trunc((${s}) / ${sz})`;
+  }
+
   // The string and memory builtins work on the same boxes every other pointer
   // uses: an array of bytes and an offset into it.
   exMemBuiltin(name: string, e: CallExpr): string | null {
@@ -1344,13 +1743,13 @@ class JsGen {
       case "__builtin_strchr":
         return `(($s, $c) => { let $i = $s.i; while ($s.a[$i] && $s.a[$i] !== ($c & 255)) $i++; return ($s.a[$i] || 0) === ($c & 255) ? { a: $s.a, i: $i } : null; })(${p(0)}, ${a[1]})`;
       case "__builtin_memset":
-        return `(($d, $c, $n) => { for (let $k = 0; $k < $n; $k++) $d.a[$d.i + $k] = $c & 255; return $d; })(${p(0)}, ${a[1]}, ${a[2]})`;
+        return `(($d, $c, $n) => { for (let $k = 0; $k < $n; $k++) $d.a[$d.i + $k] = $c & 255; return $d; })(${p(0)}, ${a[1]}, ${this.memCount(e, 0, 2)})`;
       case "__builtin_memcpy":
-        return `(($d, $s, $n) => { for (let $k = 0; $k < $n; $k++) $d.a[$d.i + $k] = $s.a[$s.i + $k]; return $d; })(${p(0)}, ${p(1)}, ${a[2]})`;
+        return `(($d, $s, $n) => { for (let $k = 0; $k < $n; $k++) $d.a[$d.i + $k] = $s.a[$s.i + $k]; return $d; })(${p(0)}, ${p(1)}, ${this.memCount(e, 0, 2)})`;
       case "__builtin_memmove":
-        return `(($d, $s, $n) => { const $t = $s.a.slice($s.i, $s.i + $n); for (let $k = 0; $k < $n; $k++) $d.a[$d.i + $k] = $t[$k]; return $d; })(${p(0)}, ${p(1)}, ${a[2]})`;
+        return `(($d, $s, $n) => { const $t = $s.a.slice($s.i, $s.i + $n); for (let $k = 0; $k < $n; $k++) $d.a[$d.i + $k] = $t[$k]; return $d; })(${p(0)}, ${p(1)}, ${this.memCount(e, 0, 2)})`;
       case "__builtin_memcmp":
-        return `(($x, $y, $n) => { for (let $k = 0; $k < $n; $k++) { const $d = ($x.a[$x.i + $k] || 0) - ($y.a[$y.i + $k] || 0); if ($d) return $d; } return 0; })(${p(0)}, ${p(1)}, ${a[2]})`;
+        return `(($x, $y, $n) => { for (let $k = 0; $k < $n; $k++) { const $d = ($x.a[$x.i + $k] || 0) - ($y.a[$y.i + $k] || 0); if ($d) return $d; } return 0; })(${p(0)}, ${p(1)}, ${this.memCount(e, 0, 2)})`;
       default:
         return null;
     }
@@ -1441,7 +1840,10 @@ class JsGen {
         const fname = safeJsName(v.short);
         const cls = this.cx.classes.get(v.fq.split("::").slice(0, -1).join("::")) as ClsInfo;
         if (v.isStatic) return `{a: ${cls.mangled}, i: "${fname}"}`;
-        const o = this.objOf(e.obj);
+        let o = this.objOf(e.obj);
+        // "it->second" reaches the field through operator-> when the object is
+        // a class, exactly as reading the field does.
+        if (m.arrowCall) o = this.arrowObj(m.arrowCall as FuncInfo, o);
         if (this.cx.fieldType(cls, v.short).ref) return `${this.paren(o)}.${fname}`;
         return `{a: ${o}, i: "${fname}"}`;
       }
@@ -1468,6 +1870,14 @@ class JsGen {
           return this.ex(e.arg);
         }
         if (e.op === "&") return this.exBox(e.arg);
+        // "++it" on a class calls an operator that returns a reference, and a
+        // reference to a class is already a box: wrapping it again would point
+        // at the box instead of the object ("++__first != __last" in
+        // std::max_element).
+        if ((e.op === "++" || e.op === "--") && this.cx.getAnn(e).call) {
+          const ct = et && et.ref ? this.cx.stripAll(et) : "";
+          if (ct && this.cx.classes.has(ct)) return this.ex(e);
+        }
         return `{a: [${this.ex(e)}], i: 0}`;
       case "call": case "this":
         if (e.kind === "this") return `{a: [this], i: 0}`;
@@ -1518,7 +1928,7 @@ class JsGen {
         const cls = this.cx.classes.get(v.fq.split("::").slice(0, -1).join("::")) as ClsInfo;
         if (v.isStatic) return `${cls.mangled}.${fname}`;
         let o = this.objOf(e.obj);
-        if (m.arrowCall) o = `(${this.paren(o)}.${methodJsName(m.arrowCall as FuncInfo)}())`;
+        if (m.arrowCall) o = this.arrowObj(m.arrowCall as FuncInfo, o);
         if (this.cx.fieldType(cls, v.short).ref) {
           const t = this.tmp();
           return `(${t} = ${this.paren(o)}.${fname}, ${t}.a[${t}.i])`;
@@ -1543,6 +1953,10 @@ class JsGen {
       }
       case "unary": {
         if (e.op !== "*") this.cx.fail("not assignable", e);
+        if (this.classDeref(e)) {
+          const t = this.tmp();
+          return `(${t} = ${this.ex(e)}, ${t}.a[${t}.i])`;
+        }
         const p = this.complex(this.ex(e.arg), e.arg);
         const pp = this.paren(p);
         return `${pp}.a[${pp}.i]`;
@@ -1557,6 +1971,13 @@ class JsGen {
         this.cx.fail("not assignable", e);
         return "";
     }
+  }
+
+  // "it->field": operator-> yields a pointer, so the object the field lives in
+  // is what that pointer points at, not the pointer itself.
+  arrowObj(fn: FuncInfo, o: string): string {
+    const t = this.tmp();
+    return `(${t} = ${this.paren(o)}.${methodJsName(fn)}(), ${t}.a[${t}.i])`;
   }
 
   objOf(e: Expr): string {
@@ -1599,7 +2020,17 @@ class JsGen {
   splitLhs(e: Expr): boolean {
     if (e.kind === "call") return true;
     if (e.kind === "index" && this.cx.getAnn(e).call) return true;
-    return false;
+    return this.classDeref(e);
+  }
+
+  // "*it" for a class iterator calls an operator* that yields a reference: the
+  // reference has to be bound to a temporary before anything can be assigned
+  // through it, so an assignment to "*it" is a split target like a call.
+  classDeref(e: Expr): boolean {
+    if (e.kind !== "unary" || e.op !== "*") return false;
+    const at = this.cx.getAnn(e.arg).t as CppType | null;
+    return !!at && at.ptr === 0 && !at.dims.length && !at.isFunc &&
+      this.cx.classes.has(this.cx.stripAll(at));
   }
 
   // Binds complex pointer operands to temporaries: a fat pointer is read in two
@@ -1627,6 +2058,28 @@ class JsGen {
     return `(${x} ? ${this.paren(x)}.a : null)`;
   }
 
+  // A class-typed field holds a sub-object: the storage it was built in is
+  // remembered on it, as a placement new records it, so that a pointer built
+  // from the sub-object itself ("this" in one of its methods) is the same
+  // pointer as the one "&this->_M_impl._M_node" writes.
+  fieldAssign(name: string, ft: CppType, value: string): void {
+    const fname = safeJsName(name);
+    this.line(`this.${fname} = ${value};`);
+    if (!ft.isBox() && !ft.dims.length && !ft.isFunc && this.cx.classes.has(this.cx.stripAll(ft))) {
+      this.line(`this.${fname}.ctj_a = this; this.${fname}.ctj_i = "${fname}";`);
+    }
+  }
+
+  // The operand pbox is given. A call returning a reference to a scalar
+  // pointer ("base()" hands back "const int*&") is read through by ex, and
+  // pbox takes exactly that step, so the box the reference is goes in instead.
+  pboxArg(e: Expr, t: CppType | null, v: string): string {
+    if (t && t.ref && t.ptr > 0 && e.kind === "call" && this.returnsScalarRef(e as CallExpr)) {
+      return this.exCall(e as CallExpr);
+    }
+    return v;
+  }
+
   pbox(s: string, e: Expr, t: CppType): string {
     const x = this.complex(s, e);
     // "this + 1" addresses the storage that follows the object, as
@@ -1646,13 +2099,93 @@ class JsGen {
     return e.kind === "lit" && (e.lkind === "null" || ((e.lkind === "int" || e.lkind === "char") && parseNumber(e.value) === 0));
   }
 
+  // The storage a reference to this expression names: a (container, key) pair
+  // that writes into the object itself, so that a write through the reference
+  // is seen by the variable it was made from.  Only an expression with storage
+  // of its own has one; anything else is a value and needs a temporary box.
+  refBox(e: Expr): string | null {
+    let x = e;
+    while (x.kind === "cast") x = (x as CastExpr).arg;
+    if (x.kind === "id") {
+      const ann = this.cx.getAnn(x);
+      const s = ann.sym;
+      if (!s || s.k !== "var") return null;
+      const v = s.v;
+      const nm = this.varName(v, ann.needsThis);
+      if (v.isStatic) {
+        const cls = this.cx.classes.get(v.fq.split("::").slice(0, -1).join("::")) as ClsInfo;
+        return `{a: ${cls.mangled}, i: "${safeJsName(v.short)}"}`;
+      }
+      // A field written without an object ("x" inside a method) is a field of
+      // "this", and its storage is the property it lives in.
+      if (v.isField) return ann.needsThis ? `{a: this, i: "${safeJsName(v.short)}"}` : null;
+      const t = v.typeCache as CppType | null;
+      if (t && t.ref !== "") return nm;
+      if (v.storage === "boxed" || v.storage === "bbox") return `{a: ${nm}, i: "v"}`;
+      return null;
+    }
+    if (x.kind === "member") {
+      const m = this.cx.getAnn(x);
+      const f = m.sym;
+      if (!f || f.k !== "var" || !f.v.isField) return null;
+      const v = f.v;
+      const fname = safeJsName(v.short);
+      if (v.isStatic) {
+        const cls = this.cx.classes.get(v.fq.split("::").slice(0, -1).join("::")) as ClsInfo;
+        return `{a: ${cls.mangled}, i: "${fname}"}`;
+      }
+      let o = this.objOf((x as MemberExpr).obj);
+      // "it->second" reaches the field through operator-> when the object is
+      // a class, exactly as reading the field does.
+      if (m.arrowCall) o = this.arrowObj(m.arrowCall as FuncInfo, o);
+      return `{a: ${o}, i: "${fname}"}`;
+    }
+    if (x.kind === "unary" && (x as UnaryExpr).op === "*" && !this.cx.getAnn(x).call) {
+      // "*__x" is the object __x points at, and a pointer is the storage of
+      // what it points at: the pointer itself is the box of it.
+      return this.ex((x as UnaryExpr).arg);
+    }
+    if (x.kind === "index") {
+      const m = this.cx.getAnn(x);
+      if (m.call) {
+        // An "operator[]" that returns a reference hands back the box already.
+        const ct = this.cx.getAnn(x).t as CppType | null;
+        if (ct && ct.ref !== "" && ct.ptr > 0 && !ct.isFunc) return this.ex(x);
+        return null;
+      }
+      const at = this.cx.getAnn((x as IndexExpr).arr).t as CppType | null;
+      if (!at) return null;
+      if (at.ptr > 0) {
+        const p = this.complex(this.ex((x as IndexExpr).arr), (x as IndexExpr).arr);
+        const pp = this.paren(p);
+        const idx = this.isZeroLit((x as IndexExpr).idx) ? `${pp}.i` : `${pp}.i + (${this.ex((x as IndexExpr).idx)})`;
+        return `{a: ${pp}.a, i: ${idx}}`;
+      }
+      if (at.dims.length && !at.isBox()) {
+        const arr = this.complex(this.ex((x as IndexExpr).arr), (x as IndexExpr).arr);
+        return `{a: ${arr}, i: (${this.ex((x as IndexExpr).idx)})}`;
+      }
+      return null;
+    }
+    if (x.kind === "call") {
+      // A call returning a reference hands back the box the reference is.
+      const ct = this.cx.getAnn(x).t as CppType | null;
+      if (ct && ct.ref !== "" && ct.ptr > 0 && !ct.isFunc) return this.exCall(x as CallExpr);
+      return null;
+    }
+    return null;
+  }
+
   argFor(p: CppType, x: Expr, conv: { kind: string; fn: FuncInfo } | null): string {
     if (conv && conv.kind === "ctor") {
       const fq = this.cx.stripAll(p);
       const cn = (this.cx.classes.get(fq) as ClsInfo).mangled as string;
       const cps = this.cx.funcParams(conv.fn);
       const inner = cps.length ? this.argFor(cps[0].type, x, null) : this.ex(x);
-      return `new ${cn}(${inner})`;
+      const obj = `new ${cn}(${inner})`;
+      // The converted-to object is a temporary; a reference parameter holds a
+      // box pointing at it ("f(\"ab\")" for "f(const std::string&)").
+      return p.ref !== "" && p.ptr === 0 && !p.dims.length ? `{a: [${obj}], i: 0}` : obj;
     }
     if (conv && conv.kind === "conv") {
       return `${this.paren(this.objOf(x))}.${methodJsName(conv.fn)}()`;
@@ -1665,14 +2198,34 @@ class JsGen {
     // pointer (_M_rightmost() is _Base_ptr&) decays first.
     if (p.ptr > 0 && !p.ref && !p.dims.length && !p.isFunc &&
       at && at.ptr > 0 && !at.dims.length && !at.isFunc) {
-      // Bind once: complex() inlines `$t = src, $t` and the ternary would
-      // evaluate that (and any --it inside) three times.
-      const raw = this.ex(x);
+      // A call that returns a reference to a *scalar* pointer ("base()" hands
+      // back "const int*&") is read through by ex; the branch below wants the
+      // box the reference is, so the raw call is taken instead.
+      // "static_cast<__hashtable*>(this)" points at the object itself, whose
+      // address is the fat pointer it records for itself ("pbox"), not a pair
+      // of fields named "a" and "i".
+      let src0: Expr = x;
+      while (src0.kind === "cast") src0 = (src0 as CastExpr).arg;
+      if (src0.kind === "this") return `{a: (this.ctj_a || (this.ctj_a = [])), i: (this.ctj_i || 0)}`;
+      const raw = at.ref && x.kind === "call" && this.returnsScalarRef(x as CallExpr)
+        ? this.exCall(x as CallExpr)
+        : this.ex(x);
       const src = this.isSimple(x) ? this.paren(raw) : this.tmp();
       const pre = this.isSimple(x) ? "" : `${src} = ${raw}, `;
-      // T*& from a call (_M_rightmost) is a fat pointer to the pointer.
+      // T*& from a call (_M_rightmost) is a fat pointer to the pointer: the
+      // lvalue reference the call hands back is read through once more.  An
+      // rvalue reference ("std::forward<char*>(...)") is a plain value
+      // already, and reading through it would yield the character it points
+      // at instead of the pointer.
       // A T*& id is already unboxed by ex, so copying it is enough.
-      if (at.ref && x.kind === "call") {
+      // A call handing back a reference to a *character* pointer is the
+      // exception: "std::forward<char*>(__x)" gives the fat pointer itself,
+      // and reading through it would yield the character it points at
+      // instead of the pointer.
+      const ch0 = coreName(at);
+      const chrPtr = at.ptr === 1 && (ch0 === "char" || ch0 === "signed char" ||
+        ch0 === "unsigned char" || ch0 === "wchar_t" || ch0 === "char16_t" || ch0 === "char32_t");
+      if (at.ref && x.kind === "call" && !chrPtr) {
         const t = this.tmp();
         return `(${pre}${t} = (${src} ? ${src}.a[${src}.i] : null), ${t} && ${t}.a !== undefined ? {a: ${t}.a, i: ${t}.i} : ${t})`;
       }
@@ -1701,18 +2254,28 @@ class JsGen {
       if (x.kind === "call" && this.returnsScalarRef(x as CallExpr)) return this.ex(x);
       return this.deref(x);
     }
-    if (coreName(p) === "bool" && at && at.isBox() && !at.isFunc) return `(${this.ex(x)} != null)`;
-    if (coreName(p) === "bool" && at && !isNumericName(coreName(at)) && !this.cx.enums.has(this.cx.stripAll(at)) && at.name !== "__null") {
+    // A reference to a bool holds the bool, so the argument is passed as its
+    // storage; only a plain bool parameter takes the converted value.
+    if (coreName(p) === "bool" && !p.ref && at && at.isBox() && !at.isFunc) return `(${this.ex(x)} != null)`;
+    if (coreName(p) === "bool" && !p.ref && at && !isNumericName(coreName(at)) && !this.cx.enums.has(this.cx.stripAll(at)) && at.name !== "__null") {
       return `(${this.ex(x)} != null)`;
     }
     if (p.ptr > 0 && at && at.dims.length && !at.isBox()) return this.exBox(x);
     if (pB && aB) {
-      if (at && at.ref) return this.exBox(x);
+      if (at && at.ref) {
+        if (p.ptr > 0 && !p.isFunc) {
+          const r = this.refBox(x);
+          if (r !== null) return r;
+        }
+        return this.exBox(x);
+      }
       // A reference parameter reads through an address, so a value has to be
       // given one: a class object, and a pointer too, since a pointer is
       // already a box and "const _Iterator&" is a box around it.
       if (p.ref && at && !at.ref && !at.isFunc && !at.dims.length) {
         if (at.ptr > 0) {
+          const r = this.refBox(x);
+          if (r !== null) return r;
           return `{a: [${this.ex(x)}], i: 0}`;
         }
         if (this.cx.classes.has(this.cx.stripAll(at))) return this.exBox(x);
@@ -1778,8 +2341,59 @@ class JsGen {
     return this.exCall(e);
   }
 
+  // The value an expression stands for. A call, an index or a "*" through an
+  // operator that returns a reference to a scalar hands back the box; where a
+  // value is wanted, the element the box points at is read.
+  exVal(e: Expr): string {
+    const t = this.cx.getAnn(e).t as CppType | null;
+    if (!t || !t.ref || t.ptr > 0 || t.dims.length || t.isFunc) return this.ex(e);
+    if (this.cx.classes.has(this.cx.stripAll(t))) return this.ex(e);
+    if (e.kind === "id" || e.kind === "call") return this.ex(e);
+    return this.deref(e);
+  }
+
+  // The C library's memory functions take a byte count, but an array holds
+  // elements: the count is divided by the size of one element, exactly as the
+  // "__builtin_mem*" forms of the same functions do. Only the bundled C headers
+  // are treated this way, so a program may still define its own "memcpy".
+  memFuncCount(fn: FuncInfo, e: CallExpr, aa: string[]): void {
+    if (fn.isMethod || e.args.length < 3) return;
+    const file = (fn.decl.file || "").replace(/^.*[\/\\]/, "");
+    if (["string.h", "cstring", "wchar.h", "cwchar", "strings.h"].indexOf(file) < 0) return;
+    const pt = this.cx.getAnn(e.args[0]).t as CppType | null;
+    if (!pt || pt.ptr === 0) return;
+    const el = new CppType(pt.name);
+    el.segs = pt.segs;
+    el.ptr = pt.ptr - 1;
+    let sz = 0;
+    try { sz = constSizeof(this.cx, el, new Set()); } catch { sz = 0; }
+    if (sz <= 1) return;
+    aa[2] = `Math.trunc((${aa[2]}) / ${sz})`;
+  }
+
+  // "std::initializer_list<T>" is the array its elements are made of: the
+  // header's own begin/end/size are answered from that array, so
+  // "vector<int> v{1, 2, 3}" can run the standard range-construction.
+  initListCall(e: CallExpr): string | null {
+    if (e.fn.kind !== "member") return null;
+    const m = e.fn as MemberExpr;
+    const ot = this.cx.getAnn(m.obj).t as CppType | null;
+    if (!ot || ot.isBox() || ot.dims.length || ot.isFunc) return null;
+    const cls = this.cx.classes.get(this.cx.stripAll(ot));
+    if (!cls) return null;
+    const tmpl = (cls.fromTmpl || "").split("::").pop();
+    if (tmpl !== "initializer_list") return null;
+    const o = this.objOf(m.obj);
+    if (m.field === "begin") return `({a: ${o}, i: 0})`;
+    if (m.field === "end") return `({a: ${o}, i: ${this.paren(o)}.length})`;
+    if (m.field === "size") return `${this.paren(o)}.length`;
+    return null;
+  }
+
   exCall(e: CallExpr): string {
     const a = this.cx.getAnn(e);
+    const il = this.initListCall(e);
+    if (il !== null) return il;
     // A destructor call that resolved to no destructor has nothing to do; the
     // target language reclaims the storage itself.
     if (!a.call && e.fn.kind === "member" && (e.fn as MemberExpr).field.charAt(0) === "~") return "void 0";
@@ -1815,6 +2429,7 @@ class JsGen {
         aa.push(pt ? this.argFor(pt, x, a.convs[i] || null) : this.ex(x));
       }
     });
+    this.memFuncCount(fn, e, aa);
     for (let i = e.args.length; i < ps.length && !ps[i].variadic; i++) {
       aa.push(ps[i].def ? this.defArg(ps[i]) : "undefined");
     }
@@ -1833,7 +2448,7 @@ class JsGen {
     } else if (e.fn.kind === "member") {
       let o = this.objOf((e.fn as MemberExpr).obj);
       const ma = this.cx.getAnn(e.fn);
-      if (ma.arrowCall) o = `(${this.paren(o)}.${methodJsName(ma.arrowCall as FuncInfo)}())`;
+      if (ma.arrowCall) o = this.arrowObj(ma.arrowCall as FuncInfo, o);
       // obj.field(args) on a functor field calls operator() on the field.
       if (ma.sym && ma.sym.k === "var" && ma.sym.v.isField) o = this.ex(e.fn);
       if ((e.fn as MemberExpr).qual.length && !(ma.sym && ma.sym.k === "var" && ma.sym.v.isField)) {
@@ -1866,11 +2481,15 @@ class JsGen {
       }
       let tpl = ((e.args[0] as LitExpr).value).slice(1, -1);
       for (let i = 1; i < e.args.length; i++) {
-        tpl = tpl.split(`$${i}`).join(`(${this.ex(e.args[i])})`);
+        tpl = tpl.split(`$${i}`).join(`(${this.exVal(e.args[i])})`);
       }
       return `(${tpl})`;
     }
     if (name === "__ctj_php") return "undefined";
+    if (name.startsWith("__is_") || name.startsWith("__has_")) {
+      const a = this.cx.getAnn(e).call as { builtin: string; value?: number } | null;
+      return String(a && typeof a.value === "number" ? a.value : 0);
+    }
     if (name === "__builtin_expect" || name === "__builtin_expect_with_probability") return this.ex(e.args[0]);
     if (name === "__builtin_choose_expr") {
       const c = constEval(this.cx, e.args[0], this.blankScope());
@@ -1896,20 +2515,23 @@ class JsGen {
       if (m.endsWith("f") && (Math as unknown as Record<string, unknown>)[m.slice(0, -1)] !== undefined) m = m.slice(0, -1);
       return `Math.${m}(${e.args.map(x => this.ex(x)).join(", ")})`;
     }
-    if (name === "__builtin_clz") return `Math.clz32(${this.ex(e.args[0])})`;
-    if (name === "__builtin_ctz") {
+    // "__builtin_popcountl" and friends differ only in the width of their
+    // argument, which the target language's number does not distinguish.
+    const bit = bitBuiltin(name) || name;
+    if (bit === "__builtin_clz") return `Math.clz32(${this.ex(e.args[0])})`;
+    if (bit === "__builtin_ctz") {
       const x = this.ex(e.args[0]);
       return `(${x} === 0 ? 32 : 31 - Math.clz32((${x}) & -(${x})))`;
     }
-    if (name === "__builtin_popcount") {
+    if (bit === "__builtin_popcount") {
       const x = this.ex(e.args[0]);
       return `(((${x}) >>> 0).toString(2).split("1").length - 1)`;
     }
-    if (name === "__builtin_ffs") {
+    if (bit === "__builtin_ffs") {
       const x = this.ex(e.args[0]);
       return `(((${x}) & 0xffffffff) === 0 ? 0 : 32 - Math.clz32((${x}) & -(${x})))`;
     }
-    if (name === "__builtin_parity") {
+    if (bit === "__builtin_parity") {
       const x = this.ex(e.args[0]);
       return `(((((${x}) >>> 0).toString(2).split("1").length - 1) & 1))`;
     }
@@ -2001,7 +2623,7 @@ class JsGen {
     const cls = this.cx.classes.get(v.fq.split("::").slice(0, -1).join("::")) as ClsInfo;
     if (v.isStatic) return `${cls.mangled}.${fname}`;
     let o = this.objOf(e.obj);
-    if (a.arrowCall) o = `(${this.paren(o)}.${methodJsName(a.arrowCall as FuncInfo)}())`;
+    if (a.arrowCall) o = this.arrowObj(a.arrowCall as FuncInfo, o);
     if (this.cx.fieldType(cls, v.short).ref) {
       const t = this.tmp();
       return `(${t} = ${this.paren(o)}.${fname}, ${t}.a[${t}.i])`;
@@ -2057,7 +2679,7 @@ class JsGen {
       const l = this.lvalue(e.arg);
       return post ? `${l}${inc}` : `${inc}${l}`;
     }
-    if (e.op === "!") return `(!${this.paren(this.ex(e.arg))})`;
+    if (e.op === "!") return `(!${this.paren(this.exVal(e.arg))})`;
     if (e.op === "+") return `(+${this.paren(this.ex(e.arg))})`;
     if (e.op === "-") return `(-${this.paren(this.ex(e.arg))})`;
     if (e.op === "~") return `(~${this.paren(this.ex(e.arg))})`;
@@ -2074,7 +2696,9 @@ class JsGen {
     else {
       const rt = this.cx.getAnn(e.r).t as CppType | null;
       const core = rt ? coreName(rt) : "";
-      const rs = this.ex(e.r);
+      // "*it" and a call that hands back an "int&" stand for the value; read
+      // the box before printing it.
+      const rs = this.exVal(e.r);
       if (rt && !rt.ptr && !rt.dims.length && (core === "char" || core === "signed char" || core === "unsigned char" || core === "wchar_t")) {
         payload = `String.fromCharCode(${rs})`;
       } else {
@@ -2117,8 +2741,10 @@ class JsGen {
     }
     const lt = this.cx.getAnn(e.l).t as CppType;
     const rt = this.cx.getAnn(e.r).t as CppType;
-    const l = this.ex(e.l);
-    const r = this.ex(e.r);
+    const l = this.exVal(e.l);
+    const r = this.exVal(e.r);
+    const lb = this.pboxArg(e.l, lt, l);
+    const rb = this.pboxArg(e.r, rt, r);
     if (e.op === "&&" || e.op === "||") return `(${l} ${e.op} ${r})`;
     if (e.op === ",") return `(${l}, ${r})`;
     const lp = lt && !lt.isFunc && (lt.ptr > 0 || (lt.dims.length > 0 && !lt.isBox()));
@@ -2127,8 +2753,8 @@ class JsGen {
       const op = e.op === "==" ? "===" : "!==";
       if (lp && rp) {
         const b = this.pbind([
-          { s: this.pbox(l, e.l, lt as CppType), e: e.l },
-          { s: this.pbox(r, e.r, rt as CppType), e: e.r },
+          { s: this.pbox(lb, e.l, lt as CppType), e: e.l },
+          { s: this.pbox(rb, e.r, rt as CppType), e: e.r },
         ]);
         const xp = b.v[0];
         const yp = b.v[1];
@@ -2144,8 +2770,8 @@ class JsGen {
     if (e.op === "<" || e.op === ">" || e.op === "<=" || e.op === ">=") {
       if (lp && rp) {
         const b = this.pbind([
-          { s: this.pbox(l, e.l, lt as CppType), e: e.l },
-          { s: this.pbox(r, e.r, rt as CppType), e: e.r },
+          { s: this.pbox(lb, e.l, lt as CppType), e: e.l },
+          { s: this.pbox(rb, e.r, rt as CppType), e: e.r },
         ]);
         const body = `(${this.pidx(b.v[0])} ${e.op} ${this.pidx(b.v[1])})`;
         return b.pre ? `(${b.pre}, ${body})` : body;
@@ -2156,19 +2782,19 @@ class JsGen {
       if (lp && rp) {
         if (e.op !== "-") this.cx.fail("bad pointer arithmetic", e);
         const b = this.pbind([
-          { s: this.pbox(l, e.l, lt as CppType), e: e.l },
-          { s: this.pbox(r, e.r, rt as CppType), e: e.r },
+          { s: this.pbox(lb, e.l, lt as CppType), e: e.l },
+          { s: this.pbox(rb, e.r, rt as CppType), e: e.r },
         ]);
         const body = `(${this.pidx(b.v[0])} - ${this.pidx(b.v[1])})`;
         return b.pre ? `(${b.pre}, ${body})` : body;
       }
       if (lp) {
-        const b = this.pbind([{ s: this.pbox(l, e.l, lt as CppType), e: e.l }]);
+        const b = this.pbind([{ s: this.pbox(lb, e.l, lt as CppType), e: e.l }]);
         const sign = e.op === "+" ? "+" : "-";
         const body = `({a: ${this.parr(b.v[0])}, i: ${this.pidx(b.v[0])} ${sign} (${r})})`;
         return b.pre ? `(${b.pre}, ${body})` : body;
       }
-      const b = this.pbind([{ s: this.pbox(r, e.r, rt as CppType), e: e.r }]);
+      const b = this.pbind([{ s: this.pbox(rb, e.r, rt as CppType), e: e.r }]);
       const body = `({a: ${this.parr(b.v[0])}, i: (${l}) + ${this.pidx(b.v[0])}})`;
       return b.pre ? `(${b.pre}, ${body})` : body;
     }
@@ -2283,6 +2909,46 @@ class JsGen {
     return `{a: [${this.zero(t)}], i: 0}`;
   }
 
+  // Whether a class holds data of its own -- what a view of it would have to
+  // carry along -- looking through its bases for the answer.
+  isEmptyClass(fq: string, seen?: Set<string>): boolean {
+    const c = this.cx.classes.get(fq) as ClsInfo | undefined;
+    if (!c) return false;
+    const s = seen || new Set<string>();
+    if (s.has(fq)) return true;
+    s.add(fq);
+    if (c.fields.size) return false;
+    return c.bases.every(b => this.isEmptyClass(b.fq, s));
+  }
+
+  derivesFrom(fq: string, baseFq: string, seen?: Set<string>): boolean {
+    if (fq === baseFq) return true;
+    const c = this.cx.classes.get(fq) as ClsInfo | undefined;
+    if (!c) return false;
+    const s = seen || new Set<string>();
+    if (s.has(fq)) return false;
+    s.add(fq);
+    return c.bases.some(b => this.derivesFrom(b.fq, baseFq, s));
+  }
+
+  // "static_cast<_Tp&>(__eboh)" names the base subobject _Tp of the helper it
+  // stands in. The object at run time is the complete one, and that object's
+  // prototype may already answer a name with something else: a hashtable
+  // answers "op_call" with its hash where the equality predicate is asked for.
+  // A view whose prototype is the base's gives the reference the base's own
+  // methods; an empty base holds no data for the view to leave behind.
+  baseRefView(e: CastExpr, t: CppType): string | null {
+    if (t.ptr > 0 || t.isFunc || t.dims.length) return null;
+    const tf = this.cx.stripAll(t);
+    const tc = this.cx.classes.get(tf) as ClsInfo | undefined;
+    if (!tc || !tc.mangled || !this.isEmptyClass(tf)) return null;
+    const at = this.cx.getAnn(e.arg).t as CppType | null;
+    if (!at) return null;
+    const af = this.cx.stripAll(at);
+    if (!af || af === tf || !this.cx.classes.has(af) || !this.derivesFrom(af, tf)) return null;
+    return `{a: [Object.create(${tc.mangled}.prototype)], i: 0}`;
+  }
+
   exCast(e: CastExpr): string {
     const a = this.cx.getAnn(e);
     const t = a.t as CppType;
@@ -2314,19 +2980,25 @@ class JsGen {
     }
     if (coreName(t) === "void" && !t.ptr) return `(void (${this.ex(e.arg)}))`;
     const at = this.cx.getAnn(e.arg).t as CppType;
+    if (t.ptr > 0 && (at.name === "__null" || this.isZeroLit(e.arg))) return "null";
+    // "static_cast<T*>(this)" points at the object itself: its address is the
+    // one the object records for itself, the same box "pbox" builds.
+    if (t.ptr > 0 && !t.ref && e.arg.kind === "this") return this.pbox(this.ex(e.arg), e.arg, t);
+    // Casting to a reference yields the address of the value, as any other
+    // reference does ("static_cast<_Tp&&>(__t)" in std::forward). A reference
+    // to a base class names the base subobject instead.  This comes before the
+    // conversions below: a reference to a bool is the bool's own storage, not
+    // the boolean value a cast to the plain type gives.
+    if (t.ref) return this.baseRefView(e, t) || this.exBox(e.arg);
     if (coreName(t) === "bool" && at.isBox() && !at.isFunc) return `(${this.ex(e.arg)} != null)`;
     if (coreName(t) === "bool" && isNumericName(coreName(at))) return `(${this.ex(e.arg)} !== 0)`;
     if (isIntegerName(coreName(t)) && (coreName(at) === "float" || coreName(at) === "double")) {
       return `Math.trunc(${this.ex(e.arg)})`;
     }
-    if (t.ptr > 0 && (at.name === "__null" || this.isZeroLit(e.arg))) return "null";
-    // Casting to a reference yields the address of the value, as any other
-    // reference does ("static_cast<_Tp&&>(__t)" in std::forward).
-    if (t.ref) return this.exBox(e.arg);
     // An unsigned value wraps, so "size_t(-1)" is the largest size rather than
     // a negative one. The width is the 32-bit one: a JS number cannot hold a
     // 64-bit unsigned range.
-    if (isUnsignedName(coreName(t))) return `(${this.ex(e.arg)} >>> 0)`;
+    if (t.ptr === 0 && !t.dims.length && isUnsignedName(coreName(t))) return `(${this.ex(e.arg)} >>> 0)`;
     return this.ex(e.arg);
   }
 

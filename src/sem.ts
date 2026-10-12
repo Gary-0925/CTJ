@@ -98,6 +98,9 @@ export interface Scope {
   locals: Map<string, VarInfo>[];
   fn: FuncInfo | null;
   returns: CppType[];
+  // The typedefs declared in the body of the function being read, which are
+  // visible from there on and nowhere else.
+  localTypedefs?: Map<string, string>;
 }
 
 // A type spelled well enough to tell two resolutions of the same name apart,
@@ -231,6 +234,10 @@ export interface TmplInfo {
   scope: Scope;
   specs: { key: string; decl: Decl }[];
   partials?: { tparams: TParam[]; specArgs: TypeNode[]; decl: Decl }[];
+  // An out-of-line member definition carries the class parameters first and its
+  // own after them; the split tells the two apart when their owner is an
+  // instance of a specialization with fewer parameters than the primary.
+  outer?: number;
   // Position among the overloads of the same name, so that instances of two
   // different templates do not share a cache entry or an emitted name.
   ovl?: number;
@@ -247,10 +254,31 @@ export type Sym =
   | { k: "tmpl"; t: TmplInfo }
   | { k: "builtin"; name: string };
 
+// One operation of a range-for: either a member/non-member operator function
+// ("fn"), or, when the iterator is a plain pointer, a builtin one.
+export interface RangeOp {
+  fn: FuncInfo | null;
+  isMember: boolean;
+  op: string;
+  builtin: "ptr" | "";
+}
+
+export interface RangeInfo {
+  beginFn: FuncInfo;
+  endFn: FuncInfo;
+  ne: RangeOp;
+  inc: RangeOp;
+  star: RangeOp;
+  // "begin()" hands the iterator out by value, so the loop variable needs a
+  // copy of it: incrementing the iterator would otherwise walk the container's
+  // own "_M_start" along and leave "size()" as zero.
+  copyCtor: FuncInfo | null;
+}
+
 export interface Ann {
   t: CppType | null;
   sym: Sym | null;
-  call: FuncInfo | { builtin: string } | null;
+  call: FuncInfo | { builtin: string; value?: number } | null;
   conv: { kind: string; fn: FuncInfo } | null;
   convs: ({ kind: string; fn: FuncInfo } | null)[];
   caps: { name: string; mode: string; v: VarInfo }[];
@@ -258,7 +286,7 @@ export interface Ann {
   arrowCall: FuncInfo | null;
   initCall: FuncInfo | null;
   copyCtor: FuncInfo | null;
-  range: { beginFn: FuncInfo; endFn: FuncInfo; neFn: FuncInfo; incFn: FuncInfo; starFn: FuncInfo } | null;
+  range: RangeInfo | null;
   needsThis: boolean;
   isType: boolean;
 }
@@ -288,7 +316,7 @@ export class Cx {
   // basic_string.h is still being collected, basic_string.tcc comes later), so
   // attaching those definitions waits until the whole unit is collected.
   collecting = true;
-  pendingOOL: { tmpl: TmplInfo; key: string; cls: ClsInfo; args: CppType[] }[] = [];
+  pendingOOL: { tmpl: TmplInfo; key: string; cls: ClsInfo; args: CppType[]; env: SubstEnv }[] = [];
   warnings: string[] = [];
   worklist: FuncInfo[] = [];
   instStack: string[] = [];
@@ -310,6 +338,7 @@ export class Cx {
   }
 
   fail(msg: string, t?: At): never {
+    if ((globalThis as any).__ctjDbgT6 && msg.indexOf("no matching function") >= 0) console.error("DBGFAILTHROW", msg.slice(0, 60), "at", (t && t.file ? t.file + ":" + t.line : "-"), "in", ((globalThis as any).__ctjStack || []).slice(-3).join(" < "), "|", String(new Error().stack).split("\n").slice(2, 9).map(l => l.trim()).join(" ~ "));
     if (t && t.file) fail(msg, t.file, t.line, 0);
     fail(msg);
   }
@@ -446,6 +475,16 @@ export class Cx {
         return;
       }
       case "typedef": {
+        // A typedef declared in a function body belongs to that function: it
+        // must not take the place of a member typedef that carries the same
+        // name and that the rest of the class still reads ("_Alloc_traits",
+        // declared both by _Fwd_list_base and inside _M_create_node).
+        if (scope.fn) {
+          const lfq = scope.fn.fq + "::" + d.name;
+          this.typedefs.set(lfq, { target: d.type, scope: this.snapScope(scope) });
+          (scope.localTypedefs || (scope.localTypedefs = new Map())).set(d.name, lfq);
+          return;
+        }
         const fq = this.memberFq(scope, d.name);
         this.typedefs.set(fq, { target: d.type, scope: this.snapScope(scope) });
         if (scope.cls) scope.cls.nested.set(d.name, fq);
@@ -473,7 +512,13 @@ export class Cx {
   }
 
   snapScope(s: Scope): Scope {
-    return { ns: s.ns.slice(), cls: s.cls, locals: [], fn: null, returns: [] };
+    // The snapshot keeps the local typedefs that are visible where it is taken:
+    // a typedef written later in the same body reads them ("pair<__ds_type1,
+    // __ds_type2>" in "make_pair").
+    return {
+      ns: s.ns.slice(), cls: s.cls, locals: [], fn: null, returns: [],
+      localTypedefs: s.localTypedefs ? new Map(s.localTypedefs) : undefined,
+    };
   }
 
   memberFq(scope: Scope, name: string): string {
@@ -590,13 +635,33 @@ export class Cx {
     return short;
   }
 
+  // The kinds of arguments a declaration takes, so that a definition is merged
+  // into the declaration of its own overload rather than into a sibling that
+  // happens to take the same number of them ("merge(list&&)" against
+  // "merge(list&)", which delegates to it).
+  paramShape(d: FuncDecl): string {
+    return d.params.map(p => [p.type.ptr, p.type.ref, p.type.dims.length, p.type.func ? "f" : "", p.variadic || p.isPack ? "..." : ""].join(",")).join(";");
+  }
+
+  // An out-of-line definition repeats the parameter list but not the default
+  // arguments, which are written on the declaration alone: without them a call
+  // that relies on one stops matching ("basic_string(const _CharT*, ...)").
+  mergeDefDefaults(decl: FuncDecl, def: FuncDecl): void {
+    const ps = decl.params || [];
+    const dp = def.params || [];
+    for (let i = 0; i < dp.length && i < ps.length; i++) {
+      if (!dp[i].def && ps[i].def) dp[i].def = ps[i].def;
+    }
+  }
+
   addMethod(cls: ClsInfo, short: string, d: FuncDecl, scope: Scope): FuncInfo {
     const key = this.methodKey(d, short);
     const sc = this.snapScope(scope);
     sc.cls = cls;
     const list = cls.methods.get(key) || [];
     for (const f of list) {
-      if (!f.decl.body && d.body && f.decl.params.length === d.params.length) {
+      if (!f.decl.body && d.body && this.paramShape(f.decl) === this.paramShape(d)) {
+        this.mergeDefDefaults(f.decl, d);
         f.decl = d;
         f.scope = sc;
         return f;
@@ -624,6 +689,7 @@ export class Cx {
       if (!f.decl.body && d.body && !d.op) {
         let same = f.decl.params.length === d.params.length;
         if (same) {
+          this.mergeDefDefaults(f.decl, d);
           f.decl = d;
           f.scope = this.snapScope(declScope);
           return f;
@@ -737,6 +803,9 @@ export class Cx {
     if (!inner) return;
     let kind = "";
     let fq = "";
+    // Only a definition written "Cls<...>::name" has the class's parameters
+    // spelled first, so that its own start after them.
+    let outer = -1;
     if (inner.kind === "class") {
       kind = "class";
       fq = this.memberFq(scope, inner.name);
@@ -755,6 +824,7 @@ export class Cx {
       fq = ownerParts.length
         ? this.ownerFq(ownerParts, scope) + "::" + short
         : this.memberFq(scope, short);
+      if (ownerParts.length) outer = d.tparams.length;
     } else if (inner.kind === "var") {
 
       // The definition of a static data member, written outside the class.
@@ -768,8 +838,10 @@ export class Cx {
       kind = "alias";
       fq = this.memberFq(scope, inner.name);
     } else return;
+    if ((globalThis as any).__ctjDbgInst && fq.indexOf("_Insert") >= 0) console.error("DBGTMPLREG", "fq=" + fq, "isSpec=" + d.isSpec, "tparams=" + d.tparams.length, "at", (inner as { file?: string; line?: number }).file + ":" + (inner as { line?: number }).line);
     if (d.isSpec) {
       const t = this.tmpls.get(fq);
+      if ((globalThis as any).__ctjDbgInst && fq.indexOf("_Hashtable_ebo_helper") >= 0) console.error("DBGSPEC", "fq=" + fq, "tparams=" + d.tparams.length, "prev=" + !!t, "prevTp=" + (t ? t.tparams.length : -1), "at", (d.decl as ClassDecl).file + ":" + (d.decl as ClassDecl).line);
       // A partial specialization keeps its own parameters; only a full one can
       // have its arguments resolved at this point.
       if (d.tparams.length) {
@@ -805,10 +877,15 @@ export class Cx {
     }
     // A friend "template<class...> class tuple;" must not replace the real
     // definition, and a later forward declaration must not erase members.
+    if ((globalThis as any).__ctjDbgInst && fq.indexOf("_Hashtable_ebo_helper") >= 0) console.error("DBGREG", "fq=" + fq, "tparams=" + tparams.length, "prev=" + !!prev, "members=" + (inner.kind === "class" ? (inner as ClassDecl).members.length : -1), "at", (inner as ClassDecl).file + ":" + (inner as ClassDecl).line);
     const newMembers = inner.kind === "class" ? (inner as ClassDecl).members.length : 1;
     const prevMembers = prev && prev.decl.kind === "class" ? (prev.decl as ClassDecl).members.length : (prev ? 1 : 0);
     if (prev && prevMembers && !newMembers) return;
-    this.registerTmpl({ fq, kind, tparams, decl: inner, scope: this.snapScope(scope), specs: prev ? prev.specs : [], partials: prev ? prev.partials : [] });
+    this.registerTmpl({
+      fq, kind, tparams, decl: inner, scope: this.snapScope(scope),
+      specs: prev ? prev.specs : [], partials: prev ? prev.partials : [],
+      outer: outer >= 0 ? outer : prev && prev.outer,
+    });
   }
 
   registerTmpl(t: TmplInfo): void {
@@ -847,8 +924,18 @@ export class Cx {
 
   tmplParamSig(t: TmplInfo): string {
     const d = t.decl as FuncDecl;
-    const ps = (d.params || []).map(p => JSON.stringify(p.type.parts.map(s => s.n + s.a.length))
-      + p.type.ptr + p.type.ref + (p.isPack ? "..." : "")).join(",");
+    // A template parameter stands for itself whatever it is called: the
+    // declaration "sort(_RAIter, _RAIter)" and the definition
+    // "sort(_RandomAccessIterator, _RandomAccessIterator)" are one template, and
+    // the declaration must not shadow the definition that carries the body.
+    const idx = new Map(t.tparams.map((x, i) => [x.name, i]));
+    const ps = (d.params || []).map(p => {
+      const tn = p.type;
+      const name = tn.parts.length === 1 && !tn.parts[0].a.length && idx.has(tn.parts[0].n)
+        ? "$" + idx.get(tn.parts[0].n)
+        : JSON.stringify(tn.parts.map(s => s.n + s.a.length));
+      return name + tn.ptr + tn.ref + (p.isPack ? "..." : "");
+    }).join(",");
     const tps = t.tparams.map(x => x.kind + (x.isPack ? "..." : "")).join(",");
     return [tps, ps, d.op || "", d.flags.includes("const") ? "c" : ""].join("|");
   }
@@ -955,6 +1042,7 @@ export class Cx {
     // "struct _Vector_impl : public _Tp_alloc_type".
     if (s && s.k === "typedef") s = this.symOfType(this.expandTypedef(s.fq, new Set()));
     if (s && s.k === "class") return s.cls.fq;
+    if ((globalThis as any).__ctjDbgInst) console.error("DBGBASE", "name=" + parts.map(x => x.n + (x.a.length ? "<" + x.a.length + ">" : "")).join("::"), "sym=" + (s ? s.k : "null"), "scope.cls=" + String((scope.cls as unknown as { fq?: string } | null)?.fq).slice(0, 60), "ns=" + scope.ns.join("::"), "bare=" + [...this.tmpls.keys()].filter(k => !/^(std|__gnu_cxx)::/.test(k)).slice(0, 24).join(";"));
     this.fail(`unknown base class '${parts.map(x => x.n).join("::")}'`);
   }
 
@@ -972,6 +1060,11 @@ export class Cx {
       const v = scope.locals[i].get(name);
       if (v) return { k: "var", v };
     }
+    // A typedef declared earlier in the body of the enclosing function.
+    if (scope.localTypedefs) {
+      const lfq = scope.localTypedefs.get(name);
+      if (lfq) return { k: "typedef", fq: lfq };
+    }
     // The names of the enclosing classes are visible inside a nested class.
     for (let c = scope.cls; c; c = c.scope.cls) {
       const m = this.lookupMember(c.fq, name, new Set());
@@ -983,6 +1076,9 @@ export class Cx {
       if (m.methods) return { k: "func", fns: m.methods };
       if (m.nested) return this.symOfNested(m.nested);
       if (m.typedef) return { k: "typedef", fq: m.typedef };
+      // "enum { _S_initial_map_size = 8 }" in a class: an unqualified use of
+      // the enumerator inside a member names that member.
+      if (m.constItem) return { k: "enumval", e: m.constItem.e, item: m.constItem.item };
       // Template member functions (e.g. SFINAE __test<_Tp>) are stored as
       // templates, not as plain methods, until they are instantiated.
       const tm = this.lookupTmplMember(c.fq, name, new Set());
@@ -1202,6 +1298,17 @@ export class Cx {
       sym = this.lookupGlobalFirst(parts[0].n);
     } else {
       sym = this.lookupFirst(parts[0].n, scope);
+      // A template-id names a template. What the lookup found through the base
+      // chain may be the injected-class-name's constructors instead ("_Head_base
+      // <...>" inside a class deriving from "_Head_base<_Idx, _Head, ...>"), so
+      // the name is looked up again among the namespaces only.
+      if (sym && parts[0].a.length && ((sym.k === "tmpl" && (sym.t.decl as FuncDecl).isCtor)
+        || (sym.k === "func" && sym.fns.length > 0 && sym.fns.every(f => f.isCtor)))) {
+        for (let i = scope.ns.length; i >= 0; i--) {
+          const s2 = this.lookupInNs(scope.ns.slice(0, i).join("::"), parts[0].n, new Set());
+          if (s2) { sym = s2; break; }
+        }
+      }
     }
     if (!sym) return null;
     sym = this.applySegArgs(sym, parts[0], scope);
@@ -1237,6 +1344,11 @@ export class Cx {
     }
     if (sym.k !== "tmpl") return null;
     const args = seg.a.map(a => this.resolveTypeNode(a, scope));
+    if ((globalThis as any).__ctjDbgT2 && args.some(a => a.key().startsWith("std::basic_string"))) {
+      console.error("DBGSEG", seg.n, "nodes=" + seg.a.map(tnKey).join(","), "->", args.map(a => a.key()).join(","),
+        "cls=" + (scope.cls ? String((scope.cls as unknown as { fq?: string }).fq || "") : "-"), "fn=" + (scope.fn ? String((scope.fn as unknown as { fq?: string }).fq) : "-"),
+        "|", String(new Error().stack).split("\n").slice(1, 9).map(l => l.trim()).join(" ~ "));
+    }
     return this.instantiateTmplSeg(sym.t, args, scope);
   }
 
@@ -1270,6 +1382,15 @@ export class Cx {
       next = this.lookupInNs(sym.fq, name, new Set());
     } else if (sym.k === "class") {
       const m = this.lookupMember(sym.cls.fq, name, new Set());
+      if ((globalThis as any).__ctjDbgT5 && name === "size_type" && sym.cls.fq.indexOf("std::_Hashtable") === 0) {
+        const tks: string[] = [];
+        for (const k of this.typedefs.keys()) if (k.indexOf(sym.cls.fq + "::") === 0) tks.push(k.slice(sym.cls.fq.length + 2));
+        const all: string[] = [];
+        for (const k of this.classes.keys()) if (k.indexOf("std::_Hashtable<") === 0) all.push(k.slice(16, 90) + "#" + (this.classes.get(k)!.complete ? "c" : "i") + (this.classes.get(k)!.fromTmpl ? "" : "-nt"));
+        const tm = this.tmpls.get("std::_Hashtable");
+        console.error("DBGTMPL", "has=" + !!tm, "declkind=" + (tm ? tm.decl.kind : "-"), "members=" + (tm && tm.decl.kind === "class" ? (tm.decl as ClassDecl).members.length : -1), "tparams=" + (tm ? tm.tparams.length : -1), "file=" + (tm ? tm.decl.file + ":" + tm.decl.line : "-"));
+        console.error("DBGLOOK", "cls=" + sym.cls.fq.slice(0, 60), "m=" + JSON.stringify({ f: m.field, m: !!m.methods, n: m.nested, t: m.typedef, c: !!m.constItem }), "typedefs=" + tks.slice(0, 12).join(","), "nested=" + [...sym.cls.nested.keys()].slice(0, 12).join(","), "nkeys=" + all.length + " " + all.slice(0, 4).join(" | "));
+      }
       if (m.field) {
         const cls = this.classes.get(m.owner) as ClsInfo;
         next = { k: "var", v: this.fieldVar(cls, name, cls.fields.get(name) as VarDecl) };
@@ -1284,6 +1405,7 @@ export class Cx {
       if (td) {
         const ty = this.resolveTypeNode(td.target, td.scope);
         const s = this.symOfType(ty);
+        if ((globalThis as any).__ctjDbgT5) console.error("DBGTDNEXT", "fq=" + sym.fq, "ty=" + ty.key(), "sym=" + (s ? s.k : "null"), "seg=" + seg.n);
         if (s) return this.lookupNext(s, seg, scope);
       }
       return null;
@@ -1320,6 +1442,12 @@ export class Cx {
   }
 
   funcParams(fn: FuncInfo): FuncParam[] {
+    if ((globalThis as any).__ctjDbgT3) {
+      for (const p of fn.decl.params) {
+        const k = tnKey(p.type);
+        if (k.indexOf("basic_string<") >= 0) console.error("DBGPARAM", fn.fq, "| decl", fn.decl.file + ":" + fn.decl.line, "| param", k, "| cached", !!fn.paramCache);
+      }
+    }
     if (!fn.paramCache) {
       fn.paramCache = fn.decl.params.map(p => ({
         name: p.name,
@@ -1395,6 +1523,21 @@ export class Cx {
   resolveTypeNode(tn: TypeNode, scope: Scope): CppType {
     const key = tnKey(tn);
     const at = this.resolving.indexOf(key);
+    if (at >= 0) {
+      // A class being instantiated can name itself before its own instantiation
+      // has returned ("typedef _Deque_iterator<_Tp, _Tp&, _Tp*> iterator" in a
+      // constructor's "const iterator&" parameter). Those classes are
+      // registered before their members are read, so the type is that class.
+      for (let i = scope.ns.length; i >= 0; i--) {
+        const cand = [...scope.ns.slice(0, i), key].join("::");
+        const self = this.classes.get(cand);
+        if (!self) continue;
+        const t = new CppType(self.fq);
+        t.segs = [{ n: self.fromTmpl || self.fq, a: self.instArgs.slice() }];
+        this.markCls(self.fq);
+        return t;
+      }
+    }
     if (at >= 0 && (tn.ptr > 0 || tn.ref !== "" || tn.dims.length > 0 || !!tn.func)) {
       const baseName = tn.parts.map(s => s.n).join("::") || "void";
       const t = CppType.basic(baseName);
@@ -1441,6 +1584,12 @@ export class Cx {
     // A synthesized declaration spells an instantiated class by its key, which
     // reads as several names but denotes the one class the key names.
     if (!sym && tn.parts.every(x => !x.a.length)) sym = this.symOfFq(tn.parts.map(x => x.n).join("::"));
+    if (!sym && (globalThis as any).__ctjDbgT5) {
+      console.error("DBGUNK", tn.parts.map(s => s.n + (s.a.length ? "<" + s.a.map(tnKey).join(",") + ">" : "")).join("::"),
+        "| scope.cls=" + (scope.cls ? String((scope.cls as unknown as { fq?: string }).fq) : "-"),
+        "| scope.fn=" + (scope.fn ? String((scope.fn as unknown as { fq?: string }).fq) : "-"),
+        "|", String(new Error().stack).split("\n").slice(2, 10).map(l => l.trim()).join(" ~ "));
+    }
     if (!sym) this.fail(`unknown type '${tn.parts.map(s => s.n).join("::")}'`, tn);
     const s = sym as Sym;
     let base: CppType;
@@ -1536,6 +1685,7 @@ export class Cx {
         return t;
       }
     }
+    if ((globalThis as any).__ctjDbgT5) console.error("DBGTD", "fq=" + fq, "target=" + tnKey(target), "| scope.cls=" + (((td as { scope: Scope }).scope.cls as unknown as { fq?: string })?.fq || "-"));
     const t = this.resolveTypeNode(target, (td as { scope: Scope }).scope);
     seen.delete(fq);
     return t;
@@ -1546,6 +1696,9 @@ export class Cx {
     if (!tmpl || tmpl.kind !== "class") this.fail(`'${tmplFq}' is not a class template`, t || undefined);
     const full = this.fillDefaultArgs(tmpl as TmplInfo, args, scope, t);
     const key = (tmpl as TmplInfo).fq + "<" + full.map(a => a.key()).join(",") + ">";
+    if ((globalThis as any).__ctjDbgInst && (key.startsWith("std::set<") || key.startsWith("std::_Rb_tree<") || key.startsWith("std::allocator<"))) {
+      console.error("DBGINST", key, "| args=" + args.map(a => a.key()).join(","), "| at", t ? t.file + ":" + t.line : "null", "|", String(new Error().stack).split("\n").slice(1, 11).map(l => l.trim()).join(" ~ "));
+    }
     const exist = this.classes.get(key);
     if (exist) {
       this.markCls(key);
@@ -1576,6 +1729,9 @@ export class Cx {
       const env = this.buildEnv((tmpl as TmplInfo).tparams, full);
       const decl = substDecl((tmpl as TmplInfo).decl, env) as ClassDecl;
       return this.instantiateClassDecl(key, tmpl as TmplInfo, decl, full, env, t);
+    } catch (e) {
+      if ((globalThis as any).__ctjDbgInst && key.indexOf("std::_Hashtable<") === 0) console.error("DBGITHROW", key.slice(0, 60), String(e), String((e as { stack?: string }).stack).split("\n").slice(1, 8).map(l => l.trim()).join(" ~ "));
+      throw e;
     } finally {
       this.instStack.pop();
     }
@@ -1754,7 +1910,9 @@ export class Cx {
   instantiateClassDecl(key: string, tmpl: TmplInfo, decl: ClassDecl, args: CppType[], env: SubstEnv, t: At | null): ClsInfo {
     void env;
     void t;
-    const cls = this.blankCls(key, last(key.split("::")), decl, tmpl.scope);
+    if ((globalThis as any).__ctjDbgInst && key.indexOf("_Hashtable_ebo_helper") >= 0) console.error("DBGEBO", "key=" + key.slice(0, 90), "types=" + [...env.types.keys()].join(","), "values=" + [...env.values.keys()].join(","), "at=" + decl.file + ":" + decl.line, "tmplDecl=" + tmpl.decl.file + ":" + tmpl.decl.line, "tparams=" + tmpl.tparams.length, "args=" + args.map(a => a.key()).join("|"), "specs=" + (tmpl.specs || []).map(x => x.key).join(";"), "partN=" + ((tmpl.partials || []).length), "bases=" + decl.bases.map(b => b.name.map(x => x.n).join("::")).join("|"));
+    if ((globalThis as any).__ctjDbgInst && key.indexOf("std::_Hashtable<") === 0) console.error("DBGICD", "key=" + key.slice(0, 70), "tmpl=" + tmpl.fq, "members=" + decl.members.length, "at=" + decl.file + ":" + decl.line, "bases=" + decl.bases.map(b => b.name.map(x => x.n + (x.a.length ? "<..>" : "")).join("::")).join(" | "));
+    const cls = this.blankCls(key, shortName(key), decl, tmpl.scope);
     cls.complete = true;
     cls.fromTmpl = tmpl.fq;
     cls.instArgs = args;
@@ -1771,8 +1929,8 @@ export class Cx {
     for (const list of cls.methods.values()) {
       for (const fn of list) this.annDefaults(fn.decl, this.memberScope(cls));
     }
-    if (this.collecting) this.pendingOOL.push({ tmpl, key, cls, args });
-    else this.instantiateOutOfLineMembers(tmpl, key, cls, args);
+    if (this.collecting) this.pendingOOL.push({ tmpl, key, cls, args, env });
+    else this.instantiateOutOfLineMembers(tmpl, key, cls, args, env);
     this.markCls(key);
     return cls;
   }
@@ -1781,15 +1939,18 @@ export class Cx {
     this.collecting = false;
     const list = this.pendingOOL;
     this.pendingOOL = [];
-    for (const p of list) this.instantiateOutOfLineMembers(p.tmpl, p.key, p.cls, p.args);
+    for (const p of list) this.instantiateOutOfLineMembers(p.tmpl, p.key, p.cls, p.args, p.env);
   }
 
-  instantiateOutOfLineMembers(tmpl: TmplInfo, key: string, cls: ClsInfo, args: CppType[]): void {
+  instantiateOutOfLineMembers(tmpl: TmplInfo, key: string, cls: ClsInfo, args: CppType[], envOverride?: SubstEnv): void {
     const prefix = tmpl.fq + "::";
-    const outer = tmpl.tparams.length;
     for (const t of this.allTmpls()) {
       if (!t.fq.startsWith(prefix)) continue;
-      const env = this.buildEnv(tmpl.tparams, args);
+      // The parameters of the specialization the instance was read from, not
+      // those of the primary: "Cls<_A, _B>" and "Cls<_X, _Y>" are the same
+      // template with different names for its parameters.
+      const env = envOverride || this.buildEnv(tmpl.tparams, args);
+      const outer = t.outer || tmpl.tparams.length;
       const rest = t.tparams.slice(outer);
       const newFq = key + "::" + t.fq.slice(prefix.length);
       // The member can belong to a nested class of the instantiated one:
@@ -1814,6 +1975,7 @@ export class Cx {
         this.annDefaults(decl, this.memberScope(owner));
         const exist = this.findMethod(owner, decl);
         if (exist && !exist.decl.body && decl.body) {
+          this.mergeDefDefaults(exist.decl, decl);
           exist.decl = decl;
           exist.scope = this.memberScope(owner);
         } else if (!exist) {
@@ -1878,7 +2040,7 @@ export class Cx {
     const list = cls.methods.get(key);
     if (!list) return null;
     for (const f of list) {
-      if (f.decl.params.length === d.params.length) return f;
+      if (this.paramShape(f.decl) === this.paramShape(d)) return f;
     }
     return list[0] || null;
   }
@@ -1975,7 +2137,7 @@ export class Cx {
       } else {
         const ex = substExpr(tp.def as Expr, env);
         const v = constEval(this, ex, scope);
-        if (typeof v !== "number") this.fail(`non-constant template argument for '${tp.name}'`, t || undefined);
+        if (typeof v !== "number") this.fail(`non-constant template argument for '${tp.name}' in '${tmpl.fq}'`, t || undefined);
         full.push(CppType.basic("__value" + Math.trunc(v)));
         env.values.set(tp.name, Math.trunc(v));
       }
