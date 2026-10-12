@@ -1,0 +1,8 @@
+node_modules/
+dist/
+include/
+include.json
+test/cases/
+*.md
+*.html
+package-lock.json

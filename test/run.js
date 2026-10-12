@@ -13,8 +13,12 @@ for (const f of fs.readdirSync(dir)) {
   if (f.endsWith(".h")) local[f] = fs.readFileSync(path.join(dir, f), "utf8");
 }
 const headers = loadHeaders(path.join(__dirname, "..", "include"), local);
-const files = fs.readdirSync(dir).filter(f => f.endsWith(".cpp")).sort();
-let pass = 0, fail = 0;
+const files = fs
+  .readdirSync(dir)
+  .filter(f => f.endsWith(".cpp"))
+  .sort();
+let pass = 0,
+  fail = 0;
 const failed = [];
 for (const f of files) {
   const name = f.slice(0, -4);

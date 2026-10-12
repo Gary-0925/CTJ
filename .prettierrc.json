@@ -1,0 +1,6 @@
+{
+  "printWidth": 1000,
+  "trailingComma": "es5",
+  "arrowParens": "avoid",
+  "endOfLine": "lf"
+}

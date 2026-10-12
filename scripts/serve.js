@@ -27,29 +27,31 @@ const TYPES = {
   ".md": "text/markdown; charset=utf-8",
 };
 
-http.createServer((req, res) => {
-  const raw = req.url || "/";
-  const url = decodeURIComponent(raw.split("?")[0]);
-  const file = path.join(root, url === "/" ? "index.html" : url);
-  if (file !== root && !file.startsWith(root + path.sep)) {
-    res.writeHead(403, { "Content-Type": "text/plain" }).end("forbidden");
-    return;
-  }
-  fs.readFile(file, (err, data) => {
-    if (err) {
-      console.log(`${req.socket.remoteAddress} ${req.method} ${raw} 404`);
-      res.writeHead(404, { "Content-Type": "text/plain" }).end("404 " + url);
+http
+  .createServer((req, res) => {
+    const raw = req.url || "/";
+    const url = decodeURIComponent(raw.split("?")[0]);
+    const file = path.join(root, url === "/" ? "index.html" : url);
+    if (file !== root && !file.startsWith(root + path.sep)) {
+      res.writeHead(403, { "Content-Type": "text/plain" }).end("forbidden");
       return;
     }
-    const body = data;
-    console.log(`${req.socket.remoteAddress} ${req.method} ${raw} 200 ${body.length}`);
-    res.writeHead(200, {
-      "Content-Type": TYPES[path.extname(file)] || "application/octet-stream",
-      "Content-Length": body.length,
-      "Cache-Control": "no-store",
+    fs.readFile(file, (err, data) => {
+      if (err) {
+        console.log(`${req.socket.remoteAddress} ${req.method} ${raw} 404`);
+        res.writeHead(404, { "Content-Type": "text/plain" }).end("404 " + url);
+        return;
+      }
+      const body = data;
+      console.log(`${req.socket.remoteAddress} ${req.method} ${raw} 200 ${body.length}`);
+      res.writeHead(200, {
+        "Content-Type": TYPES[path.extname(file)] || "application/octet-stream",
+        "Content-Length": body.length,
+        "Cache-Control": "no-store",
+      });
+      res.end(body);
     });
-    res.end(body);
+  })
+  .listen(port, "0.0.0.0", () => {
+    console.log(`CTJ playground on http://0.0.0.0:${port}/`);
   });
-}).listen(port, "0.0.0.0", () => {
-  console.log(`CTJ playground on http://0.0.0.0:${port}/`);
-});
