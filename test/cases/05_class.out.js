@@ -6,7 +6,7 @@ class Point {
     this.__init_Point(...$a);
   }
   __init_Point(...$a) {
-    if ($a.length >= 1 && $a.length <= 1 && ($a[0] !== null && typeof $a[0] === "object" && $a[0].a[$a[0].i] instanceof Point)) {
+    if ($a.length >= 1 && $a.length <= 1 && ($a[0] !== null && typeof $a[0] === "object" && !Array.isArray($a[0]) && $a[0].a !== undefined && $a[0].i !== undefined && $a[0].a[$a[0].i] instanceof Point)) {
       this.x = ((($a[0]).a[($a[0]).i]).x * 10);
       this.y = ((($a[0]).a[($a[0]).i]).y * 10);
     }

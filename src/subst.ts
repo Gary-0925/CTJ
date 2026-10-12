@@ -55,7 +55,9 @@ export function substTypeNode(tn: TypeNode, env: SubstEnv): TypeNode {
   out.decltypeOf = tn.decltypeOf ? substExpr(tn.decltypeOf, env) : null;
   out.valueArg = tn.valueArg ? substExpr(tn.valueArg, env) : null;
   out.dims = tn.dims.map(d => substExpr(d, env));
-  out.func = tn.func ? { params: tn.func.params.map(p => substTypeNode(p, env)), variadic: tn.func.variadic } : null;
+  // The parameter list may hold a pack ("_Signature_type(_ArgTypes...)"), which
+  // expands to one node per bound argument.
+  out.func = tn.func ? { params: substTArgs(tn.func.params, env), variadic: tn.func.variadic } : null;
   if (!tn.parts.length) return out;
   const first = tn.parts[0].n;
   const rep = env.types.get(first);
@@ -294,6 +296,15 @@ function expandArg(a: Expr, env: SubstEnv): Expr[] {
   return [substExpr(a, env)];
 }
 
+// The expression a functional cast constructs from: "Tp(__args...)" with a
+// pack of one element constructs that element, which is what a cast holds.
+function substCastArg(a: Expr, env: SubstEnv): Expr {
+  if (a.kind === "unary" && a.op === "...") {
+    const ex = expandArg(a, env);
+    if (ex.length === 1) return ex[0];
+  }
+  return substExpr(a, env);
+}
 function substCallArgs(args: Expr[], env: SubstEnv): Expr[] {
   const out: Expr[] = [];
   for (const a of args) out.push(...expandArg(a, env));
@@ -349,7 +360,7 @@ export function substExpr(ex: Expr, env: SubstEnv): Expr {
     case "cast":
       return {
         kind: "cast", ckind: ex.ckind, type: ex.type ? substTypeNode(ex.type, env) : null,
-        fn: ex.fn ? substExpr(ex.fn, env) : null, arg: substExpr(ex.arg, env), file: f, line: l,
+        fn: ex.fn ? substExpr(ex.fn, env) : null, arg: substCastArg(ex.arg, env), file: f, line: l,
       };
     case "sizeof": {
       if (ex.packName) {
@@ -433,7 +444,9 @@ export function substStmt(s: Stmt, env: SubstEnv): Stmt {
   const f = s.file;
   const l = s.line;
   switch (s.kind) {
-    case "compound": return { kind: "compound", stmts: s.stmts.map(x => substStmt(x, env)), file: f, line: l };
+    // A statement of several declarations shares the scope it stands in, and
+    // the copy has to say so too, or the names it declares are lost with it.
+    case "compound": return { kind: "compound", sameScope: s.sameScope, stmts: s.stmts.map(x => substStmt(x, env)), file: f, line: l };
     case "expr": return { kind: "expr", expr: substExpr(s.expr, env), file: f, line: l };
     case "decl": return { kind: "decl", decl: substDecl(s.decl, env), file: f, line: l };
     case "if":

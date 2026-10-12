@@ -19,6 +19,9 @@ export interface DeclSpec {
 
 export interface Declarator {
   name: QSeg[];
+  // The member types of the class an out-of-line definition belongs to, kept
+  // because "Cls::operator[]" drops the class from the name below.
+  ownerScope: Set<string> | null;
   global: boolean;
   op: string;
   convType: TypeNode | null;
@@ -36,7 +39,7 @@ export interface Declarator {
 
 export function blankDeclarator(): Declarator {
   return {
-    name: [], global: false, op: "", convType: null, ptr: 0, ref: "",
+    name: [], ownerScope: null, global: false, op: "", convType: null, ptr: 0, ref: "",
     dims: [], isFunc: false, params: [], funcCnst: false,
     trailing: null, isMemPtr: false, special: "", isPack: false,
   };
@@ -217,6 +220,24 @@ export class Parser {
     return false;
   }
 
+  // "Cls::size_type": the name is a type when a class the qualified name is
+  // written against declares it, as "_Deque_iterator<...>::difference_type(...)"
+  // does.  A member of a class we never saw declared is left alone.
+  isQualifiedTypeName(parts: QSeg[]): boolean {
+    if (parts.length < 2) return false;
+    const owner = this.ownerTypeScope(parts);
+    return !!owner && owner.has(last(parts).n);
+  }
+
+  // Whether one of the names a qualified name is written against is a class
+  // this parser saw defined.
+  ownerIsClass(parts: QSeg[]): boolean {
+    for (let i = 0; i + 1 < parts.length; i++) {
+      if (this.classTypes.has(parts[i].n)) return true;
+    }
+    return false;
+  }
+
   spawn(toks: Token[]): Parser {
     const p = new Parser(toks);
     p.warnings = this.warnings;
@@ -365,7 +386,18 @@ export class Parser {
     if (d.ref) tn.ref = d.ref;
     for (const dim of d.dims) tn.dims.push(dim);
     if (d.isFunc) {
-      tn.func = { params: d.params.map(p => p.type), variadic: d.params.some(p => p.variadic) };
+      // The "..." of a pack parameter stays on the parameter it belongs to, so
+      // that substitution can expand it: "_ArgTypes..." in the function type
+      // "_Res (*)(const _Any_data&, _ArgTypes...)".
+      tn.func = {
+        params: d.params.map(x => {
+          if (!x.isPack) return x.type;
+          const pt = this.cloneType(x.type);
+          pt.packExpand = true;
+          return pt;
+        }),
+        variadic: d.params.some(p => p.variadic),
+      };
     }
     return tn;
   }
@@ -423,7 +455,7 @@ export class Parser {
       } else {
         // The members of the class are in scope in the body of an out-of-line
         // member definition, so its type names stay visible while parsing it.
-        const owner = this.ownerTypeScope(d.name);
+        const owner = d.ownerScope || this.ownerTypeScope(d.name);
         if (owner) this.pushTypeScope(owner);
         try {
           fn.body = this.parseFuncBody();
@@ -595,7 +627,13 @@ export class Parser {
             || nxt.v === "operator");
         if (!looksLikeType) break;
       }
-      if (this.peek(1).t === "(" && !type && !prefix.length) break;
+      if (this.peek(1).t === "(" && !type && !prefix.length) {
+        // A parenthesis that opens a declarator of its own — "(*__x)(_Arg)",
+        // "(&_f)(int)" — does not turn the name into a call; the name is the
+        // type and what follows it is a pointer-to-function declarator.
+        const nx2 = this.peek(2);
+        if (!(nx2 && (nx2.t === "*" || nx2.t === "&" || nx2.t === "&&"))) break;
+      }
       // "typedef typename R::iterator iterator;": once a type is complete, an
       // identifier that is itself a type name is the declarator being declared
       // rather than another piece of the type.
@@ -740,7 +778,18 @@ export class Parser {
           const ps = this.parseParamList();
           const nx = this.peek().t;
           if (nx === "," || nx === ">" || nx === ">>" || nx === "...") {
-            fn = { params: ps.map(x => x.type), variadic: ps.some(x => x.variadic) };
+            // The "..." of "_ArgTypes..." stays on the parameter it belongs to
+            // so that matchFuncArg can bind the pack to the remaining
+            // arguments ("std::function<void(int, char)>").
+            fn = {
+              params: ps.map(x => {
+                if (!x.isPack) return x.type;
+                const pt = this.cloneType(x.type);
+                pt.packExpand = true;
+                return pt;
+              }),
+              variadic: ps.some(x => x.variadic),
+            };
           }
         } catch { fn = null; }
         if (fn) ta.func = fn;
@@ -885,7 +934,7 @@ export class Parser {
     this.parseDeclaratorCore(d);
     // In "Cls::method(const value_type& v)" the members of Cls are in scope in
     // the parameter list, so its type names have to be visible while parsing it.
-    const owner = this.ownerTypeScope(d.name);
+    const owner = d.ownerScope || this.ownerTypeScope(d.name);
     if (owner) this.pushTypeScope(owner);
     try {
       this.parseDeclaratorSuffix(d);
@@ -944,6 +993,9 @@ export class Parser {
     }
     if (this.peek().t === "ident") {
       d.name = this.parseQualifiedName(true);
+      // "Cls::operator[]" — the class part is removed from the name below, so
+      // its member types are remembered for the parameter list and the body.
+      d.ownerScope = this.ownerTypeScope(d.name) || null;
       if (last(d.name).n === "operator") {
         d.name.pop();
         const r = this.parseOperator();
@@ -980,6 +1032,14 @@ export class Parser {
           for (const p of params) {
             const pt = p.type;
             if (!pt.parts.length && !pt.decltypeOf && !pt.ptr && !pt.ref && !pt.func && !pt.dims.length && !p.variadic && !p.isPack) {
+              throw new Error("not params");
+            }
+            // "_Bucket_allocator_type __alloc(_M_node_allocator());" defines
+            // __alloc from a function-style cast: the name inside the
+            // parentheses is not a type, so the "()" is no parameter list.
+            // Only a parameter whose type has a name of its own can be one.
+            if (!pt.parts.length && !pt.decltypeOf && !pt.ptr && !pt.ref && !p.variadic && !p.isPack
+              && (pt.func || pt.dims.length)) {
               throw new Error("not params");
             }
             // "sentry __cerb(*this)": *this is a pointer named this, not a type.

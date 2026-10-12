@@ -115,7 +115,16 @@ export function parsePostfix(p: Parser, e: Expr): Expr {
 }
 
 function maybeFunctional(p: Parser, e: Expr, args: Expr[], t: Token): Expr {
-  if (e.kind === "id" && e.parts.length && p.isTypeName(last(e.parts).n)) {
+  // "Cls::name(...)": when Cls is a class this parser saw, only what that
+  // class declares decides the name ("std::_Hash_impl::hash", a static
+  // function, is not a type just because the class being parsed is called
+  // "hash").  Otherwise the type names in scope are all there is to go on
+  // ("std::size_t(...)" of a typedef, "hash<int>(...)" of a class).
+  const isType = e.kind === "id" && e.parts.length > 0 &&
+    (e.parts.length > 1 && p.ownerIsClass(e.parts)
+      ? p.isQualifiedTypeName(e.parts)
+      : p.isTypeName(last(e.parts).n));
+  if (e.kind === "id" && isType) {
     const arg: Expr = args.length === 1 ? args[0]
       : { kind: "initlist", items: args, ...at(t) };
     return {

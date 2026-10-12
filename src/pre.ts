@@ -14,10 +14,14 @@ export interface PreResult {
 
 const MAX_DEPTH = 64;
 
-// libstdc++ writes its pedantic asserts as function-like macros that its
-// configuration header defines away unless a program asks for them. They carry
-// no behaviour, so the defaults come from here; "defines" can still override.
-export const DEFAULT_EMPTY_FN_MACROS = ["_GLIBCXX_DEBUG_PEDASSERT"];
+// libstdc++ writes its pedantic asserts and its thread-sanitizer annotations as
+// function-like macros that its configuration header defines away unless a
+// program asks for them. They carry no behaviour, so the defaults come from
+// here; "defines" can still override.
+export const DEFAULT_EMPTY_FN_MACROS = [
+  "_GLIBCXX_DEBUG_ASSERT", "_GLIBCXX_DEBUG_PEDASSERT",
+  "_GLIBCXX_SYNCHRONIZATION_HAPPENS_BEFORE", "_GLIBCXX_SYNCHRONIZATION_HAPPENS_AFTER",
+];
 
 export const DEFAULT_PREDEFINED: Record<string, string> = {
   "__cplusplus": "201103L",
@@ -76,6 +80,24 @@ export const DEFAULT_PREDEFINED: Record<string, string> = {
   "__SIZEOF_SHORT__": "2",
   "__SIZEOF_FLOAT__": "4",
   "__SIZEOF_DOUBLE__": "8",
+  "__SIZEOF_LONG_LONG__": "8",
+};
+
+// Headers the target environment provides but that the bundled "include"
+// directory does not carry.  They only declare their names, which is what the
+// standard headers include them for; calling into them is an unresolved
+// external at run time.
+export const BUILTIN_HEADERS: Record<string, string> = {
+  "fenv.h": "/* <fenv.h> for CTJ.  The floating point environment is not modelled, so this\n   header only provides the names the standard headers look for. */\n#ifndef _CTJ_FENV_H\n#define _CTJ_FENV_H\n\n#define FE_INVALID 1\n#define FE_DIVBYZERO 4\n#define FE_OVERFLOW 8\n#define FE_UNDERFLOW 16\n#define FE_INEXACT 32\n#define FE_ALL_EXCEPT 61\n\n#define FE_TONEAREST 0\n#define FE_DOWNWARD 0x400\n#define FE_UPWARD 0x800\n#define FE_TOWARDZERO 0xc00\n\ntypedef unsigned short fexcept_t;\ntypedef struct { unsigned short __control; unsigned int __status; } fenv_t;\n\n#define FE_DFL_ENV ((const fenv_t *) -1l)\n\n#ifdef __cplusplus\nextern \"C\" {\n#endif\n\nint feclearexcept(int __excepts);\nint fegetexceptflag(fexcept_t *__flagp, int __excepts);\nint feraiseexcept(int __excepts);\nint fesetexceptflag(const fexcept_t *__flagp, int __excepts);\nint fetestexcept(int __excepts);\nint fegetround(void);\nint fesetround(int __round);\nint fegetenv(fenv_t *__envp);\nint feholdexcept(fenv_t *__envp);\nint fesetenv(const fenv_t *__envp);\nint feupdateenv(const fenv_t *__envp);\n\n#ifdef __cplusplus\n}\n#endif\n\n#endif\n",
+};
+
+// The bundled headers carry only the internals a program needs, so an edge of
+// the real include graph may be missing.  "<memory>" here names six internals
+// and not "<bits/alloc_traits.h>", which is where "std::allocator_traits" is
+// declared, so a program that reaches "<memory>" through "<forward_list>", say,
+// would never see that name.  The dropped edges are restored here.
+const IMPLIED_INCLUDES: Record<string, string[]> = {
+  "memory": ["bits/alloc_traits.h"],
 };
 
 export class Preprocessor {
@@ -84,7 +106,12 @@ export class Preprocessor {
   warnings: string[] = [];
   missing: string[] = [];
   macros = new Map<string, Macro>();
+  // Definitions of macros that were undefined again by a header but that a
+  // later header still uses: kept for the expansion, not for "#ifdef".
+  undefKept = new Map<string, Macro>();
   onceFiles = new Set<string>();
+  // A built-in stub is reported once however often its header is included.
+  stubWarned = new Set<string>();
   fileStack: string[] = [];
   fileDirIndex = new Map<string, number>();
 
@@ -229,7 +256,17 @@ export class Preprocessor {
       } else if (dir === "define") {
         this.doDefine(rest, file, t.line);
       } else if (dir === "undef") {
-        this.macros.delete(rest.split(/\s/)[0]);
+        const nm = rest.split(/\s/)[0];
+        // "<limits>" cleans up the "__glibcxx_*" helpers it defines, but the
+        // collected headers still use them later on ("ext/numeric_traits.h"
+        // builds "__min" out of "__glibcxx_min"), and losing the definition
+        // leaves a call to a macro that no longer exists.
+        // The definition is kept aside so that a call to the macro still
+        // expands, but the macro itself is undefined: "#ifdef" has to give
+        // the answer the original headers give.
+        const def = this.macros.get(nm);
+        if (def && nm.startsWith("__glibcxx_")) this.undefKept.set(nm, def);
+        this.macros.delete(nm);
       } else if (dir === "error") {
         fail(`#error ${rest}`, file, t.line, t.col);
       } else if (dir === "warning") {
@@ -267,17 +304,32 @@ export class Preprocessor {
         return;
       }
     }
-    const full = this.resolveInclude(name, kind, file, next);
+    let full = this.resolveInclude(name, kind, file, next);
+    let content: string | null = null;
+    if (full === null && BUILTIN_HEADERS[name] !== undefined) {
+      // "<cfenv>" includes "<fenv.h>", which the bundled includes do not carry.
+      // The stub keeps it, and everything that goes through "<bits/stdc++.h>",
+      // working; the names it declares stay unresolved externals.
+      full = name;
+      content = BUILTIN_HEADERS[name];
+      if (!this.stubWarned.has(name)) {
+        this.stubWarned.add(name);
+        this.warn(`header ${name} is not bundled, using the CTJ stub`, file, line);
+      }
+    }
     if (full === null) {
       if (!this.missing.includes(name)) this.missing.push(name);
       this.warn(`header not found: ${name}`, file, line);
       return;
     }
     if (this.onceFiles.has(full)) return;
-    const content = this.loadFile(full);
+    if (content === null) content = this.loadFile(full);
     if (content === null) return;
     const sub = this.processFile(content, full);
     for (const t of sub) out.push(t);
+    for (const extra of IMPLIED_INCLUDES[name] || []) {
+      this.doInclude(`<${extra}>`, full, line, col, false, out);
+    }
   }
 
   doDefine(rest: string, file: string, line: number): void {
@@ -322,7 +374,7 @@ export class Preprocessor {
         if (t.v === "__DATE__") { out.push(tok("string", JSON.stringify("Jan  1 2026"), t.file, t.line, t.col)); continue; }
         if (t.v === "__TIME__") { out.push(tok("string", JSON.stringify("00:00:00"), t.file, t.line, t.col)); continue; }
         if (t.v === "__COUNTER__") { out.push(tok("number", "0", t.file, t.line, t.col)); continue; }
-        const macro = this.macros.get(t.v);
+        const macro = this.macros.get(t.v) || this.undefKept.get(t.v);
         if (!macro) { out.push(t); continue; }
         if (macro.params === null) {
           const sub = this.expandTokens(macro.body, new Set([...disabled, t.v]), file, line);

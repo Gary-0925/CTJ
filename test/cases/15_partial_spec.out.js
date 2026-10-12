@@ -26,10 +26,12 @@ class Box_char {
   }
 }
 class Same_int_int {
+  __init_Same_int_int(...$a) { }
   __dtor() {
   }
 }
 class Same_int_char {
+  __init_Same_int_char(...$a) { }
   __dtor() {
   }
 }
