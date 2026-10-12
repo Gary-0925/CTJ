@@ -1032,7 +1032,6 @@ export class Parser {
           for (const p of params) {
             const pt = p.type;
             if (!pt.parts.length && !pt.decltypeOf && !pt.ptr && !pt.ref && !pt.func && !pt.dims.length && !p.variadic && !p.isPack) {
-              if ((globalThis as any).__ctjDbgNP) console.error("DBGNP guard1", "name=" + p.name, "at=" + this.peek().file + ":" + this.peek().line);
               throw new Error("not params");
             }
             // "_Bucket_allocator_type __alloc(_M_node_allocator());" defines
@@ -1041,7 +1040,6 @@ export class Parser {
             // Only a parameter whose type has a name of its own can be one.
             if (!pt.parts.length && !pt.decltypeOf && !pt.ptr && !pt.ref && !p.variadic && !p.isPack
               && (pt.func || pt.dims.length)) {
-              if ((globalThis as any).__ctjDbgNP) console.error("DBGNP guard2", "name=" + p.name, "parts=" + JSON.stringify(pt.parts.map(q => q.n)), "func=" + JSON.stringify(pt.func), "dims=" + pt.dims.length, "ptr=" + pt.ptr, "at=" + this.peek().file + ":" + this.peek().line);
               throw new Error("not params");
             }
             // "sentry __cerb(*this)": *this is a pointer named this, not a type.

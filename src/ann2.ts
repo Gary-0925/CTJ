@@ -112,7 +112,7 @@ function typeOfId(cx: Cx, e: IdExpr, scope: Scope): CppType {
   const sym = cx.resolveSym(e.parts, e.global, scope);
   const ann = cx.getAnn(e);
   ann.sym = sym;
-  if (!sym) { if ((globalThis as any).__ctjDbgUnknown) console.error("DBGUNK", JSON.stringify(e), "|", String(new Error().stack).split("\n").slice(1, 14).map(l => l.trim()).join(" ~ ")); cx.fail(`unknown name '${e.parts.map(s => s.n).join("::")}'`, e); }
+  if (!sym) { cx.fail(`unknown name '${e.parts.map(s => s.n).join("::")}'`, e); }
   const s = sym as Sym;
   if (s.k === "var") {
     cx.markVar(s.v);
@@ -673,7 +673,6 @@ export function tryResolveCtor(cx: Cx, clsFq: string, args: { t: CppType; e: Exp
 
 function resolveCallExpr(cx: Cx, e: CallExpr, scope: Scope): CppType {
   const fn = e.fn;
-  if ((globalThis as any).__ctjDbgUnknown && (e.file || "").indexOf("numeric_traits") >= 0) console.error("DBGCALL", "line=" + e.line, "callee=" + JSON.stringify(fn).slice(0, 200), "args=" + JSON.stringify(e.args).slice(0, 300));
   const argTs = e.args.map(x => ({ t: typeOf(cx, x, scope), e: x }));
   const ann = cx.getAnn(e);
   if (fn.kind === "id") {
@@ -916,7 +915,7 @@ export function resolveOverload(cx: Cx, cands: FuncInfo[], tmpls: TmplInfo[], ar
     const inst = tryInstantiateCall(cx, tm, args, scope, explicit, t);
     if (inst) all.push(inst);
   }
-  if (!all.length) { if ((globalThis as any).__ctjDbgT6) console.error("DBGNOALL", "cands=" + cands.length, "useCands=" + useCands.length, "tmpls=" + tmpls.map(x => x.fq).join(";"), "args=" + args.map(a => a.t.key()).join(" | "), "at", t.file + ":" + t.line, "|", String(new Error().stack).split("\n").slice(2, 8).map(l => l.trim()).join(" ~ ")); cx.fail(`no matching function(${args.map(a => a.t.key()).join(", ")})`, t); }  let best: FuncInfo | null = null;
+  if (!all.length) { cx.fail(`no matching function(${args.map(a => a.t.key()).join(", ")})`, t); }  let best: FuncInfo | null = null;
   let bestScore = -1e18;
   let bestConvs: ({ kind: string; fn: FuncInfo } | null)[] = [];
   for (const f of all) {
@@ -936,7 +935,6 @@ export function resolveOverload(cx: Cx, cands: FuncInfo[], tmpls: TmplInfo[], ar
     }
   }
   if (!best) {
-    if ((globalThis as any).__ctjDbgCall) console.error("DBGCALLFAIL", args.map(a => a.t.key() + "@" + a.e.kind + (a.e as { file?: string }).file + ":" + (a.e as { line?: number }).line + " keys=" + Object.keys(a.e).join("/")).join(" | "), "callAt", t.file + ":" + t.line, "cands", all.map(f => f.fq).slice(0, 6).join(";"), "in", ((globalThis as any).__ctjStack || []).slice(-4).join(" < "));
     cx.fail(`no matching function for call(${args.map(a => a.t.key()).join(", ")})`, t);
   }
   if ((best as FuncInfo).isDelete) cx.fail("call to deleted function", t);
@@ -1003,15 +1001,7 @@ function tryInstantiateCall(cx: Cx, tm: TmplInfo, args: { t: CppType; e: Expr }[
   try {
     const d = deduce(cx, tm, args, scope, explicit || [], t);
     if (!d) {
-      if ((globalThis as any).__ctjDbgGet && tm.fq.indexOf("std::get") === 0) console.error("DBGGETFAIL-deduce", tm.fq, "tparams=" + tm.tparams.map(p => p.name + ":" + p.kind).join(","), "explicit=" + (explicit || []).map(a => a.key()).join(","), "args=" + args.map(a => a.t.key()).join(","), "declParams=" + (tm.decl as FuncDecl).params.map(p => p.type.parts.map(q => q.n + (q.a.length ? "<" + q.a.map(x => x.parts.map(y => y.n).join("::") || "val").join(",") + ">" : "")).join("::") + (p.type.ptr ? "*" : "") + (p.type.ref || "") + (p.type.packExpand ? "..." : "")).join(" | "), "argSegs=" + args.map(a => a.t.segs.map(s => s.n + (s.a.length ? "<" + s.a.length + ">" : "")).join("::") + "|cnst=" + a.t.cnst + "|ref=" + a.t.ref + "|ptr=" + a.t.ptr).join(" ; "));
       return null;
-    }
-    if ((globalThis as any).__ctjDbgT4 && d.full.some(a => a.key().startsWith("std::basic_string") || a.key().indexOf("int&") >= 0)) {
-      console.error("DBGDEDUCE", tm.fq, "full=" + d.full.map(a => a.key()).join(","), "args=" + args.map(a => a.t.key()).join(" | "),
-        "at " + t.file + ":" + t.line + ":" + String((t as unknown as { col?: number }).col), "|", String(new Error().stack).split("\n").slice(2, 9).map(l => l.trim()).join(" ~ "));
-    }
-    if ((globalThis as any).__ctjDbgGet && tm.fq.indexOf("operator==") === 0 && d.full.some(a => a.name.indexOf("pair") >= 0) && !args.some(a => a.t.name.indexOf("normal_distribution") >= 0)) {
-      console.error("DBGEQ", tm.fq, "at", tm.decl.file + ":" + tm.decl.line, "full=" + d.full.map(a => a.name).join(","), "args=" + args.map(a => a.t.name + "#segs=" + a.t.segs.map(x => x.n).join("+")).join(" | "));
     }
     const fn = cx.instantiateFunc(tm, d.full, new Map(), tm.tparams.filter(p => p.isPack).length > 1 ? d.env : undefined);
     // Substitution failure in the return type or parameters is SFINAE, not
@@ -1020,8 +1010,6 @@ function tryInstantiateCall(cx: Cx, tm: TmplInfo, args: { t: CppType; e: Expr }[
     cx.funcRet(fn);
     return fn;
   } catch (er) {
-    if ((globalThis as any).__ctjDbgGet && tm.fq.indexOf("std::get") === 0) console.error("DBGGETFAIL-instantiate", tm.fq, "tparams=" + tm.tparams.map(p => p.name + ":" + p.kind + (p.isPack ? "..." : "")).join(","), "explicit=" + (explicit || []).map(a => a.key()).join(","), "args=" + args.map(a => a.t.key()).join(","), "err=" + String((er as Error).message));
-    if ((globalThis as any).__ctjDbgT6 && args.some(a => a.t.key().indexOf("_List_iterator<int>") >= 0)) console.error("DBGINSTFAIL", tm.fq, "full=" + (explicit || []).map(a => a.key()).join(","), "args=" + args.map(a => a.t.key()).join(","), "err=" + String((er as Error).message));
     return null;
   }
 }
@@ -1055,18 +1043,16 @@ function deduce(cx: Cx, tm: TmplInfo, args: { t: CppType; e: Expr }[], scope: Sc
     if (p.variadic) break;
     if (p.isPack) {
       const nm = packNameOf(p.type);
-      if (!nm) { if ((globalThis as any).__ctjDbgT6 && args.some(a => a.t.key().indexOf("_List_iterator<int>") >= 0)) console.error("DBGDEDUCEFAIL-PACK", tm.fq, p.type.parts.map(q => q.n).join("::")); return null; }
+      if (!nm) { return null; }
       packs.set(nm, args.slice(ai).map(a => noRef(a.t)));
       ai = args.length;
       break;
     }
     if (ai >= args.length) {
-      if ((globalThis as any).__ctjDbgT6 && args.some(a => a.t.key().indexOf("_List_iterator<int>") >= 0)) console.error("DBGDEDUCEFAIL-MISSING", tm.fq, "param", p.type.parts.map(q => q.n).join("::"), "args=" + args.map(a => a.t.key()).join(","));
       if (!p.def) return null;
       continue;
     }
     if (!deduceOne(cx, p.type, args[ai].t, env, venv, packs, false, names, fixedNames)) {
-      if ((globalThis as any).__ctjDbgT6 && args.some(a => a.t.key().indexOf("Rb_tree") >= 0)) console.error("DBGDEDUCEFAIL", tm.fq, "param", p.type.parts.map(q => q.n + (q.a.length ? "<" + q.a.length + ">" : "")).join("::") + (p.type.ptr ? "*" : "") + (p.type.ref || ""), "vs", args[ai].t.key(), "argi", ai);
       return null;
     }
     ai++;
@@ -1534,11 +1520,9 @@ export function findOperator(cx: Cx, op: string, l: { t: CppType; e: Expr } | nu
       });
       if (!best || sc > best.score) best = { fn: rr.fn, convs: rr.convs, score: sc };
     } catch (er) {
-      if ((globalThis as any).__ctjDbgT6) console.error("DBGCONSIDERR", String((er as Error).message), "cands=" + cands.map(f => f.fq).join(";"), "tmpls=" + tmpls.map(x => x.fq).join(";"), "|", String(new Error().stack).split("\n").slice(2, 7).map(l => l.trim()).join(" ~ "));
     }
   };
   const fq = l ? classValFq(cx, l.t) : "";
-  if ((globalThis as any).__ctjDbgT6 && l && l.t.key().indexOf("_List_iterator<int>") >= 0) console.error("DBGFO", op, "fq=" + fq, "methodFq=" + cx.stripAll(l.t));
   if (l && fq) {
     const m = cx.lookupMember(fq, key, new Set());
     const tmpls: TmplInfo[] = [];
@@ -1558,7 +1542,6 @@ export function findOperator(cx: Cx, op: string, l: { t: CppType; e: Expr } | nu
       if (tm.kind === "func" && !tmpls.includes(tm)) tmpls.push(tm);
     }
   }
-  if ((globalThis as any).__ctjDbgT6 && l && l.t.key().indexOf("_List_iterator<int>") >= 0) console.error("DBGFO2", op, "fq=" + fq, "nsCands=" + cands.length, "nsTmpls=" + tmpls.length, "best=" + (best ? (best as { fn: FuncInfo }).fn.fq : "null"));
   consider(cands, tmpls, argsLR);
   if (!best) return null;
   const b = best as { fn: FuncInfo; convs: ({ kind: string; fn: FuncInfo } | null)[] };

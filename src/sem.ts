@@ -350,7 +350,6 @@ export class Cx {
   }
 
   fail(msg: string, t?: At): never {
-    if ((globalThis as any).__ctjDbgT6 && msg.indexOf("no matching function") >= 0) console.error("DBGFAILTHROW", msg.slice(0, 60), "at", (t && t.file ? t.file + ":" + t.line : "-"), "in", ((globalThis as any).__ctjStack || []).slice(-3).join(" < "), "|", String(new Error().stack).split("\n").slice(2, 9).map(l => l.trim()).join(" ~ "));
     if (t && t.file) fail(msg, t.file, t.line, 0);
     fail(msg);
   }
@@ -850,10 +849,8 @@ export class Cx {
       kind = "alias";
       fq = this.memberFq(scope, inner.name);
     } else return;
-    if ((globalThis as any).__ctjDbgInst && fq.indexOf("_Insert") >= 0) console.error("DBGTMPLREG", "fq=" + fq, "isSpec=" + d.isSpec, "tparams=" + d.tparams.length, "at", (inner as { file?: string; line?: number }).file + ":" + (inner as { line?: number }).line);
     if (d.isSpec) {
       const t = this.tmpls.get(fq);
-      if ((globalThis as any).__ctjDbgInst && fq.indexOf("_Hashtable_ebo_helper") >= 0) console.error("DBGSPEC", "fq=" + fq, "tparams=" + d.tparams.length, "prev=" + !!t, "prevTp=" + (t ? t.tparams.length : -1), "at", (d.decl as ClassDecl).file + ":" + (d.decl as ClassDecl).line);
       // A partial specialization keeps its own parameters; only a full one can
       // have its arguments resolved at this point.
       if (d.tparams.length) {
@@ -889,7 +886,6 @@ export class Cx {
     }
     // A friend "template<class...> class tuple;" must not replace the real
     // definition, and a later forward declaration must not erase members.
-    if ((globalThis as any).__ctjDbgInst && fq.indexOf("_Hashtable_ebo_helper") >= 0) console.error("DBGREG", "fq=" + fq, "tparams=" + tparams.length, "prev=" + !!prev, "members=" + (inner.kind === "class" ? (inner as ClassDecl).members.length : -1), "at", (inner as ClassDecl).file + ":" + (inner as ClassDecl).line);
     const newMembers = inner.kind === "class" ? (inner as ClassDecl).members.length : 1;
     const prevMembers = prev && prev.decl.kind === "class" ? (prev.decl as ClassDecl).members.length : (prev ? 1 : 0);
     if (prev && prevMembers && !newMembers) return;
@@ -1054,7 +1050,6 @@ export class Cx {
     // "struct _Vector_impl : public _Tp_alloc_type".
     if (s && s.k === "typedef") s = this.symOfType(this.expandTypedef(s.fq, new Set()));
     if (s && s.k === "class") return s.cls.fq;
-    if ((globalThis as any).__ctjDbgInst) console.error("DBGBASE", "name=" + parts.map(x => x.n + (x.a.length ? "<" + x.a.length + ">" : "")).join("::"), "sym=" + (s ? s.k : "null"), "scope.cls=" + String((scope.cls as unknown as { fq?: string } | null)?.fq).slice(0, 60), "ns=" + scope.ns.join("::"), "bare=" + [...this.tmpls.keys()].filter(k => !/^(std|__gnu_cxx)::/.test(k)).slice(0, 24).join(";"));
     this.fail(`unknown base class '${parts.map(x => x.n).join("::")}'`);
   }
 
@@ -1363,11 +1358,6 @@ export class Cx {
     }
     if (sym.k !== "tmpl") return null;
     const args = seg.a.map(a => this.resolveTypeNode(a, scope));
-    if ((globalThis as any).__ctjDbgT2 && args.some(a => a.key().startsWith("std::basic_string"))) {
-      console.error("DBGSEG", seg.n, "nodes=" + seg.a.map(tnKey).join(","), "->", args.map(a => a.key()).join(","),
-        "cls=" + (scope.cls ? String((scope.cls as unknown as { fq?: string }).fq || "") : "-"), "fn=" + (scope.fn ? String((scope.fn as unknown as { fq?: string }).fq) : "-"),
-        "|", String(new Error().stack).split("\n").slice(1, 9).map(l => l.trim()).join(" ~ "));
-    }
     return this.instantiateTmplSeg(sym.t, args, scope);
   }
 
@@ -1401,15 +1391,6 @@ export class Cx {
       next = this.lookupInNs(sym.fq, name, new Set());
     } else if (sym.k === "class") {
       const m = this.lookupMember(sym.cls.fq, name, new Set());
-      if ((globalThis as any).__ctjDbgT5 && name === "size_type" && sym.cls.fq.indexOf("std::_Hashtable") === 0) {
-        const tks: string[] = [];
-        for (const k of this.typedefs.keys()) if (k.indexOf(sym.cls.fq + "::") === 0) tks.push(k.slice(sym.cls.fq.length + 2));
-        const all: string[] = [];
-        for (const k of this.classes.keys()) if (k.indexOf("std::_Hashtable<") === 0) all.push(k.slice(16, 90) + "#" + (this.classes.get(k)!.complete ? "c" : "i") + (this.classes.get(k)!.fromTmpl ? "" : "-nt"));
-        const tm = this.tmpls.get("std::_Hashtable");
-        console.error("DBGTMPL", "has=" + !!tm, "declkind=" + (tm ? tm.decl.kind : "-"), "members=" + (tm && tm.decl.kind === "class" ? (tm.decl as ClassDecl).members.length : -1), "tparams=" + (tm ? tm.tparams.length : -1), "file=" + (tm ? tm.decl.file + ":" + tm.decl.line : "-"));
-        console.error("DBGLOOK", "cls=" + sym.cls.fq.slice(0, 60), "m=" + JSON.stringify({ f: m.field, m: !!m.methods, n: m.nested, t: m.typedef, c: !!m.constItem }), "typedefs=" + tks.slice(0, 12).join(","), "nested=" + [...sym.cls.nested.keys()].slice(0, 12).join(","), "nkeys=" + all.length + " " + all.slice(0, 4).join(" | "));
-      }
       if (m.field) {
         const cls = this.classes.get(m.owner) as ClsInfo;
         next = { k: "var", v: this.fieldVar(cls, name, cls.fields.get(name) as VarDecl) };
@@ -1424,7 +1405,6 @@ export class Cx {
       if (td) {
         const ty = this.resolveTypeNode(td.target, td.scope);
         const s = this.symOfType(ty);
-        if ((globalThis as any).__ctjDbgT5) console.error("DBGTDNEXT", "fq=" + sym.fq, "ty=" + ty.key(), "sym=" + (s ? s.k : "null"), "seg=" + seg.n);
         if (s) return this.lookupNext(s, seg, scope);
       }
       return null;
@@ -1461,12 +1441,6 @@ export class Cx {
   }
 
   funcParams(fn: FuncInfo): FuncParam[] {
-    if ((globalThis as any).__ctjDbgT3) {
-      for (const p of fn.decl.params) {
-        const k = tnKey(p.type);
-        if (k.indexOf("basic_string<") >= 0) console.error("DBGPARAM", fn.fq, "| decl", fn.decl.file + ":" + fn.decl.line, "| param", k, "| cached", !!fn.paramCache);
-      }
-    }
     if (!fn.paramCache) {
       fn.paramCache = fn.decl.params.map(p => ({
         name: p.name,
@@ -1603,12 +1577,6 @@ export class Cx {
     // A synthesized declaration spells an instantiated class by its key, which
     // reads as several names but denotes the one class the key names.
     if (!sym && tn.parts.every(x => !x.a.length)) sym = this.symOfFq(tn.parts.map(x => x.n).join("::"));
-    if (!sym && (globalThis as any).__ctjDbgT5) {
-      console.error("DBGUNK", tn.parts.map(s => s.n + (s.a.length ? "<" + s.a.map(tnKey).join(",") + ">" : "")).join("::"),
-        "| scope.cls=" + (scope.cls ? String((scope.cls as unknown as { fq?: string }).fq) : "-"),
-        "| scope.fn=" + (scope.fn ? String((scope.fn as unknown as { fq?: string }).fq) : "-"),
-        "|", String(new Error().stack).split("\n").slice(2, 10).map(l => l.trim()).join(" ~ "));
-    }
     if (!sym) this.fail(`unknown type '${tn.parts.map(s => s.n).join("::")}'`, tn);
     const s = sym as Sym;
     let base: CppType;
@@ -1704,7 +1672,6 @@ export class Cx {
         return t;
       }
     }
-    if ((globalThis as any).__ctjDbgT5) console.error("DBGTD", "fq=" + fq, "target=" + tnKey(target), "| scope.cls=" + (((td as { scope: Scope }).scope.cls as unknown as { fq?: string })?.fq || "-"));
     const t = this.resolveTypeNode(target, (td as { scope: Scope }).scope);
     seen.delete(fq);
     return t;
@@ -1715,9 +1682,6 @@ export class Cx {
     if (!tmpl || tmpl.kind !== "class") this.fail(`'${tmplFq}' is not a class template`, t || undefined);
     const full = this.fillDefaultArgs(tmpl as TmplInfo, args, scope, t);
     const key = (tmpl as TmplInfo).fq + "<" + full.map(a => a.key()).join(",") + ">";
-    if ((globalThis as any).__ctjDbgInst && (key.startsWith("std::set<") || key.startsWith("std::_Rb_tree<") || key.startsWith("std::allocator<"))) {
-      console.error("DBGINST", key, "| args=" + args.map(a => a.key()).join(","), "| at", t ? t.file + ":" + t.line : "null", "|", String(new Error().stack).split("\n").slice(1, 11).map(l => l.trim()).join(" ~ "));
-    }
     const exist = this.classes.get(key);
     if (exist) {
       this.markCls(key);
@@ -1749,7 +1713,6 @@ export class Cx {
       const decl = substDecl((tmpl as TmplInfo).decl, env) as ClassDecl;
       return this.instantiateClassDecl(key, tmpl as TmplInfo, decl, full, env, t);
     } catch (e) {
-      if ((globalThis as any).__ctjDbgInst && key.indexOf("std::_Hashtable<") === 0) console.error("DBGITHROW", key.slice(0, 60), String(e), String((e as { stack?: string }).stack).split("\n").slice(1, 8).map(l => l.trim()).join(" ~ "));
       throw e;
     } finally {
       this.instStack.pop();
@@ -1933,8 +1896,6 @@ export class Cx {
   instantiateClassDecl(key: string, tmpl: TmplInfo, decl: ClassDecl, args: CppType[], env: SubstEnv, t: At | null): ClsInfo {
     void env;
     void t;
-    if ((globalThis as any).__ctjDbgInst && key.indexOf("_Hashtable_ebo_helper") >= 0) console.error("DBGEBO", "key=" + key.slice(0, 90), "types=" + [...env.types.keys()].join(","), "values=" + [...env.values.keys()].join(","), "at=" + decl.file + ":" + decl.line, "tmplDecl=" + tmpl.decl.file + ":" + tmpl.decl.line, "tparams=" + tmpl.tparams.length, "args=" + args.map(a => a.key()).join("|"), "specs=" + (tmpl.specs || []).map(x => x.key).join(";"), "partN=" + ((tmpl.partials || []).length), "bases=" + decl.bases.map(b => b.name.map(x => x.n).join("::")).join("|"));
-    if ((globalThis as any).__ctjDbgInst && key.indexOf("std::_Hashtable<") === 0) console.error("DBGICD", "key=" + key.slice(0, 70), "tmpl=" + tmpl.fq, "members=" + decl.members.length, "at=" + decl.file + ":" + decl.line, "bases=" + decl.bases.map(b => b.name.map(x => x.n + (x.a.length ? "<..>" : "")).join("::")).join(" | "));
     const cls = this.blankCls(key, shortName(key), decl, tmpl.scope);
     cls.complete = true;
     cls.fromTmpl = tmpl.fq;

@@ -132,10 +132,7 @@ function analyzeFunc(cx: Cx, fn: FuncInfo): void {
   fn.analyzed = true;
   if (!fn.decl.body || fn.isDelete) return;
   if (ioRuntimeKind(fn)) return;
-  const __dbgS: string[] = (globalThis as any).__ctjStack || ((globalThis as any).__ctjStack = []);
-  __dbgS.push(fn.fq);
-  try { analyzeFuncBody(cx, fn); } finally { __dbgS.pop(); }
-}
+  analyzeFuncBody(cx, fn);}
 
 function analyzeFuncBody(cx: Cx, fn: FuncInfo): void {
   if (!fn.decl.body) return;
@@ -159,7 +156,6 @@ function analyzeFuncBody(cx: Cx, fn: FuncInfo): void {
     if (node) cx.getAnn(node).var = v;
     scope.locals[0].set(name, v);
     if (p.def) {
-      if ((globalThis as any).__ctjDbgDef) console.error("DBGDEF fn=" + fn.fq, "cls=" + (scope.cls ? String((scope.cls as unknown as { fq?: string }).fq) : "-"), "file=" + fn.decl.file + ":" + (p.def as { line?: number }).line, "ns=" + scope.ns.join("::"));
       typeOf(cx, p.def, scope);
     }
   });
@@ -392,7 +388,6 @@ function annotateRangeVar(cx: Cx, rf: RangeFor, rt: CppType, scope: Scope): void
   } else {
     const clsFq = cx.stripAll(rt);
     const cls = cx.classes.get(clsFq);
-    if ((globalThis as any).__ctjDbgRange) console.error("DBGRANGE", "fq=" + clsFq, "has=" + !!cls, "box=" + rt.isBox(), "key=" + rt.key(), "dims=" + rt.dims.length, "ptr=" + rt.ptr, "ref=" + rt.ref, "at", rf.vdecl.line);
     // The range may be a reference to a container (an "auto&" element of an
     // outer range-for or a "T&" parameter); only a pointer is not iterable.
     if (!cls || rt.ptr > 0) cx.fail("range-for requires array or container with begin/end", vd);
