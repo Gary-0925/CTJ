@@ -1897,6 +1897,8 @@ class JsGen {
         return `(($d, $s, $n) => { for (let $k = 0; $k < $n; $k++) $d.a[$d.i + $k] = $s.a[$s.i + $k]; return $d; })(${p(0)}, ${p(1)}, ${this.memCount(e, 0, 2)})`;
       case "__builtin_memmove":
         return `(($d, $s, $n) => { const $t = $s.a.slice($s.i, $s.i + $n); for (let $k = 0; $k < $n; $k++) $d.a[$d.i + $k] = $t[$k]; return $d; })(${p(0)}, ${p(1)}, ${this.memCount(e, 0, 2)})`;
+      case "__builtin_memchr":
+        return `(($s, $c, $n) => { for (let $k = 0; $k < $n; $k++) if ($s.a[$s.i + $k] === ($c & 255)) return { a: $s.a, i: $s.i + $k }; return null; })(${p(0)}, ${a[1]}, ${this.memCount(e, 0, 2)})`;
       case "__builtin_memcmp":
         return `(($x, $y, $n) => { for (let $k = 0; $k < $n; $k++) { const $d = ($x.a[$x.i + $k] || 0) - ($y.a[$y.i + $k] || 0); if ($d) return $d; } return 0; })(${p(0)}, ${p(1)}, ${this.memCount(e, 0, 2)})`;
       default:

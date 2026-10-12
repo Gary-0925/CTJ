@@ -439,7 +439,7 @@ class std_char_traits_char {
   }
   static find(__s, __n, __a) {
     let $t1;
-    return ($t1 = (() => { throw new Error("unresolved __builtin_memchr"); })(), $t1 ? {a: $t1.a, i: $t1.i} : null);
+    return ($t1 = (($s, $c, $n) => { for (let $k = 0; $k < $n; $k++) if ($s.a[$s.i + $k] === ($c & 255)) return { a: $s.a, i: $s.i + $k }; return null; })((($q) => ($q && $q.a !== undefined ? $q : { a: $q, i: 0 }))(__s), __a.a[__a.i], __n), $t1 ? {a: $t1.a, i: $t1.i} : null);
   }
   static move(__s1, __s2, __n) {
     let $t2;
