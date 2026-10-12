@@ -416,7 +416,11 @@ function typeOfAssign(cx: Cx, e: AssignExpr, scope: Scope): CppType {
   const classRef = lt.ref !== "" && !lt.ptr && !lt.dims.length && !lt.isFunc && cx.classes.has(cx.stripAll(lt));
   if (isClassVal(cx, lt) || classRef) {
     const r = findOperator(cx, e.op, { t: lt, e: e.l }, { t: rt, e: e.r }, scope, e);
-    if (!r && e.op === "=" && rt.name === "__initlist") {
+    // A braced list is assigned to an "initializer_list" object the way it is
+    // initialized: the object is the array of its elements, so the assignment
+    // stores that array and no "operator=" of the class is called.
+    const ilList = e.op === "=" && rt.name === "__initlist" && initListElemOf(cx, lt) !== null;
+    if (ilList || (!r && e.op === "=" && rt.name === "__initlist")) {
       const items = (e.r as InitListExpr).items.map(x => ({ t: typeOf(cx, x, scope), e: x }));
       const cr = resolveInitCtor(cx, cx.stripAll(lt), items.length ? [{ t: rt, e: e.r }] : [], scope, e);
       ann.initCall = cr.fn;

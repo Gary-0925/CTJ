@@ -383,6 +383,12 @@ function annotateRangeVar(cx: Cx, rf: RangeFor, rt: CppType, scope: Scope): void
     elem = new CppType(rt.name);
     elem.segs = rt.segs;
     elem.ptr = rt.ptr;
+  } else if (initListElemOf(cx, rt)) {
+    // "std::initializer_list<T>" is the array its elements are made of, and the
+    // loop walks that array by index: only the element type is needed here.
+    elem = initListElemOf(cx, rt) as CppType;
+    const op: RangeOp = { fn: null as unknown as FuncInfo, isMember: false, op: "", builtin: "" };
+    cx.getAnn(rf).range = { beginFn: null as unknown as FuncInfo, endFn: null as unknown as FuncInfo, ne: op, inc: op, star: op, copyCtor: null };
   } else {
     const clsFq = cx.stripAll(rt);
     const cls = cx.classes.get(clsFq);

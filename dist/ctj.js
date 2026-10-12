@@ -559,6 +559,9 @@ var CTJ;
             this.warnings = [];
             this.missing = [];
             this.macros = new Map();
+            // Definitions of macros that were undefined again by a header but that a
+            // later header still uses: kept for the expansion, not for "#ifdef".
+            this.undefKept = new Map();
             this.onceFiles = new Set();
             // A built-in stub is reported once however often its header is included.
             this.stubWarned = new Set();
@@ -731,11 +734,14 @@ var CTJ;
                     // "<limits>" cleans up the "__glibcxx_*" helpers it defines, but the
                     // collected headers still use them later on ("ext/numeric_traits.h"
                     // builds "__min" out of "__glibcxx_min"), and losing the definition
-                    // leaves a call to a macro that no longer exists.  They are kept
-                    // instead: the names belong to libstdc++ itself, so nothing a program
-                    // writes can depend on them being gone.
-                    if (!nm.startsWith("__glibcxx_"))
-                        this.macros.delete(nm);
+                    // leaves a call to a macro that no longer exists.
+                    // The definition is kept aside so that a call to the macro still
+                    // expands, but the macro itself is undefined: "#ifdef" has to give
+                    // the answer the original headers give.
+                    const def = this.macros.get(nm);
+                    if (def && nm.startsWith("__glibcxx_"))
+                        this.undefKept.set(nm, def);
+                    this.macros.delete(nm);
                 }
                 else if (dir === "error") {
                     CTJ.fail(`#error ${rest}`, file, t.line, t.col);
@@ -878,7 +884,7 @@ var CTJ;
                         out.push(CTJ.tok("number", "0", t.file, t.line, t.col));
                         continue;
                     }
-                    const macro = this.macros.get(t.v);
+                    const macro = this.macros.get(t.v) || this.undefKept.get(t.v);
                     if (!macro) {
                         out.push(t);
                         continue;
@@ -4220,6 +4226,20 @@ var CTJ;
             n === "unsigned long" || n === "unsigned long long";
     }
     CTJ.isUnsignedName = isUnsignedName;
+    // "std::initializer_list<T>" is the array its elements are made of: a value of
+    // the type is that array, and the header's own "begin", "end" and "size" are
+    // answered from it.  The element type comes back for a type naming one of those
+    // classes.
+    function initListElemOf(cx, t) {
+        if (t.isBox() || t.dims.length || t.isFunc)
+            return null;
+        const cls = cx.classes.get(cx.stripAll(t));
+        if (!cls || (cls.fromTmpl || "").split("::").pop() !== "initializer_list")
+            return null;
+        const seg = t.segs.length ? t.segs[t.segs.length - 1] : null;
+        return seg && seg.a.length ? seg.a[0] : null;
+    }
+    CTJ.initListElemOf = initListElemOf;
     function isIntegerName(n) {
         return ["bool", "char", "signed char", "unsigned char", "wchar_t", "char16_t",
             "char32_t", "short", "unsigned short", "int", "unsigned int", "long",
@@ -7578,6 +7598,13 @@ var CTJ;
             elem.segs = rt.segs;
             elem.ptr = rt.ptr;
         }
+        else if (CTJ.initListElemOf(cx, rt)) {
+            // "std::initializer_list<T>" is the array its elements are made of, and the
+            // loop walks that array by index: only the element type is needed here.
+            elem = CTJ.initListElemOf(cx, rt);
+            const op = { fn: null, isMember: false, op: "", builtin: "" };
+            cx.getAnn(rf).range = { beginFn: null, endFn: null, ne: op, inc: op, star: op, copyCtor: null };
+        }
         else {
             const clsFq = cx.stripAll(rt);
             const cls = cx.classes.get(clsFq);
@@ -8398,7 +8425,11 @@ var CTJ;
         const classRef = lt.ref !== "" && !lt.ptr && !lt.dims.length && !lt.isFunc && cx.classes.has(cx.stripAll(lt));
         if (isClassVal(cx, lt) || classRef) {
             const r = findOperator(cx, e.op, { t: lt, e: e.l }, { t: rt, e: e.r }, scope, e);
-            if (!r && e.op === "=" && rt.name === "__initlist") {
+            // A braced list is assigned to an "initializer_list" object the way it is
+            // initialized: the object is the array of its elements, so the assignment
+            // stores that array and no "operator=" of the class is called.
+            const ilList = e.op === "=" && rt.name === "__initlist" && CTJ.initListElemOf(cx, lt) !== null;
+            if (ilList || (!r && e.op === "=" && rt.name === "__initlist")) {
                 const items = e.r.items.map(x => ({ t: typeOf(cx, x, scope), e: x }));
                 const cr = resolveInitCtor(cx, cx.stripAll(lt), items.length ? [{ t: rt, e: e.r }] : [], scope, e);
                 ann.initCall = cr.fn;
@@ -12112,6 +12143,10 @@ var CTJ;
             const a = this.cx.getAnn(vd);
             const fcls = !t.isBox() && !t.dims.length && !t.isFunc ? this.cx.stripAll(t) : "";
             if (vd.init) {
+                // "std::initializer_list<T>" is the array its elements are made of, so the
+                // variable holds that array and no constructor runs.
+                if (CTJ.initListElemOf(this.cx, t))
+                    return this.argFor(t, vd.init, null);
                 if (fcls && this.cx.classes.has(fcls)) {
                     const cn = this.cx.classes.get(fcls).mangled;
                     // "vector<int> v{1, 2, 3}" resolves the initializer-list constructor
@@ -12128,12 +12163,16 @@ var CTJ;
                 return this.argFor(t, vd.init, null);
             }
             if (vd.directInit && vd.directInit.length) {
+                if (CTJ.initListElemOf(this.cx, t))
+                    return this.argFor(t, vd.directInit[vd.directInit.length - 1], null);
                 if (fcls && this.cx.classes.has(fcls) && a.call) {
                     const cn = this.cx.classes.get(fcls).mangled;
                     return this.ctorExpr(cn, a.call, vd.directInit, a.convs, t);
                 }
                 return this.ex(vd.directInit[0]);
             }
+            if (CTJ.initListElemOf(this.cx, t))
+                return "[]";
             if (fcls && this.cx.classes.has(fcls)) {
                 const cn = this.cx.classes.get(fcls).mangled;
                 return a.call ? this.ctorExpr(cn, a.call, [], [], t) : `new ${cn}()`;
@@ -12179,7 +12218,9 @@ var CTJ;
             const t = v.typeCache;
             const rt = this.cx.getAnn(s.range).t;
             const ri = this.rangeN++;
-            if (rt.dims.length) {
+            // An array, or the array an "std::initializer_list<T>" value is, is walked
+            // by index: both are one array in the target language.
+            if (rt.dims.length || CTJ.initListElemOf(this.cx, rt)) {
                 const arr = this.complex(this.ex(s.range), s.range);
                 const idx = `$i${ri}`;
                 const elem = `${arr}[${idx}]`;
@@ -12966,6 +13007,11 @@ var CTJ;
             if (p.dims.length && x.kind === "initlist") {
                 return this.arrayInit(p, x.items, null);
             }
+            if (x.kind === "initlist") {
+                const ilElem = CTJ.initListElemOf(this.cx, p);
+                if (ilElem)
+                    return `[${x.items.map(y => this.initListItem(ilElem, y)).join(", ")}]`;
+            }
             if (pB && !aB) {
                 if (!at || at.name === "__null" || this.isZeroLit(x)) {
                     // A reference still needs a box; a pointer parameter is null itself.
@@ -13614,6 +13660,10 @@ var CTJ;
                 if (a.initCall) {
                     const items = e.r.items;
                     const t = this.cx.getAnn(e.l).t;
+                    // The value of the type is the array its elements are made of, so the
+                    // assignment stores that array.
+                    if (CTJ.initListElemOf(this.cx, t))
+                        return `${this.lvalue(e.l)} = ${this.argFor(t, e.r, null)}`;
                     const cn = this.cx.classes.get(this.cx.stripAll(t)).mangled;
                     rhs = this.ctorExpr(cn, a.initCall, items, a.convs, t);
                 }
@@ -15129,7 +15179,7 @@ var CTJ;
             const t = v.typeCache;
             const rt = this.cx.getAnn(s.range).t;
             const ri = this.rangeN++;
-            if (rt.dims.length) {
+            if (rt.dims.length || CTJ.initListElemOf(this.cx, rt)) {
                 const arr = this.complex(this.ex(s.range), s.range);
                 const idx = `$i${ri}`;
                 const elem = `${arr}[${idx}]`;
@@ -16528,4 +16578,4 @@ var CTJ;
     g["CTJ"] = CTJ;
 })();
 
-CTJ.version = "9579f57 2026-10-12 05:39:38Z";
+CTJ.version = "c5614b7 2026-10-12 05:47:00Z";

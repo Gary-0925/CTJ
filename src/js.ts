@@ -1474,6 +1474,9 @@ class JsGen {
     const a = this.cx.getAnn(vd);
     const fcls = !t.isBox() && !t.dims.length && !t.isFunc ? this.cx.stripAll(t) : "";
     if (vd.init) {
+      // "std::initializer_list<T>" is the array its elements are made of, so the
+      // variable holds that array and no constructor runs.
+      if (initListElemOf(this.cx, t)) return this.argFor(t, vd.init, null);
       if (fcls && this.cx.classes.has(fcls)) {
         const cn = (this.cx.classes.get(fcls) as ClsInfo).mangled as string;
         // "vector<int> v{1, 2, 3}" resolves the initializer-list constructor
@@ -1490,12 +1493,14 @@ class JsGen {
       return this.argFor(t, vd.init, null);
     }
     if (vd.directInit && vd.directInit.length) {
+      if (initListElemOf(this.cx, t)) return this.argFor(t, vd.directInit[vd.directInit.length - 1], null);
       if (fcls && this.cx.classes.has(fcls) && a.call) {
         const cn = (this.cx.classes.get(fcls) as ClsInfo).mangled as string;
         return this.ctorExpr(cn, a.call as FuncInfo, vd.directInit, a.convs, t);
       }
       return this.ex(vd.directInit[0]);
     }
+    if (initListElemOf(this.cx, t)) return "[]";
     if (fcls && this.cx.classes.has(fcls)) {
       const cn = (this.cx.classes.get(fcls) as ClsInfo).mangled as string;
       return a.call ? this.ctorExpr(cn, a.call as FuncInfo, [], [], t) : `new ${cn}()`;
@@ -1538,7 +1543,9 @@ class JsGen {
     const t = v.typeCache as CppType;
     const rt = this.cx.getAnn(s.range).t as CppType;
     const ri = this.rangeN++;
-    if (rt.dims.length) {
+    // An array, or the array an "std::initializer_list<T>" value is, is walked
+    // by index: both are one array in the target language.
+    if (rt.dims.length || initListElemOf(this.cx, rt)) {
       const arr = this.complex(this.ex(s.range), s.range);
       const idx = `$i${ri}`;
       const elem = `${arr}[${idx}]`;
@@ -2250,6 +2257,10 @@ class JsGen {
     if (p.dims.length && x.kind === "initlist") {
       return this.arrayInit(p, (x as InitListExpr).items, null as unknown as VarDecl);
     }
+    if (x.kind === "initlist") {
+      const ilElem = initListElemOf(this.cx, p);
+      if (ilElem) return `[${(x as InitListExpr).items.map(y => this.initListItem(ilElem, y)).join(", ")}]`;
+    }
     if (pB && !aB) {
       if (!at || at.name === "__null" || this.isZeroLit(x)) {
         // A reference still needs a box; a pointer parameter is null itself.
@@ -2833,6 +2844,9 @@ class JsGen {
       if (a.initCall) {
         const items = (e.r as InitListExpr).items;
         const t = this.cx.getAnn(e.l).t as CppType;
+        // The value of the type is the array its elements are made of, so the
+        // assignment stores that array.
+        if (initListElemOf(this.cx, t)) return `${this.lvalue(e.l)} = ${this.argFor(t, e.r, null)}`;
         const cn = (this.cx.classes.get(this.cx.stripAll(t)) as ClsInfo).mangled as string;
         rhs = this.ctorExpr(cn, a.initCall, items, a.convs, t);
       } else {

@@ -86,6 +86,18 @@ export function isUnsignedName(n: string): boolean {
     n === "unsigned long" || n === "unsigned long long";
 }
 
+
+// "std::initializer_list<T>" is the array its elements are made of: a value of
+// the type is that array, and the header's own "begin", "end" and "size" are
+// answered from it.  The element type comes back for a type naming one of those
+// classes.
+export function initListElemOf(cx: Cx, t: CppType): CppType | null {
+  if (t.isBox() || t.dims.length || t.isFunc) return null;
+  const cls = cx.classes.get(cx.stripAll(t));
+  if (!cls || (cls.fromTmpl || "").split("::").pop() !== "initializer_list") return null;
+  const seg = t.segs.length ? t.segs[t.segs.length - 1] : null;
+  return seg && seg.a.length ? seg.a[0] : null;
+}
 export function isIntegerName(n: string): boolean {
   return ["bool", "char", "signed char", "unsigned char", "wchar_t", "char16_t",
     "char32_t", "short", "unsigned short", "int", "unsigned int", "long",

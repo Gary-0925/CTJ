@@ -106,6 +106,9 @@ export class Preprocessor {
   warnings: string[] = [];
   missing: string[] = [];
   macros = new Map<string, Macro>();
+  // Definitions of macros that were undefined again by a header but that a
+  // later header still uses: kept for the expansion, not for "#ifdef".
+  undefKept = new Map<string, Macro>();
   onceFiles = new Set<string>();
   // A built-in stub is reported once however often its header is included.
   stubWarned = new Set<string>();
@@ -257,10 +260,13 @@ export class Preprocessor {
         // "<limits>" cleans up the "__glibcxx_*" helpers it defines, but the
         // collected headers still use them later on ("ext/numeric_traits.h"
         // builds "__min" out of "__glibcxx_min"), and losing the definition
-        // leaves a call to a macro that no longer exists.  They are kept
-        // instead: the names belong to libstdc++ itself, so nothing a program
-        // writes can depend on them being gone.
-        if (!nm.startsWith("__glibcxx_")) this.macros.delete(nm);
+        // leaves a call to a macro that no longer exists.
+        // The definition is kept aside so that a call to the macro still
+        // expands, but the macro itself is undefined: "#ifdef" has to give
+        // the answer the original headers give.
+        const def = this.macros.get(nm);
+        if (def && nm.startsWith("__glibcxx_")) this.undefKept.set(nm, def);
+        this.macros.delete(nm);
       } else if (dir === "error") {
         fail(`#error ${rest}`, file, t.line, t.col);
       } else if (dir === "warning") {
@@ -368,7 +374,7 @@ export class Preprocessor {
         if (t.v === "__DATE__") { out.push(tok("string", JSON.stringify("Jan  1 2026"), t.file, t.line, t.col)); continue; }
         if (t.v === "__TIME__") { out.push(tok("string", JSON.stringify("00:00:00"), t.file, t.line, t.col)); continue; }
         if (t.v === "__COUNTER__") { out.push(tok("number", "0", t.file, t.line, t.col)); continue; }
-        const macro = this.macros.get(t.v);
+        const macro = this.macros.get(t.v) || this.undefKept.get(t.v);
         if (!macro) { out.push(t); continue; }
         if (macro.params === null) {
           const sub = this.expandTokens(macro.body, new Set([...disabled, t.v]), file, line);

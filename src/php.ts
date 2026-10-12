@@ -1128,7 +1128,7 @@ class PhpGen {
     const t = v.typeCache as CppType;
     const rt = this.cx.getAnn(s.range).t as CppType;
     const ri = this.rangeN++;
-    if (rt.dims.length) {
+    if (rt.dims.length || initListElemOf(this.cx, rt)) {
       const arr = this.complex(this.ex(s.range), s.range);
       const idx = `$i${ri}`;
       const elem = `${arr}[${idx}]`;
