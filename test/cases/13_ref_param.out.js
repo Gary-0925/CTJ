@@ -1,6 +1,6 @@
 "use strict";
 function scale(v, k) {
-  v.a[v.i] = (v.a[v.i] * k);
+  v.a[v.i] = ((Math.imul(v.a[v.i], k)) | 0);
 }
 function geti(x) {
   return x.a[x.i];

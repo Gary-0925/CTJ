@@ -70,6 +70,101 @@ namespace CTJ {
     return (t.isBox() || t.dims.length > 0) && !t.isFunc;
   }
 
+  // The integer types.  The types of up to 32 bits are JS numbers that hold
+  // their exact value: a result is reduced to the width of its type by wrapInt,
+  // so overflow and unsigned wrap-around behave as in C++.  "long" is 32 bits on
+  // this target.  "long long" and "unsigned long long" are BigInts, reduced by
+  // BigInt.asIntN and BigInt.asUintN; a number reaches them only through castInt.
+  export interface IntKind {
+    bits: number;
+    signed: boolean;
+    big?: boolean;
+  }
+  const INT_KINDS: Record<string, IntKind> = {
+    char: { bits: 8, signed: true },
+    "signed char": { bits: 8, signed: true },
+    "unsigned char": { bits: 8, signed: false },
+    short: { bits: 16, signed: true },
+    "unsigned short": { bits: 16, signed: false },
+    int: { bits: 32, signed: true },
+    "unsigned int": { bits: 32, signed: false },
+    long: { bits: 32, signed: true },
+    "unsigned long": { bits: 32, signed: false },
+    wchar_t: { bits: 32, signed: true },
+    char16_t: { bits: 16, signed: false },
+    char32_t: { bits: 32, signed: false },
+    "long long": { bits: 64, signed: true, big: true },
+    "unsigned long long": { bits: 64, signed: false, big: true },
+  };
+  const LONG_LONG: IntKind = { bits: 64, signed: true, big: true };
+
+  export function intKindOf(t: CppType | null | undefined): IntKind | null {
+    if (!t || t.isFunc || t.ptr > 0 || t.dims.length) return null;
+    return INT_KINDS[coreName(t)] || null;
+  }
+
+  // Integer promotion: a type narrower than int becomes int.
+  export function promoteKind(k: IntKind): IntKind {
+    return k.bits < 32 ? { bits: 32, signed: true } : k;
+  }
+
+  // The usual arithmetic conversions of two integer operands.
+  export function commonKind(a: IntKind, b: IntKind): IntKind {
+    const pa = promoteKind(a);
+    const pb = promoteKind(b);
+    if ((pa.big && !pa.signed) || (pb.big && !pb.signed)) return { bits: 64, signed: false, big: true };
+    if (pa.big || pb.big) return LONG_LONG;
+    if ((pa.bits === 32 && !pa.signed) || (pb.bits === 32 && !pb.signed)) return { bits: 32, signed: false };
+    return { bits: 32, signed: true };
+  }
+
+  // The type of the result of op on operands of kinds lk and rk.
+  export function intResultKind(op: string, lk: IntKind, rk: IntKind): IntKind {
+    return op === "<<" || op === ">>" ? promoteKind(lk) : commonKind(lk, rk);
+  }
+
+  function wrapBig(x: string, k: IntKind): string {
+    return k.signed ? `BigInt.asIntN(64, ${x})` : `BigInt.asUintN(64, ${x})`;
+  }
+
+  // The value x reduced to the width and signedness of k.  Every form starts
+  // with a ToInt32-style conversion, so a fractional number is truncated too.
+  export function wrapInt(x: string, k: IntKind): string {
+    if (k.big) return wrapBig(x, k);
+    if (k.bits === 32) return k.signed ? `((${x}) | 0)` : `((${x}) >>> 0)`;
+    if (k.bits === 16) return k.signed ? `(((${x}) << 16) >> 16)` : `((${x}) & 65535)`;
+    return k.signed ? `(((${x}) << 24) >> 24)` : `((${x}) & 255)`;
+  }
+
+  // The value x, of integer type from, converted to the integer type to.  A null
+  // from stands for a number that is not an integer type, such as a double.
+  export function castInt(x: string, from: IntKind | null, to: IntKind): string {
+    if (to.big) {
+      if (from && from.big) return from.signed === to.signed ? x : wrapBig(x, to);
+      if (/^\d+$/.test(x)) {
+        const v = BigInt(x);
+        return `${to.signed ? BigInt.asIntN(64, v) : BigInt.asUintN(64, v)}n`;
+      }
+      const b = from ? `BigInt(${x})` : `BigInt(Math.trunc(${x}))`;
+      const needsWrap = !from || (!to.signed && from.signed);
+      return needsWrap ? wrapBig(b, to) : b;
+    }
+    if (from && from.big) return `Number(BigInt.${to.signed ? "asIntN" : "asUintN"}(${to.bits}, ${x}))`;
+    return wrapInt(x, to);
+  }
+
+  // The number that x, of kind k, stands for when a number is expected.
+  export function toNumber(x: string, k: IntKind | null): string {
+    return k && k.big ? `Number(${x})` : x;
+  }
+
+  // The JS BigInt literal of an integer literal, exact at any width.
+  export function bigLiteral(raw: string): string {
+    const s = raw.replace(/'/g, "").replace(/[uUlL]+$/, "");
+    if (/^0[0-7]+$/.test(s)) return `0o${s.slice(1)}n`;
+    return `${s}n`;
+  }
+
   export function emitJs(cx: Cx): string {
     const g = new JsGen(cx);
     return g.run();
@@ -82,6 +177,8 @@ namespace CTJ {
     tmpN = 0;
     tmpBase = 0;
     alias: Map<string, string>[] = [];
+    // Integer kind of each enclosing switch's condition: a 64-bit one needs BigInt case labels.
+    switchKind: (IntKind | null)[] = [];
     exStack: string[] = [];
     rangeN = 0;
     fnStack: FuncInfo[] = [];
@@ -177,6 +274,18 @@ namespace CTJ {
 
     // The braces of a switch are its own: the statements it was given go
     // straight inside them, so that the labels stay in the switch itself.
+    switchBody(head: string, kind: IntKind | null, body: Stmt): void {
+      this.switchKind.push(kind);
+      this.block(head, () => this.switchStmts(body));
+      this.switchKind.pop();
+    }
+
+    // Labels compare with ===, so a BigInt discriminant takes BigInt labels.
+    caseLabel(value: Expr): string {
+      const k = this.switchKind[this.switchKind.length - 1];
+      return k && k.big ? castInt(this.constStr(value), null, k) : this.constStr(value);
+    }
+
     switchStmts(body: Stmt): void {
       if (body.kind === "compound") {
         for (const x of body.stmts) this.stmt(x);
@@ -519,8 +628,20 @@ namespace CTJ {
 
     // A default argument is a value; a reference or pointer parameter takes a
     // box, so the default has to be wrapped like any other temporary.
+    // A branch of ?: converts to the result type, so 5 : a with a long long gives a BigInt.
+    condBranch(b: Expr, whole: Expr): string {
+      const et = this.cx.getAnn(whole).t as CppType | null;
+      const bt = this.cx.getAnn(b).t as CppType | null;
+      const tk = et && et.ptr === 0 && !et.dims.length && !et.isFunc ? intKindOf(et) : null;
+      if (tk && bt && bt.ptr === 0 && !bt.dims.length && !bt.isFunc && isNumericName(coreName(bt))) return castInt(this.ex(b), intKindOf(bt), tk);
+      return this.ex(b);
+    }
+
     defArg(p: { type: CppType; def: Expr | null }): string {
-      const d = this.ex(p.def as Expr);
+      let d = this.ex(p.def as Expr);
+      const at = this.cx.getAnn(p.def as Expr).t as CppType | null;
+      const tk = p.type.ptr === 0 && !p.type.dims.length ? intKindOf(p.type) : null;
+      if (tk && at && at.ptr === 0 && !at.dims.length && !at.isFunc && isNumericName(coreName(at))) d = castInt(d, intKindOf(at), tk);
       return p.type.isBox() ? `{a: [${d}], i: 0}` : d;
     }
 
@@ -1019,9 +1140,9 @@ namespace CTJ {
 
     // libstdc++ defines these in libsupc++/hash_bytes.cc, which is not a header:
     // they are the byte hashes the string and pointer specializations of
-    // "std::hash" mix their data with.  "size_t" is the target language's number,
-    // so a hash is exact only below 2^53; the 64-bit variant of the original is
-    // still the one carried over, in the integers of the target language.
+    // "std::hash" mix their data with.  The mixing is done in BigInt with the
+    // 64-bit constants of the original; "size_t" is 32 bits on this target, so
+    // the result is reduced to 32 bits.
     hashBytesStub(f: FuncInfo): string | null {
       if (f.isMethod) return null;
       if (f.fq === "std::_Hash_bytes") {
@@ -1048,11 +1169,11 @@ namespace CTJ {
           "  $h = (($h ^ $w) * $mul) & $M;",
           "}",
           "$h = ($mix($h) * $mul) & $M;",
-          "return Number($mix($h));",
+          "return Number($mix($h) & 0xffffffffn);",
         ].join(" ");
       }
       if (f.fq === "std::_Fnv_hash_bytes") {
-        return ["const $M = (1n << 64n) - 1n;", "const $ptr = $a[0];", "if ($ptr === null || $ptr === undefined) return 0;", "const $arr = Array.isArray($ptr) ? $ptr : $ptr.a, $base = Array.isArray($ptr) ? 0 : $ptr.i;", "const $len = $a[1] === undefined ? 0 : $a[1];", "let $h = BigInt($a[2] === undefined ? 0 : $a[2]) & $M;", "for (let $k = 0; $k < $len; $k++) {", "  const $c = $arr[$base + $k] & 255;", "  $h = ((($h ^ BigInt($c < 128 ? $c : $c - 256)) & $M) * 1099511628211n) & $M;", "}", "return Number($h);"].join(" ");
+        return ["const $M = (1n << 64n) - 1n;", "const $ptr = $a[0];", "if ($ptr === null || $ptr === undefined) return 0;", "const $arr = Array.isArray($ptr) ? $ptr : $ptr.a, $base = Array.isArray($ptr) ? 0 : $ptr.i;", "const $len = $a[1] === undefined ? 0 : $a[1];", "let $h = BigInt($a[2] === undefined ? 0 : $a[2]) & $M;", "for (let $k = 0; $k < $len; $k++) {", "  const $c = $arr[$base + $k] & 255;", "  $h = ((($h ^ BigInt($c < 128 ? $c : $c - 256)) & $M) * 1099511628211n) & $M;", "}", "return Number($h & 0xffffffffn);"].join(" ");
       }
       return null;
     }
@@ -1221,14 +1342,14 @@ namespace CTJ {
             const v = this.cx.getAnn(vd).var as VarInfo;
             this.block("", () => {
               this.varDeclFor(vd, v, v.typeCache as CppType);
-              this.block(`switch (${this.localName(v)})`, () => this.switchStmts(s.body));
+              this.switchBody(`switch (${this.localName(v)})`, intKindOf(v.typeCache as CppType), s.body);
             });
             return;
           }
-          this.block(`switch (${this.exVal(s.cond)})`, () => this.switchStmts(s.body));
+          this.switchBody(`switch (${this.exVal(s.cond)})`, intKindOf(this.cx.getAnn(s.cond).t as CppType | null), s.body);
           return;
         case "case":
-          this.line(s.value ? `case ${this.constStr(s.value)}:` : `default:`);
+          this.line(s.value ? `case ${this.caseLabel(s.value)}:` : `default:`);
           this.ind += "  ";
           this.stmt(s.stmt);
           this.ind = this.ind.slice(0, -2);
@@ -1457,7 +1578,18 @@ namespace CTJ {
       et.ptr = t.ptr;
       et.ref = t.ref;
       et.dims = t.dims.slice(1);
-      return `[${items.map(x => this.argFor(et, x, null)).join(", ")}]`;
+      const vals = items.map(x => this.argFor(et, x, null));
+      // Elements the list leaves out take their default value, as in C++.
+      const n = t.dims[0];
+      if (typeof n === "number" && n > vals.length) {
+        const rest = new CppType(t.name);
+        rest.segs = t.segs;
+        rest.ptr = t.ptr;
+        rest.ref = t.ref;
+        rest.dims = [n - vals.length, ...et.dims];
+        vals.push(`...${this.arrayNew(rest, [])}`);
+      }
+      return `[${vals.join(", ")}]`;
     }
 
     arrayNew(t: CppType, inits: Expr[]): string {
@@ -1603,7 +1735,7 @@ namespace CTJ {
         case "assign":
           return this.exAssign(e);
         case "cond":
-          return `(${this.exVal(e.c)} ? ${this.ex(e.a)} : ${this.ex(e.b)})`;
+          return `(${this.exVal(e.c)} ? ${this.condBranch(e.a, e)} : ${this.condBranch(e.b, e)})`;
         case "new":
           return this.exNew(e);
         case "delete":
@@ -1637,7 +1769,11 @@ namespace CTJ {
 
     lit(e: LitExpr): string {
       switch (e.lkind) {
-        case "int":
+        case "int": {
+          const k = intKindOf(this.cx.getAnn(e).t as CppType | null);
+          if (k && k.big) return bigLiteral(e.value);
+          return String(parseNumber(e.value));
+        }
         case "float":
           return String(parseNumber(e.value));
         case "char":
@@ -1944,7 +2080,7 @@ namespace CTJ {
             const p = this.complex(this.ex(e.arr), e.arr);
             const pp = this.paren(p);
             if (this.isZeroLit(e.idx)) return `${pp}.a[${pp}.i]`;
-            return `${pp}.a[${pp}.i + (${this.ex(e.idx)})]`;
+            return `${pp}.a[${pp}.i + (${toNumber(this.ex(e.idx), intKindOf(this.cx.getAnn(e.idx).t as CppType | null))})]`;
           }
           const arr = this.complex(this.ex(e.arr), e.arr);
           return `${this.paren(arr)}[${this.ex(e.idx)}]`;
@@ -2193,7 +2329,34 @@ namespace CTJ {
       return null;
     }
 
+    // The value of x for a parameter, variable or assignment target of type p.
     argFor(p: CppType, x: Expr, conv: { kind: string; fn: FuncInfo } | null): string {
+      const at = this.cx.getAnn(x).t as CppType | null;
+      const numeric = !!at && at.ptr === 0 && !at.dims.length && !at.isFunc && isNumericName(coreName(at));
+      // A reference to an integer of another type (const long long& from 21) binds a temporary
+      // of the reference's type, so the value in its box is converted here.
+      const rk = intKindOf(p);
+      if (rk && p.ref !== "" && p.ptr === 0 && !p.dims.length && numeric) {
+        const sk0 = intKindOf(at);
+        if (!(sk0 && sk0.bits === rk.bits && sk0.signed === rk.signed)) return `{a: [${castInt(this.ex(x), sk0, rk)}], i: 0}`;
+      }
+      const raw = this.argForRaw(p, x, conv);
+      if (!numeric) return raw;
+      const sk = intKindOf(at);
+      const tk = p.ref === "" ? intKindOf(p) : null;
+      if (tk) {
+        if (sk && sk.bits === tk.bits && sk.signed === tk.signed) return raw;
+        return castInt(raw, sk, tk);
+      }
+      if (sk && sk.big && p.ref === "" && p.ptr === 0 && !p.dims.length && !p.isFunc) {
+        const pn = coreName(p);
+        if (pn === "bool") return `(${raw} !== 0n)`;
+        if (pn === "float" || pn === "double" || pn === "long double") return `Number(${raw})`;
+      }
+      return raw;
+    }
+
+    argForRaw(p: CppType, x: Expr, conv: { kind: string; fn: FuncInfo } | null): string {
       // A braced list for a class parameter: the object is built from the items
       // with the constructor the annotator resolved for the list.
       const lc = conv && conv.kind === "ctor" && x.kind === "initlist" ? this.cx.getAnn(x).listCtors : null;
@@ -2626,6 +2789,8 @@ namespace CTJ {
       // "__builtin_popcountl" and friends differ only in the width of their
       // argument, which the target language's number does not distinguish.
       const bit = bitBuiltin(name) || name;
+      const bk = intKindOf(this.cx.getAnn(e.args[0]).t as CppType | null);
+      if (bitBuiltin(name) && bk && bk.big) return this.bitBig(bit, this.ex(e.args[0]));
       if (bit === "__builtin_clz") return `Math.clz32(${this.ex(e.args[0])})`;
       if (bit === "__builtin_ctz") {
         const x = this.ex(e.args[0]);
@@ -2653,7 +2818,12 @@ namespace CTJ {
       }
       if (name === "__builtin_bswap64") {
         const x = this.ex(e.args[0]);
-        return `Number(BigInt(${x} === undefined ? 0 : 0) | BigInt(0))`;
+        return `((v) => { let w = BigInt.asUintN(64, v), r = 0n; for (let k = 0; k < 8; k++) { r = (r << 8n) | (w & 255n); w >>= 8n; } return r; })(${x})`;
+      }
+      if (name === "__builtin_abs" || name === "__builtin_labs") return `Math.abs(${this.ex(e.args[0])})`;
+      if (name === "__builtin_llabs") {
+        const x = castInt(this.ex(e.args[0]), intKindOf(this.cx.getAnn(e.args[0]).t as CppType | null), LONG_LONG);
+        return `((v) => BigInt.asIntN(64, v < 0n ? -v : v))(${x})`;
       }
       if (name === "__builtin_alloca") return `{a: new Array(${this.ex(e.args[0])}).fill(0), i: 0}`;
       if (name === "__builtin_offsetof") return "0";
@@ -2676,7 +2846,8 @@ namespace CTJ {
       if (!cnst || ft.ptr || ft.ref || ft.dims.length || ft.isBox()) return null;
       const cn = coreName(ft);
       const isInt = isIntegerName(cn) || this.cx.enums.has(this.cx.stripAll(ft)) || this.cx.enums.has(cn);
-      if (!isInt) return null;
+      // A 64-bit constant is built from its BigInt literals, not from a folded number.
+      if (!isInt || intKindOf(ft)?.big) return null;
       try {
         const v = constEval(this.cx, init, this.cx.memberScope(c));
         return typeof v === "number" ? String(v) : null;
@@ -2710,7 +2881,7 @@ namespace CTJ {
         const p = this.complex(this.ex(e.arr), e.arr);
         const pp = this.paren(p);
         if (this.isZeroLit(e.idx)) return `${pp}.a[${pp}.i]`;
-        return `${pp}.a[${pp}.i + (${this.ex(e.idx)})]`;
+        return `${pp}.a[${pp}.i + (${toNumber(this.ex(e.idx), intKindOf(this.cx.getAnn(e.idx).t as CppType | null))})]`;
       }
       const arr = this.complex(this.ex(e.arr), e.arr);
       return `${this.paren(arr)}[${this.ex(e.idx)}]`;
@@ -2779,10 +2950,22 @@ namespace CTJ {
           return post ? `${p}.i${inc}` : `${inc}${p}.i`;
         }
         const l = this.lvalue(e.arg);
+        const ik = intKindOf(at);
+        if (ik && this.isSimple(e.arg)) {
+          // The new value is the old one plus or minus 1, reduced to the type.
+          const step = (cur: string) => wrapInt(`${cur} ${inc === "++" ? "+" : "-"} ${ik.big ? "1n" : "1"}`, ik);
+          if (!post) return `(${l} = ${step(l)})`;
+          const t = this.tmp();
+          return `(${t} = ${l}, ${l} = ${step(t)}, ${t})`;
+        }
         return post ? `${l}${inc}` : `${inc}${l}`;
       }
       if (e.op === "!") return `(!${this.paren(this.exVal(e.arg))})`;
-      if (e.op === "+") return `(+${this.paren(this.ex(e.arg))})`;
+      const ak = intKindOf(this.cx.getAnn(e.arg).t as CppType | null);
+      if (e.op === "+") return ak && ak.big ? this.ex(e.arg) : `(+${this.paren(this.ex(e.arg))})`;
+      if ((e.op === "-" || e.op === "~") && ak) {
+        return wrapInt(`${e.op}(${this.ex(e.arg)})`, promoteKind(ak));
+      }
       if (e.op === "-") return `(-${this.paren(this.ex(e.arg))})`;
       if (e.op === "~") return `(~${this.paren(this.ex(e.arg))})`;
       return this.ex(e.arg);
@@ -2803,14 +2986,23 @@ namespace CTJ {
       }
       const lt = this.cx.getAnn(e.l).t as CppType;
       const rt = this.cx.getAnn(e.r).t as CppType;
-      const l = this.exVal(e.l);
-      const r = this.exVal(e.r);
+      let l = this.exVal(e.l);
+      let r = this.exVal(e.r);
       const lb = this.pboxArg(e.l, lt, l);
       const rb = this.pboxArg(e.r, rt, r);
       if (e.op === "&&" || e.op === "||") return `(${l} ${e.op} ${r})`;
       if (e.op === ",") return `(${l}, ${r})`;
       const lp = lt && !lt.isFunc && (lt.ptr > 0 || (lt.dims.length > 0 && !lt.isBox()));
       const rp = rt && !rt.isFunc && (rt.ptr > 0 || (rt.dims.length > 0 && !rt.isBox()));
+      const lk = intKindOf(lt);
+      const rk = intKindOf(rt);
+      if (lk && rk && !lp && !rp) {
+        const v = this.intOp(e.op, l, r, lk, rk);
+        if (v !== null) return v;
+      }
+      // A 64-bit integer that meets a non-integer operand is taken as a number.
+      if (lk && lk.big && !rk) l = toNumber(l, lk);
+      if (rk && rk.big && !lk) r = toNumber(r, rk);
       if (e.op === "==" || e.op === "!=") {
         const op = e.op === "==" ? "===" : "!==";
         if (lp && rp) {
@@ -2879,6 +3071,45 @@ namespace CTJ {
       return `(${l} ${e.op} ${r})`;
     }
 
+    // A binary operator on two integers of up to 32 bits, with the conversions
+    // of C++: operands are converted to the common type, and the result is
+    // reduced to the type it has.  Returns null for an operator not handled here.
+    intOp(op: string, l: string, r: string, lk: IntKind, rk: IntKind): string | null {
+      if (op === "<<" || op === ">>") {
+        // The shift has the promoted type of its left operand; a 64-bit value takes a BigInt count.
+        const k = promoteKind(lk);
+        const cnt = k.big ? castInt(r, rk, LONG_LONG) : toNumber(r, rk);
+        if (op === "<<") return wrapInt(`(${l}) << (${cnt})`, k);
+        return k.big || k.signed ? `((${l}) >> (${cnt}))` : `((${l}) >>> (${cnt}))`;
+      }
+      const A = commonKind(lk, rk);
+      // An operand changes value only when it becomes a different type of the common type.
+      const conv = (x: string, from: IntKind) => {
+        if (A.big) return from.big && from.signed === A.signed ? x : castInt(x, from, A);
+        return !A.signed && promoteKind(from).signed ? wrapInt(x, A) : x;
+      };
+      const cmp: Record<string, string> = { "==": "===", "!=": "!==", "<": "<", ">": ">", "<=": "<=", ">=": ">=" };
+      if (cmp[op]) return `(${conv(l, lk)} ${cmp[op]} ${conv(r, rk)})`;
+      const lx = conv(l, lk);
+      const rx = conv(r, rk);
+      switch (op) {
+        case "+":
+        case "-":
+        case "&":
+        case "|":
+        case "^":
+          return wrapInt(`(${lx}) ${op} (${rx})`, A);
+        case "*":
+          return wrapInt(A.big ? `(${lx}) * (${rx})` : `Math.imul(${lx}, ${rx})`, A);
+        case "/":
+          return wrapInt(A.big ? `(${lx}) / (${rx})` : `Math.trunc((${lx}) / (${rx}))`, A);
+        case "%":
+          return wrapInt(`(${lx}) % (${rx})`, A);
+        default:
+          return null;
+      }
+    }
+
     exAssign(e: AssignExpr): string {
       const a = this.cx.getAnn(e);
       if (a.call) {
@@ -2909,6 +3140,14 @@ namespace CTJ {
         target.segs = lt.segs;
         target.ptr = lt.ptr;
         target.dims = lt.dims;
+        const tk = intKindOf(lt);
+        const sk = e.op === "=" ? null : intKindOf(this.cx.getAnn(e.r).t as CppType | null);
+        if (tk && sk) {
+          const op = e.op.slice(0, -1);
+          const ref = `${t}.a[${t}.i]`;
+          const v = this.intOp(op, ref, this.exVal(e.r), tk, sk);
+          if (v !== null) return `(${t} = ${this.lhsBox(e.l)}, ${ref} = ${castInt(v, intResultKind(op, tk, sk), tk)})`;
+        }
         const rhs = e.op === "=" ? this.argFor(target, e.r, null) : this.ex(e.r);
         return `(${t} = ${this.lhsBox(e.l)}, ${t}.a[${t}.i] ${e.op} ${rhs})`;
       }
@@ -2921,6 +3160,13 @@ namespace CTJ {
       target.segs = lt.segs;
       target.ptr = lt.ptr;
       target.dims = lt.dims;
+      const lk = intKindOf(lt);
+      const rk = e.op === "=" ? null : intKindOf(this.cx.getAnn(e.r).t as CppType | null);
+      if (lk && rk && this.isSimple(e.l)) {
+        const op = e.op.slice(0, -1);
+        const v = this.intOp(op, l, this.exVal(e.r), lk, rk);
+        if (v !== null) return `${l} = ${castInt(v, intResultKind(op, lk, rk), lk)}`;
+      }
       let rhs: string;
       if (e.op === "=") {
         rhs = this.argFor(target, e.r, null);
@@ -3063,16 +3309,39 @@ namespace CTJ {
       // the boolean value a cast to the plain type gives.
       if (t.ref) return this.baseRefView(e, t) || this.exBox(e.arg);
       if (coreName(t) === "bool" && at.isBox() && !at.isFunc) return `(${this.ex(e.arg)} != null)`;
-      if (coreName(t) === "bool" && isNumericName(coreName(at))) return `(${this.ex(e.arg)} !== 0)`;
-      if (isIntegerName(coreName(t)) && (coreName(at) === "float" || coreName(at) === "double")) {
-        return `Math.trunc(${this.ex(e.arg)})`;
+      const ak = intKindOf(at);
+      if (coreName(t) === "bool" && isNumericName(coreName(at))) return `(${this.ex(e.arg)} !== ${ak && ak.big ? "0n" : "0"})`;
+      const tk = intKindOf(t);
+      if (tk && (coreName(at) === "float" || coreName(at) === "double")) return castInt(this.ex(e.arg), null, tk);
+      if (ak && ak.big && t.ptr === 0 && !t.dims.length && ["float", "double", "long double"].includes(coreName(t))) {
+        return `Number(${this.ex(e.arg)})`;
+      }
+      // A cast between integers of up to 32 bits reduces the value to the target type.
+      if (tk && (!at || (at.ptr === 0 && !at.dims.length && !at.isFunc))) {
+        if (ak && ak.bits === tk.bits && ak.signed === tk.signed) return this.ex(e.arg);
+        return castInt(this.ex(e.arg), ak, tk);
       }
       // An unsigned value wraps, so "size_t(-1)" is the largest size rather than
-      // a negative one. The width is the 32-bit one: a JS number cannot hold a
-      // 64-bit unsigned range, and the printer restores the digits of the largest
-      // 64-bit value this stand-in stands for.
+      // a negative one.
       if (t.ptr === 0 && !t.dims.length && isUnsignedName(coreName(t))) return `(${this.ex(e.arg)} >>> 0)`;
       return this.ex(e.arg);
+    }
+
+    // A bit builtin of a 64-bit argument, which is a BigInt.
+    bitBig(bit: string, x: string): string {
+      const pop = `((v) => { let c = 0; for (let w = BigInt.asUintN(64, v); w; w &= w - 1n) c++; return c; })(${x})`;
+      switch (bit) {
+        case "__builtin_popcount":
+          return pop;
+        case "__builtin_parity":
+          return `(${pop} & 1)`;
+        case "__builtin_clz":
+          return `((v) => { const w = BigInt.asUintN(64, v); return w === 0n ? 64 : 64 - w.toString(2).length; })(${x})`;
+        case "__builtin_ctz":
+          return `((v) => { let w = BigInt.asUintN(64, v); if (w === 0n) return 64; let c = 0; while ((w & 1n) === 0n) { w >>= 1n; c++; } return c; })(${x})`;
+        default:
+          return `((v) => { let w = BigInt.asUintN(64, v); if (w === 0n) return 0; let c = 1; while ((w & 1n) === 0n) { w >>= 1n; c++; } return c; })(${x})`;
+      }
     }
 
     exTypeid(e: TypeidExpr): string {
@@ -3142,7 +3411,8 @@ namespace CTJ {
       if (n === "bool") return "false";
       if (t.isFunc || t.name === "__null") return "null";
       if (n === "void") return "undefined";
-      return "0";
+      const k = intKindOf(t);
+      return k && k.big ? "0n" : "0";
     }
   }
 }

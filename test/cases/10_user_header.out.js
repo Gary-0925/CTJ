@@ -10,14 +10,15 @@ class Counter {
   __dtor() {
   }
   bump() {
-    this.n++;
+    let $t0;
+    ($t0 = this.n, this.n = (($t0 + 1) | 0), $t0);
   }
   value__c() {
     return this.n;
   }
 }
 function twice(x) {
-  return (x * 2);
+  return ((Math.imul(x, 2)) | 0);
 }
 function main() {
   (console.log((twice(21))));

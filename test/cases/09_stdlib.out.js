@@ -35,28 +35,31 @@ class std_numeric_limits_int {
   static round_style = 0;
 }
 function strlen(s) {
-  let n = 0;
+  let $t0;
+  let n = ((0) >>> 0);
   while ((s.a[s.i + (n)] !== 0)) {
-    n++;
+    ($t0 = n, n = (($t0 + 1) >>> 0), $t0);
   }
   return n;
 }
 function strcmp(a, b) {
-  let i = 0;
+  let $t1;
+  let i = ((0) >>> 0);
   while (((a.a[a.i + (i)] !== 0) && (a.a[a.i + (i)] === b.a[b.i + (i)]))) {
-    i++;
+    ($t1 = i, i = (($t1 + 1) >>> 0), $t1);
   }
   if ((a.a[a.i + (i)] === b.a[b.i + (i)])) {
     return 0;
   }
-  return (((a.a[a.i + (i)] >>> 0) < (b.a[b.i + (i)] >>> 0)) ? (-(1)) : 1);
+  return ((((a.a[a.i + (i)]) & 255) < ((b.a[b.i + (i)]) & 255)) ? ((((-(1)) | 0)) | 0) : ((1) | 0));
 }
 function strcpy(dst, src) {
-  let i = 0;
+  let $t2;
+  let i = ((0) >>> 0);
   while ((src.a[src.i + (i)] !== 0)) {
      {
       dst.a[dst.i + (i)] = src.a[src.i + (i)];
-      i++;
+      ($t2 = i, i = (($t2 + 1) >>> 0), $t2);
     }
   }
   dst.a[dst.i + (i)] = 0;
@@ -65,7 +68,7 @@ function strcpy(dst, src) {
 function main() {
   let buf = new Array(16).fill(0);
   strcpy({a: buf, i: 0}, {a: [104, 101, 108, 108, 111, 0], i: 0});
-  (console.log((strlen({a: buf, i: 0}))));
+  (console.log((((strlen({a: buf, i: 0})) | 0))));
   (console.log((strcmp({a: buf, i: 0}, {a: [104, 101, 108, 108, 111, 0], i: 0}))));
   (console.log((2147483647)));
   (console.log((std_numeric_limits_int.max())));

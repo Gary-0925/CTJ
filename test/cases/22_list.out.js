@@ -156,13 +156,13 @@ class gnu_cxx_new_allocator_std_List_node_int {
     if ((__n > this.max_size__c())) {
       std_throw_bad_alloc();
     }
-    return ($t1 = operatornew__unsigned_long_long((__n * 20)), $t1 ? {a: $t1.a, i: $t1.i} : null);
+    return ($t1 = operatornew__unsigned_int(((Math.imul(__n, 12)) >>> 0)), $t1 ? {a: $t1.a, i: $t1.i} : null);
   }
   deallocate(__p, $p1) {
     operatordelete__voidP((__p ? {a: __p.a, i: __p.i} : null));
   }
   max_size__c() {
-    return (Math.trunc(((-(1)) >>> 0) / 20));
+    return ((Math.trunc((((((-(1)) | 0)) >>> 0)) / (12))) >>> 0);
   }
   destroy(__p) {
     (__p.a[__p.i]).__dtor();
@@ -210,10 +210,10 @@ class std_List_base_int_std_allocator_int {
   }
   _M_get_node() {
     let $t2;
-    return ($t2 = gnu_cxx_new_allocator_std_List_node_int.prototype.allocate.call(this._M_impl, 1, {a: [0], i: 0}), $t2 ? {a: $t2.a, i: $t2.i} : null);
+    return ($t2 = gnu_cxx_new_allocator_std_List_node_int.prototype.allocate.call(this._M_impl, ((1) >>> 0), {a: [0], i: 0}), $t2 ? {a: $t2.a, i: $t2.i} : null);
   }
   _M_put_node(__p) {
-    gnu_cxx_new_allocator_std_List_node_int.prototype.deallocate.call(this._M_impl, (__p ? {a: __p.a, i: __p.i} : null), 1);
+    gnu_cxx_new_allocator_std_List_node_int.prototype.deallocate.call(this._M_impl, (__p ? {a: __p.a, i: __p.i} : null), ((1) >>> 0));
   }
   _M_get_Node_allocator() {
     return {a: this, i: "_M_impl"};
@@ -255,7 +255,7 @@ class std_list_int_std_allocator_int extends std_List_base_int_std_allocator_int
     return (this._M_impl._M_node._M_next === ({a: this._M_impl, i: "_M_node"}) || (this._M_impl._M_node._M_next && ({a: this._M_impl, i: "_M_node"}) && this._M_impl._M_node._M_next.a === ({a: this._M_impl, i: "_M_node"}).a && this._M_impl._M_node._M_next.i === ({a: this._M_impl, i: "_M_node"}).i));
   }
   size__c() {
-    return std_distance_std_List_iterator_int(this.begin(), this.end());
+    return ((std_distance_std_List_iterator_int(this.begin(), this.end())) >>> 0);
   }
   front() {
     let $t4;
@@ -497,7 +497,7 @@ class std_alloc_neq_std_allocator_std_List_node_int_value1 {
 }
 function std_throw_bad_alloc(...$a) { throw new Error("unresolved external: std::__throw_bad_alloc"); }
 function std_throw_runtime_error(...$a) { throw new Error("unresolved external: std::__throw_runtime_error"); }
-function operatornew__unsigned_long_long(...$a) { return {a: new Array($a[0]).fill(0), i: 0}; }
+function operatornew__unsigned_int(...$a) { return {a: new Array($a[0]).fill(0), i: 0}; }
 function operatordelete__voidP(...$a) {  }
 function main() {
   let $t13, $t14;
@@ -508,39 +508,39 @@ function main() {
   let s = 0;
   for (let $b0 = new std_List_iterator_int({a: [a.v.begin()], i: 0}), $e0 = new std_List_iterator_int({a: [a.v.end()], i: 0}); $b0.op_ne__c({a: [$e0], i: 0}); $b0.op_inc()) {
     let x = ($b0.op_mul__c()).a[($b0.op_mul__c()).i];
-    s = ((s * 10) + x);
+    s = (((((Math.imul(s, 10)) | 0)) + (x)) | 0);
   }
-  (console.log((s), (a.v.size__c())));
+  (console.log((s), (((a.v.size__c()) | 0))));
   for (let $b1 = new std_List_iterator_int({a: [a.v.begin()], i: 0}), $e1 = new std_List_iterator_int({a: [a.v.end()], i: 0}); $b1.op_ne__c({a: [$e1], i: 0}); $b1.op_inc()) {
     let y = $b1.op_mul__c();
-    y.a[y.i] += 1;
+    y.a[y.i] = (((((y.a[y.i]) + (1)) | 0)) | 0);
   }
   for (let $b2 = new std_List_iterator_int({a: [a.v.begin()], i: 0}), $e2 = new std_List_iterator_int({a: [a.v.end()], i: 0}); $b2.op_ne__c({a: [$e2], i: 0}); $b2.op_inc()) {
     let y = $b2.op_mul__c();
-    s = ((s * 10) + y.a[y.i]);
+    s = (((((Math.imul(s, 10)) | 0)) + (y.a[y.i])) | 0);
   }
   (console.log((s)));
   a.v.reverse();
   s = 0;
   for (let $b3 = new std_List_iterator_int({a: [a.v.begin()], i: 0}), $e3 = new std_List_iterator_int({a: [a.v.end()], i: 0}); $b3.op_ne__c({a: [$e3], i: 0}); $b3.op_inc()) {
     let x = ($b3.op_mul__c()).a[($b3.op_mul__c()).i];
-    s = ((s * 10) + x);
+    s = (((((Math.imul(s, 10)) | 0)) + (x)) | 0);
   }
   (console.log((s)));
   a.v.remove({a: [10], i: 0});
   a.v.pop_front();
-  (console.log((($t13 = a.v.front(), $t13.a[$t13.i])), (($t14 = a.v.back(), $t14.a[$t14.i])), (a.v.size__c())));
+  (console.log((($t13 = a.v.front(), $t13.a[$t13.i])), (($t14 = a.v.back(), $t14.a[$t14.i])), (((a.v.size__c()) | 0))));
   let b = new std_list_int_std_allocator_int();
   b.push_back({a: [7], i: 0});
   b.splice(b.end(), {a: a, i: "v"});
   s = 0;
   for (let $b4 = new std_List_iterator_int({a: [b.begin()], i: 0}), $e4 = new std_List_iterator_int({a: [b.end()], i: 0}); $b4.op_ne__c({a: [$e4], i: 0}); $b4.op_inc()) {
     let x = ($b4.op_mul__c()).a[($b4.op_mul__c()).i];
-    s = ((s * 10) + x);
+    s = (((((Math.imul(s, 10)) | 0)) + (x)) | 0);
   }
-  (console.log((s), (a.v.size__c())));
+  (console.log((s), (((a.v.size__c()) | 0))));
   b.clear();
-  (console.log((b.size__c()), (b.empty__c())));
+  (console.log((((b.size__c()) | 0)), (((b.empty__c()) | 0))));
   return 0;
 }
 function std_distance_std_List_iterator_int(__first, __last) {
@@ -564,7 +564,7 @@ function std_distance_std_List_iterator_int_72(__first, __last, $p2) {
   while (__first.op_ne__c({a: [__last], i: 0})) {
      {
       __first.op_inc();
-      ++__n;
+      (__n = ((__n + 1) | 0));
     }
   }
   return __n;

@@ -67,15 +67,18 @@ namespace CTJ {
     const first = tn.parts[0].n;
     const rep = env.types.get(first);
     if (rep && tn.parts[0].a.length === 0) {
-      const segs = typeToSegs(rep);
-      for (const s of segs) out.parts.push(s);
+      // A function type has no name of its own: its node is the return type's
+      // name with the parameter list attached (see resolveTypeNodeInner).
+      const isFn = rep.isFunc && !!rep.ret;
+      const base = isFn ? (rep.ret as CppType) : rep;
+      for (const s of typeToSegs(base)) out.parts.push(s);
       for (let i = 1; i < tn.parts.length; i++) out.parts.push(substQSeg(tn.parts[i], env));
       out.ptr += rep.ptr;
-      if (!out.ref) out.ref = rep.ref;
-      if (rep.isFunc && !out.func && rep.ret) {
-        out.func = { params: rep.funcParams.map(typeToNode), variadic: rep.funcVariadic };
+      if (!out.ref) out.ref = base.ref;
+      if (isFn && !out.func) {
+        out.func = { params: (rep.funcParams || []).map(typeToNode), variadic: !!rep.funcVariadic };
       }
-      for (const d of rep.dims) out.dims.unshift(litNum(d, out) as Expr);
+      for (const d of base.dims) out.dims.unshift(litNum(d, out) as Expr);
     } else if (tn.parts.length === 1 && !tn.parts[0].a.length && env.values.has(first)) {
       // A nontype parameter written in type position, as in get<_Indexes>.
       out.valueArg = litNum(env.values.get(first) as number, tn);

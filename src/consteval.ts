@@ -221,11 +221,13 @@ namespace CTJ {
         const a = constEvalInner(cx, e.arg, scope, seen);
         if (typeof a !== "number") return a;
         // An unsigned value wraps; the mask width depends on the type.
-        // JS numbers cannot hold the full 64-bit unsigned range.
         if (!isUnsignedName(coreName(t))) return a;
         const cn = coreName(t);
         if (cn === "unsigned char" || cn === "signed char" || cn === "char" || cn === "char16_t") return a & 0xff;
         if (cn === "unsigned short" || cn === "short" || cn === "wchar_t") return a & 0xffff;
+        // The 64-bit value is only approximated by a number here; the exact value is
+        // built from BigInt literals by the code generator.
+        if (cn === "unsigned long long") return Number(BigInt.asUintN(64, BigInt(Math.trunc(a))));
         return a >>> 0;
       }
       case "call": {
@@ -256,8 +258,11 @@ namespace CTJ {
     }
   }
 
+  // The target is ILP32: long, size_t and pointers are 4 bytes.
+  const POINTER_SIZE = 4;
+
   export function constSizeof(cx: Cx, t: CppType, seen: Set<string>): number {
-    if (t.ptr > 0 || t.ref !== "" || t.isFunc) return 8;
+    if (t.ptr > 0 || t.ref !== "" || t.isFunc) return POINTER_SIZE;
     if (t.dims.length) {
       const n = t.dims[0];
       if (n < 0) cx.fail("sizeof incomplete array");
@@ -267,7 +272,7 @@ namespace CTJ {
       return n * constSizeof(cx, e, seen);
     }
     const n = coreName(t);
-    if (t.name === "__null") return 8;
+    if (t.name === "__null") return POINTER_SIZE;
     switch (n) {
       case "void":
         cx.fail("sizeof void");
@@ -292,7 +297,7 @@ namespace CTJ {
         return 4;
       case "long":
       case "unsigned long":
-        return 8;
+        return 4;
       case "long long":
       case "unsigned long long":
         return 8;

@@ -12,10 +12,11 @@ class Stack_int_value8 {
   __dtor() {
   }
   push(v) {
-    this.data[this.top++] = v;
+    let $t0;
+    this.data[($t0 = this.top, this.top = (($t0 + 1) | 0), $t0)] = v;
   }
   pop() {
-    return this.data[--this.top];
+    return this.data[(this.top = ((this.top - 1) | 0))];
   }
   size__c() {
     return this.top;
@@ -34,7 +35,7 @@ class Pair_int {
   __dtor() {
   }
   sum() {
-    return (this.a + this.b);
+    return (((this.a) + (this.b)) | 0);
   }
 }
 function main() {
@@ -51,7 +52,7 @@ function main() {
   return 0;
 }
 function maxOf_int(a, b) {
-  return ((a > b) ? a : b);
+  return ((a > b) ? ((a) | 0) : ((b) | 0));
 }
 function maxOf_double(a, b) {
   return ((a > b) ? a : b);

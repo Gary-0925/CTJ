@@ -41,6 +41,10 @@ namespace CTJ {
       const c = constEval(cx, e.args[0], scope);
       return argTs[c ? 1 : 2].t;
     }
+    if (name === "__builtin_bswap64") return CppType.basic("unsigned long long");
+    if (name === "__builtin_abs" || name === "__builtin_labs" || name === "__builtin_llabs") {
+      return CppType.basic(name === "__builtin_abs" ? "int" : name === "__builtin_labs" ? "long" : "long long");
+    }
     if (name === "__builtin_constant_p") return CppType.basic("int");
     if (name === "__builtin_unreachable" || name === "__builtin_trap" || name === "__builtin_abort") {
       return CppType.basic("void");

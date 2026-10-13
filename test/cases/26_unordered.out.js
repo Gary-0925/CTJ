@@ -263,16 +263,16 @@ class std_Hash_impl {
   __init_std_Hash_impl(...$a) { }
   __dtor() {
   }
-  static hash(__ptr, __clength, __seed = (3339675911 >>> 0)) {
+  static hash(__ptr, __clength, __seed = ((3339675911) >>> 0)) {
     return std_Hash_bytes((__ptr ? {a: __ptr.a, i: __ptr.i} : null), __clength, __seed);
   }
 }
-class std_hash_base_unsigned_long_long_long_long {
-  __init_std_hash_base_unsigned_long_long_long_long(...$a) { }
+class std_hash_base_unsigned_int_long_long {
+  __init_std_hash_base_unsigned_int_long_long(...$a) { }
   __dtor() {
   }
 }
-class std_hash_long_long extends std_hash_base_unsigned_long_long_long_long {
+class std_hash_long_long extends std_hash_base_unsigned_int_long_long {
   constructor(...$a) {
     super();
     this.__init_std_hash_long_long(...$a);
@@ -280,7 +280,7 @@ class std_hash_long_long extends std_hash_base_unsigned_long_long_long_long {
   __init_std_hash_long_long(...$a) {
   }
   __dtor() {
-    std_hash_base_unsigned_long_long_long_long.prototype.__dtor.call(this);
+    std_hash_base_unsigned_int_long_long.prototype.__dtor.call(this);
   }
 }
 class std_char_traits_char {
@@ -321,13 +321,13 @@ class gnu_cxx_new_allocator_char {
     if ((__n > this.max_size__c())) {
       std_throw_bad_alloc();
     }
-    return ($t2 = operatornew__unsigned_long_long((__n * 1)), $t2 ? {a: $t2.a, i: $t2.i} : null);
+    return ($t2 = operatornew__unsigned_int(((Math.imul(__n, 1)) >>> 0)), $t2 ? {a: $t2.a, i: $t2.i} : null);
   }
   deallocate(__p, $p1) {
     operatordelete__voidP((__p ? {a: __p.a, i: __p.i} : null));
   }
   max_size__c() {
-    return (Math.trunc(((-(1)) >>> 0) / 1));
+    return ((Math.trunc((((((-(1)) | 0)) >>> 0)) / (1))) >>> 0);
   }
 }
 class std_allocator_char extends gnu_cxx_new_allocator_char {
@@ -391,21 +391,21 @@ class std_basic_string_char_std_char_traits_char_std_allocator_char_Rep extends 
     if ((__capacity > std_basic_string_char_std_char_traits_char_std_allocator_char_Rep._S_max_size)) {
       std_throw_length_error({a: [98, 97, 115, 105, 99, 95, 115, 116, 114, 105, 110, 103, 58, 58, 95, 83, 95, 99, 114, 101, 97, 116, 101, 0], i: 0});
     }
-    let __pagesize = 4096;
-    let __malloc_header_size = (4 * 8);
-    if (((__capacity > __old_capacity) && (__capacity < (2 * __old_capacity)))) {
-      __capacity = (2 * __old_capacity);
+    let __pagesize = ((4096) >>> 0);
+    let __malloc_header_size = ((Math.imul(((4) >>> 0), 4)) >>> 0);
+    if (((__capacity > __old_capacity) && (__capacity < ((Math.imul(((2) >>> 0), __old_capacity)) >>> 0)))) {
+      __capacity = ((Math.imul(((2) >>> 0), __old_capacity)) >>> 0);
     }
-    let __size = (((__capacity + 1) * 1) + 20);
-    let __adj_size = (__size + __malloc_header_size);
+    let __size = (((((Math.imul((((__capacity) + (((1) >>> 0))) >>> 0), 1)) >>> 0)) + (12)) >>> 0);
+    let __adj_size = (((__size) + (__malloc_header_size)) >>> 0);
     if (((__adj_size > __pagesize) && (__capacity > __old_capacity))) {
        {
-        let __extra = (__pagesize - (__adj_size % __pagesize));
-        __capacity += (Math.trunc(__extra / 1));
+        let __extra = (((__pagesize) - ((((__adj_size) % (__pagesize)) >>> 0))) >>> 0);
+        __capacity = (((((__capacity) + (((Math.trunc((__extra) / (1))) >>> 0))) >>> 0)) >>> 0);
         if ((__capacity > std_basic_string_char_std_char_traits_char_std_allocator_char_Rep._S_max_size)) {
           __capacity = std_basic_string_char_std_char_traits_char_std_allocator_char_Rep._S_max_size;
         }
-        __size = (((__capacity + 1) * 1) + 20);
+        __size = (((((Math.imul((((__capacity) + (((1) >>> 0))) >>> 0), 1)) >>> 0)) + (12)) >>> 0);
       }
     }
     let __place = ($t6 = (__alloc.a[__alloc.i]).allocate(__size, {a: [0], i: 0}), $t6 ? {a: $t6.a, i: $t6.i} : null);
@@ -415,10 +415,10 @@ class std_basic_string_char_std_char_traits_char_std_allocator_char_Rep extends 
     return (__p ? {a: __p.a, i: __p.i} : null);
   }
   _M_destroy(__a) {
-    let __size = (20 + ((this._M_capacity + 1) * 1));
+    let __size = (((12) + (((Math.imul((((this._M_capacity) + (((1) >>> 0))) >>> 0), 1)) >>> 0))) >>> 0);
     (__a.a[__a.i]).deallocate({a: (this.ctj_a || (this.ctj_a = [])), i: (this.ctj_i || 0)}, __size);
   }
-  static _S_max_size = 1073741818;
+  static _S_max_size = 1073741820;
   static _S_terminal = 0;
   static _S_empty_rep_storage = null;
 }
@@ -474,10 +474,10 @@ class std_basic_string_char_std_char_traits_char_std_allocator_char {
   }
   _M_rep__c() {
     let $t13, $t14;
-    return ($t14 = {a: (($t13 = this._M_data__c(), $t13)).a, i: (($t13 = this._M_data__c(), $t13)).i + ((-(1)))}, $t14 ? {a: $t14.a, i: $t14.i} : null);
+    return ($t14 = {a: (($t13 = this._M_data__c(), $t13)).a, i: (($t13 = this._M_data__c(), $t13)).i + (((-(1)) | 0))}, $t14 ? {a: $t14.a, i: $t14.i} : null);
   }
   static _M_copy(__d, __s, __n) {
-    if ((__n === 1)) {
+    if ((__n === ((1) >>> 0))) {
       std_char_traits_char.assign(__d, __s);
     }
     else {
@@ -486,7 +486,7 @@ class std_basic_string_char_std_char_traits_char_std_allocator_char {
   }
   static _M_assign(__d, __n, __c) {
     __c = {v: __c};
-    if ((__n === 1)) {
+    if ((__n === ((1) >>> 0))) {
       std_char_traits_char.assign(__d, {a: __c, i: "v"});
     }
     else {
@@ -494,7 +494,7 @@ class std_basic_string_char_std_char_traits_char_std_allocator_char {
     }
   }
   static _S_compare(__n1, __n2) {
-    let __d = (__n1 - __n2);
+    let __d = (((((__n1) - (__n2)) >>> 0)) | 0);
     if ((__d > gnu_cxx_numeric_traits_integer_int.__max)) {
       return gnu_cxx_numeric_traits_integer_int.__max;
     }
@@ -516,9 +516,9 @@ class std_basic_string_char_std_char_traits_char_std_allocator_char {
     return (($t16 = this._M_rep__c(), $t16.a[$t16.i]))._M_length;
   }
   static _S_construct(...$a) {
-    let $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27;
+    let $t17, $t18, $t19, $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27, $t28, $t29;
     if ($a.length >= 3 && $a.length <= 3 && (typeof $a[0] === "number" || typeof $a[0] === "boolean") && (typeof $a[1] === "number" || typeof $a[1] === "boolean") && ($a[2] !== null && typeof $a[2] === "object" && !Array.isArray($a[2]) && $a[2].a !== undefined && $a[2].i !== undefined && $a[2].a[$a[2].i] instanceof std_allocator_char)) {
-      let __r = ($t17 = std_basic_string_char_std_char_traits_char_std_allocator_char_Rep._S_create($a[0], (0 >>> 0), $a[2]), $t17 ? {a: $t17.a, i: $t17.i} : null);
+      let __r = ($t17 = std_basic_string_char_std_char_traits_char_std_allocator_char_Rep._S_create($a[0], ((0) >>> 0), $a[2]), $t17 ? {a: $t17.a, i: $t17.i} : null);
       if ($a[0]) {
         std_basic_string_char_std_char_traits_char_std_allocator_char._M_assign(($t18 = (__r.a[__r.i])._M_refdata(), $t18 ? {a: $t18.a, i: $t18.i} : null), $a[0], $a[1]);
       }
@@ -530,28 +530,28 @@ class std_basic_string_char_std_char_traits_char_std_allocator_char {
     }
     else if ($a.length >= 4 && $a.length <= 4 && ($a[0] === null || (typeof $a[0] === "object" && ($a[0].a === undefined || typeof $a[0].a[$a[0].i] !== "object"))) && ($a[1] === null || (typeof $a[1] === "object" && ($a[1].a === undefined || typeof $a[1].a[$a[1].i] !== "object"))) && ($a[2] !== null && typeof $a[2] === "object" && !Array.isArray($a[2]) && $a[2].a !== undefined && $a[2].i !== undefined && $a[2].a[$a[2].i] instanceof std_allocator_char) && $a[3] instanceof std_input_iterator_tag) {
       let __buf = new Array(128).fill(0);
-      let __len = 0;
-      while (((!(($a[0]) === ($a[1]) || (($a[0]) && ($a[1]) && ($a[0]).a === ($a[1]).a && ($a[0]).i === ($a[1]).i))) && (__len < (Math.trunc(128 / 1))))) {
+      let __len = ((0) >>> 0);
+      while (((!(($a[0]) === ($a[1]) || (($a[0]) && ($a[1]) && ($a[0]).a === ($a[1]).a && ($a[0]).i === ($a[1]).i))) && (__len < ((Math.trunc((128) / (1))) >>> 0)))) {
          {
-          __buf[__len++] = ($a[0]).a[($a[0]).i];
+          __buf[($t21 = __len, __len = (($t21 + 1) >>> 0), $t21)] = ($a[0]).a[($a[0]).i];
           ++($a[0]).i;
         }
       }
-      let __r = ($t21 = std_basic_string_char_std_char_traits_char_std_allocator_char_Rep._S_create(__len, (0 >>> 0), $a[2]), $t21 ? {a: $t21.a, i: $t21.i} : null);
-      std_basic_string_char_std_char_traits_char_std_allocator_char._M_copy(($t22 = (__r.a[__r.i])._M_refdata(), $t22 ? {a: $t22.a, i: $t22.i} : null), {a: __buf, i: 0}, __len);
+      let __r = ($t22 = std_basic_string_char_std_char_traits_char_std_allocator_char_Rep._S_create(__len, ((0) >>> 0), $a[2]), $t22 ? {a: $t22.a, i: $t22.i} : null);
+      std_basic_string_char_std_char_traits_char_std_allocator_char._M_copy(($t23 = (__r.a[__r.i])._M_refdata(), $t23 ? {a: $t23.a, i: $t23.i} : null), {a: __buf, i: 0}, __len);
       if (true) {
          {
           while ((!(($a[0]) === ($a[1]) || (($a[0]) && ($a[1]) && ($a[0]).a === ($a[1]).a && ($a[0]).i === ($a[1]).i)))) {
              {
               if ((__len === (__r.a[__r.i])._M_capacity)) {
                  {
-                  let __another = ($t23 = std_basic_string_char_std_char_traits_char_std_allocator_char_Rep._S_create((__len + 1), __len, $a[2]), $t23 ? {a: $t23.a, i: $t23.i} : null);
-                  std_basic_string_char_std_char_traits_char_std_allocator_char._M_copy(($t24 = (__another.a[__another.i])._M_refdata(), $t24 ? {a: $t24.a, i: $t24.i} : null), ($t25 = (__r.a[__r.i])._M_refdata(), $t25 ? {a: $t25.a, i: $t25.i} : null), __len);
+                  let __another = ($t24 = std_basic_string_char_std_char_traits_char_std_allocator_char_Rep._S_create((((__len) + (((1) >>> 0))) >>> 0), __len, $a[2]), $t24 ? {a: $t24.a, i: $t24.i} : null);
+                  std_basic_string_char_std_char_traits_char_std_allocator_char._M_copy(($t25 = (__another.a[__another.i])._M_refdata(), $t25 ? {a: $t25.a, i: $t25.i} : null), ($t26 = (__r.a[__r.i])._M_refdata(), $t26 ? {a: $t26.a, i: $t26.i} : null), __len);
                   (__r.a[__r.i])._M_destroy($a[2]);
                   __r = (__another ? {a: __another.a, i: __another.i} : null);
                 }
               }
-              (($t26 = (__r.a[__r.i])._M_refdata(), $t26)).a[(($t26 = (__r.a[__r.i])._M_refdata(), $t26)).i + (__len++)] = ($a[0]).a[($a[0]).i];
+              (($t27 = (__r.a[__r.i])._M_refdata(), $t27)).a[(($t27 = (__r.a[__r.i])._M_refdata(), $t27)).i + (($t28 = __len, __len = (($t28 + 1) >>> 0), $t28))] = ($a[0]).a[($a[0]).i];
               ++($a[0]).i;
             }
           }
@@ -563,31 +563,31 @@ class std_basic_string_char_std_char_traits_char_std_allocator_char {
         }
       }
       (__r.a[__r.i])._M_set_length_and_sharable(__len);
-      return ($t27 = (__r.a[__r.i])._M_refdata(), $t27 ? {a: $t27.a, i: $t27.i} : null);
+      return ($t29 = (__r.a[__r.i])._M_refdata(), $t29 ? {a: $t29.a, i: $t29.i} : null);
     }
     else { throw new Error("no matching overload"); }
   }
   data__c() {
-    let $t28;
-    return ($t28 = this._M_data__c(), $t28 ? {a: $t28.a, i: $t28.i} : null);
+    let $t30;
+    return ($t30 = this._M_data__c(), $t30 ? {a: $t30.a, i: $t30.i} : null);
   }
   get_allocator__c() {
     return new std_allocator_char({a: this, i: "_M_dataplus"});
   }
   compare__c(__str) {
-    let $t29, $t30, $t31;
+    let $t31, $t32, $t33;
     let __size = {v: this.size__c()};
     let __osize = {v: (__str.a[__str.i]).size__c()};
-    let __len = ($t29 = std_min_unsigned_long_long({a: __size, i: "v"}, {a: __osize, i: "v"}), $t29.a[$t29.i]);
-    let __r = std_char_traits_char.compare(($t30 = this._M_data__c(), $t30 ? {a: $t30.a, i: $t30.i} : null), ($t31 = (__str.a[__str.i]).data__c(), $t31 ? {a: $t31.a, i: $t31.i} : null), __len);
+    let __len = ($t31 = std_min_unsigned_int({a: __size, i: "v"}, {a: __osize, i: "v"}), $t31.a[$t31.i]);
+    let __r = std_char_traits_char.compare(($t32 = this._M_data__c(), $t32 ? {a: $t32.a, i: $t32.i} : null), ($t33 = (__str.a[__str.i]).data__c(), $t33 ? {a: $t33.a, i: $t33.i} : null), __len);
     if ((!__r)) {
       __r = std_basic_string_char_std_char_traits_char_std_allocator_char._S_compare(__size.v, __osize.v);
     }
     return __r;
   }
   static _S_construct_aux(__beg, __end, __a, $p3) {
-    let $t32;
-    return ($t32 = this._S_construct((__beg ? {a: __beg.a, i: __beg.i} : null), (__end ? {a: __end.a, i: __end.i} : null), __a, new std_random_access_iterator_tag()), $t32 ? {a: $t32.a, i: $t32.i} : null);
+    let $t34;
+    return ($t34 = this._S_construct((__beg ? {a: __beg.a, i: __beg.i} : null), (__end ? {a: __end.a, i: __end.i} : null), __a, new std_random_access_iterator_tag()), $t34 ? {a: $t34.a, i: $t34.i} : null);
   }
   static npos = 4294967295;
 }
@@ -607,12 +607,12 @@ class gnu_cxx_normal_iterator_char_P_std_basic_string_char_std_char_traits_char_
   __dtor() {
   }
 }
-class std_hash_base_unsigned_long_long_std_basic_string_char_std_char_traits_char_std_allocator_char {
+class std_hash_base_unsigned_int_std_basic_string_char_std_char_traits_char_std_allocator_char {
   constructor(...$a) {
-    this.__init_std_hash_base_unsigned_long_long_std_basic_string_char_std_char_traits_char_std_allocator_char(...$a);
+    this.__init_std_hash_base_unsigned_int_std_basic_string_char_std_char_traits_char_std_allocator_char(...$a);
   }
-  __init_std_hash_base_unsigned_long_long_std_basic_string_char_std_char_traits_char_std_allocator_char(...$a) {
-    if ($a.length >= 1 && $a.length <= 1 && ($a[0] !== null && typeof $a[0] === "object" && !Array.isArray($a[0]) && $a[0].a !== undefined && $a[0].i !== undefined && $a[0].a[$a[0].i] instanceof std_hash_base_unsigned_long_long_std_basic_string_char_std_char_traits_char_std_allocator_char)) {
+  __init_std_hash_base_unsigned_int_std_basic_string_char_std_char_traits_char_std_allocator_char(...$a) {
+    if ($a.length >= 1 && $a.length <= 1 && ($a[0] !== null && typeof $a[0] === "object" && !Array.isArray($a[0]) && $a[0].a !== undefined && $a[0].i !== undefined && $a[0].a[$a[0].i] instanceof std_hash_base_unsigned_int_std_basic_string_char_std_char_traits_char_std_allocator_char)) {
     }
     else if ($a.length >= 0 && $a.length <= 0) {
     }
@@ -624,7 +624,7 @@ class std_hash_base_unsigned_long_long_std_basic_string_char_std_char_traits_cha
     return {a: [this], i: 0};
   }
 }
-class std_hash_std_basic_string_char_std_char_traits_char_std_allocator_char extends std_hash_base_unsigned_long_long_std_basic_string_char_std_char_traits_char_std_allocator_char {
+class std_hash_std_basic_string_char_std_char_traits_char_std_allocator_char extends std_hash_base_unsigned_int_std_basic_string_char_std_char_traits_char_std_allocator_char {
   constructor(...$a) {
     super(...($a.length >= 0 && $a.length <= 0 ? [] : $a.length >= 1 && $a.length <= 1 && ($a[0] !== null && typeof $a[0] === "object" && !Array.isArray($a[0]) && $a[0].a !== undefined && $a[0].i !== undefined && $a[0].a[$a[0].i] instanceof std_hash_std_basic_string_char_std_char_traits_char_std_allocator_char) ? [$a[0]] : []));
     this.__init_std_hash_std_basic_string_char_std_char_traits_char_std_allocator_char(...$a);
@@ -637,14 +637,14 @@ class std_hash_std_basic_string_char_std_char_traits_char_std_allocator_char ext
     else { throw new Error("no matching constructor"); }
   }
   __dtor() {
-    std_hash_base_unsigned_long_long_std_basic_string_char_std_char_traits_char_std_allocator_char.prototype.__dtor.call(this);
+    std_hash_base_unsigned_int_std_basic_string_char_std_char_traits_char_std_allocator_char.prototype.__dtor.call(this);
   }
   op_call__c(__s) {
-    let $t33;
-    return std_Hash_impl.hash(($t33 = (__s.a[__s.i]).data__c(), $t33 ? {a: $t33.a, i: $t33.i} : null), (__s.a[__s.i]).length__c(), (3339675911 >>> 0));
+    let $t35;
+    return std_Hash_impl.hash(($t35 = (__s.a[__s.i]).data__c(), $t35 ? {a: $t35.a, i: $t35.i} : null), (__s.a[__s.i]).length__c(), ((3339675911) >>> 0));
   }
   op_assign(o) {
-    this.__assign_std_hash_base_unsigned_long_long_std_basic_string_char_std_char_traits_char_std_allocator_char.call(this, $p0);
+    this.__assign_std_hash_base_unsigned_int_std_basic_string_char_std_char_traits_char_std_allocator_char.call(this, $p0);
     return {a: [this], i: 0};
   }
 }
@@ -726,12 +726,12 @@ class gnu_cxx_normal_iterator_wchar_t_P_std_basic_string_wchar_t_std_char_traits
   __dtor() {
   }
 }
-class std_hash_base_unsigned_long_long_std_basic_string_wchar_t_std_char_traits_wchar_t_std_allocator_wchar_t {
-  __init_std_hash_base_unsigned_long_long_std_basic_string_wchar_t_std_char_traits_wchar_t_std_allocator_wchar_t(...$a) { }
+class std_hash_base_unsigned_int_std_basic_string_wchar_t_std_char_traits_wchar_t_std_allocator_wchar_t {
+  __init_std_hash_base_unsigned_int_std_basic_string_wchar_t_std_char_traits_wchar_t_std_allocator_wchar_t(...$a) { }
   __dtor() {
   }
 }
-class std_hash_std_basic_string_wchar_t_std_char_traits_wchar_t_std_allocator_wchar_t extends std_hash_base_unsigned_long_long_std_basic_string_wchar_t_std_char_traits_wchar_t_std_allocator_wchar_t {
+class std_hash_std_basic_string_wchar_t_std_char_traits_wchar_t_std_allocator_wchar_t extends std_hash_base_unsigned_int_std_basic_string_wchar_t_std_char_traits_wchar_t_std_allocator_wchar_t {
   constructor(...$a) {
     super();
     this.__init_std_hash_std_basic_string_wchar_t_std_char_traits_wchar_t_std_allocator_wchar_t(...$a);
@@ -739,7 +739,7 @@ class std_hash_std_basic_string_wchar_t_std_char_traits_wchar_t_std_allocator_wc
   __init_std_hash_std_basic_string_wchar_t_std_char_traits_wchar_t_std_allocator_wchar_t(...$a) {
   }
   __dtor() {
-    std_hash_base_unsigned_long_long_std_basic_string_wchar_t_std_char_traits_wchar_t_std_allocator_wchar_t.prototype.__dtor.call(this);
+    std_hash_base_unsigned_int_std_basic_string_wchar_t_std_char_traits_wchar_t_std_allocator_wchar_t.prototype.__dtor.call(this);
   }
 }
 class std_char_traits_char16_t {
@@ -820,12 +820,12 @@ class gnu_cxx_normal_iterator_char16_t_P_std_basic_string_char16_t_std_char_trai
   __dtor() {
   }
 }
-class std_hash_base_unsigned_long_long_std_basic_string_char16_t_std_char_traits_char16_t_std_allocator_char16_t {
-  __init_std_hash_base_unsigned_long_long_std_basic_string_char16_t_std_char_traits_char16_t_std_allocator_char16_t(...$a) { }
+class std_hash_base_unsigned_int_std_basic_string_char16_t_std_char_traits_char16_t_std_allocator_char16_t {
+  __init_std_hash_base_unsigned_int_std_basic_string_char16_t_std_char_traits_char16_t_std_allocator_char16_t(...$a) { }
   __dtor() {
   }
 }
-class std_hash_std_basic_string_char16_t_std_char_traits_char16_t_std_allocator_char16_t extends std_hash_base_unsigned_long_long_std_basic_string_char16_t_std_char_traits_char16_t_std_allocator_char16_t {
+class std_hash_std_basic_string_char16_t_std_char_traits_char16_t_std_allocator_char16_t extends std_hash_base_unsigned_int_std_basic_string_char16_t_std_char_traits_char16_t_std_allocator_char16_t {
   constructor(...$a) {
     super();
     this.__init_std_hash_std_basic_string_char16_t_std_char_traits_char16_t_std_allocator_char16_t(...$a);
@@ -833,7 +833,7 @@ class std_hash_std_basic_string_char16_t_std_char_traits_char16_t_std_allocator_
   __init_std_hash_std_basic_string_char16_t_std_char_traits_char16_t_std_allocator_char16_t(...$a) {
   }
   __dtor() {
-    std_hash_base_unsigned_long_long_std_basic_string_char16_t_std_char_traits_char16_t_std_allocator_char16_t.prototype.__dtor.call(this);
+    std_hash_base_unsigned_int_std_basic_string_char16_t_std_char_traits_char16_t_std_allocator_char16_t.prototype.__dtor.call(this);
   }
 }
 class std_char_traits_char32_t {
@@ -914,12 +914,12 @@ class gnu_cxx_normal_iterator_char32_t_P_std_basic_string_char32_t_std_char_trai
   __dtor() {
   }
 }
-class std_hash_base_unsigned_long_long_std_basic_string_char32_t_std_char_traits_char32_t_std_allocator_char32_t {
-  __init_std_hash_base_unsigned_long_long_std_basic_string_char32_t_std_char_traits_char32_t_std_allocator_char32_t(...$a) { }
+class std_hash_base_unsigned_int_std_basic_string_char32_t_std_char_traits_char32_t_std_allocator_char32_t {
+  __init_std_hash_base_unsigned_int_std_basic_string_char32_t_std_char_traits_char32_t_std_allocator_char32_t(...$a) { }
   __dtor() {
   }
 }
-class std_hash_std_basic_string_char32_t_std_char_traits_char32_t_std_allocator_char32_t extends std_hash_base_unsigned_long_long_std_basic_string_char32_t_std_char_traits_char32_t_std_allocator_char32_t {
+class std_hash_std_basic_string_char32_t_std_char_traits_char32_t_std_allocator_char32_t extends std_hash_base_unsigned_int_std_basic_string_char32_t_std_char_traits_char32_t_std_allocator_char32_t {
   constructor(...$a) {
     super();
     this.__init_std_hash_std_basic_string_char32_t_std_char_traits_char32_t_std_allocator_char32_t(...$a);
@@ -927,7 +927,7 @@ class std_hash_std_basic_string_char32_t_std_char_traits_char32_t_std_allocator_
   __init_std_hash_std_basic_string_char32_t_std_char_traits_char32_t_std_allocator_char32_t(...$a) {
   }
   __dtor() {
-    std_hash_base_unsigned_long_long_std_basic_string_char32_t_std_char_traits_char32_t_std_allocator_char32_t.prototype.__dtor.call(this);
+    std_hash_base_unsigned_int_std_basic_string_char32_t_std_char_traits_char32_t_std_allocator_char32_t.prototype.__dtor.call(this);
   }
 }
 class std_allocator_arg_t {
@@ -1040,7 +1040,7 @@ class std_detail_Mod_range_hashing {
   __dtor() {
   }
   op_call__c(__num, __den) {
-    return (__num % __den);
+    return (((__num) % (__den)) >>> 0);
   }
 }
 class std_detail_Default_ranged_hash {
@@ -1060,12 +1060,12 @@ class std_detail_Prime_rehash_policy {
   }
   __init_std_detail_Prime_rehash_policy(...$a) {
     this._M_max_load_factor = ($a[0] === undefined ? (1) : $a[0]);
-    this._M_next_resize = 0;
+    this._M_next_resize = ((0) >>> 0);
   }
   __dtor() {
   }
   _M_next_bkt__c(...$a) { const $fast = [2,2,2,3,5,5,7,7,11,11,11,11,13,13]; const $n = $a[0]; if ($n < $fast.length) { if ($n === 0) return 1;   this._M_next_resize = Math.floor($fast[$n] * this._M_max_load_factor); return $fast[$n]; } const $P = PRIME_BUCKETS, $last = $P.length - 1; let $i = 6; while ($i < $last && $P[$i] < $n) $i++; if ($i === $last) { this._M_next_resize = 18446744073709551615; return $P[$i]; } this._M_next_resize = Math.floor($P[$i] * this._M_max_load_factor); return $P[$i]; }
-  _M_need_rehash__c(...$a) { const $nbkt = $a[0], $nelt = $a[1], $nins = $a[2]; const $mk = (b, s) => { const o = Object.create(std_pair_bool_unsigned_long_long.prototype); o.first = b; o.second = s; return o; }; if ($nelt + $nins > this._M_next_resize) {   const $mb = Math.max($nelt + $nins, this._M_next_resize ? 0 : 11) / this._M_max_load_factor;   if ($mb >= $nbkt) return $mk(true, this._M_next_bkt__c(Math.max(Math.floor($mb) + 1, $nbkt * 2)));   this._M_next_resize = Math.floor($nbkt * this._M_max_load_factor); } return $mk(false, 0); }
+  _M_need_rehash__c(...$a) { const $nbkt = $a[0], $nelt = $a[1], $nins = $a[2]; const $mk = (b, s) => { const o = Object.create(std_pair_bool_unsigned_int.prototype); o.first = b; o.second = s; return o; }; if ($nelt + $nins > this._M_next_resize) {   const $mb = Math.max($nelt + $nins, this._M_next_resize ? 0 : 11) / this._M_max_load_factor;   if ($mb >= $nbkt) return $mk(true, this._M_next_bkt__c(Math.max(Math.floor($mb) + 1, $nbkt * 2)));   this._M_next_resize = Math.floor($nbkt * this._M_max_load_factor); } return $mk(false, 0); }
   _M_state__c() {
     return this._M_next_resize;
   }
@@ -1093,14 +1093,14 @@ class std_basic_ostream_char_std_char_traits_char extends std_ios_base {
     this.__init_std_basic_ostream_char_std_char_traits_char(...$a);
   }
   __init_std_basic_ostream_char_std_char_traits_char(...$a) {
-    this._M_fd = ($a[0] === undefined ? (1) : $a[0]);
+    this._M_fd = ($a[0] === undefined ? (((1) | 0)) : $a[0]);
     this._M_tie = null;
   }
   __dtor() {
     std_ios_base.prototype.__dtor.call(this);
   }
   _M_put(__k, __v, __s, __n) {
-    ((function(k,v,s,n,f,w,p,c,fd){var t='',pad=false,base=((f&74)===8)?16:(((f&74)===64)?8:10),j,g,nl=String.fromCharCode(10);function str(q,m){if(q===null||q===undefined)return '';var a=(q.a!==undefined)?q.a:q,i=(q.a!==undefined)?(q.i|0):0,r='',e,x;if(typeof a==='string')return m<0?a:a.slice(0,m);for(e=0;m<0||e<m;e++){x=a[i+e];if(x===undefined||x===null||(m<0&&x===0))break;r+=(typeof x==='number')?String.fromCharCode(x&255):String(x);}return r;}function gfmt(x,q){if(x!==x)return 'nan';if(x===Infinity)return 'inf';if(x===-Infinity)return '-inf';q=q>0?q:1;var e=x.toExponential(q-1),ix=e.indexOf('e'),X=parseInt(e.slice(ix+1),10),r,m;if(X<-4||X>=q){m=e.slice(0,ix);if(m.indexOf('.')>=0){while(m.charAt(m.length-1)==='0')m=m.slice(0,-1);if(m.charAt(m.length-1)==='.')m=m.slice(0,-1);}r=m+'e'+(X<0?'-':'+')+(Math.abs(X)<10?'0':'')+Math.abs(X);}else{r=x.toFixed(q-1-X);if(r.indexOf('.')>=0){while(r.charAt(r.length-1)==='0')r=r.slice(0,-1);if(r.charAt(r.length-1)==='.')r=r.slice(0,-1);}}return r;}if(k===6){t=(f&1)?(v?'true':'false'):(v?'1':'0');pad=true;}else if(k===4){t=gfmt(v,p);pad=true;}else if(k===5){t=String.fromCharCode(v&255);pad=true;}else if(k===7){t=str(s,n);pad=true;}else if(k===8){t=String.fromCharCode(v&255);}else if(k===10){t=str(s,n);}else if(k<=3){if(k>=2){if(base===10)t=(k===2&&v<0)?BigInt.asUintN(64,BigInt(Math.trunc(v))).toString():String(v);else t=BigInt.asUintN(64,BigInt(Math.trunc(v))).toString(base);}else{if(k===1)v=v>>>0;t=(base===10)?String(v):(v<0?(v>>>0):v).toString(base);}pad=true;}if(pad&&w>t.length){var fc=String.fromCharCode(c||32),pd=fc.repeat(w-t.length);t=(f&32)?t+pd:pd+t;}if(typeof process!=='undefined'&&process&&process.stdout){if(t)((fd===2&&process.stderr)?process.stderr:process.stdout).write(t);return;}g=globalThis;g.__ctjpend=(g.__ctjpend||'')+t;while((j=g.__ctjpend.indexOf(nl))>=0){console.log(g.__ctjpend.slice(0,j));g.__ctjpend=g.__ctjpend.slice(j+1);}})((__k),(__v),(__s),(__n),(this._M_flags),(this._M_width),(this._M_precision),(this._M_fill),(this._M_fd)));
+    ((function(k,v,s,n,f,w,p,c,fd){var t='',pad=false,base=((f&74)===8)?16:(((f&74)===64)?8:10),j,g,nl=String.fromCharCode(10);function str(q,m){if(q===null||q===undefined)return '';var a=(q.a!==undefined)?q.a:q,i=(q.a!==undefined)?(q.i|0):0,r='',e,x;if(typeof a==='string')return m<0?a:a.slice(0,m);for(e=0;m<0||e<m;e++){x=a[i+e];if(x===undefined||x===null||(m<0&&x===0))break;r+=(typeof x==='number')?String.fromCharCode(x&255):String(x);}return r;}function gfmt(x,q){if(x!==x)return 'nan';if(x===Infinity)return 'inf';if(x===-Infinity)return '-inf';q=q>0?q:1;var e=x.toExponential(q-1),ix=e.indexOf('e'),X=parseInt(e.slice(ix+1),10),r,m;if(X<-4||X>=q){m=e.slice(0,ix);if(m.indexOf('.')>=0){while(m.charAt(m.length-1)==='0')m=m.slice(0,-1);if(m.charAt(m.length-1)==='.')m=m.slice(0,-1);}r=m+'e'+(X<0?'-':'+')+(Math.abs(X)<10?'0':'')+Math.abs(X);}else{r=x.toFixed(q-1-X);if(r.indexOf('.')>=0){while(r.charAt(r.length-1)==='0')r=r.slice(0,-1);if(r.charAt(r.length-1)==='.')r=r.slice(0,-1);}}return r;}if(k===6){t=(f&1)?(v?'true':'false'):(v?'1':'0');pad=true;}else if(k===4){t=gfmt(v,p);pad=true;}else if(k===5){t=String.fromCharCode(v&255);pad=true;}else if(k===7){t=str(s,n);pad=true;}else if(k===8){t=String.fromCharCode(v&255);}else if(k===10){t=str(s,n);}else if(k<=3){if(k>=2){var b=(typeof v==='bigint')?v:BigInt(Math.trunc(v));if(k===2||base!==10)b=BigInt.asUintN(64,b);t=b.toString(base);}else{if(k===1)v=v>>>0;t=(base===10)?String(v):(v<0?(v>>>0):v).toString(base);}pad=true;}if(pad&&w>t.length){var fc=String.fromCharCode(c||32),pd=fc.repeat(w-t.length);t=(f&32)?t+pd:pd+t;}if(typeof process!=='undefined'&&process&&process.stdout){if(t)((fd===2&&process.stderr)?process.stderr:process.stdout).write(t);return;}g=globalThis;g.__ctjpend=(g.__ctjpend||'')+t;while((j=g.__ctjpend.indexOf(nl))>=0){console.log(g.__ctjpend.slice(0,j));g.__ctjpend=g.__ctjpend.slice(j+1);}})((__k),(__v),(__s),(__n),(this._M_flags),(this._M_width),(this._M_precision),(this._M_fill),(this._M_fd)));
     this._M_width = 0;
   }
 }
@@ -1791,17 +1791,17 @@ class std_is_array_std_pair_std_basic_string_char_std_char_traits_char_std_alloc
     std_integral_constant_bool_value0.prototype.__dtor.call(this);
   }
 }
-class std_integral_constant_unsigned_long_long_value0 {
+class std_integral_constant_unsigned_int_value0 {
   constructor(...$a) {
-    this.__init_std_integral_constant_unsigned_long_long_value0(...$a);
+    this.__init_std_integral_constant_unsigned_int_value0(...$a);
   }
-  __init_std_integral_constant_unsigned_long_long_value0(...$a) {
+  __init_std_integral_constant_unsigned_int_value0(...$a) {
   }
   __dtor() {
   }
   static value = 0;
 }
-class std_extent_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_value0 extends std_integral_constant_unsigned_long_long_value0 {
+class std_extent_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_value0 extends std_integral_constant_unsigned_int_value0 {
   constructor(...$a) {
     super();
     this.__init_std_extent_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_value0(...$a);
@@ -1809,7 +1809,7 @@ class std_extent_std_pair_std_basic_string_char_std_char_traits_char_std_allocat
   __init_std_extent_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_value0(...$a) {
   }
   __dtor() {
-    std_integral_constant_unsigned_long_long_value0.prototype.__dtor.call(this);
+    std_integral_constant_unsigned_int_value0.prototype.__dtor.call(this);
   }
 }
 class std_not_std_extent_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_value0 extends std_integral_constant_bool_value1 {
@@ -3461,16 +3461,16 @@ class std_detail_Hash_code_base_std_basic_string_char_std_char_traits_char_std_a
     std_detail_Hashtable_ebo_helper_value2_std_detail_Mod_range_hashing_value1.prototype.__dtor.call(this);
   }
   _M_hash_code__c(__k) {
-    let $t34;
-    return (($t34 = this._M_h1(), $t34.a[$t34.i])).op_call__c(__k);
+    let $t36;
+    return (($t36 = this._M_h1(), $t36.a[$t36.i])).op_call__c(__k);
   }
   _M_bucket_index__c(...$a) {
-    let $t35, $t36;
+    let $t37, $t38;
     if ($a.length >= 3 && $a.length <= 3 && ($a[0] !== null && typeof $a[0] === "object" && !Array.isArray($a[0]) && $a[0].a !== undefined && $a[0].i !== undefined && $a[0].a[$a[0].i] instanceof std_basic_string_char_std_char_traits_char_std_allocator_char) && (typeof $a[1] === "number" || typeof $a[1] === "boolean") && (typeof $a[2] === "number" || typeof $a[2] === "boolean")) {
-      return (($t35 = this._M_h2(), $t35.a[$t35.i])).op_call__c($a[1], $a[2]);
+      return (($t37 = this._M_h2(), $t37.a[$t37.i])).op_call__c($a[1], $a[2]);
     }
     else if ($a.length >= 2 && $a.length <= 2 && ($a[0] === null || typeof $a[0] === "object") && (typeof $a[1] === "number" || typeof $a[1] === "boolean")) {
-      return (($t36 = this._M_h2(), $t36.a[$t36.i])).op_call__c((($a[0]).a[($a[0]).i])._M_hash_code, $a[1]);
+      return (($t38 = this._M_h2(), $t38.a[$t38.i])).op_call__c((($a[0]).a[($a[0]).i])._M_hash_code, $a[1]);
     }
     else { throw new Error("no matching overload"); }
   }
@@ -3530,7 +3530,7 @@ class std_detail_Hashtable_base_std_basic_string_char_std_char_traits_char_std_a
     std_detail_Hashtable_ebo_helper_value0_std_equal_to_std_basic_string_char_std_char_traits_char_std_allocator_char_value1.prototype.__dtor.call(this);
   }
   _M_equals__c(__k, __c, __n) {
-    return std_detail_Equal_helper_std_basic_string_char_std_char_traits_char_std_allocator_char_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_std_detail_Select1st_std_equal_to_std_basic_string_char_std_char_traits_char_std_allocator_char_unsigned_long_long_value1._S_equals(this._M_eq(), this._M_extract(), __k, __c, (__n ? {a: __n.a, i: __n.i} : null));
+    return std_detail_Equal_helper_std_basic_string_char_std_char_traits_char_std_allocator_char_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_std_detail_Select1st_std_equal_to_std_basic_string_char_std_char_traits_char_std_allocator_char_unsigned_int_value1._S_equals(this._M_eq(), this._M_extract(), __k, __c, (__n ? {a: __n.a, i: __n.i} : null));
   }
   _M_eq() {
     return std_detail_Hashtable_ebo_helper_value0_std_equal_to_std_basic_string_char_std_char_traits_char_std_allocator_char_value1._S_get({a: [this], i: 0});
@@ -3553,15 +3553,15 @@ class std_detail_Map_base_std_basic_string_char_std_char_traits_char_std_allocat
   __dtor() {
   }
   op_index(__k) {
-    let $t37, $t38, $t39, $t40;
+    let $t39, $t40, $t41, $t42;
     let __h = {a: (this.ctj_a || (this.ctj_a = [])), i: (this.ctj_i || 0)};
     let __code = (__h.a[__h.i])._M_hash_code__c(__k);
     let __n = (__h.a[__h.i])._M_bucket_index__c(__k, __code);
-    let __p = ($t37 = (__h.a[__h.i])._M_find_node__c(__n, __k, __code), $t37 ? {a: $t37.a, i: $t37.i} : null);
+    let __p = ($t39 = (__h.a[__h.i])._M_find_node__c(__n, __k, __code), $t39 ? {a: $t39.a, i: $t39.i} : null);
     if ((!__p)) {
        {
-        __p = ($t38 = (__h.a[__h.i])._M_allocate_node__rv({a: std_piecewise_construct, i: "v"}, {a: [new std_tuple_std_basic_string_char_std_char_traits_char_std_allocator_char_R(__k)], i: 0}, {a: [new std_tuple()], i: 0}), $t38 ? {a: $t38.a, i: $t38.i} : null);
-        return {a: ($t40 = (($t39 = (__h.a[__h.i])._M_insert_unique_node(__n, __code, (__p ? {a: __p.a, i: __p.i} : null)), $t39)).op_arrow__c(), $t40.a[$t40.i]), i: "second"};
+        __p = ($t40 = (__h.a[__h.i])._M_allocate_node__rv({a: std_piecewise_construct, i: "v"}, {a: [new std_tuple_std_basic_string_char_std_char_traits_char_std_allocator_char_R(__k)], i: 0}, {a: [new std_tuple()], i: 0}), $t40 ? {a: $t40.a, i: $t40.i} : null);
+        return {a: ($t42 = (($t41 = (__h.a[__h.i])._M_insert_unique_node(__n, __code, (__p ? {a: __p.a, i: __p.i} : null)), $t41)).op_arrow__c(), $t42.a[$t42.i]), i: "second"};
       }
     }
     return {a: (__p.a[__p.i])._M_v, i: "second"};
@@ -3614,8 +3614,8 @@ class std_detail_Node_iterator_base_std_pair_std_basic_string_char_std_char_trai
   __dtor() {
   }
   _M_incr() {
-    let $t41;
-    this._M_cur = ($t41 = (this._M_cur.a[this._M_cur.i])._M_next__c(), $t41 ? {a: $t41.a, i: $t41.i} : null);
+    let $t43;
+    this._M_cur = ($t43 = (this._M_cur.a[this._M_cur.i])._M_next__c(), $t43 ? {a: $t43.a, i: $t43.i} : null);
   }
 }
 class std_detail_Node_const_iterator_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_value0_value1 extends std_detail_Node_iterator_base_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_value1 {
@@ -3637,8 +3637,8 @@ class std_detail_Hash_node_std_pair_std_basic_string_char_std_char_traits_char_s
     this.__init_std_detail_Hash_node_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_value1(...$a);
   }
   __init_std_detail_Hash_node_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_value1(...$a) {
-    let $t42, $t43, $t44;
-    this._M_v = new std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int(($t42 = std_forward_1_std_piecewise_construct_t($a[0]), $t42.a[$t42.i]), ($t43 = std_forward_1_std_tuple_std_basic_string_char_std_char_traits_char_std_allocator_char_R($a[1]), $t43.a[$t43.i]), ($t44 = std_forward_1_std_tuple($a[2]), $t44.a[$t44.i]));
+    let $t44, $t45, $t46;
+    this._M_v = new std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int(($t44 = std_forward_1_std_piecewise_construct_t($a[0]), $t44.a[$t44.i]), ($t45 = std_forward_1_std_tuple_std_basic_string_char_std_char_traits_char_std_allocator_char_R($a[1]), $t45.a[$t45.i]), ($t46 = std_forward_1_std_tuple($a[2]), $t46.a[$t46.i]));
     this._M_v.ctj_a = this; this._M_v.ctj_i = "_M_v";
     this._M_hash_code = 0;
   }
@@ -3668,8 +3668,8 @@ class std_detail_Node_iterator_std_pair_std_basic_string_char_std_char_traits_ch
     return {a: this._M_cur.a[this._M_cur.i], i: "_M_v"};
   }
   op_arrow__c() {
-    let $t45;
-    return ($t45 = std_addressof_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int({a: this._M_cur.a[this._M_cur.i], i: "_M_v"}), $t45 ? {a: $t45.a, i: $t45.i} : null);
+    let $t47;
+    return ($t47 = std_addressof_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int({a: this._M_cur.a[this._M_cur.i], i: "_M_v"}), $t47 ? {a: $t47.a, i: $t47.i} : null);
   }
   op_inc() {
     this._M_incr();
@@ -3699,12 +3699,12 @@ class std_conditional_value0_std_pair_std_basic_string_char_std_char_traits_char
   __dtor() {
   }
 }
-class std_hash_base_unsigned_long_long_int {
+class std_hash_base_unsigned_int_int {
   constructor(...$a) {
-    this.__init_std_hash_base_unsigned_long_long_int(...$a);
+    this.__init_std_hash_base_unsigned_int_int(...$a);
   }
-  __init_std_hash_base_unsigned_long_long_int(...$a) {
-    if ($a.length >= 1 && $a.length <= 1 && ($a[0] !== null && typeof $a[0] === "object" && !Array.isArray($a[0]) && $a[0].a !== undefined && $a[0].i !== undefined && $a[0].a[$a[0].i] instanceof std_hash_base_unsigned_long_long_int)) {
+  __init_std_hash_base_unsigned_int_int(...$a) {
+    if ($a.length >= 1 && $a.length <= 1 && ($a[0] !== null && typeof $a[0] === "object" && !Array.isArray($a[0]) && $a[0].a !== undefined && $a[0].i !== undefined && $a[0].a[$a[0].i] instanceof std_hash_base_unsigned_int_int)) {
     }
     else if ($a.length >= 0 && $a.length <= 0) {
     }
@@ -3716,7 +3716,7 @@ class std_hash_base_unsigned_long_long_int {
     return {a: [this], i: 0};
   }
 }
-class std_hash_int extends std_hash_base_unsigned_long_long_int {
+class std_hash_int extends std_hash_base_unsigned_int_int {
   constructor(...$a) {
     super(...($a.length >= 0 && $a.length <= 0 ? [] : $a.length >= 1 && $a.length <= 1 && ($a[0] !== null && typeof $a[0] === "object" && !Array.isArray($a[0]) && $a[0].a !== undefined && $a[0].i !== undefined && $a[0].a[$a[0].i] instanceof std_hash_int) ? [$a[0]] : []));
     this.__init_std_hash_int(...$a);
@@ -3729,13 +3729,13 @@ class std_hash_int extends std_hash_base_unsigned_long_long_int {
     else { throw new Error("no matching constructor"); }
   }
   __dtor() {
-    std_hash_base_unsigned_long_long_int.prototype.__dtor.call(this);
+    std_hash_base_unsigned_int_int.prototype.__dtor.call(this);
   }
   op_call__c(__val) {
-    return (__val >>> 0);
+    return ((__val) >>> 0);
   }
   op_assign(o) {
-    this.__assign_std_hash_base_unsigned_long_long_int.call(this, $p0);
+    this.__assign_std_hash_base_unsigned_int_int.call(this, $p0);
     return {a: [this], i: 0};
   }
 }
@@ -4119,7 +4119,7 @@ class std_is_array_unknown_bounds_int extends std_integral_constant_bool_value0 
     std_integral_constant_bool_value0.prototype.__dtor.call(this);
   }
 }
-class std_extent_int_value0 extends std_integral_constant_unsigned_long_long_value0 {
+class std_extent_int_value0 extends std_integral_constant_unsigned_int_value0 {
   constructor(...$a) {
     super();
     this.__init_std_extent_int_value0(...$a);
@@ -4127,7 +4127,7 @@ class std_extent_int_value0 extends std_integral_constant_unsigned_long_long_val
   __init_std_extent_int_value0(...$a) {
   }
   __dtor() {
-    std_integral_constant_unsigned_long_long_value0.prototype.__dtor.call(this);
+    std_integral_constant_unsigned_int_value0.prototype.__dtor.call(this);
   }
 }
 class std_not_std_extent_int_value0 extends std_integral_constant_bool_value1 {
@@ -4904,16 +4904,16 @@ class std_detail_Hash_code_base_int_int_std_detail_Identity_std_hash_int_std_det
     std_detail_Hashtable_ebo_helper_value2_std_detail_Mod_range_hashing_value1.prototype.__dtor.call(this);
   }
   _M_hash_code__c(__k) {
-    let $t46;
-    return (($t46 = this._M_h1(), $t46.a[$t46.i])).op_call__c(__k.a[__k.i]);
+    let $t48;
+    return (($t48 = this._M_h1(), $t48.a[$t48.i])).op_call__c(__k.a[__k.i]);
   }
   _M_bucket_index__c(...$a) {
-    let $t47, $t48, $t49, $t50, $t51;
+    let $t49, $t50, $t51, $t52, $t53;
     if ($a.length >= 3 && $a.length <= 3 && ($a[0] === null || typeof $a[0] === "object") && (typeof $a[1] === "number" || typeof $a[1] === "boolean") && (typeof $a[2] === "number" || typeof $a[2] === "boolean")) {
-      return (($t47 = this._M_h2(), $t47.a[$t47.i])).op_call__c($a[1], $a[2]);
+      return (($t49 = this._M_h2(), $t49.a[$t49.i])).op_call__c($a[1], $a[2]);
     }
     else if ($a.length >= 2 && $a.length <= 2 && ($a[0] === null || typeof $a[0] === "object") && (typeof $a[1] === "number" || typeof $a[1] === "boolean")) {
-      return (($t51 = this._M_h2(), $t51.a[$t51.i])).op_call__c((($t50 = this._M_h1(), $t50.a[$t50.i])).op_call__c(($t48 = (($t49 = this._M_extract(), $t49.a[$t49.i])).op_call__c__rv({a: ($a[0]).a[($a[0]).i], i: "_M_v"}), $t48.a[$t48.i])), $a[1]);
+      return (($t53 = this._M_h2(), $t53.a[$t53.i])).op_call__c((($t52 = this._M_h1(), $t52.a[$t52.i])).op_call__c(($t50 = (($t51 = this._M_extract(), $t51.a[$t51.i])).op_call__c__rv({a: ($a[0]).a[($a[0]).i], i: "_M_v"}), $t50.a[$t50.i])), $a[1]);
     }
     else { throw new Error("no matching overload"); }
   }
@@ -4972,7 +4972,7 @@ class std_detail_Hashtable_base_int_int_std_detail_Identity_std_equal_to_int_std
     std_detail_Hashtable_ebo_helper_value0_std_equal_to_int_value1.prototype.__dtor.call(this);
   }
   _M_equals__c(__k, __c, __n) {
-    return std_detail_Equal_helper_int_int_std_detail_Identity_std_equal_to_int_unsigned_long_long_value0._S_equals(this._M_eq(), this._M_extract(), __k, __c, (__n ? {a: __n.a, i: __n.i} : null));
+    return std_detail_Equal_helper_int_int_std_detail_Identity_std_equal_to_int_unsigned_int_value0._S_equals(this._M_eq(), this._M_extract(), __k, __c, (__n ? {a: __n.a, i: __n.i} : null));
   }
   _M_eq() {
     return std_detail_Hashtable_ebo_helper_value0_std_equal_to_int_value1._S_get({a: [this], i: 0});
@@ -5049,8 +5049,8 @@ class std_detail_Node_iterator_base_int_value0 {
   __dtor() {
   }
   _M_incr() {
-    let $t52;
-    this._M_cur = ($t52 = (this._M_cur.a[this._M_cur.i])._M_next__c(), $t52 ? {a: $t52.a, i: $t52.i} : null);
+    let $t54;
+    this._M_cur = ($t54 = (this._M_cur.a[this._M_cur.i])._M_next__c(), $t54 ? {a: $t54.a, i: $t54.i} : null);
   }
 }
 class std_detail_Node_const_iterator_int_value1_value0 extends std_detail_Node_iterator_base_int_value0 {
@@ -5071,8 +5071,8 @@ class std_detail_Hash_node_int_value0 extends std_detail_Hash_node_base {
     this.__init_std_detail_Hash_node_int_value0(...$a);
   }
   __init_std_detail_Hash_node_int_value0(...$a) {
-    let $t53;
-    this._M_v = ($t53 = std_forward_1_int($a[0]), $t53.a[$t53.i]);
+    let $t55;
+    this._M_v = ($t55 = std_forward_1_int($a[0]), $t55.a[$t55.i]);
   }
   __dtor() {
     std_detail_Hash_node_base.prototype.__dtor.call(this);
@@ -5126,7 +5126,7 @@ class std_pair_std_detail_Node_iterator_int_value1_value0_bool {
     this.__init_std_pair_std_detail_Node_iterator_int_value1_value0_bool(...$a);
   }
   __init_std_pair_std_detail_Node_iterator_int_value1_value0_bool(...$a) {
-    let $t54;
+    let $t56;
     if ($a.length >= 1 && $a.length <= 1 && ($a[0] !== null && typeof $a[0] === "object" && !Array.isArray($a[0]) && $a[0].a !== undefined && $a[0].i !== undefined && $a[0].a[$a[0].i] instanceof std_pair_std_detail_Node_iterator_int_value1_value0_bool)) {
       this.first = ($a[0] && $a[0].a ? $a[0].a[$a[0].i] : $a[0]).first;
       this.first.ctj_a = this; this.first.ctj_i = "first";
@@ -5135,7 +5135,7 @@ class std_pair_std_detail_Node_iterator_int_value1_value0_bool {
     else if ($a.length >= 2 && $a.length <= 2 && ($a[0] !== null && typeof $a[0] === "object" && !Array.isArray($a[0]) && $a[0].a !== undefined && $a[0].i !== undefined && $a[0].a[$a[0].i] instanceof std_detail_Node_iterator_int_value1_value0) && ($a[1] === null || typeof $a[1] === "object")) {
       this.first = new std_detail_Node_iterator_int_value1_value0(std_forward_1_std_detail_Node_iterator_int_value1_value0($a[0]));
       this.first.ctj_a = this; this.first.ctj_i = "first";
-      this.second = ($t54 = std_forward_1_bool($a[1]), $t54.a[$t54.i]);
+      this.second = ($t56 = std_forward_1_bool($a[1]), $t56.a[$t56.i]);
     }
     else { throw new Error("no matching constructor"); }
   }
@@ -6210,17 +6210,17 @@ class gnu_cxx_new_allocator_std_detail_Hash_node_std_pair_std_basic_string_char_
   __dtor() {
   }
   allocate(__n, $p1 = {a: [0], i: 0}) {
-    let $t55;
+    let $t57;
     if ((__n > this.max_size__c())) {
       std_throw_bad_alloc();
     }
-    return ($t55 = operatornew__unsigned_long_long((__n * 29)), $t55 ? {a: $t55.a, i: $t55.i} : null);
+    return ($t57 = operatornew__unsigned_int(((Math.imul(__n, 17)) >>> 0)), $t57 ? {a: $t57.a, i: $t57.i} : null);
   }
   deallocate(__p, $p1) {
     operatordelete__voidP((__p ? {a: __p.a, i: __p.i} : null));
   }
   max_size__c() {
-    return (Math.trunc(((-(1)) >>> 0) / 29));
+    return ((Math.trunc((((((-(1)) | 0)) >>> 0)) / (17))) >>> 0);
   }
   construct__rv(__p, __args_0, __args_1, __args_2) {
     (__p.a[__p.i] = new std_detail_Hash_node_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_value1(std_forward_1_std_piecewise_construct_t(__args_0), std_forward_1_std_tuple_std_basic_string_char_std_char_traits_char_std_allocator_char_R(__args_1), std_forward_1_std_tuple(__args_2)), __p.a[__p.i].ctj_a = __p.a, __p.a[__p.i].ctj_i = __p.i, {a: __p.a, i: __p.i});
@@ -6265,24 +6265,24 @@ class std_Hashtable_std_basic_string_char_std_char_traits_char_std_allocator_cha
     this.__init_std_Hashtable_std_basic_string_char_std_char_traits_char_std_allocator_char_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_std_allocator_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_std_detail_Select1st_std_equal_to_std_basic_string_char_std_char_traits_char_std_allocator_char_std_hash_std_basic_string_char_std_char_traits_char_std_allocator_char_std_detail_Mod_range_hashing_std_detail_Default_ranged_hash_std_detail_Prime_rehash_policy_std_detail_Hashtable_traits_value1_value0_value1(...$a);
   }
   __init_std_Hashtable_std_basic_string_char_std_char_traits_char_std_allocator_char_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_std_allocator_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_std_detail_Select1st_std_equal_to_std_basic_string_char_std_char_traits_char_std_allocator_char_std_hash_std_basic_string_char_std_char_traits_char_std_allocator_char_std_detail_Mod_range_hashing_std_detail_Default_ranged_hash_std_detail_Prime_rehash_policy_std_detail_Hashtable_traits_value1_value0_value1(...$a) {
-    let $t56;
+    let $t58;
     if ($a.length >= 7 && $a.length <= 7 && (typeof $a[0] === "number" || typeof $a[0] === "boolean") && ($a[1] !== null && typeof $a[1] === "object" && !Array.isArray($a[1]) && $a[1].a !== undefined && $a[1].i !== undefined && $a[1].a[$a[1].i] instanceof std_hash_std_basic_string_char_std_char_traits_char_std_allocator_char) && ($a[2] !== null && typeof $a[2] === "object" && !Array.isArray($a[2]) && $a[2].a !== undefined && $a[2].i !== undefined && $a[2].a[$a[2].i] instanceof std_detail_Mod_range_hashing) && ($a[3] !== null && typeof $a[3] === "object" && !Array.isArray($a[3]) && $a[3].a !== undefined && $a[3].i !== undefined && $a[3].a[$a[3].i] instanceof std_detail_Default_ranged_hash) && ($a[4] !== null && typeof $a[4] === "object" && !Array.isArray($a[4]) && $a[4].a !== undefined && $a[4].i !== undefined && $a[4].a[$a[4].i] instanceof std_equal_to_std_basic_string_char_std_char_traits_char_std_allocator_char) && ($a[5] !== null && typeof $a[5] === "object" && !Array.isArray($a[5]) && $a[5].a !== undefined && $a[5].i !== undefined && $a[5].a[$a[5].i] instanceof std_detail_Select1st) && ($a[6] !== null && typeof $a[6] === "object" && !Array.isArray($a[6]) && $a[6].a !== undefined && $a[6].i !== undefined && $a[6].a[$a[6].i] instanceof std_allocator_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int)) {
       std_detail_Map_base_std_basic_string_char_std_char_traits_char_std_allocator_char_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_std_allocator_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_std_detail_Select1st_std_equal_to_std_basic_string_char_std_char_traits_char_std_allocator_char_std_hash_std_basic_string_char_std_char_traits_char_std_allocator_char_std_detail_Mod_range_hashing_std_detail_Default_ranged_hash_std_detail_Prime_rehash_policy_std_detail_Hashtable_traits_value1_value0_value1_value1.prototype.__init_std_detail_Map_base_std_basic_string_char_std_char_traits_char_std_allocator_char_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_std_allocator_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_std_detail_Select1st_std_equal_to_std_basic_string_char_std_char_traits_char_std_allocator_char_std_hash_std_basic_string_char_std_char_traits_char_std_allocator_char_std_detail_Mod_range_hashing_std_detail_Default_ranged_hash_std_detail_Prime_rehash_policy_std_detail_Hashtable_traits_value1_value0_value1_value1.call(this);
       std_detail_Insert_std_basic_string_char_std_char_traits_char_std_allocator_char_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_std_allocator_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_std_detail_Select1st_std_equal_to_std_basic_string_char_std_char_traits_char_std_allocator_char_std_hash_std_basic_string_char_std_char_traits_char_std_allocator_char_std_detail_Mod_range_hashing_std_detail_Default_ranged_hash_std_detail_Prime_rehash_policy_std_detail_Hashtable_traits_value1_value0_value1_value0_value1.prototype.__init_std_detail_Insert_std_basic_string_char_std_char_traits_char_std_allocator_char_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_std_allocator_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_std_detail_Select1st_std_equal_to_std_basic_string_char_std_char_traits_char_std_allocator_char_std_hash_std_basic_string_char_std_char_traits_char_std_allocator_char_std_detail_Mod_range_hashing_std_detail_Default_ranged_hash_std_detail_Prime_rehash_policy_std_detail_Hashtable_traits_value1_value0_value1_value0_value1.call(this);
       std_detail_Rehash_base_std_basic_string_char_std_char_traits_char_std_allocator_char_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_std_allocator_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_std_detail_Select1st_std_equal_to_std_basic_string_char_std_char_traits_char_std_allocator_char_std_hash_std_basic_string_char_std_char_traits_char_std_allocator_char_std_detail_Mod_range_hashing_std_detail_Default_ranged_hash_std_detail_Prime_rehash_policy_std_detail_Hashtable_traits_value1_value0_value1.prototype.__init_std_detail_Rehash_base_std_basic_string_char_std_char_traits_char_std_allocator_char_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_std_allocator_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_std_detail_Select1st_std_equal_to_std_basic_string_char_std_char_traits_char_std_allocator_char_std_hash_std_basic_string_char_std_char_traits_char_std_allocator_char_std_detail_Mod_range_hashing_std_detail_Default_ranged_hash_std_detail_Prime_rehash_policy_std_detail_Hashtable_traits_value1_value0_value1.call(this);
       std_detail_Equality_std_basic_string_char_std_char_traits_char_std_allocator_char_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_std_allocator_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_std_detail_Select1st_std_equal_to_std_basic_string_char_std_char_traits_char_std_allocator_char_std_hash_std_basic_string_char_std_char_traits_char_std_allocator_char_std_detail_Mod_range_hashing_std_detail_Default_ranged_hash_std_detail_Prime_rehash_policy_std_detail_Hashtable_traits_value1_value0_value1_value1.prototype.__init_std_detail_Equality_std_basic_string_char_std_char_traits_char_std_allocator_char_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_std_allocator_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_std_detail_Select1st_std_equal_to_std_basic_string_char_std_char_traits_char_std_allocator_char_std_hash_std_basic_string_char_std_char_traits_char_std_allocator_char_std_detail_Mod_range_hashing_std_detail_Default_ranged_hash_std_detail_Prime_rehash_policy_std_detail_Hashtable_traits_value1_value0_value1_value1.call(this);
       this._M_buckets = null;
-      this._M_bucket_count = 0;
+      this._M_bucket_count = ((0) >>> 0);
       this._M_bbegin = new std_detail_Before_begin_std_allocator_std_detail_Hash_node_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_value1($a[6]);
       this._M_bbegin.ctj_a = this; this._M_bbegin.ctj_i = "_M_bbegin";
-      this._M_element_count = 0;
+      this._M_element_count = ((0) >>> 0);
       this._M_rehash_policy = new std_detail_Prime_rehash_policy(1);
       this._M_rehash_policy.ctj_a = this; this._M_rehash_policy.ctj_i = "_M_rehash_policy";
       this._M_bucket_count = this._M_rehash_policy._M_next_bkt__c($a[0]);
-      this._M_buckets = ($t56 = this._M_allocate_buckets(this._M_bucket_count), $t56 ? {a: $t56.a, i: $t56.i} : null);
+      this._M_buckets = ($t58 = this._M_allocate_buckets(this._M_bucket_count), $t58 ? {a: $t58.a, i: $t58.i} : null);
     }
     else if ($a.length >= 0 && $a.length <= 4 && ($a.length <= 0 || (typeof $a[0] === "number" || typeof $a[0] === "boolean")) && ($a.length <= 1 || ($a[1] !== null && typeof $a[1] === "object" && !Array.isArray($a[1]) && $a[1].a !== undefined && $a[1].i !== undefined && $a[1].a[$a[1].i] instanceof std_hash_std_basic_string_char_std_char_traits_char_std_allocator_char)) && ($a.length <= 2 || ($a[2] !== null && typeof $a[2] === "object" && !Array.isArray($a[2]) && $a[2].a !== undefined && $a[2].i !== undefined && $a[2].a[$a[2].i] instanceof std_equal_to_std_basic_string_char_std_char_traits_char_std_allocator_char)) && ($a.length <= 3 || ($a[3] !== null && typeof $a[3] === "object" && !Array.isArray($a[3]) && $a[3].a !== undefined && $a[3].i !== undefined && $a[3].a[$a[3].i] instanceof std_allocator_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int))) {
-      this.__init_std_Hashtable_std_basic_string_char_std_char_traits_char_std_allocator_char_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_std_allocator_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_std_detail_Select1st_std_equal_to_std_basic_string_char_std_char_traits_char_std_allocator_char_std_hash_std_basic_string_char_std_char_traits_char_std_allocator_char_std_detail_Mod_range_hashing_std_detail_Default_ranged_hash_std_detail_Prime_rehash_policy_std_detail_Hashtable_traits_value1_value0_value1(($a[0] === undefined ? (10) : $a[0]), ($a[1] === undefined ? ({a: [new std_hash_std_basic_string_char_std_char_traits_char_std_allocator_char()], i: 0}) : $a[1]), {a: [new std_detail_Mod_range_hashing()], i: 0}, {a: [new std_detail_Default_ranged_hash()], i: 0}, ($a[2] === undefined ? ({a: [new std_equal_to_std_basic_string_char_std_char_traits_char_std_allocator_char()], i: 0}) : $a[2]), {a: [new std_detail_Select1st()], i: 0}, ($a[3] === undefined ? ({a: [new std_allocator_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int()], i: 0}) : $a[3]));
+      this.__init_std_Hashtable_std_basic_string_char_std_char_traits_char_std_allocator_char_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_std_allocator_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_std_detail_Select1st_std_equal_to_std_basic_string_char_std_char_traits_char_std_allocator_char_std_hash_std_basic_string_char_std_char_traits_char_std_allocator_char_std_detail_Mod_range_hashing_std_detail_Default_ranged_hash_std_detail_Prime_rehash_policy_std_detail_Hashtable_traits_value1_value0_value1(($a[0] === undefined ? (((10) >>> 0)) : $a[0]), ($a[1] === undefined ? ({a: [new std_hash_std_basic_string_char_std_char_traits_char_std_allocator_char()], i: 0}) : $a[1]), {a: [new std_detail_Mod_range_hashing()], i: 0}, {a: [new std_detail_Default_ranged_hash()], i: 0}, ($a[2] === undefined ? ({a: [new std_equal_to_std_basic_string_char_std_char_traits_char_std_allocator_char()], i: 0}) : $a[2]), {a: [new std_detail_Select1st()], i: 0}, ($a[3] === undefined ? ({a: [new std_allocator_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int()], i: 0}) : $a[3]));
     }
     else { throw new Error("no matching constructor"); }
   }
@@ -6300,15 +6300,15 @@ class std_Hashtable_std_basic_string_char_std_char_traits_char_std_allocator_cha
     return {a: this._M_bbegin, i: "_M_node"};
   }
   _M_deallocate_node(__n) {
-    let $t57, $t58;
-    (($t57 = this._M_node_allocator(), $t57.a[$t57.i])).destroy((__n ? {a: __n.a, i: __n.i} : null));
-    (($t58 = this._M_node_allocator(), $t58.a[$t58.i])).deallocate((__n ? {a: __n.a, i: __n.i} : null), 1);
+    let $t59, $t60;
+    (($t59 = this._M_node_allocator(), $t59.a[$t59.i])).destroy((__n ? {a: __n.a, i: __n.i} : null));
+    (($t60 = this._M_node_allocator(), $t60.a[$t60.i])).deallocate((__n ? {a: __n.a, i: __n.i} : null), ((1) >>> 0));
   }
   _M_allocate_buckets(__n) {
-    let $t59;
+    let $t61;
     let __alloc = new std_allocator_std_detail_Hash_node_base_P(this._M_node_allocator());
-    let __p = ($t59 = __alloc.allocate(__n, {a: [0], i: 0}), $t59 ? {a: $t59.a, i: $t59.i} : null);
-    (($d, $c, $n) => { for (let $k = 0; $k < $n; $k++) $d.a[$d.i + $k] = $c & 255; return $d; })((($q) => ($q && $q.a !== undefined ? $q : { a: $q, i: 0 }))(__p), 0, Math.trunc(((__n * 8)) / 8));
+    let __p = ($t61 = __alloc.allocate(__n, {a: [0], i: 0}), $t61 ? {a: $t61.a, i: $t61.i} : null);
+    (($d, $c, $n) => { for (let $k = 0; $k < $n; $k++) $d.a[$d.i + $k] = $c & 255; return $d; })((($q) => ($q && $q.a !== undefined ? $q : { a: $q, i: 0 }))(__p), 0, Math.trunc((((Math.imul(__n, 4)) >>> 0)) / 4));
     return (__p ? {a: __p.a, i: __p.i} : null);
   }
   _M_deallocate_buckets(__p, __n) {
@@ -6316,17 +6316,17 @@ class std_Hashtable_std_basic_string_char_std_char_traits_char_std_allocator_cha
     __alloc.deallocate((__p ? {a: __p.a, i: __p.i} : null), __n);
   }
   _M_bucket_begin__c(__bkt) {
-    let $t60;
+    let $t62;
     let __n = ((this._M_buckets.a[this._M_buckets.i + (__bkt)]) ? {a: (this._M_buckets.a[this._M_buckets.i + (__bkt)]).a, i: (this._M_buckets.a[this._M_buckets.i + (__bkt)]).i} : null);
-    return ($t60 = (__n ? (__n.a[__n.i])._M_nxt : null), $t60 ? {a: $t60.a, i: $t60.i} : null);
+    return ($t62 = (__n ? (__n.a[__n.i])._M_nxt : null), $t62 ? {a: $t62.a, i: $t62.i} : null);
   }
   _M_begin__c() {
-    let $t61, $t62;
-    return ($t62 = (($t61 = this._M_before_begin(), $t61.a[$t61.i]))._M_nxt, $t62 ? {a: $t62.a, i: $t62.i} : null);
+    let $t63, $t64;
+    return ($t64 = (($t63 = this._M_before_begin(), $t63.a[$t63.i]))._M_nxt, $t64 ? {a: $t64.a, i: $t64.i} : null);
   }
   begin() {
-    let $t63;
-    return new std_detail_Node_iterator_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_value0_value1(($t63 = this._M_begin__c(), $t63 ? {a: $t63.a, i: $t63.i} : null));
+    let $t65;
+    return new std_detail_Node_iterator_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_value0_value1(($t65 = this._M_begin__c(), $t65 ? {a: $t65.a, i: $t65.i} : null));
   }
   end() {
     return new std_detail_Node_iterator_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_value0_value1(null);
@@ -6335,25 +6335,25 @@ class std_Hashtable_std_basic_string_char_std_char_traits_char_std_allocator_cha
     return this._M_element_count;
   }
   count__c(__k) {
-    let $t64, $t65, $t66;
+    let $t66, $t67, $t68;
     let __code = this._M_hash_code__c(__k);
     let __n = this._M_bucket_index__c(__k, __code);
-    let __p = ($t64 = this._M_bucket_begin__c(__n), $t64 ? {a: $t64.a, i: $t64.i} : null);
+    let __p = ($t66 = this._M_bucket_begin__c(__n), $t66 ? {a: $t66.a, i: $t66.i} : null);
     if ((!__p)) {
-      return 0;
+      return ((0) >>> 0);
     }
-    let __result = 0;
-    for (; ; __p = ($t65 = (__p.a[__p.i])._M_next__c(), $t65 ? {a: $t65.a, i: $t65.i} : null)) {
+    let __result = ((0) >>> 0);
+    for (; ; __p = ($t67 = (__p.a[__p.i])._M_next__c(), $t67 ? {a: $t67.a, i: $t67.i} : null)) {
        {
         if (this._M_equals__c(__k, __code, (__p ? {a: __p.a, i: __p.i} : null))) {
-          ++__result;
+          (__result = ((__result + 1) >>> 0));
         }
         else {
           if (__result) {
             break;
           }
         }
-        if (((!((__p.a[__p.i])._M_nxt)) || (this._M_bucket_index__c(($t66 = (__p.a[__p.i])._M_next__c(), $t66 ? {a: $t66.a, i: $t66.i} : null)) !== __n))) {
+        if (((!((__p.a[__p.i])._M_nxt)) || (this._M_bucket_index__c(($t68 = (__p.a[__p.i])._M_next__c(), $t68 ? {a: $t68.a, i: $t68.i} : null)) !== __n))) {
           break;
         }
       }
@@ -6370,18 +6370,18 @@ class std_Hashtable_std_basic_string_char_std_char_traits_char_std_allocator_cha
     else { throw new Error("no matching overload"); }
   }
   _M_find_before_node__c(__n, __k, __code) {
-    let $t67, $t68;
+    let $t69, $t70;
     let __prev_p = ((this._M_buckets.a[this._M_buckets.i + (__n)]) ? {a: (this._M_buckets.a[this._M_buckets.i + (__n)]).a, i: (this._M_buckets.a[this._M_buckets.i + (__n)]).i} : null);
     if ((!__prev_p)) {
       return null;
     }
     let __p = (((__prev_p.a[__prev_p.i])._M_nxt) ? {a: ((__prev_p.a[__prev_p.i])._M_nxt).a, i: ((__prev_p.a[__prev_p.i])._M_nxt).i} : null);
-    for (; ; __p = ($t67 = (__p.a[__p.i])._M_next__c(), $t67 ? {a: $t67.a, i: $t67.i} : null)) {
+    for (; ; __p = ($t69 = (__p.a[__p.i])._M_next__c(), $t69 ? {a: $t69.a, i: $t69.i} : null)) {
        {
         if (this._M_equals__c(__k, __code, (__p ? {a: __p.a, i: __p.i} : null))) {
           return (__prev_p ? {a: __prev_p.a, i: __prev_p.i} : null);
         }
-        if (((!((__p.a[__p.i])._M_nxt)) || (this._M_bucket_index__c(($t68 = (__p.a[__p.i])._M_next__c(), $t68 ? {a: $t68.a, i: $t68.i} : null)) !== __n))) {
+        if (((!((__p.a[__p.i])._M_nxt)) || (this._M_bucket_index__c(($t70 = (__p.a[__p.i])._M_next__c(), $t70 ? {a: $t70.a, i: $t70.i} : null)) !== __n))) {
           break;
         }
         __prev_p = (__p ? {a: __p.a, i: __p.i} : null);
@@ -6390,15 +6390,15 @@ class std_Hashtable_std_basic_string_char_std_char_traits_char_std_allocator_cha
     return null;
   }
   _M_find_node__c(__bkt, __key, __c) {
-    let $t69;
-    let __before_n = ($t69 = this._M_find_before_node__c(__bkt, __key, __c), $t69 ? {a: $t69.a, i: $t69.i} : null);
+    let $t71;
+    let __before_n = ($t71 = this._M_find_before_node__c(__bkt, __key, __c), $t71 ? {a: $t71.a, i: $t71.i} : null);
     if (__before_n) {
       return (((__before_n.a[__before_n.i])._M_nxt) ? {a: ((__before_n.a[__before_n.i])._M_nxt).a, i: ((__before_n.a[__before_n.i])._M_nxt).i} : null);
     }
     return null;
   }
   _M_insert_bucket_begin(__bkt, __node) {
-    let $t70, $t71, $t72, $t73, $t74;
+    let $t72, $t73, $t74, $t75, $t76;
     if (this._M_buckets.a[this._M_buckets.i + (__bkt)]) {
        {
         (__node.a[__node.i])._M_nxt = ((((this._M_buckets.a[this._M_buckets.i + (__bkt)]).a[(this._M_buckets.a[this._M_buckets.i + (__bkt)]).i])._M_nxt) ? {a: (((this._M_buckets.a[this._M_buckets.i + (__bkt)]).a[(this._M_buckets.a[this._M_buckets.i + (__bkt)]).i])._M_nxt).a, i: (((this._M_buckets.a[this._M_buckets.i + (__bkt)]).a[(this._M_buckets.a[this._M_buckets.i + (__bkt)]).i])._M_nxt).i} : null);
@@ -6407,30 +6407,30 @@ class std_Hashtable_std_basic_string_char_std_char_traits_char_std_allocator_cha
     }
     else {
        {
-        (__node.a[__node.i])._M_nxt = ($t71 = (($t70 = this._M_before_begin(), $t70.a[$t70.i]))._M_nxt, $t71 ? {a: $t71.a, i: $t71.i} : null);
-        (($t72 = this._M_before_begin(), $t72.a[$t72.i]))._M_nxt = (__node ? {a: __node.a, i: __node.i} : null);
+        (__node.a[__node.i])._M_nxt = ($t73 = (($t72 = this._M_before_begin(), $t72.a[$t72.i]))._M_nxt, $t73 ? {a: $t73.a, i: $t73.i} : null);
+        (($t74 = this._M_before_begin(), $t74.a[$t74.i]))._M_nxt = (__node ? {a: __node.a, i: __node.i} : null);
         if ((__node.a[__node.i])._M_nxt) {
-          this._M_buckets.a[this._M_buckets.i + (this._M_bucket_index__c(($t73 = (__node.a[__node.i])._M_next__c(), $t73 ? {a: $t73.a, i: $t73.i} : null)))] = (__node ? {a: __node.a, i: __node.i} : null);
+          this._M_buckets.a[this._M_buckets.i + (this._M_bucket_index__c(($t75 = (__node.a[__node.i])._M_next__c(), $t75 ? {a: $t75.a, i: $t75.i} : null)))] = (__node ? {a: __node.a, i: __node.i} : null);
         }
-        this._M_buckets.a[this._M_buckets.i + (__bkt)] = ($t74 = this._M_before_begin(), $t74 ? {a: $t74.a, i: $t74.i} : null);
+        this._M_buckets.a[this._M_buckets.i + (__bkt)] = ($t76 = this._M_before_begin(), $t76 ? {a: $t76.a, i: $t76.i} : null);
       }
     }
   }
   _M_insert_unique_node(__bkt, __code, __node) {
-    let $t75;
+    let $t77;
     let __saved_state = {a: [this._M_rehash_policy._M_state__c()], i: 0};
-    let __do_rehash = this._M_rehash_policy._M_need_rehash__c(this._M_bucket_count, this._M_element_count, 1);
+    let __do_rehash = this._M_rehash_policy._M_need_rehash__c(this._M_bucket_count, this._M_element_count, ((1) >>> 0));
     if (true) {
        {
         if (__do_rehash.first) {
            {
             this._M_rehash(__do_rehash.second, __saved_state);
-            __bkt = this._M_bucket_index__c((($t75 = this._M_extract(), $t75.a[$t75.i])).op_call__c__rv({a: __node.a[__node.i], i: "_M_v"}), __code);
+            __bkt = this._M_bucket_index__c((($t77 = this._M_extract(), $t77.a[$t77.i])).op_call__c__rv({a: __node.a[__node.i], i: "_M_v"}), __code);
           }
         }
         this._M_store_code__c((__node ? {a: __node.a, i: __node.i} : null), __code);
         this._M_insert_bucket_begin(__bkt, (__node ? {a: __node.a, i: __node.i} : null));
-        ++this._M_element_count;
+        (this._M_element_count = ((this._M_element_count + 1) >>> 0));
         return new std_detail_Node_iterator_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_value0_value1((__node ? {a: __node.a, i: __node.i} : null));
       }
     }
@@ -6441,20 +6441,20 @@ class std_Hashtable_std_basic_string_char_std_char_traits_char_std_allocator_cha
     }
   }
   _M_rehash_aux(__n, $p1) {
-    let $t76, $t77, $t78, $t79, $t80, $t81, $t82, $t83;
-    let __new_buckets = ($t76 = this._M_allocate_buckets(__n), $t76 ? {a: $t76.a, i: $t76.i} : null);
-    let __p = ($t77 = this._M_begin__c(), $t77 ? {a: $t77.a, i: $t77.i} : null);
-    (($t78 = this._M_before_begin(), $t78.a[$t78.i]))._M_nxt = null;
-    let __bbegin_bkt = 0;
+    let $t78, $t79, $t80, $t81, $t82, $t83, $t84, $t85;
+    let __new_buckets = ($t78 = this._M_allocate_buckets(__n), $t78 ? {a: $t78.a, i: $t78.i} : null);
+    let __p = ($t79 = this._M_begin__c(), $t79 ? {a: $t79.a, i: $t79.i} : null);
+    (($t80 = this._M_before_begin(), $t80.a[$t80.i]))._M_nxt = null;
+    let __bbegin_bkt = ((0) >>> 0);
     while (__p) {
        {
-        let __next = ($t79 = (__p.a[__p.i])._M_next__c(), $t79 ? {a: $t79.a, i: $t79.i} : null);
+        let __next = ($t81 = (__p.a[__p.i])._M_next__c(), $t81 ? {a: $t81.a, i: $t81.i} : null);
         let __bkt = std_detail_Hash_code_base_std_basic_string_char_std_char_traits_char_std_allocator_char_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_std_detail_Select1st_std_hash_std_basic_string_char_std_char_traits_char_std_allocator_char_std_detail_Mod_range_hashing_std_detail_Default_ranged_hash_value1.prototype._M_bucket_index__c.call(this, (__p ? {a: __p.a, i: __p.i} : null), __n);
         if ((!(__new_buckets.a[__new_buckets.i + (__bkt)]))) {
            {
-            (__p.a[__p.i])._M_nxt = ($t81 = (($t80 = this._M_before_begin(), $t80.a[$t80.i]))._M_nxt, $t81 ? {a: $t81.a, i: $t81.i} : null);
-            (($t82 = this._M_before_begin(), $t82.a[$t82.i]))._M_nxt = (__p ? {a: __p.a, i: __p.i} : null);
-            __new_buckets.a[__new_buckets.i + (__bkt)] = ($t83 = this._M_before_begin(), $t83 ? {a: $t83.a, i: $t83.i} : null);
+            (__p.a[__p.i])._M_nxt = ($t83 = (($t82 = this._M_before_begin(), $t82.a[$t82.i]))._M_nxt, $t83 ? {a: $t83.a, i: $t83.i} : null);
+            (($t84 = this._M_before_begin(), $t84.a[$t84.i]))._M_nxt = (__p ? {a: __p.a, i: __p.i} : null);
+            __new_buckets.a[__new_buckets.i + (__bkt)] = ($t85 = this._M_before_begin(), $t85 ? {a: $t85.a, i: $t85.i} : null);
             if ((__p.a[__p.i])._M_nxt) {
               __new_buckets.a[__new_buckets.i + (__bbegin_bkt)] = (__p ? {a: __p.a, i: __p.i} : null);
             }
@@ -6487,17 +6487,17 @@ class std_Hashtable_std_basic_string_char_std_char_traits_char_std_allocator_cha
     }
   }
   _M_allocate_node__rv(__args_0, __args_1, __args_2) {
-    let $t84, $t85, $t86, $t87;
-    let __n = ($t85 = (($t84 = this._M_node_allocator(), $t84.a[$t84.i])).allocate(1, {a: [0], i: 0}), $t85 ? {a: $t85.a, i: $t85.i} : null);
+    let $t86, $t87, $t88, $t89;
+    let __n = ($t87 = (($t86 = this._M_node_allocator(), $t86.a[$t86.i])).allocate(((1) >>> 0), {a: [0], i: 0}), $t87 ? {a: $t87.a, i: $t87.i} : null);
     if (true) {
        {
-        (($t86 = this._M_node_allocator(), $t86.a[$t86.i])).construct__rv((__n ? {a: __n.a, i: __n.i} : null), std_forward_1_std_piecewise_construct_t(__args_0), std_forward_1_std_tuple_std_basic_string_char_std_char_traits_char_std_allocator_char_R(__args_1), std_forward_1_std_tuple(__args_2));
+        (($t88 = this._M_node_allocator(), $t88.a[$t88.i])).construct__rv((__n ? {a: __n.a, i: __n.i} : null), std_forward_1_std_piecewise_construct_t(__args_0), std_forward_1_std_tuple_std_basic_string_char_std_char_traits_char_std_allocator_char_R(__args_1), std_forward_1_std_tuple(__args_2));
         return (__n ? {a: __n.a, i: __n.i} : null);
       }
     }
     if (false) {
        {
-        (($t87 = this._M_node_allocator(), $t87.a[$t87.i])).deallocate((__n ? {a: __n.a, i: __n.i} : null), 1);
+        (($t89 = this._M_node_allocator(), $t89.a[$t89.i])).deallocate((__n ? {a: __n.a, i: __n.i} : null), ((1) >>> 0));
       }
     }
   }
@@ -6541,7 +6541,7 @@ class std_unordered_map_std_basic_string_char_std_char_traits_char_std_allocator
     this.__init_std_unordered_map_std_basic_string_char_std_char_traits_char_std_allocator_char_int_std_hash_std_basic_string_char_std_char_traits_char_std_allocator_char_std_equal_to_std_basic_string_char_std_char_traits_char_std_allocator_char_std_allocator_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int(...$a);
   }
   __init_std_unordered_map_std_basic_string_char_std_char_traits_char_std_allocator_char_int_std_hash_std_basic_string_char_std_char_traits_char_std_allocator_char_std_equal_to_std_basic_string_char_std_char_traits_char_std_allocator_char_std_allocator_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int(...$a) {
-    this._M_h = new std_Hashtable_std_basic_string_char_std_char_traits_char_std_allocator_char_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_std_allocator_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_std_detail_Select1st_std_equal_to_std_basic_string_char_std_char_traits_char_std_allocator_char_std_hash_std_basic_string_char_std_char_traits_char_std_allocator_char_std_detail_Mod_range_hashing_std_detail_Default_ranged_hash_std_detail_Prime_rehash_policy_std_detail_Hashtable_traits_value1_value0_value1(($a[0] === undefined ? (10) : $a[0]), ($a[1] === undefined ? ({a: [new std_hash_std_basic_string_char_std_char_traits_char_std_allocator_char()], i: 0}) : $a[1]), ($a[2] === undefined ? ({a: [new std_equal_to_std_basic_string_char_std_char_traits_char_std_allocator_char()], i: 0}) : $a[2]), ($a[3] === undefined ? ({a: [new std_allocator_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int()], i: 0}) : $a[3]));
+    this._M_h = new std_Hashtable_std_basic_string_char_std_char_traits_char_std_allocator_char_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_std_allocator_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_std_detail_Select1st_std_equal_to_std_basic_string_char_std_char_traits_char_std_allocator_char_std_hash_std_basic_string_char_std_char_traits_char_std_allocator_char_std_detail_Mod_range_hashing_std_detail_Default_ranged_hash_std_detail_Prime_rehash_policy_std_detail_Hashtable_traits_value1_value0_value1(($a[0] === undefined ? (((10) >>> 0)) : $a[0]), ($a[1] === undefined ? ({a: [new std_hash_std_basic_string_char_std_char_traits_char_std_allocator_char()], i: 0}) : $a[1]), ($a[2] === undefined ? ({a: [new std_equal_to_std_basic_string_char_std_char_traits_char_std_allocator_char()], i: 0}) : $a[2]), ($a[3] === undefined ? ({a: [new std_allocator_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int()], i: 0}) : $a[3]));
     this._M_h.ctj_a = this; this._M_h.ctj_i = "_M_h";
   }
   __dtor() {
@@ -6578,444 +6578,444 @@ class std_remove_reference_std_tuple {
   __dtor() {
   }
 }
-class std_pair_bool_unsigned_long_long {
+class std_pair_bool_unsigned_int {
   first;
   second;
   constructor(...$a) {
-    this.__init_std_pair_bool_unsigned_long_long(...$a);
+    this.__init_std_pair_bool_unsigned_int(...$a);
   }
-  __init_std_pair_bool_unsigned_long_long(...$a) {
+  __init_std_pair_bool_unsigned_int(...$a) {
     this.first = ($a[0] && $a[0].a ? $a[0].a[$a[0].i] : $a[0]).first;
     this.second = ($a[0] && $a[0].a ? $a[0].a[$a[0].i] : $a[0]).second;
   }
   __dtor() {
   }
 }
-class std_is_convertible_unsigned_long_long_R_unsigned_long_long extends std_integral_constant_bool_value1 {
+class std_is_convertible_unsigned_int_R_unsigned_int extends std_integral_constant_bool_value1 {
   constructor(...$a) {
     super();
-    this.__init_std_is_convertible_unsigned_long_long_R_unsigned_long_long(...$a);
+    this.__init_std_is_convertible_unsigned_int_R_unsigned_int(...$a);
   }
-  __init_std_is_convertible_unsigned_long_long_R_unsigned_long_long(...$a) {
+  __init_std_is_convertible_unsigned_int_R_unsigned_int(...$a) {
   }
   __dtor() {
     std_integral_constant_bool_value1.prototype.__dtor.call(this);
   }
 }
-class std_is_void_unsigned_long_long_R extends std_integral_constant_bool_value0 {
+class std_is_void_unsigned_int_R extends std_integral_constant_bool_value0 {
   constructor(...$a) {
     super();
-    this.__init_std_is_void_unsigned_long_long_R(...$a);
+    this.__init_std_is_void_unsigned_int_R(...$a);
   }
-  __init_std_is_void_unsigned_long_long_R(...$a) {
+  __init_std_is_void_unsigned_int_R(...$a) {
   }
   __dtor() {
     std_integral_constant_bool_value0.prototype.__dtor.call(this);
   }
 }
-class std_remove_cv_unsigned_long_long_R {
-  __init_std_remove_cv_unsigned_long_long_R(...$a) { }
+class std_remove_cv_unsigned_int_R {
+  __init_std_remove_cv_unsigned_int_R(...$a) { }
   __dtor() {
   }
 }
-class std_remove_volatile_unsigned_long_long_R {
-  __init_std_remove_volatile_unsigned_long_long_R(...$a) { }
+class std_remove_volatile_unsigned_int_R {
+  __init_std_remove_volatile_unsigned_int_R(...$a) { }
   __dtor() {
   }
 }
-class std_remove_const_unsigned_long_long_R {
-  __init_std_remove_const_unsigned_long_long_R(...$a) { }
+class std_remove_const_unsigned_int_R {
+  __init_std_remove_const_unsigned_int_R(...$a) { }
   __dtor() {
   }
 }
-class std_is_void_helper_unsigned_long_long_R extends std_integral_constant_bool_value0 {
+class std_is_void_helper_unsigned_int_R extends std_integral_constant_bool_value0 {
   constructor(...$a) {
     super();
-    this.__init_std_is_void_helper_unsigned_long_long_R(...$a);
+    this.__init_std_is_void_helper_unsigned_int_R(...$a);
   }
-  __init_std_is_void_helper_unsigned_long_long_R(...$a) {
+  __init_std_is_void_helper_unsigned_int_R(...$a) {
   }
   __dtor() {
     std_integral_constant_bool_value0.prototype.__dtor.call(this);
   }
 }
-class std_is_function_unsigned_long_long extends std_integral_constant_bool_value0 {
+class std_is_function_unsigned_int extends std_integral_constant_bool_value0 {
   constructor(...$a) {
     super();
-    this.__init_std_is_function_unsigned_long_long(...$a);
+    this.__init_std_is_function_unsigned_int(...$a);
   }
-  __init_std_is_function_unsigned_long_long(...$a) {
+  __init_std_is_function_unsigned_int(...$a) {
   }
   __dtor() {
     std_integral_constant_bool_value0.prototype.__dtor.call(this);
   }
 }
-class std_is_array_unsigned_long_long extends std_integral_constant_bool_value0 {
+class std_is_array_unsigned_int extends std_integral_constant_bool_value0 {
   constructor(...$a) {
     super();
-    this.__init_std_is_array_unsigned_long_long(...$a);
+    this.__init_std_is_array_unsigned_int(...$a);
   }
-  __init_std_is_array_unsigned_long_long(...$a) {
+  __init_std_is_array_unsigned_int(...$a) {
   }
   __dtor() {
     std_integral_constant_bool_value0.prototype.__dtor.call(this);
   }
 }
-class std_or_std_is_function_unsigned_long_long_std_is_array_unsigned_long_long extends std_is_array_unsigned_long_long {
+class std_or_std_is_function_unsigned_int_std_is_array_unsigned_int extends std_is_array_unsigned_int {
   constructor(...$a) {
     super();
-    this.__init_std_or_std_is_function_unsigned_long_long_std_is_array_unsigned_long_long(...$a);
+    this.__init_std_or_std_is_function_unsigned_int_std_is_array_unsigned_int(...$a);
   }
-  __init_std_or_std_is_function_unsigned_long_long_std_is_array_unsigned_long_long(...$a) {
+  __init_std_or_std_is_function_unsigned_int_std_is_array_unsigned_int(...$a) {
   }
   __dtor() {
-    std_is_array_unsigned_long_long.prototype.__dtor.call(this);
+    std_is_array_unsigned_int.prototype.__dtor.call(this);
   }
 }
-class std_or_std_is_void_unsigned_long_long_R_std_is_function_unsigned_long_long_std_is_array_unsigned_long_long extends std_or_std_is_function_unsigned_long_long_std_is_array_unsigned_long_long {
+class std_or_std_is_void_unsigned_int_R_std_is_function_unsigned_int_std_is_array_unsigned_int extends std_or_std_is_function_unsigned_int_std_is_array_unsigned_int {
   constructor(...$a) {
     super();
-    this.__init_std_or_std_is_void_unsigned_long_long_R_std_is_function_unsigned_long_long_std_is_array_unsigned_long_long(...$a);
+    this.__init_std_or_std_is_void_unsigned_int_R_std_is_function_unsigned_int_std_is_array_unsigned_int(...$a);
   }
-  __init_std_or_std_is_void_unsigned_long_long_R_std_is_function_unsigned_long_long_std_is_array_unsigned_long_long(...$a) {
+  __init_std_or_std_is_void_unsigned_int_R_std_is_function_unsigned_int_std_is_array_unsigned_int(...$a) {
   }
   __dtor() {
-    std_or_std_is_function_unsigned_long_long_std_is_array_unsigned_long_long.prototype.__dtor.call(this);
+    std_or_std_is_function_unsigned_int_std_is_array_unsigned_int.prototype.__dtor.call(this);
   }
 }
-class std_conditional_value0_std_is_function_unsigned_long_long_std_is_array_unsigned_long_long {
-  __init_std_conditional_value0_std_is_function_unsigned_long_long_std_is_array_unsigned_long_long(...$a) { }
-  __dtor() {
-  }
-}
-class std_conditional_value0_std_is_void_unsigned_long_long_R_std_or_std_is_function_unsigned_long_long_std_is_array_unsigned_long_long {
-  __init_std_conditional_value0_std_is_void_unsigned_long_long_R_std_or_std_is_function_unsigned_long_long_std_is_array_unsigned_long_long(...$a) { }
+class std_conditional_value0_std_is_function_unsigned_int_std_is_array_unsigned_int {
+  __init_std_conditional_value0_std_is_function_unsigned_int_std_is_array_unsigned_int(...$a) { }
   __dtor() {
   }
 }
-class std_is_convertible_helper_unsigned_long_long_R_unsigned_long_long_value0 extends std_sfinae_types {
+class std_conditional_value0_std_is_void_unsigned_int_R_std_or_std_is_function_unsigned_int_std_is_array_unsigned_int {
+  __init_std_conditional_value0_std_is_void_unsigned_int_R_std_or_std_is_function_unsigned_int_std_is_array_unsigned_int(...$a) { }
+  __dtor() {
+  }
+}
+class std_is_convertible_helper_unsigned_int_R_unsigned_int_value0 extends std_sfinae_types {
   constructor(...$a) {
     super();
-    this.__init_std_is_convertible_helper_unsigned_long_long_R_unsigned_long_long_value0(...$a);
+    this.__init_std_is_convertible_helper_unsigned_int_R_unsigned_int_value0(...$a);
   }
-  __init_std_is_convertible_helper_unsigned_long_long_R_unsigned_long_long_value0(...$a) {
+  __init_std_is_convertible_helper_unsigned_int_R_unsigned_int_value0(...$a) {
   }
   __dtor() {
     std_sfinae_types.prototype.__dtor.call(this);
   }
   static value = 1;
 }
-class std_is_reference_unsigned_long_long_R extends std_integral_constant_bool_value1 {
+class std_is_reference_unsigned_int_R extends std_integral_constant_bool_value1 {
   constructor(...$a) {
     super();
-    this.__init_std_is_reference_unsigned_long_long_R(...$a);
+    this.__init_std_is_reference_unsigned_int_R(...$a);
   }
-  __init_std_is_reference_unsigned_long_long_R(...$a) {
+  __init_std_is_reference_unsigned_int_R(...$a) {
   }
   __dtor() {
     std_integral_constant_bool_value1.prototype.__dtor.call(this);
   }
 }
-class std_is_lvalue_reference_unsigned_long_long_R extends std_integral_constant_bool_value1 {
+class std_is_lvalue_reference_unsigned_int_R extends std_integral_constant_bool_value1 {
   constructor(...$a) {
     super();
-    this.__init_std_is_lvalue_reference_unsigned_long_long_R(...$a);
+    this.__init_std_is_lvalue_reference_unsigned_int_R(...$a);
   }
-  __init_std_is_lvalue_reference_unsigned_long_long_R(...$a) {
+  __init_std_is_lvalue_reference_unsigned_int_R(...$a) {
   }
   __dtor() {
     std_integral_constant_bool_value1.prototype.__dtor.call(this);
   }
 }
-class std_is_rvalue_reference_unsigned_long_long_R extends std_integral_constant_bool_value0 {
+class std_is_rvalue_reference_unsigned_int_R extends std_integral_constant_bool_value0 {
   constructor(...$a) {
     super();
-    this.__init_std_is_rvalue_reference_unsigned_long_long_R(...$a);
+    this.__init_std_is_rvalue_reference_unsigned_int_R(...$a);
   }
-  __init_std_is_rvalue_reference_unsigned_long_long_R(...$a) {
+  __init_std_is_rvalue_reference_unsigned_int_R(...$a) {
   }
   __dtor() {
     std_integral_constant_bool_value0.prototype.__dtor.call(this);
   }
 }
-class std_or_std_is_lvalue_reference_unsigned_long_long_R_std_is_rvalue_reference_unsigned_long_long_R extends std_is_lvalue_reference_unsigned_long_long_R {
+class std_or_std_is_lvalue_reference_unsigned_int_R_std_is_rvalue_reference_unsigned_int_R extends std_is_lvalue_reference_unsigned_int_R {
   constructor(...$a) {
     super();
-    this.__init_std_or_std_is_lvalue_reference_unsigned_long_long_R_std_is_rvalue_reference_unsigned_long_long_R(...$a);
+    this.__init_std_or_std_is_lvalue_reference_unsigned_int_R_std_is_rvalue_reference_unsigned_int_R(...$a);
   }
-  __init_std_or_std_is_lvalue_reference_unsigned_long_long_R_std_is_rvalue_reference_unsigned_long_long_R(...$a) {
+  __init_std_or_std_is_lvalue_reference_unsigned_int_R_std_is_rvalue_reference_unsigned_int_R(...$a) {
   }
   __dtor() {
-    std_is_lvalue_reference_unsigned_long_long_R.prototype.__dtor.call(this);
+    std_is_lvalue_reference_unsigned_int_R.prototype.__dtor.call(this);
   }
 }
-class std_conditional_value1_std_is_lvalue_reference_unsigned_long_long_R_std_is_rvalue_reference_unsigned_long_long_R {
-  __init_std_conditional_value1_std_is_lvalue_reference_unsigned_long_long_R_std_is_rvalue_reference_unsigned_long_long_R(...$a) { }
+class std_conditional_value1_std_is_lvalue_reference_unsigned_int_R_std_is_rvalue_reference_unsigned_int_R {
+  __init_std_conditional_value1_std_is_lvalue_reference_unsigned_int_R_std_is_rvalue_reference_unsigned_int_R(...$a) { }
   __dtor() {
   }
 }
-class std_not_std_is_reference_unsigned_long_long_R extends std_integral_constant_bool_value0 {
+class std_not_std_is_reference_unsigned_int_R extends std_integral_constant_bool_value0 {
   constructor(...$a) {
     super();
-    this.__init_std_not_std_is_reference_unsigned_long_long_R(...$a);
+    this.__init_std_not_std_is_reference_unsigned_int_R(...$a);
   }
-  __init_std_not_std_is_reference_unsigned_long_long_R(...$a) {
+  __init_std_not_std_is_reference_unsigned_int_R(...$a) {
   }
   __dtor() {
     std_integral_constant_bool_value0.prototype.__dtor.call(this);
   }
 }
-class std_not_std_is_void_unsigned_long_long_R extends std_integral_constant_bool_value1 {
+class std_not_std_is_void_unsigned_int_R extends std_integral_constant_bool_value1 {
   constructor(...$a) {
     super();
-    this.__init_std_not_std_is_void_unsigned_long_long_R(...$a);
+    this.__init_std_not_std_is_void_unsigned_int_R(...$a);
   }
-  __init_std_not_std_is_void_unsigned_long_long_R(...$a) {
+  __init_std_not_std_is_void_unsigned_int_R(...$a) {
   }
   __dtor() {
     std_integral_constant_bool_value1.prototype.__dtor.call(this);
   }
 }
-class std_and_std_not_std_is_reference_unsigned_long_long_R_std_not_std_is_void_unsigned_long_long_R extends std_not_std_is_reference_unsigned_long_long_R {
+class std_and_std_not_std_is_reference_unsigned_int_R_std_not_std_is_void_unsigned_int_R extends std_not_std_is_reference_unsigned_int_R {
   constructor(...$a) {
     super();
-    this.__init_std_and_std_not_std_is_reference_unsigned_long_long_R_std_not_std_is_void_unsigned_long_long_R(...$a);
+    this.__init_std_and_std_not_std_is_reference_unsigned_int_R_std_not_std_is_void_unsigned_int_R(...$a);
   }
-  __init_std_and_std_not_std_is_reference_unsigned_long_long_R_std_not_std_is_void_unsigned_long_long_R(...$a) {
+  __init_std_and_std_not_std_is_reference_unsigned_int_R_std_not_std_is_void_unsigned_int_R(...$a) {
   }
   __dtor() {
-    std_not_std_is_reference_unsigned_long_long_R.prototype.__dtor.call(this);
+    std_not_std_is_reference_unsigned_int_R.prototype.__dtor.call(this);
   }
 }
-class std_conditional_value0_std_not_std_is_void_unsigned_long_long_R_std_not_std_is_reference_unsigned_long_long_R {
-  __init_std_conditional_value0_std_not_std_is_void_unsigned_long_long_R_std_not_std_is_reference_unsigned_long_long_R(...$a) { }
-  __dtor() {
-  }
-}
-class std_add_rvalue_reference_helper_unsigned_long_long_R_value0 {
-  __init_std_add_rvalue_reference_helper_unsigned_long_long_R_value0(...$a) { }
+class std_conditional_value0_std_not_std_is_void_unsigned_int_R_std_not_std_is_reference_unsigned_int_R {
+  __init_std_conditional_value0_std_not_std_is_void_unsigned_int_R_std_not_std_is_reference_unsigned_int_R(...$a) { }
   __dtor() {
   }
 }
-class std_add_rvalue_reference_unsigned_long_long_R extends std_add_rvalue_reference_helper_unsigned_long_long_R_value0 {
+class std_add_rvalue_reference_helper_unsigned_int_R_value0 {
+  __init_std_add_rvalue_reference_helper_unsigned_int_R_value0(...$a) { }
+  __dtor() {
+  }
+}
+class std_add_rvalue_reference_unsigned_int_R extends std_add_rvalue_reference_helper_unsigned_int_R_value0 {
   constructor(...$a) {
     super();
-    this.__init_std_add_rvalue_reference_unsigned_long_long_R(...$a);
+    this.__init_std_add_rvalue_reference_unsigned_int_R(...$a);
   }
-  __init_std_add_rvalue_reference_unsigned_long_long_R(...$a) {
+  __init_std_add_rvalue_reference_unsigned_int_R(...$a) {
   }
   __dtor() {
-    std_add_rvalue_reference_helper_unsigned_long_long_R_value0.prototype.__dtor.call(this);
+    std_add_rvalue_reference_helper_unsigned_int_R_value0.prototype.__dtor.call(this);
   }
 }
-class std_and_std_is_convertible_bool_R_bool_std_is_convertible_unsigned_long_long_R_unsigned_long_long extends std_is_convertible_unsigned_long_long_R_unsigned_long_long {
+class std_and_std_is_convertible_bool_R_bool_std_is_convertible_unsigned_int_R_unsigned_int extends std_is_convertible_unsigned_int_R_unsigned_int {
   constructor(...$a) {
     super();
-    this.__init_std_and_std_is_convertible_bool_R_bool_std_is_convertible_unsigned_long_long_R_unsigned_long_long(...$a);
+    this.__init_std_and_std_is_convertible_bool_R_bool_std_is_convertible_unsigned_int_R_unsigned_int(...$a);
   }
-  __init_std_and_std_is_convertible_bool_R_bool_std_is_convertible_unsigned_long_long_R_unsigned_long_long(...$a) {
+  __init_std_and_std_is_convertible_bool_R_bool_std_is_convertible_unsigned_int_R_unsigned_int(...$a) {
   }
   __dtor() {
-    std_is_convertible_unsigned_long_long_R_unsigned_long_long.prototype.__dtor.call(this);
+    std_is_convertible_unsigned_int_R_unsigned_int.prototype.__dtor.call(this);
   }
 }
-class std_conditional_value1_std_is_convertible_unsigned_long_long_R_unsigned_long_long_std_is_convertible_bool_R_bool {
-  __init_std_conditional_value1_std_is_convertible_unsigned_long_long_R_unsigned_long_long_std_is_convertible_bool_R_bool(...$a) { }
+class std_conditional_value1_std_is_convertible_unsigned_int_R_unsigned_int_std_is_convertible_bool_R_bool {
+  __init_std_conditional_value1_std_is_convertible_unsigned_int_R_unsigned_int_std_is_convertible_bool_R_bool(...$a) { }
   __dtor() {
   }
 }
-class std_is_convertible_unsigned_long_long_unsigned_long_long extends std_integral_constant_bool_value1 {
+class std_is_convertible_unsigned_int_unsigned_int extends std_integral_constant_bool_value1 {
   constructor(...$a) {
     super();
-    this.__init_std_is_convertible_unsigned_long_long_unsigned_long_long(...$a);
+    this.__init_std_is_convertible_unsigned_int_unsigned_int(...$a);
   }
-  __init_std_is_convertible_unsigned_long_long_unsigned_long_long(...$a) {
+  __init_std_is_convertible_unsigned_int_unsigned_int(...$a) {
   }
   __dtor() {
     std_integral_constant_bool_value1.prototype.__dtor.call(this);
   }
 }
-class std_is_void_unsigned_long_long extends std_integral_constant_bool_value0 {
+class std_is_void_unsigned_int extends std_integral_constant_bool_value0 {
   constructor(...$a) {
     super();
-    this.__init_std_is_void_unsigned_long_long(...$a);
+    this.__init_std_is_void_unsigned_int(...$a);
   }
-  __init_std_is_void_unsigned_long_long(...$a) {
+  __init_std_is_void_unsigned_int(...$a) {
   }
   __dtor() {
     std_integral_constant_bool_value0.prototype.__dtor.call(this);
   }
 }
-class std_remove_cv_unsigned_long_long {
-  __init_std_remove_cv_unsigned_long_long(...$a) { }
+class std_remove_cv_unsigned_int {
+  __init_std_remove_cv_unsigned_int(...$a) { }
   __dtor() {
   }
 }
-class std_remove_volatile_unsigned_long_long {
-  __init_std_remove_volatile_unsigned_long_long(...$a) { }
+class std_remove_volatile_unsigned_int {
+  __init_std_remove_volatile_unsigned_int(...$a) { }
   __dtor() {
   }
 }
-class std_remove_const_unsigned_long_long {
-  __init_std_remove_const_unsigned_long_long(...$a) { }
+class std_remove_const_unsigned_int {
+  __init_std_remove_const_unsigned_int(...$a) { }
   __dtor() {
   }
 }
-class std_is_void_helper_unsigned_long_long extends std_integral_constant_bool_value0 {
+class std_is_void_helper_unsigned_int extends std_integral_constant_bool_value0 {
   constructor(...$a) {
     super();
-    this.__init_std_is_void_helper_unsigned_long_long(...$a);
+    this.__init_std_is_void_helper_unsigned_int(...$a);
   }
-  __init_std_is_void_helper_unsigned_long_long(...$a) {
+  __init_std_is_void_helper_unsigned_int(...$a) {
   }
   __dtor() {
     std_integral_constant_bool_value0.prototype.__dtor.call(this);
   }
 }
-class std_or_std_is_void_unsigned_long_long_std_is_function_unsigned_long_long_std_is_array_unsigned_long_long extends std_or_std_is_function_unsigned_long_long_std_is_array_unsigned_long_long {
+class std_or_std_is_void_unsigned_int_std_is_function_unsigned_int_std_is_array_unsigned_int extends std_or_std_is_function_unsigned_int_std_is_array_unsigned_int {
   constructor(...$a) {
     super();
-    this.__init_std_or_std_is_void_unsigned_long_long_std_is_function_unsigned_long_long_std_is_array_unsigned_long_long(...$a);
+    this.__init_std_or_std_is_void_unsigned_int_std_is_function_unsigned_int_std_is_array_unsigned_int(...$a);
   }
-  __init_std_or_std_is_void_unsigned_long_long_std_is_function_unsigned_long_long_std_is_array_unsigned_long_long(...$a) {
+  __init_std_or_std_is_void_unsigned_int_std_is_function_unsigned_int_std_is_array_unsigned_int(...$a) {
   }
   __dtor() {
-    std_or_std_is_function_unsigned_long_long_std_is_array_unsigned_long_long.prototype.__dtor.call(this);
+    std_or_std_is_function_unsigned_int_std_is_array_unsigned_int.prototype.__dtor.call(this);
   }
 }
-class std_conditional_value0_std_is_void_unsigned_long_long_std_or_std_is_function_unsigned_long_long_std_is_array_unsigned_long_long {
-  __init_std_conditional_value0_std_is_void_unsigned_long_long_std_or_std_is_function_unsigned_long_long_std_is_array_unsigned_long_long(...$a) { }
+class std_conditional_value0_std_is_void_unsigned_int_std_or_std_is_function_unsigned_int_std_is_array_unsigned_int {
+  __init_std_conditional_value0_std_is_void_unsigned_int_std_or_std_is_function_unsigned_int_std_is_array_unsigned_int(...$a) { }
   __dtor() {
   }
 }
-class std_is_convertible_helper_unsigned_long_long_unsigned_long_long_value0 extends std_sfinae_types {
+class std_is_convertible_helper_unsigned_int_unsigned_int_value0 extends std_sfinae_types {
   constructor(...$a) {
     super();
-    this.__init_std_is_convertible_helper_unsigned_long_long_unsigned_long_long_value0(...$a);
+    this.__init_std_is_convertible_helper_unsigned_int_unsigned_int_value0(...$a);
   }
-  __init_std_is_convertible_helper_unsigned_long_long_unsigned_long_long_value0(...$a) {
+  __init_std_is_convertible_helper_unsigned_int_unsigned_int_value0(...$a) {
   }
   __dtor() {
     std_sfinae_types.prototype.__dtor.call(this);
   }
   static value = 1;
 }
-class std_is_reference_unsigned_long_long extends std_integral_constant_bool_value0 {
+class std_is_reference_unsigned_int extends std_integral_constant_bool_value0 {
   constructor(...$a) {
     super();
-    this.__init_std_is_reference_unsigned_long_long(...$a);
+    this.__init_std_is_reference_unsigned_int(...$a);
   }
-  __init_std_is_reference_unsigned_long_long(...$a) {
+  __init_std_is_reference_unsigned_int(...$a) {
   }
   __dtor() {
     std_integral_constant_bool_value0.prototype.__dtor.call(this);
   }
 }
-class std_is_lvalue_reference_unsigned_long_long extends std_integral_constant_bool_value0 {
+class std_is_lvalue_reference_unsigned_int extends std_integral_constant_bool_value0 {
   constructor(...$a) {
     super();
-    this.__init_std_is_lvalue_reference_unsigned_long_long(...$a);
+    this.__init_std_is_lvalue_reference_unsigned_int(...$a);
   }
-  __init_std_is_lvalue_reference_unsigned_long_long(...$a) {
+  __init_std_is_lvalue_reference_unsigned_int(...$a) {
   }
   __dtor() {
     std_integral_constant_bool_value0.prototype.__dtor.call(this);
   }
 }
-class std_is_rvalue_reference_unsigned_long_long extends std_integral_constant_bool_value0 {
+class std_is_rvalue_reference_unsigned_int extends std_integral_constant_bool_value0 {
   constructor(...$a) {
     super();
-    this.__init_std_is_rvalue_reference_unsigned_long_long(...$a);
+    this.__init_std_is_rvalue_reference_unsigned_int(...$a);
   }
-  __init_std_is_rvalue_reference_unsigned_long_long(...$a) {
+  __init_std_is_rvalue_reference_unsigned_int(...$a) {
   }
   __dtor() {
     std_integral_constant_bool_value0.prototype.__dtor.call(this);
   }
 }
-class std_or_std_is_lvalue_reference_unsigned_long_long_std_is_rvalue_reference_unsigned_long_long extends std_is_rvalue_reference_unsigned_long_long {
+class std_or_std_is_lvalue_reference_unsigned_int_std_is_rvalue_reference_unsigned_int extends std_is_rvalue_reference_unsigned_int {
   constructor(...$a) {
     super();
-    this.__init_std_or_std_is_lvalue_reference_unsigned_long_long_std_is_rvalue_reference_unsigned_long_long(...$a);
+    this.__init_std_or_std_is_lvalue_reference_unsigned_int_std_is_rvalue_reference_unsigned_int(...$a);
   }
-  __init_std_or_std_is_lvalue_reference_unsigned_long_long_std_is_rvalue_reference_unsigned_long_long(...$a) {
+  __init_std_or_std_is_lvalue_reference_unsigned_int_std_is_rvalue_reference_unsigned_int(...$a) {
   }
   __dtor() {
-    std_is_rvalue_reference_unsigned_long_long.prototype.__dtor.call(this);
+    std_is_rvalue_reference_unsigned_int.prototype.__dtor.call(this);
   }
 }
-class std_conditional_value0_std_is_lvalue_reference_unsigned_long_long_std_is_rvalue_reference_unsigned_long_long {
-  __init_std_conditional_value0_std_is_lvalue_reference_unsigned_long_long_std_is_rvalue_reference_unsigned_long_long(...$a) { }
+class std_conditional_value0_std_is_lvalue_reference_unsigned_int_std_is_rvalue_reference_unsigned_int {
+  __init_std_conditional_value0_std_is_lvalue_reference_unsigned_int_std_is_rvalue_reference_unsigned_int(...$a) { }
   __dtor() {
   }
 }
-class std_not_std_is_reference_unsigned_long_long extends std_integral_constant_bool_value1 {
+class std_not_std_is_reference_unsigned_int extends std_integral_constant_bool_value1 {
   constructor(...$a) {
     super();
-    this.__init_std_not_std_is_reference_unsigned_long_long(...$a);
+    this.__init_std_not_std_is_reference_unsigned_int(...$a);
   }
-  __init_std_not_std_is_reference_unsigned_long_long(...$a) {
+  __init_std_not_std_is_reference_unsigned_int(...$a) {
   }
   __dtor() {
     std_integral_constant_bool_value1.prototype.__dtor.call(this);
   }
 }
-class std_not_std_is_void_unsigned_long_long extends std_integral_constant_bool_value1 {
+class std_not_std_is_void_unsigned_int extends std_integral_constant_bool_value1 {
   constructor(...$a) {
     super();
-    this.__init_std_not_std_is_void_unsigned_long_long(...$a);
+    this.__init_std_not_std_is_void_unsigned_int(...$a);
   }
-  __init_std_not_std_is_void_unsigned_long_long(...$a) {
+  __init_std_not_std_is_void_unsigned_int(...$a) {
   }
   __dtor() {
     std_integral_constant_bool_value1.prototype.__dtor.call(this);
   }
 }
-class std_and_std_not_std_is_reference_unsigned_long_long_std_not_std_is_void_unsigned_long_long extends std_not_std_is_void_unsigned_long_long {
+class std_and_std_not_std_is_reference_unsigned_int_std_not_std_is_void_unsigned_int extends std_not_std_is_void_unsigned_int {
   constructor(...$a) {
     super();
-    this.__init_std_and_std_not_std_is_reference_unsigned_long_long_std_not_std_is_void_unsigned_long_long(...$a);
+    this.__init_std_and_std_not_std_is_reference_unsigned_int_std_not_std_is_void_unsigned_int(...$a);
   }
-  __init_std_and_std_not_std_is_reference_unsigned_long_long_std_not_std_is_void_unsigned_long_long(...$a) {
+  __init_std_and_std_not_std_is_reference_unsigned_int_std_not_std_is_void_unsigned_int(...$a) {
   }
   __dtor() {
-    std_not_std_is_void_unsigned_long_long.prototype.__dtor.call(this);
+    std_not_std_is_void_unsigned_int.prototype.__dtor.call(this);
   }
 }
-class std_conditional_value1_std_not_std_is_void_unsigned_long_long_std_not_std_is_reference_unsigned_long_long {
-  __init_std_conditional_value1_std_not_std_is_void_unsigned_long_long_std_not_std_is_reference_unsigned_long_long(...$a) { }
-  __dtor() {
-  }
-}
-class std_add_rvalue_reference_helper_unsigned_long_long_value1 {
-  __init_std_add_rvalue_reference_helper_unsigned_long_long_value1(...$a) { }
+class std_conditional_value1_std_not_std_is_void_unsigned_int_std_not_std_is_reference_unsigned_int {
+  __init_std_conditional_value1_std_not_std_is_void_unsigned_int_std_not_std_is_reference_unsigned_int(...$a) { }
   __dtor() {
   }
 }
-class std_add_rvalue_reference_unsigned_long_long extends std_add_rvalue_reference_helper_unsigned_long_long_value1 {
+class std_add_rvalue_reference_helper_unsigned_int_value1 {
+  __init_std_add_rvalue_reference_helper_unsigned_int_value1(...$a) { }
+  __dtor() {
+  }
+}
+class std_add_rvalue_reference_unsigned_int extends std_add_rvalue_reference_helper_unsigned_int_value1 {
   constructor(...$a) {
     super();
-    this.__init_std_add_rvalue_reference_unsigned_long_long(...$a);
+    this.__init_std_add_rvalue_reference_unsigned_int(...$a);
   }
-  __init_std_add_rvalue_reference_unsigned_long_long(...$a) {
+  __init_std_add_rvalue_reference_unsigned_int(...$a) {
   }
   __dtor() {
-    std_add_rvalue_reference_helper_unsigned_long_long_value1.prototype.__dtor.call(this);
+    std_add_rvalue_reference_helper_unsigned_int_value1.prototype.__dtor.call(this);
   }
 }
-class std_and_std_is_convertible_bool_bool_std_is_convertible_unsigned_long_long_unsigned_long_long extends std_is_convertible_unsigned_long_long_unsigned_long_long {
+class std_and_std_is_convertible_bool_bool_std_is_convertible_unsigned_int_unsigned_int extends std_is_convertible_unsigned_int_unsigned_int {
   constructor(...$a) {
     super();
-    this.__init_std_and_std_is_convertible_bool_bool_std_is_convertible_unsigned_long_long_unsigned_long_long(...$a);
+    this.__init_std_and_std_is_convertible_bool_bool_std_is_convertible_unsigned_int_unsigned_int(...$a);
   }
-  __init_std_and_std_is_convertible_bool_bool_std_is_convertible_unsigned_long_long_unsigned_long_long(...$a) {
+  __init_std_and_std_is_convertible_bool_bool_std_is_convertible_unsigned_int_unsigned_int(...$a) {
   }
   __dtor() {
-    std_is_convertible_unsigned_long_long_unsigned_long_long.prototype.__dtor.call(this);
+    std_is_convertible_unsigned_int_unsigned_int.prototype.__dtor.call(this);
   }
 }
-class std_conditional_value1_std_is_convertible_unsigned_long_long_unsigned_long_long_std_is_convertible_bool_bool {
-  __init_std_conditional_value1_std_is_convertible_unsigned_long_long_unsigned_long_long_std_is_convertible_bool_bool(...$a) { }
+class std_conditional_value1_std_is_convertible_unsigned_int_unsigned_int_std_is_convertible_bool_bool {
+  __init_std_conditional_value1_std_is_convertible_unsigned_int_unsigned_int_std_is_convertible_bool_bool(...$a) { }
   __dtor() {
   }
 }
@@ -7029,8 +7029,8 @@ class std_iterator_traits_char_P {
   __dtor() {
   }
 }
-class std_detail_Equal_helper_std_basic_string_char_std_char_traits_char_std_allocator_char_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_std_detail_Select1st_std_equal_to_std_basic_string_char_std_char_traits_char_std_allocator_char_unsigned_long_long_value1 {
-  __init_std_detail_Equal_helper_std_basic_string_char_std_char_traits_char_std_allocator_char_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_std_detail_Select1st_std_equal_to_std_basic_string_char_std_char_traits_char_std_allocator_char_unsigned_long_long_value1(...$a) { }
+class std_detail_Equal_helper_std_basic_string_char_std_char_traits_char_std_allocator_char_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_std_detail_Select1st_std_equal_to_std_basic_string_char_std_char_traits_char_std_allocator_char_unsigned_int_value1 {
+  __init_std_detail_Equal_helper_std_basic_string_char_std_char_traits_char_std_allocator_char_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_std_detail_Select1st_std_equal_to_std_basic_string_char_std_char_traits_char_std_allocator_char_unsigned_int_value1(...$a) { }
   __dtor() {
   }
   static _S_equals(__eq, __extract, __k, __c, __n) {
@@ -7047,17 +7047,17 @@ class gnu_cxx_new_allocator_std_detail_Hash_node_int_value0 {
   __dtor() {
   }
   allocate(__n, $p1 = {a: [0], i: 0}) {
-    let $t88;
+    let $t90;
     if ((__n > this.max_size__c())) {
       std_throw_bad_alloc();
     }
-    return ($t88 = operatornew__unsigned_long_long((__n * 12)), $t88 ? {a: $t88.a, i: $t88.i} : null);
+    return ($t90 = operatornew__unsigned_int(((Math.imul(__n, 8)) >>> 0)), $t90 ? {a: $t90.a, i: $t90.i} : null);
   }
   deallocate(__p, $p1) {
     operatordelete__voidP((__p ? {a: __p.a, i: __p.i} : null));
   }
   max_size__c() {
-    return (Math.trunc(((-(1)) >>> 0) / 12));
+    return ((Math.trunc((((((-(1)) | 0)) >>> 0)) / (8))) >>> 0);
   }
   construct__rv(__p, __args_0) {
     (__p.a[__p.i] = new std_detail_Hash_node_int_value0(std_forward_1_int(__args_0)), __p.a[__p.i].ctj_a = __p.a, __p.a[__p.i].ctj_i = __p.i, {a: __p.a, i: __p.i});
@@ -7102,24 +7102,24 @@ class std_Hashtable_int_int_std_allocator_int_std_detail_Identity_std_equal_to_i
     this.__init_std_Hashtable_int_int_std_allocator_int_std_detail_Identity_std_equal_to_int_std_hash_int_std_detail_Mod_range_hashing_std_detail_Default_ranged_hash_std_detail_Prime_rehash_policy_std_detail_Hashtable_traits_value0_value1_value1(...$a);
   }
   __init_std_Hashtable_int_int_std_allocator_int_std_detail_Identity_std_equal_to_int_std_hash_int_std_detail_Mod_range_hashing_std_detail_Default_ranged_hash_std_detail_Prime_rehash_policy_std_detail_Hashtable_traits_value0_value1_value1(...$a) {
-    let $t89;
+    let $t91;
     if ($a.length >= 7 && $a.length <= 7 && (typeof $a[0] === "number" || typeof $a[0] === "boolean") && ($a[1] !== null && typeof $a[1] === "object" && !Array.isArray($a[1]) && $a[1].a !== undefined && $a[1].i !== undefined && $a[1].a[$a[1].i] instanceof std_hash_int) && ($a[2] !== null && typeof $a[2] === "object" && !Array.isArray($a[2]) && $a[2].a !== undefined && $a[2].i !== undefined && $a[2].a[$a[2].i] instanceof std_detail_Mod_range_hashing) && ($a[3] !== null && typeof $a[3] === "object" && !Array.isArray($a[3]) && $a[3].a !== undefined && $a[3].i !== undefined && $a[3].a[$a[3].i] instanceof std_detail_Default_ranged_hash) && ($a[4] !== null && typeof $a[4] === "object" && !Array.isArray($a[4]) && $a[4].a !== undefined && $a[4].i !== undefined && $a[4].a[$a[4].i] instanceof std_equal_to_int) && ($a[5] !== null && typeof $a[5] === "object" && !Array.isArray($a[5]) && $a[5].a !== undefined && $a[5].i !== undefined && $a[5].a[$a[5].i] instanceof std_detail_Identity) && ($a[6] !== null && typeof $a[6] === "object" && !Array.isArray($a[6]) && $a[6].a !== undefined && $a[6].i !== undefined && $a[6].a[$a[6].i] instanceof std_allocator_int)) {
       std_detail_Map_base_int_int_std_allocator_int_std_detail_Identity_std_equal_to_int_std_hash_int_std_detail_Mod_range_hashing_std_detail_Default_ranged_hash_std_detail_Prime_rehash_policy_std_detail_Hashtable_traits_value0_value1_value1_value1.prototype.__init_std_detail_Map_base_int_int_std_allocator_int_std_detail_Identity_std_equal_to_int_std_hash_int_std_detail_Mod_range_hashing_std_detail_Default_ranged_hash_std_detail_Prime_rehash_policy_std_detail_Hashtable_traits_value0_value1_value1_value1.call(this);
       std_detail_Insert_int_int_std_allocator_int_std_detail_Identity_std_equal_to_int_std_hash_int_std_detail_Mod_range_hashing_std_detail_Default_ranged_hash_std_detail_Prime_rehash_policy_std_detail_Hashtable_traits_value0_value1_value1_value1_value1.prototype.__init_std_detail_Insert_int_int_std_allocator_int_std_detail_Identity_std_equal_to_int_std_hash_int_std_detail_Mod_range_hashing_std_detail_Default_ranged_hash_std_detail_Prime_rehash_policy_std_detail_Hashtable_traits_value0_value1_value1_value1_value1.call(this);
       std_detail_Rehash_base_int_int_std_allocator_int_std_detail_Identity_std_equal_to_int_std_hash_int_std_detail_Mod_range_hashing_std_detail_Default_ranged_hash_std_detail_Prime_rehash_policy_std_detail_Hashtable_traits_value0_value1_value1.prototype.__init_std_detail_Rehash_base_int_int_std_allocator_int_std_detail_Identity_std_equal_to_int_std_hash_int_std_detail_Mod_range_hashing_std_detail_Default_ranged_hash_std_detail_Prime_rehash_policy_std_detail_Hashtable_traits_value0_value1_value1.call(this);
       std_detail_Equality_int_int_std_allocator_int_std_detail_Identity_std_equal_to_int_std_hash_int_std_detail_Mod_range_hashing_std_detail_Default_ranged_hash_std_detail_Prime_rehash_policy_std_detail_Hashtable_traits_value0_value1_value1_value1.prototype.__init_std_detail_Equality_int_int_std_allocator_int_std_detail_Identity_std_equal_to_int_std_hash_int_std_detail_Mod_range_hashing_std_detail_Default_ranged_hash_std_detail_Prime_rehash_policy_std_detail_Hashtable_traits_value0_value1_value1_value1.call(this);
       this._M_buckets = null;
-      this._M_bucket_count = 0;
+      this._M_bucket_count = ((0) >>> 0);
       this._M_bbegin = new std_detail_Before_begin_std_allocator_std_detail_Hash_node_int_value0($a[6]);
       this._M_bbegin.ctj_a = this; this._M_bbegin.ctj_i = "_M_bbegin";
-      this._M_element_count = 0;
+      this._M_element_count = ((0) >>> 0);
       this._M_rehash_policy = new std_detail_Prime_rehash_policy(1);
       this._M_rehash_policy.ctj_a = this; this._M_rehash_policy.ctj_i = "_M_rehash_policy";
       this._M_bucket_count = this._M_rehash_policy._M_next_bkt__c($a[0]);
-      this._M_buckets = ($t89 = this._M_allocate_buckets(this._M_bucket_count), $t89 ? {a: $t89.a, i: $t89.i} : null);
+      this._M_buckets = ($t91 = this._M_allocate_buckets(this._M_bucket_count), $t91 ? {a: $t91.a, i: $t91.i} : null);
     }
     else if ($a.length >= 0 && $a.length <= 4 && ($a.length <= 0 || (typeof $a[0] === "number" || typeof $a[0] === "boolean")) && ($a.length <= 1 || ($a[1] !== null && typeof $a[1] === "object" && !Array.isArray($a[1]) && $a[1].a !== undefined && $a[1].i !== undefined && $a[1].a[$a[1].i] instanceof std_hash_int)) && ($a.length <= 2 || ($a[2] !== null && typeof $a[2] === "object" && !Array.isArray($a[2]) && $a[2].a !== undefined && $a[2].i !== undefined && $a[2].a[$a[2].i] instanceof std_equal_to_int)) && ($a.length <= 3 || ($a[3] !== null && typeof $a[3] === "object" && !Array.isArray($a[3]) && $a[3].a !== undefined && $a[3].i !== undefined && $a[3].a[$a[3].i] instanceof std_allocator_int))) {
-      this.__init_std_Hashtable_int_int_std_allocator_int_std_detail_Identity_std_equal_to_int_std_hash_int_std_detail_Mod_range_hashing_std_detail_Default_ranged_hash_std_detail_Prime_rehash_policy_std_detail_Hashtable_traits_value0_value1_value1(($a[0] === undefined ? (10) : $a[0]), ($a[1] === undefined ? ({a: [new std_hash_int()], i: 0}) : $a[1]), {a: [new std_detail_Mod_range_hashing()], i: 0}, {a: [new std_detail_Default_ranged_hash()], i: 0}, ($a[2] === undefined ? ({a: [new std_equal_to_int()], i: 0}) : $a[2]), {a: [new std_detail_Identity()], i: 0}, ($a[3] === undefined ? ({a: [new std_allocator_int()], i: 0}) : $a[3]));
+      this.__init_std_Hashtable_int_int_std_allocator_int_std_detail_Identity_std_equal_to_int_std_hash_int_std_detail_Mod_range_hashing_std_detail_Default_ranged_hash_std_detail_Prime_rehash_policy_std_detail_Hashtable_traits_value0_value1_value1(($a[0] === undefined ? (((10) >>> 0)) : $a[0]), ($a[1] === undefined ? ({a: [new std_hash_int()], i: 0}) : $a[1]), {a: [new std_detail_Mod_range_hashing()], i: 0}, {a: [new std_detail_Default_ranged_hash()], i: 0}, ($a[2] === undefined ? ({a: [new std_equal_to_int()], i: 0}) : $a[2]), {a: [new std_detail_Identity()], i: 0}, ($a[3] === undefined ? ({a: [new std_allocator_int()], i: 0}) : $a[3]));
     }
     else { throw new Error("no matching constructor"); }
   }
@@ -7137,15 +7137,15 @@ class std_Hashtable_int_int_std_allocator_int_std_detail_Identity_std_equal_to_i
     return {a: this._M_bbegin, i: "_M_node"};
   }
   _M_deallocate_node(__n) {
-    let $t90, $t91;
-    (($t90 = this._M_node_allocator(), $t90.a[$t90.i])).destroy((__n ? {a: __n.a, i: __n.i} : null));
-    (($t91 = this._M_node_allocator(), $t91.a[$t91.i])).deallocate((__n ? {a: __n.a, i: __n.i} : null), 1);
+    let $t92, $t93;
+    (($t92 = this._M_node_allocator(), $t92.a[$t92.i])).destroy((__n ? {a: __n.a, i: __n.i} : null));
+    (($t93 = this._M_node_allocator(), $t93.a[$t93.i])).deallocate((__n ? {a: __n.a, i: __n.i} : null), ((1) >>> 0));
   }
   _M_allocate_buckets(__n) {
-    let $t92;
+    let $t94;
     let __alloc = new std_allocator_std_detail_Hash_node_base_P(this._M_node_allocator());
-    let __p = ($t92 = __alloc.allocate(__n, {a: [0], i: 0}), $t92 ? {a: $t92.a, i: $t92.i} : null);
-    (($d, $c, $n) => { for (let $k = 0; $k < $n; $k++) $d.a[$d.i + $k] = $c & 255; return $d; })((($q) => ($q && $q.a !== undefined ? $q : { a: $q, i: 0 }))(__p), 0, Math.trunc(((__n * 8)) / 8));
+    let __p = ($t94 = __alloc.allocate(__n, {a: [0], i: 0}), $t94 ? {a: $t94.a, i: $t94.i} : null);
+    (($d, $c, $n) => { for (let $k = 0; $k < $n; $k++) $d.a[$d.i + $k] = $c & 255; return $d; })((($q) => ($q && $q.a !== undefined ? $q : { a: $q, i: 0 }))(__p), 0, Math.trunc((((Math.imul(__n, 4)) >>> 0)) / 4));
     return (__p ? {a: __p.a, i: __p.i} : null);
   }
   _M_deallocate_buckets(__p, __n) {
@@ -7153,17 +7153,17 @@ class std_Hashtable_int_int_std_allocator_int_std_detail_Identity_std_equal_to_i
     __alloc.deallocate((__p ? {a: __p.a, i: __p.i} : null), __n);
   }
   _M_bucket_begin__c(__bkt) {
-    let $t93;
+    let $t95;
     let __n = ((this._M_buckets.a[this._M_buckets.i + (__bkt)]) ? {a: (this._M_buckets.a[this._M_buckets.i + (__bkt)]).a, i: (this._M_buckets.a[this._M_buckets.i + (__bkt)]).i} : null);
-    return ($t93 = (__n ? (__n.a[__n.i])._M_nxt : null), $t93 ? {a: $t93.a, i: $t93.i} : null);
+    return ($t95 = (__n ? (__n.a[__n.i])._M_nxt : null), $t95 ? {a: $t95.a, i: $t95.i} : null);
   }
   _M_begin__c() {
-    let $t94, $t95;
-    return ($t95 = (($t94 = this._M_before_begin(), $t94.a[$t94.i]))._M_nxt, $t95 ? {a: $t95.a, i: $t95.i} : null);
+    let $t96, $t97;
+    return ($t97 = (($t96 = this._M_before_begin(), $t96.a[$t96.i]))._M_nxt, $t97 ? {a: $t97.a, i: $t97.i} : null);
   }
   begin() {
-    let $t96;
-    return new std_detail_Node_iterator_int_value1_value0(($t96 = this._M_begin__c(), $t96 ? {a: $t96.a, i: $t96.i} : null));
+    let $t98;
+    return new std_detail_Node_iterator_int_value1_value0(($t98 = this._M_begin__c(), $t98 ? {a: $t98.a, i: $t98.i} : null));
   }
   end() {
     return new std_detail_Node_iterator_int_value1_value0(null);
@@ -7172,25 +7172,25 @@ class std_Hashtable_int_int_std_allocator_int_std_detail_Identity_std_equal_to_i
     return this._M_element_count;
   }
   count__c(__k) {
-    let $t97, $t98, $t99;
+    let $t99, $t100, $t101;
     let __code = this._M_hash_code__c(__k);
     let __n = this._M_bucket_index__c(__k, __code);
-    let __p = ($t97 = this._M_bucket_begin__c(__n), $t97 ? {a: $t97.a, i: $t97.i} : null);
+    let __p = ($t99 = this._M_bucket_begin__c(__n), $t99 ? {a: $t99.a, i: $t99.i} : null);
     if ((!__p)) {
-      return 0;
+      return ((0) >>> 0);
     }
-    let __result = 0;
-    for (; ; __p = ($t98 = (__p.a[__p.i])._M_next__c(), $t98 ? {a: $t98.a, i: $t98.i} : null)) {
+    let __result = ((0) >>> 0);
+    for (; ; __p = ($t100 = (__p.a[__p.i])._M_next__c(), $t100 ? {a: $t100.a, i: $t100.i} : null)) {
        {
         if (this._M_equals__c(__k, __code, (__p ? {a: __p.a, i: __p.i} : null))) {
-          ++__result;
+          (__result = ((__result + 1) >>> 0));
         }
         else {
           if (__result) {
             break;
           }
         }
-        if (((!((__p.a[__p.i])._M_nxt)) || (this._M_bucket_index__c(($t99 = (__p.a[__p.i])._M_next__c(), $t99 ? {a: $t99.a, i: $t99.i} : null)) !== __n))) {
+        if (((!((__p.a[__p.i])._M_nxt)) || (this._M_bucket_index__c(($t101 = (__p.a[__p.i])._M_next__c(), $t101 ? {a: $t101.a, i: $t101.i} : null)) !== __n))) {
           break;
         }
       }
@@ -7207,18 +7207,18 @@ class std_Hashtable_int_int_std_allocator_int_std_detail_Identity_std_equal_to_i
     else { throw new Error("no matching overload"); }
   }
   _M_find_before_node__c(__n, __k, __code) {
-    let $t100, $t101;
+    let $t102, $t103;
     let __prev_p = ((this._M_buckets.a[this._M_buckets.i + (__n)]) ? {a: (this._M_buckets.a[this._M_buckets.i + (__n)]).a, i: (this._M_buckets.a[this._M_buckets.i + (__n)]).i} : null);
     if ((!__prev_p)) {
       return null;
     }
     let __p = (((__prev_p.a[__prev_p.i])._M_nxt) ? {a: ((__prev_p.a[__prev_p.i])._M_nxt).a, i: ((__prev_p.a[__prev_p.i])._M_nxt).i} : null);
-    for (; ; __p = ($t100 = (__p.a[__p.i])._M_next__c(), $t100 ? {a: $t100.a, i: $t100.i} : null)) {
+    for (; ; __p = ($t102 = (__p.a[__p.i])._M_next__c(), $t102 ? {a: $t102.a, i: $t102.i} : null)) {
        {
         if (this._M_equals__c(__k, __code, (__p ? {a: __p.a, i: __p.i} : null))) {
           return (__prev_p ? {a: __prev_p.a, i: __prev_p.i} : null);
         }
-        if (((!((__p.a[__p.i])._M_nxt)) || (this._M_bucket_index__c(($t101 = (__p.a[__p.i])._M_next__c(), $t101 ? {a: $t101.a, i: $t101.i} : null)) !== __n))) {
+        if (((!((__p.a[__p.i])._M_nxt)) || (this._M_bucket_index__c(($t103 = (__p.a[__p.i])._M_next__c(), $t103 ? {a: $t103.a, i: $t103.i} : null)) !== __n))) {
           break;
         }
         __prev_p = (__p ? {a: __p.a, i: __p.i} : null);
@@ -7227,15 +7227,15 @@ class std_Hashtable_int_int_std_allocator_int_std_detail_Identity_std_equal_to_i
     return null;
   }
   _M_find_node__c(__bkt, __key, __c) {
-    let $t102;
-    let __before_n = ($t102 = this._M_find_before_node__c(__bkt, __key, __c), $t102 ? {a: $t102.a, i: $t102.i} : null);
+    let $t104;
+    let __before_n = ($t104 = this._M_find_before_node__c(__bkt, __key, __c), $t104 ? {a: $t104.a, i: $t104.i} : null);
     if (__before_n) {
       return (((__before_n.a[__before_n.i])._M_nxt) ? {a: ((__before_n.a[__before_n.i])._M_nxt).a, i: ((__before_n.a[__before_n.i])._M_nxt).i} : null);
     }
     return null;
   }
   _M_insert_bucket_begin(__bkt, __node) {
-    let $t103, $t104, $t105, $t106, $t107;
+    let $t105, $t106, $t107, $t108, $t109;
     if (this._M_buckets.a[this._M_buckets.i + (__bkt)]) {
        {
         (__node.a[__node.i])._M_nxt = ((((this._M_buckets.a[this._M_buckets.i + (__bkt)]).a[(this._M_buckets.a[this._M_buckets.i + (__bkt)]).i])._M_nxt) ? {a: (((this._M_buckets.a[this._M_buckets.i + (__bkt)]).a[(this._M_buckets.a[this._M_buckets.i + (__bkt)]).i])._M_nxt).a, i: (((this._M_buckets.a[this._M_buckets.i + (__bkt)]).a[(this._M_buckets.a[this._M_buckets.i + (__bkt)]).i])._M_nxt).i} : null);
@@ -7244,30 +7244,30 @@ class std_Hashtable_int_int_std_allocator_int_std_detail_Identity_std_equal_to_i
     }
     else {
        {
-        (__node.a[__node.i])._M_nxt = ($t104 = (($t103 = this._M_before_begin(), $t103.a[$t103.i]))._M_nxt, $t104 ? {a: $t104.a, i: $t104.i} : null);
-        (($t105 = this._M_before_begin(), $t105.a[$t105.i]))._M_nxt = (__node ? {a: __node.a, i: __node.i} : null);
+        (__node.a[__node.i])._M_nxt = ($t106 = (($t105 = this._M_before_begin(), $t105.a[$t105.i]))._M_nxt, $t106 ? {a: $t106.a, i: $t106.i} : null);
+        (($t107 = this._M_before_begin(), $t107.a[$t107.i]))._M_nxt = (__node ? {a: __node.a, i: __node.i} : null);
         if ((__node.a[__node.i])._M_nxt) {
-          this._M_buckets.a[this._M_buckets.i + (this._M_bucket_index__c(($t106 = (__node.a[__node.i])._M_next__c(), $t106 ? {a: $t106.a, i: $t106.i} : null)))] = (__node ? {a: __node.a, i: __node.i} : null);
+          this._M_buckets.a[this._M_buckets.i + (this._M_bucket_index__c(($t108 = (__node.a[__node.i])._M_next__c(), $t108 ? {a: $t108.a, i: $t108.i} : null)))] = (__node ? {a: __node.a, i: __node.i} : null);
         }
-        this._M_buckets.a[this._M_buckets.i + (__bkt)] = ($t107 = this._M_before_begin(), $t107 ? {a: $t107.a, i: $t107.i} : null);
+        this._M_buckets.a[this._M_buckets.i + (__bkt)] = ($t109 = this._M_before_begin(), $t109 ? {a: $t109.a, i: $t109.i} : null);
       }
     }
   }
   _M_insert_unique_node(__bkt, __code, __node) {
-    let $t108;
+    let $t110;
     let __saved_state = {a: [this._M_rehash_policy._M_state__c()], i: 0};
-    let __do_rehash = this._M_rehash_policy._M_need_rehash__c(this._M_bucket_count, this._M_element_count, 1);
+    let __do_rehash = this._M_rehash_policy._M_need_rehash__c(this._M_bucket_count, this._M_element_count, ((1) >>> 0));
     if (true) {
        {
         if (__do_rehash.first) {
            {
             this._M_rehash(__do_rehash.second, __saved_state);
-            __bkt = this._M_bucket_index__c((($t108 = this._M_extract(), $t108.a[$t108.i])).op_call__c__rv({a: __node.a[__node.i], i: "_M_v"}), __code);
+            __bkt = this._M_bucket_index__c((($t110 = this._M_extract(), $t110.a[$t110.i])).op_call__c__rv({a: __node.a[__node.i], i: "_M_v"}), __code);
           }
         }
         this._M_store_code__c((__node ? {a: __node.a, i: __node.i} : null), __code);
         this._M_insert_bucket_begin(__bkt, (__node ? {a: __node.a, i: __node.i} : null));
-        ++this._M_element_count;
+        (this._M_element_count = ((this._M_element_count + 1) >>> 0));
         return new std_detail_Node_iterator_int_value1_value0((__node ? {a: __node.a, i: __node.i} : null));
       }
     }
@@ -7278,20 +7278,20 @@ class std_Hashtable_int_int_std_allocator_int_std_detail_Identity_std_equal_to_i
     }
   }
   _M_rehash_aux(__n, $p1) {
-    let $t109, $t110, $t111, $t112, $t113, $t114, $t115, $t116;
-    let __new_buckets = ($t109 = this._M_allocate_buckets(__n), $t109 ? {a: $t109.a, i: $t109.i} : null);
-    let __p = ($t110 = this._M_begin__c(), $t110 ? {a: $t110.a, i: $t110.i} : null);
-    (($t111 = this._M_before_begin(), $t111.a[$t111.i]))._M_nxt = null;
-    let __bbegin_bkt = 0;
+    let $t111, $t112, $t113, $t114, $t115, $t116, $t117, $t118;
+    let __new_buckets = ($t111 = this._M_allocate_buckets(__n), $t111 ? {a: $t111.a, i: $t111.i} : null);
+    let __p = ($t112 = this._M_begin__c(), $t112 ? {a: $t112.a, i: $t112.i} : null);
+    (($t113 = this._M_before_begin(), $t113.a[$t113.i]))._M_nxt = null;
+    let __bbegin_bkt = ((0) >>> 0);
     while (__p) {
        {
-        let __next = ($t112 = (__p.a[__p.i])._M_next__c(), $t112 ? {a: $t112.a, i: $t112.i} : null);
+        let __next = ($t114 = (__p.a[__p.i])._M_next__c(), $t114 ? {a: $t114.a, i: $t114.i} : null);
         let __bkt = std_detail_Hash_code_base_int_int_std_detail_Identity_std_hash_int_std_detail_Mod_range_hashing_std_detail_Default_ranged_hash_value0.prototype._M_bucket_index__c.call(this, (__p ? {a: __p.a, i: __p.i} : null), __n);
         if ((!(__new_buckets.a[__new_buckets.i + (__bkt)]))) {
            {
-            (__p.a[__p.i])._M_nxt = ($t114 = (($t113 = this._M_before_begin(), $t113.a[$t113.i]))._M_nxt, $t114 ? {a: $t114.a, i: $t114.i} : null);
-            (($t115 = this._M_before_begin(), $t115.a[$t115.i]))._M_nxt = (__p ? {a: __p.a, i: __p.i} : null);
-            __new_buckets.a[__new_buckets.i + (__bkt)] = ($t116 = this._M_before_begin(), $t116 ? {a: $t116.a, i: $t116.i} : null);
+            (__p.a[__p.i])._M_nxt = ($t116 = (($t115 = this._M_before_begin(), $t115.a[$t115.i]))._M_nxt, $t116 ? {a: $t116.a, i: $t116.i} : null);
+            (($t117 = this._M_before_begin(), $t117.a[$t117.i]))._M_nxt = (__p ? {a: __p.a, i: __p.i} : null);
+            __new_buckets.a[__new_buckets.i + (__bkt)] = ($t118 = this._M_before_begin(), $t118 ? {a: $t118.a, i: $t118.i} : null);
             if ((__p.a[__p.i])._M_nxt) {
               __new_buckets.a[__new_buckets.i + (__bbegin_bkt)] = (__p ? {a: __p.a, i: __p.i} : null);
             }
@@ -7324,29 +7324,29 @@ class std_Hashtable_int_int_std_allocator_int_std_detail_Identity_std_equal_to_i
     }
   }
   _M_insert__rv(__v, $p1) {
-    let $t117, $t118, $t119;
-    let __k = (($t117 = this._M_extract(), $t117.a[$t117.i])).op_call__c__rv(__v);
+    let $t119, $t120, $t121;
+    let __k = (($t119 = this._M_extract(), $t119.a[$t119.i])).op_call__c__rv(__v);
     let __code = this._M_hash_code__c(__k);
     let __bkt = this._M_bucket_index__c(__k, __code);
-    let __n = {v: ($t118 = this._M_find_node__c(__bkt, __k, __code), $t118 ? {a: $t118.a, i: $t118.i} : null)};
+    let __n = {v: ($t120 = this._M_find_node__c(__bkt, __k, __code), $t120 ? {a: $t120.a, i: $t120.i} : null)};
     if (__n.v) {
       return std_make_pair_std_detail_Node_iterator_int_value1_value0_bool({a: [new std_detail_Node_iterator_int_value1_value0((__n.v ? {a: __n.v.a, i: __n.v.i} : null))], i: 0}, {a: [false], i: 0});
     }
-    __n.v = ($t119 = this._M_allocate_node__rv(std_forward_1_int(__v)), $t119 ? {a: $t119.a, i: $t119.i} : null);
+    __n.v = ($t121 = this._M_allocate_node__rv(std_forward_1_int(__v)), $t121 ? {a: $t121.a, i: $t121.i} : null);
     return std_make_pair_std_detail_Node_iterator_int_value1_value0_bool({a: [this._M_insert_unique_node(__bkt, __code, (__n.v ? {a: __n.v.a, i: __n.v.i} : null))], i: 0}, {a: [true], i: 0});
   }
   _M_allocate_node__rv(__args_0) {
-    let $t120, $t121, $t122, $t123;
-    let __n = ($t121 = (($t120 = this._M_node_allocator(), $t120.a[$t120.i])).allocate(1, {a: [0], i: 0}), $t121 ? {a: $t121.a, i: $t121.i} : null);
+    let $t122, $t123, $t124, $t125;
+    let __n = ($t123 = (($t122 = this._M_node_allocator(), $t122.a[$t122.i])).allocate(((1) >>> 0), {a: [0], i: 0}), $t123 ? {a: $t123.a, i: $t123.i} : null);
     if (true) {
        {
-        (($t122 = this._M_node_allocator(), $t122.a[$t122.i])).construct__rv((__n ? {a: __n.a, i: __n.i} : null), std_forward_1_int(__args_0));
+        (($t124 = this._M_node_allocator(), $t124.a[$t124.i])).construct__rv((__n ? {a: __n.a, i: __n.i} : null), std_forward_1_int(__args_0));
         return (__n ? {a: __n.a, i: __n.i} : null);
       }
     }
     if (false) {
        {
-        (($t123 = this._M_node_allocator(), $t123.a[$t123.i])).deallocate((__n ? {a: __n.a, i: __n.i} : null), 1);
+        (($t125 = this._M_node_allocator(), $t125.a[$t125.i])).deallocate((__n ? {a: __n.a, i: __n.i} : null), ((1) >>> 0));
       }
     }
   }
@@ -7390,7 +7390,7 @@ class std_unordered_set_int_std_hash_int_std_equal_to_int_std_allocator_int exte
     this.__init_std_unordered_set_int_std_hash_int_std_equal_to_int_std_allocator_int(...$a);
   }
   __init_std_unordered_set_int_std_hash_int_std_equal_to_int_std_allocator_int(...$a) {
-    this._M_h = new std_Hashtable_int_int_std_allocator_int_std_detail_Identity_std_equal_to_int_std_hash_int_std_detail_Mod_range_hashing_std_detail_Default_ranged_hash_std_detail_Prime_rehash_policy_std_detail_Hashtable_traits_value0_value1_value1(($a[0] === undefined ? (10) : $a[0]), ($a[1] === undefined ? ({a: [new std_hash_int()], i: 0}) : $a[1]), ($a[2] === undefined ? ({a: [new std_equal_to_int()], i: 0}) : $a[2]), ($a[3] === undefined ? ({a: [new std_allocator_int()], i: 0}) : $a[3]));
+    this._M_h = new std_Hashtable_int_int_std_allocator_int_std_detail_Identity_std_equal_to_int_std_hash_int_std_detail_Mod_range_hashing_std_detail_Default_ranged_hash_std_detail_Prime_rehash_policy_std_detail_Hashtable_traits_value0_value1_value1(($a[0] === undefined ? (((10) >>> 0)) : $a[0]), ($a[1] === undefined ? ({a: [new std_hash_int()], i: 0}) : $a[1]), ($a[2] === undefined ? ({a: [new std_equal_to_int()], i: 0}) : $a[2]), ($a[3] === undefined ? ({a: [new std_allocator_int()], i: 0}) : $a[3]));
     this._M_h.ctj_a = this; this._M_h.ctj_i = "_M_h";
   }
   __dtor() {
@@ -7462,8 +7462,8 @@ class std_strip_reference_wrapper_bool {
   __dtor() {
   }
 }
-class std_detail_Equal_helper_int_int_std_detail_Identity_std_equal_to_int_unsigned_long_long_value0 {
-  __init_std_detail_Equal_helper_int_int_std_detail_Identity_std_equal_to_int_unsigned_long_long_value0(...$a) { }
+class std_detail_Equal_helper_int_int_std_detail_Identity_std_equal_to_int_unsigned_int_value0 {
+  __init_std_detail_Equal_helper_int_int_std_detail_Identity_std_equal_to_int_unsigned_int_value0(...$a) { }
   __dtor() {
   }
   static _S_equals(__eq, __extract, __k, $p3, __n) {
@@ -7485,17 +7485,17 @@ class gnu_cxx_new_allocator_std_detail_Hash_node_base_P {
   __dtor() {
   }
   allocate(__n, $p1 = {a: [0], i: 0}) {
-    let $t124;
+    let $t126;
     if ((__n > this.max_size__c())) {
       std_throw_bad_alloc();
     }
-    return ($t124 = operatornew__unsigned_long_long((__n * 8)), $t124 ? {a: $t124.a, i: $t124.i} : null);
+    return ($t126 = operatornew__unsigned_int(((Math.imul(__n, 4)) >>> 0)), $t126 ? {a: $t126.a, i: $t126.i} : null);
   }
   deallocate(__p, $p1) {
     operatordelete__voidP((__p ? {a: __p.a, i: __p.i} : null));
   }
   max_size__c() {
-    return (Math.trunc(((-(1)) >>> 0) / 8));
+    return ((Math.trunc((((((-(1)) | 0)) >>> 0)) / (4))) >>> 0);
   }
 }
 class std_allocator_std_detail_Hash_node_base_P extends gnu_cxx_new_allocator_std_detail_Hash_node_base_P {
@@ -7591,21 +7591,21 @@ class std_is_convertible_helper_std_basic_string_char_std_char_traits_char_std_a
   }
   static value = 0;
 }
-class std_declval_protector_unsigned_long_long_R {
+class std_declval_protector_unsigned_int_R {
   constructor(...$a) {
-    this.__init_std_declval_protector_unsigned_long_long_R(...$a);
+    this.__init_std_declval_protector_unsigned_int_R(...$a);
   }
-  __init_std_declval_protector_unsigned_long_long_R(...$a) {
+  __init_std_declval_protector_unsigned_int_R(...$a) {
   }
   __dtor() {
   }
   static __stop = 0;
 }
-class std_declval_protector_unsigned_long_long {
+class std_declval_protector_unsigned_int {
   constructor(...$a) {
-    this.__init_std_declval_protector_unsigned_long_long(...$a);
+    this.__init_std_declval_protector_unsigned_int(...$a);
   }
-  __init_std_declval_protector_unsigned_long_long(...$a) {
+  __init_std_declval_protector_unsigned_int(...$a) {
   }
   __dtor() {
   }
@@ -8369,19 +8369,19 @@ class gnu_cxx_numeric_traits_int extends gnu_cxx_numeric_traits_integer_int {
 }
 function std_throw_bad_alloc(...$a) { throw new Error("unresolved external: std::__throw_bad_alloc"); }
 function std_throw_length_error(...$a) { throw new Error("unresolved external: std::__throw_length_error"); }
-function operatornew__unsigned_long_long(...$a) { return {a: new Array($a[0]).fill(0), i: 0}; }
+function operatornew__unsigned_int(...$a) { return {a: new Array($a[0]).fill(0), i: 0}; }
 function operatordelete__voidP(...$a) {  }
-function std_Hash_bytes(...$a) { const $M = (1n << 64n) - 1n; const $mul = (0xc6a4a793n << 32n) + 0x5bd1e995n; const $mix = (v) => (v ^ (v >> 47n)) & $M; const $ptr = $a[0]; if ($ptr === null || $ptr === undefined) return 0; const $arr = Array.isArray($ptr) ? $ptr : $ptr.a, $base = Array.isArray($ptr) ? 0 : $ptr.i; const $byte = (k) => BigInt($arr[$base + k] & 255); const $len = $a[1] === undefined ? 0 : $a[1]; const $seed = $a[2] === undefined ? 0xc70f6907 : $a[2]; const $aligned = $len & ~7; let $h = (BigInt($seed) ^ (BigInt($len) * $mul)) & $M; for (let $p = 0; $p < $aligned; $p += 8) {   let $w = 0n; for (let $k = 0; $k < 8; $k++) $w |= $byte($p + $k) << BigInt(8 * $k);   $w = ($mix(($w * $mul) & $M) * $mul) & $M;   $h = (($h ^ $w) * $mul) & $M; } const $rem = $len & 7; if ($rem) {   let $w = 0n; for (let $k = $rem - 1; $k >= 0; $k--) $w = (($w << 8n) + $byte($aligned + $k)) & $M;   $h = (($h ^ $w) * $mul) & $M; } $h = ($mix($h) * $mul) & $M; return Number($mix($h)); }
+function std_Hash_bytes(...$a) { const $M = (1n << 64n) - 1n; const $mul = (0xc6a4a793n << 32n) + 0x5bd1e995n; const $mix = (v) => (v ^ (v >> 47n)) & $M; const $ptr = $a[0]; if ($ptr === null || $ptr === undefined) return 0; const $arr = Array.isArray($ptr) ? $ptr : $ptr.a, $base = Array.isArray($ptr) ? 0 : $ptr.i; const $byte = (k) => BigInt($arr[$base + k] & 255); const $len = $a[1] === undefined ? 0 : $a[1]; const $seed = $a[2] === undefined ? 0xc70f6907 : $a[2]; const $aligned = $len & ~7; let $h = (BigInt($seed) ^ (BigInt($len) * $mul)) & $M; for (let $p = 0; $p < $aligned; $p += 8) {   let $w = 0n; for (let $k = 0; $k < 8; $k++) $w |= $byte($p + $k) << BigInt(8 * $k);   $w = ($mix(($w * $mul) & $M) * $mul) & $M;   $h = (($h ^ $w) * $mul) & $M; } const $rem = $len & 7; if ($rem) {   let $w = 0n; for (let $k = $rem - 1; $k >= 0; $k--) $w = (($w << 8n) + $byte($aligned + $k)) & $M;   $h = (($h ^ $w) * $mul) & $M; } $h = ($mix($h) * $mul) & $M; return Number($mix($h) & 0xffffffffn); }
 function std_operator__std_basic_ostream_char_std_char_traits_char_R_int(__os, __n) {
   (__os.a[__os.i])._M_put(0, __n, null, 0);
   return __os;
 }
-function std_operator__std_basic_ostream_char_std_char_traits_char_R_unsigned_long_long(__os, __n) {
-  (__os.a[__os.i])._M_put(2, __n, null, 0);
+function std_operator__std_basic_ostream_char_std_char_traits_char_R_unsigned_int(__os, __n) {
+  (__os.a[__os.i])._M_put(1, __n, null, 0);
   return __os;
 }
 function std_operator__std_basic_ostream_char_std_char_traits_char_R_charP(__os, __s) {
-  (__os.a[__os.i])._M_put(7, 0, (__s ? {a: __s.a, i: __s.i} : null), (-(1)));
+  (__os.a[__os.i])._M_put(7, 0, (__s ? {a: __s.a, i: __s.i} : null), ((-(1)) | 0));
   return __os;
 }
 function std_operator__std_basic_ostream_char_std_char_traits_char_R_std_Ios_opR(__os, __m) {
@@ -8399,25 +8399,25 @@ function std_operator__std_basic_ostream_char_std_char_traits_char_R_std_Ios_opR
   return __os;
 }
 function std_operator_char_std_char_traits_char_std_allocator_char(__os, __str) {
-  let $t125;
-  return std_ostream_insert_char_std_char_traits_char(__os, ($t125 = (__str.a[__str.i]).data__c(), $t125 ? {a: $t125.a, i: $t125.i} : null), (__str.a[__str.i]).size__c());
+  let $t127;
+  return std_ostream_insert_char_std_char_traits_char(__os, ($t127 = (__str.a[__str.i]).data__c(), $t127 ? {a: $t127.a, i: $t127.i} : null), (((__str.a[__str.i]).size__c()) | 0));
 }
 function main() {
-  let $t126, $t127, $t128, $t129;
-  let m = new std_unordered_map_std_basic_string_char_std_char_traits_char_std_allocator_char_int_std_hash_std_basic_string_char_std_char_traits_char_std_allocator_char_std_equal_to_std_basic_string_char_std_char_traits_char_std_allocator_char_std_allocator_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int(10, {a: [new std_hash_std_basic_string_char_std_char_traits_char_std_allocator_char()], i: 0}, {a: [new std_equal_to_std_basic_string_char_std_char_traits_char_std_allocator_char()], i: 0}, {a: [new std_allocator_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int()], i: 0});
-  ($t126 = m.op_index({a: [new std_basic_string_char_std_char_traits_char_std_allocator_char({a: [97, 97, 0], i: 0})], i: 0}), $t126.a[$t126.i] = 1);
-  ($t127 = m.op_index({a: [new std_basic_string_char_std_char_traits_char_std_allocator_char({a: [98, 98, 0], i: 0})], i: 0}), $t127.a[$t127.i] = 2);
-  std_operator__std_basic_ostream_char_std_char_traits_char_R_std_Ios_opR(std_operator__std_basic_ostream_char_std_char_traits_char_R_unsigned_long_long(std_operator__std_basic_ostream_char_std_char_traits_char_R_charP(std_operator__std_basic_ostream_char_std_char_traits_char_R_int(std_operator__std_basic_ostream_char_std_char_traits_char_R_charP(std_operator__std_basic_ostream_char_std_char_traits_char_R_unsigned_long_long({a: std_cout, i: "v"}, m.size__c()), {a: [32, 0], i: 0}), (($t128 = m.op_index({a: [new std_basic_string_char_std_char_traits_char_std_allocator_char({a: [97, 97, 0], i: 0})], i: 0}), $t128.a[$t128.i]) + ($t129 = m.op_index({a: [new std_basic_string_char_std_char_traits_char_std_allocator_char({a: [98, 98, 0], i: 0})], i: 0}), $t129.a[$t129.i]))), {a: [32, 0], i: 0}), m.count__c({a: [new std_basic_string_char_std_char_traits_char_std_allocator_char({a: [99, 99, 0], i: 0})], i: 0})), {a: [std_endl], i: 0});
+  let $t128, $t129, $t130, $t131;
+  let m = new std_unordered_map_std_basic_string_char_std_char_traits_char_std_allocator_char_int_std_hash_std_basic_string_char_std_char_traits_char_std_allocator_char_std_equal_to_std_basic_string_char_std_char_traits_char_std_allocator_char_std_allocator_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int(((10) >>> 0), {a: [new std_hash_std_basic_string_char_std_char_traits_char_std_allocator_char()], i: 0}, {a: [new std_equal_to_std_basic_string_char_std_char_traits_char_std_allocator_char()], i: 0}, {a: [new std_allocator_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int()], i: 0});
+  ($t128 = m.op_index({a: [new std_basic_string_char_std_char_traits_char_std_allocator_char({a: [97, 97, 0], i: 0})], i: 0}), $t128.a[$t128.i] = 1);
+  ($t129 = m.op_index({a: [new std_basic_string_char_std_char_traits_char_std_allocator_char({a: [98, 98, 0], i: 0})], i: 0}), $t129.a[$t129.i] = 2);
+  std_operator__std_basic_ostream_char_std_char_traits_char_R_std_Ios_opR(std_operator__std_basic_ostream_char_std_char_traits_char_R_unsigned_int(std_operator__std_basic_ostream_char_std_char_traits_char_R_charP(std_operator__std_basic_ostream_char_std_char_traits_char_R_int(std_operator__std_basic_ostream_char_std_char_traits_char_R_charP(std_operator__std_basic_ostream_char_std_char_traits_char_R_unsigned_int({a: std_cout, i: "v"}, m.size__c()), {a: [32, 0], i: 0}), (((($t130 = m.op_index({a: [new std_basic_string_char_std_char_traits_char_std_allocator_char({a: [97, 97, 0], i: 0})], i: 0}), $t130.a[$t130.i])) + (($t131 = m.op_index({a: [new std_basic_string_char_std_char_traits_char_std_allocator_char({a: [98, 98, 0], i: 0})], i: 0}), $t131.a[$t131.i]))) | 0)), {a: [32, 0], i: 0}), m.count__c({a: [new std_basic_string_char_std_char_traits_char_std_allocator_char({a: [99, 99, 0], i: 0})], i: 0})), {a: [std_endl], i: 0});
   for (let $b0 = new std_detail_Node_iterator_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_value0_value1({a: [m.begin()], i: 0}), $e0 = new std_detail_Node_iterator_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_value0_value1({a: [m.end()], i: 0}); std_detail_operator_std_pair_std_basic_string_char_std_char_traits_char_std_allocator_char_int_value1({a: [$b0], i: 0}, {a: [$e0], i: 0}); $b0.op_inc()) {
     let kv = $b0.op_mul__c();
     std_operator__std_basic_ostream_char_std_char_traits_char_R_charP(std_operator__std_basic_ostream_char_std_char_traits_char_R_int(std_operator__std_basic_ostream_char_std_char_traits_char_R_charP(std_operator_char_std_char_traits_char_std_allocator_char({a: std_cout, i: "v"}, {a: kv.a[kv.i], i: "first"}), {a: [61, 0], i: 0}), (kv.a[kv.i]).second), {a: [32, 0], i: 0});
   }
   std_operator__std_basic_ostream_char_std_char_traits_char_R_std_Ios_opR({a: std_cout, i: "v"}, {a: [std_endl], i: 0});
-  let s = new std_unordered_set_int_std_hash_int_std_equal_to_int_std_allocator_int(10, {a: [new std_hash_int()], i: 0}, {a: [new std_equal_to_int()], i: 0}, {a: [new std_allocator_int()], i: 0});
+  let s = new std_unordered_set_int_std_hash_int_std_equal_to_int_std_allocator_int(((10) >>> 0), {a: [new std_hash_int()], i: 0}, {a: [new std_equal_to_int()], i: 0}, {a: [new std_allocator_int()], i: 0});
   s.insert({a: [5], i: 0});
   s.insert({a: [6], i: 0});
   s.insert({a: [5], i: 0});
-  std_operator__std_basic_ostream_char_std_char_traits_char_R_std_Ios_opR(std_operator__std_basic_ostream_char_std_char_traits_char_R_unsigned_long_long(std_operator__std_basic_ostream_char_std_char_traits_char_R_charP(std_operator__std_basic_ostream_char_std_char_traits_char_R_unsigned_long_long({a: std_cout, i: "v"}, s.size__c()), {a: [32, 0], i: 0}), s.count__c({a: [6], i: 0})), {a: [std_endl], i: 0});
+  std_operator__std_basic_ostream_char_std_char_traits_char_R_std_Ios_opR(std_operator__std_basic_ostream_char_std_char_traits_char_R_unsigned_int(std_operator__std_basic_ostream_char_std_char_traits_char_R_charP(std_operator__std_basic_ostream_char_std_char_traits_char_R_unsigned_int({a: std_cout, i: "v"}, s.size__c()), {a: [32, 0], i: 0}), s.count__c({a: [6], i: 0})), {a: [std_endl], i: 0});
   for (let $b1 = new std_detail_Node_iterator_int_value1_value0({a: [s.begin()], i: 0}), $e1 = new std_detail_Node_iterator_int_value1_value0({a: [s.end()], i: 0}); std_detail_operator_int_value0({a: [$b1], i: 0}, {a: [$e1], i: 0}); $b1.op_inc()) {
     let x = ($b1.op_mul__c()).a[($b1.op_mul__c()).i];
     std_operator__std_basic_ostream_char_std_char_traits_char_R_int({a: std_cout, i: "v"}, x);
@@ -8457,11 +8457,11 @@ function std_declval_std_detail_Node_iterator_int_value1_value0() {
 function std_declval_bool() {
   return std_declval_protector_bool.__delegate();
 }
-function std_declval_unsigned_long_long_R() {
-  return std_declval_protector_unsigned_long_long_R.__delegate();
+function std_declval_unsigned_int_R() {
+  return std_declval_protector_unsigned_int_R.__delegate();
 }
-function std_declval_unsigned_long_long() {
-  return std_declval_protector_unsigned_long_long.__delegate();
+function std_declval_unsigned_int() {
+  return std_declval_protector_unsigned_int.__delegate();
 }
 function std_declval_std_piecewise_construct_t() {
   return std_declval_protector_std_piecewise_construct_t.__delegate();
@@ -8533,7 +8533,7 @@ function std_move_std_pair_std_basic_string_char_std_char_traits_char_std_alloca
 function std_operator_8_char_std_char_traits_char_std_allocator_char(__lhs, __rhs) {
   return ((__lhs.a[__lhs.i]).compare__c(__rhs) === 0);
 }
-function std_min_unsigned_long_long(__a, __b) {
+function std_min_unsigned_int(__a, __b) {
   if ((__b.a[__b.i] < __a.a[__a.i])) {
     return __b;
   }

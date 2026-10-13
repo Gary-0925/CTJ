@@ -8,7 +8,7 @@ ff ffffffff 255
 3.14 3.14159
 true false 1
 1    |    2|
-4294967295 -5 fffffffffffffffb
+4294967295 -5 fffffffb
 ABC
 str   str|
 ab

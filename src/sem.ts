@@ -1195,6 +1195,28 @@ namespace CTJ {
       return this.lookupBuiltin(name);
     }
 
+    // Fully qualified names of fq's short name in the namespaces that its own namespace
+    // reaches through using-directives. An unqualified call adds these to the candidates
+    // it found, since "using namespace std;" brings std::abs next to a global abs.
+    usingTargets(fq: string): string[] {
+      const i = fq.lastIndexOf("::");
+      const ns = i < 0 ? "" : fq.slice(0, i);
+      const short = i < 0 ? fq : fq.slice(i + 2);
+      const out: string[] = [];
+      const seen = new Set<string>();
+      const walk = (n: string): void => {
+        for (const u of this.nss.get(n)?.usingNs || []) {
+          const r = this.resolveNsAlias(u);
+          if (seen.has(r)) continue;
+          seen.add(r);
+          out.push(r ? r + "::" + short : short);
+          walk(r);
+        }
+      };
+      walk(ns);
+      return out;
+    }
+
     lookupInNs(nsFq: string, name: string, seen: Set<string>): Sym | null {
       const fq = nsFq ? nsFq + "::" + name : name;
       if (this.classes.has(fq)) return { k: "class", cls: this.classes.get(fq) as ClsInfo };

@@ -40,16 +40,63 @@ static inline lldiv_t lldiv(long long n, long long d) {
 }
 
 double atof(const char* nptr);
-int atoi(const char* nptr);
-long atol(const char* nptr);
-long long atoll(const char* nptr);
 double strtod(const char* nptr, char** endptr);
 float strtof(const char* nptr, char** endptr);
 long double strtold(const char* nptr, char** endptr);
-long strtol(const char* nptr, char** endptr, int base);
-long long strtoll(const char* nptr, char** endptr, int base);
-unsigned long strtoul(const char* nptr, char** endptr, int base);
-unsigned long long strtoull(const char* nptr, char** endptr, int base);
+/* The integer conversions are written out here. Overflow is not clamped to the
+   limits of the type, so an out-of-range value wraps. */
+static inline unsigned long long __ctj_strtoull(const char* s, char** endptr, int base, int* neg) {
+  const char* p = s;
+  while (*p == ' ' || (*p >= 9 && *p <= 13)) p++;
+  *neg = 0;
+  if (*p == '+' || *p == '-') {
+    *neg = *p == '-';
+    p++;
+  }
+  if (base == 0 || base == 16) {
+    if (p[0] == '0' && (p[1] == 'x' || p[1] == 'X')) {
+      base = 16;
+      p += 2;
+    }
+  }
+  if (base == 0) base = p[0] == '0' ? 8 : 10;
+  unsigned long long v = 0;
+  const char* q = p;
+  for (;; q++) {
+    int d;
+    if (*q >= '0' && *q <= '9') d = *q - '0';
+    else if (*q >= 'a' && *q <= 'z') d = *q - 'a' + 10;
+    else if (*q >= 'A' && *q <= 'Z') d = *q - 'A' + 10;
+    else break;
+    if (d >= base) break;
+    v = v * base + d;
+  }
+  if (endptr) *endptr = (char*)(q == p ? s : q);
+  return v;
+}
+static inline unsigned long long strtoull(const char* nptr, char** endptr, int base) {
+  int neg;
+  unsigned long long v = __ctj_strtoull(nptr, endptr, base, &neg);
+  return neg ? -v : v;
+}
+static inline long long strtoll(const char* nptr, char** endptr, int base) {
+  int neg;
+  unsigned long long v = __ctj_strtoull(nptr, endptr, base, &neg);
+  return (long long)(neg ? -v : v);
+}
+static inline unsigned long strtoul(const char* nptr, char** endptr, int base) {
+  int neg;
+  unsigned long long v = __ctj_strtoull(nptr, endptr, base, &neg);
+  return (unsigned long)(neg ? -v : v);
+}
+static inline long strtol(const char* nptr, char** endptr, int base) {
+  int neg;
+  unsigned long long v = __ctj_strtoull(nptr, endptr, base, &neg);
+  return (long)(neg ? -v : v);
+}
+static inline int atoi(const char* nptr) { return (int)strtol(nptr, 0, 10); }
+static inline long atol(const char* nptr) { return strtol(nptr, 0, 10); }
+static inline long long atoll(const char* nptr) { return strtoll(nptr, 0, 10); }
 
 void* malloc(size_t size);
 void* calloc(size_t nmemb, size_t size);

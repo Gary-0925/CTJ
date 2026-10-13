@@ -62,6 +62,12 @@ namespace CTJ {
             if (!cands.includes(f)) cands.push(f);
           }
         }
+        if (s.k === "func" && !owner && (fn as IdExpr).parts.length === 1) {
+          for (const ufq of cx.usingTargets(fq)) {
+            for (const f of cx.funcs.get(ufq) || []) if (!cands.includes(f)) cands.push(f);
+            for (const tm of cx.tmplsOf(ufq)) if (!tmpls.includes(tm)) tmpls.push(tm);
+          }
+        }
         for (const tm of cx.tmplsOf(fq)) if (!tmpls.includes(tm)) tmpls.push(tm);
         if (s.k === "tmpl" && !tmpls.includes(s.t)) tmpls.push(s.t);
         const xt = last((fn as IdExpr).parts).a.map(a => cx.resolveTypeNode(a, scope));

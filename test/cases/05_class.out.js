@@ -7,8 +7,8 @@ class Point {
   }
   __init_Point(...$a) {
     if ($a.length >= 1 && $a.length <= 1 && ($a[0] !== null && typeof $a[0] === "object" && !Array.isArray($a[0]) && $a[0].a !== undefined && $a[0].i !== undefined && $a[0].a[$a[0].i] instanceof Point)) {
-      this.x = ((($a[0]).a[($a[0]).i]).x * 10);
-      this.y = ((($a[0]).a[($a[0]).i]).y * 10);
+      this.x = ((Math.imul((($a[0]).a[($a[0]).i]).x, 10)) | 0);
+      this.y = ((Math.imul((($a[0]).a[($a[0]).i]).y, 10)) | 0);
     }
     else if ($a.length >= 0 && $a.length <= 0) {
       this.x = 0;
@@ -23,16 +23,16 @@ class Point {
   __dtor() {
   }
   sum() {
-    return (this.x + this.y);
+    return (((this.x) + (this.y)) | 0);
   }
   sum__c() {
-    return ((this.x + this.y) + 100);
+    return ((((((this.x) + (this.y)) | 0)) + (100)) | 0);
   }
   static getCount() {
     return Point.count;
   }
   addx(d) {
-    this.x += d;
+    this.x = (((((this.x) + (d)) | 0)) | 0);
     return {a: [this], i: 0};
   }
   static count = 5;

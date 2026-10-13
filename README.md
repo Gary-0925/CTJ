@@ -97,7 +97,8 @@ npm test                # 运行 test/cases 下的全部用例
 - `include/stdio.h` 只声明了 `printf` 一族而没有实现，调用它们会在运行时抛出 `unresolved external`；请用 `__ctj_js` 输出。
 - `cerr` / `clog` 目前与 `cout` 一样写到标准输出；`ostringstream` 不可用。
 - 未以换行结束的最后一行会留在 `globalThis.__ctjpend`，由宿主（如 `index.html` 的 `run()`）负责输出。
-- 转译结果使用 JavaScript 的 `number`，`long long`、`unsigned` 等只保证在 53 位整数范围内语义一致。
+- 整数模型按 ILP32：`int`、`unsigned`、`long`、`size_t` 与指针为 32 位，以 JavaScript 的 `number` 表示；`long long` 与 `unsigned long long` 以 `BigInt` 表示，溢出与截断按 64 位回绕。
+- 函数的变参（`...`、`va_arg`）没有实现，因此 `to_string` 与 `printf` 族不可用；`strtol` 一族不做溢出饱和。
 
 ## 开发约定
 

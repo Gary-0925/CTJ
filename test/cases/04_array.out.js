@@ -1,9 +1,10 @@
 "use strict";
 function main() {
+  let $t0;
   let a = [1, 2, 3];
   let sum = 0;
-  for (let i = 0; (i < 3); i++) {
-    sum += a[i];
+  for (let i = 0; (i < 3); ($t0 = i, i = (($t0 + 1) | 0), $t0)) {
+    sum = (((((sum) + (a[i])) | 0)) | 0);
   }
   (console.log((sum)));
   let b = [[1, 2, 3], [4, 5, 6]];
@@ -17,7 +18,7 @@ function main() {
   (console.log((buf[1])));
   (console.log((4)));
   (console.log((12)));
-  (console.log((8)));
+  (console.log((4)));
   (console.log((8)));
   return 0;
 }

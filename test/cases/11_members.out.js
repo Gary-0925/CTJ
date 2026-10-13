@@ -49,8 +49,9 @@ class Str_char_Traits_char {
   __dtor() {
   }
   set(s) {
-    this.rep.len = strlen((s ? {a: s.a, i: s.i} : null));
-    for (let i = 0; (i < this.rep.len); i++) {
+    let $t0;
+    this.rep.len = ((strlen((s ? {a: s.a, i: s.i} : null))) | 0);
+    for (let i = 0; (i < this.rep.len); ($t0 = i, i = (($t0 + 1) | 0), $t0)) {
       this.buf[i] = s.a[s.i + (i)];
     }
   }
@@ -67,7 +68,7 @@ class Str_char_Traits_char {
         b.i++;
       }
     }
-    return (a.a[a.i] - b.a[b.i]);
+    return (((a.a[a.i]) - (b.a[b.i])) | 0);
   }
   static npos = -1;
 }
@@ -104,9 +105,10 @@ class Node_int_Rebind_int {
   }
 }
 function strlen(s) {
-  let n = 0;
+  let $t1;
+  let n = ((0) >>> 0);
   while ((s.a[s.i + (n)] !== 0)) {
-    n++;
+    ($t1 = n, n = (($t1 + 1) >>> 0), $t1);
   }
   return n;
 }
@@ -116,7 +118,7 @@ function main() {
   (console.log((s.size__c())));
   let c = Str_char_Traits_char.compare({a: [97, 98, 99, 0], i: 0}, {a: [97, 98, 100, 0], i: 0});
   (console.log(((c < 0))));
-  (console.log(((Str_char_Traits_char.npos === (-(1))))));
+  (console.log(((Str_char_Traits_char.npos === ((-(1)) | 0)))));
   (console.log((s.at__c(1))));
   let n = new Node_double();
   (console.log(((n.next === null))));

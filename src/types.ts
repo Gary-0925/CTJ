@@ -105,7 +105,8 @@ namespace CTJ {
       return t;
     }
     const v = e.value.replace(/'/g, "");
-    const m = v.match(/^(.+?)([uUlLfF]+)$/);
+    // In a hex literal "f" is a digit, so only u and l can be a suffix there.
+    const m = /^0[xX]/.test(v) ? v.match(/^(.+?)([uUlL]+)$/) : v.match(/^(.+?)([uUlLfF]+)$/);
     const suf = (m ? m[2] : "").toLowerCase();
     const num = m ? m[1] : v;
     const isHex = /^0[xX]/.test(num);
@@ -115,11 +116,36 @@ namespace CTJ {
       if (suf.includes("l")) return CppType.basic("long double");
       return CppType.basic("double");
     }
+    // The first type of the suffix's list that holds the value (C++11 [lex.icon]).
+    // The target is ILP32: int and long are 32 bits, long long 64.
     const un = suf.includes("u");
     const longs = (suf.match(/l/g) || []).length;
-    if (longs >= 2) return CppType.basic(un ? "unsigned long long" : "long long");
-    if (longs === 1) return CppType.basic(un ? "unsigned long" : "long");
-    return CppType.basic(un ? "unsigned int" : "int");
+    const decimal = !/^0[xXbB0-7]/.test(num);
+    let list: string[];
+    if (longs >= 2) list = un ? ["unsigned long long"] : decimal ? ["long long"] : ["long long", "unsigned long long"];
+    else if (longs === 1) list = un ? ["unsigned long", "unsigned long long"] : decimal ? ["long", "long long"] : ["long", "unsigned long", "long long", "unsigned long long"];
+    else list = un ? ["unsigned int", "unsigned long", "unsigned long long"] : decimal ? ["int", "long", "long long"] : ["int", "unsigned int", "long", "unsigned long", "long long", "unsigned long long"];
+    const value = litValue(num);
+    for (const name of list) {
+      if (value <= BigInt(LIT_MAX[name])) return CppType.basic(name);
+    }
+    return CppType.basic(list[list.length - 1]);
+  }
+
+  // The largest value of each integer type of the target, as a decimal string.
+  const LIT_MAX: Record<string, string> = {
+    int: "2147483647",
+    "unsigned int": "4294967295",
+    long: "2147483647",
+    "unsigned long": "4294967295",
+    "long long": "9223372036854775807",
+    "unsigned long long": "18446744073709551615",
+  };
+
+  // The exact value of an integer literal without its suffix.
+  function litValue(num: string): bigint {
+    if (/^0[0-7]/.test(num)) return BigInt("0o" + num.slice(1));
+    return BigInt(num);
   }
 
   export function typeOfId(cx: Cx, e: IdExpr, scope: Scope): CppType {

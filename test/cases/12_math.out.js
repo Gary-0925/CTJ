@@ -14,9 +14,9 @@ function sqrt(x) {
 function main() {
   let a = (-(2.5));
   (console.log((fabs(a))));
-  (console.log((Math.trunc(sqrt(16)))));
-  (console.log((Math.trunc(floor(3.7)))));
-  (console.log((Math.trunc(fmod(7.5, 2)))));
+  (console.log((((sqrt(16)) | 0))));
+  (console.log((((floor(3.7)) | 0))));
+  (console.log((((fmod(7.5, 2)) | 0))));
   return 0;
 }
 main();

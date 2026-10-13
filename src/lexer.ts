@@ -332,11 +332,13 @@ namespace CTJ {
   }
 
   export function parseNumber(raw: string): number {
-    const s = raw.replace(/'/g, "").replace(/[uUlLfF]+$/, "");
-    if (/^0[xX]/.test(s)) return parseInt(s, 16);
-    if (/^0[bB]/.test(s)) return parseInt(s.slice(2), 2);
-    if (/^0[0-7]+$/.test(s)) return parseInt(s, 8);
-    return parseFloat(s);
+    const s = raw.replace(/'/g, "");
+    // In a hex literal "f" is a digit, not a suffix, so only u and l are stripped there.
+    if (/^0[xX]/.test(s)) return parseInt(s.replace(/[uUlL]+$/, ""), 16);
+    const d = s.replace(/[uUlLfF]+$/, "");
+    if (/^0[bB]/.test(d)) return parseInt(d.slice(2), 2);
+    if (/^0[0-7]+$/.test(d)) return parseInt(d, 8);
+    return parseFloat(d);
   }
 
   export function splitArgs(tokens: Token[]): Token[][] {

@@ -32,7 +32,7 @@ class Derived extends Base {
     Base.prototype.__dtor.call(this);
   }
   get() {
-    return (this.v + this.w);
+    return (((this.v) + (this.w)) | 0);
   }
 }
 function use(b) {

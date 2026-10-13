@@ -8,7 +8,7 @@ class Twice {
   __dtor() {
   }
   op_call(x) {
-    return (x * 2);
+    return ((Math.imul(x, 2)) | 0);
   }
 }
 class Box_char {
@@ -38,7 +38,7 @@ class Same_int_char {
 function main() {
   let t = new Twice();
   let c = new Box_char(65);
-  (console.log((1), (0), (t.op_call(21)), (c.get())));
+  (console.log((1), (0), (t.op_call(21)), (((c.get()) | 0))));
   return 0;
 }
 main();

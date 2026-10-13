@@ -22,7 +22,7 @@
 #include <ios>
 #include <bits/ostream_insert.h>
 
-#define _CTJ_OUT_JS "(function(k,v,s,n,f,w,p,c,fd){var t='',pad=false,base=((f&74)===8)?16:(((f&74)===64)?8:10),j,g,nl=String.fromCharCode(10);function str(q,m){if(q===null||q===undefined)return '';var a=(q.a!==undefined)?q.a:q,i=(q.a!==undefined)?(q.i|0):0,r='',e,x;if(typeof a==='string')return m<0?a:a.slice(0,m);for(e=0;m<0||e<m;e++){x=a[i+e];if(x===undefined||x===null||(m<0&&x===0))break;r+=(typeof x==='number')?String.fromCharCode(x&255):String(x);}return r;}function gfmt(x,q){if(x!==x)return 'nan';if(x===Infinity)return 'inf';if(x===-Infinity)return '-inf';q=q>0?q:1;var e=x.toExponential(q-1),ix=e.indexOf('e'),X=parseInt(e.slice(ix+1),10),r,m;if(X<-4||X>=q){m=e.slice(0,ix);if(m.indexOf('.')>=0){while(m.charAt(m.length-1)==='0')m=m.slice(0,-1);if(m.charAt(m.length-1)==='.')m=m.slice(0,-1);}r=m+'e'+(X<0?'-':'+')+(Math.abs(X)<10?'0':'')+Math.abs(X);}else{r=x.toFixed(q-1-X);if(r.indexOf('.')>=0){while(r.charAt(r.length-1)==='0')r=r.slice(0,-1);if(r.charAt(r.length-1)==='.')r=r.slice(0,-1);}}return r;}if(k===6){t=(f&1)?(v?'true':'false'):(v?'1':'0');pad=true;}else if(k===4){t=gfmt(v,p);pad=true;}else if(k===5){t=String.fromCharCode(v&255);pad=true;}else if(k===7){t=str(s,n);pad=true;}else if(k===8){t=String.fromCharCode(v&255);}else if(k===10){t=str(s,n);}else if(k<=3){if(k>=2){if(base===10)t=(k===2&&v<0)?BigInt.asUintN(64,BigInt(Math.trunc(v))).toString():String(v);else t=BigInt.asUintN(64,BigInt(Math.trunc(v))).toString(base);}else{if(k===1)v=v>>>0;t=(base===10)?String(v):(v<0?(v>>>0):v).toString(base);}pad=true;}if(pad&&w>t.length){var fc=String.fromCharCode(c||32),pd=fc.repeat(w-t.length);t=(f&32)?t+pd:pd+t;}if(typeof process!=='undefined'&&process&&process.stdout){if(t)((fd===2&&process.stderr)?process.stderr:process.stdout).write(t);return;}g=globalThis;g.__ctjpend=(g.__ctjpend||'')+t;while((j=g.__ctjpend.indexOf(nl))>=0){console.log(g.__ctjpend.slice(0,j));g.__ctjpend=g.__ctjpend.slice(j+1);}})($1,$2,$3,$4,$5,$6,$7,$8,$9)"
+#define _CTJ_OUT_JS "(function(k,v,s,n,f,w,p,c,fd){var t='',pad=false,base=((f&74)===8)?16:(((f&74)===64)?8:10),j,g,nl=String.fromCharCode(10);function str(q,m){if(q===null||q===undefined)return '';var a=(q.a!==undefined)?q.a:q,i=(q.a!==undefined)?(q.i|0):0,r='',e,x;if(typeof a==='string')return m<0?a:a.slice(0,m);for(e=0;m<0||e<m;e++){x=a[i+e];if(x===undefined||x===null||(m<0&&x===0))break;r+=(typeof x==='number')?String.fromCharCode(x&255):String(x);}return r;}function gfmt(x,q){if(x!==x)return 'nan';if(x===Infinity)return 'inf';if(x===-Infinity)return '-inf';q=q>0?q:1;var e=x.toExponential(q-1),ix=e.indexOf('e'),X=parseInt(e.slice(ix+1),10),r,m;if(X<-4||X>=q){m=e.slice(0,ix);if(m.indexOf('.')>=0){while(m.charAt(m.length-1)==='0')m=m.slice(0,-1);if(m.charAt(m.length-1)==='.')m=m.slice(0,-1);}r=m+'e'+(X<0?'-':'+')+(Math.abs(X)<10?'0':'')+Math.abs(X);}else{r=x.toFixed(q-1-X);if(r.indexOf('.')>=0){while(r.charAt(r.length-1)==='0')r=r.slice(0,-1);if(r.charAt(r.length-1)==='.')r=r.slice(0,-1);}}return r;}if(k===6){t=(f&1)?(v?'true':'false'):(v?'1':'0');pad=true;}else if(k===4){t=gfmt(v,p);pad=true;}else if(k===5){t=String.fromCharCode(v&255);pad=true;}else if(k===7){t=str(s,n);pad=true;}else if(k===8){t=String.fromCharCode(v&255);}else if(k===10){t=str(s,n);}else if(k<=3){if(k>=2){var b=(typeof v==='bigint')?v:BigInt(Math.trunc(v));if(k===2||base!==10)b=BigInt.asUintN(64,b);t=b.toString(base);}else{if(k===1)v=v>>>0;t=(base===10)?String(v):(v<0?(v>>>0):v).toString(base);}pad=true;}if(pad&&w>t.length){var fc=String.fromCharCode(c||32),pd=fc.repeat(w-t.length);t=(f&32)?t+pd:pd+t;}if(typeof process!=='undefined'&&process&&process.stdout){if(t)((fd===2&&process.stderr)?process.stderr:process.stdout).write(t);return;}g=globalThis;g.__ctjpend=(g.__ctjpend||'')+t;while((j=g.__ctjpend.indexOf(nl))>=0){console.log(g.__ctjpend.slice(0,j));g.__ctjpend=g.__ctjpend.slice(j+1);}})($1,$2,$3,$4,$5,$6,$7,$8,$9)"
 
 
 namespace std {
@@ -55,6 +55,14 @@ namespace std {
         this->_M_width = 0;
       }
 
+      // A 64-bit integer is written as the BigInt it is, so no digit is lost.
+      void _M_putll(int __k, long long __v)
+      {
+        __ctj_js(_CTJ_OUT_JS, __k, __v, 0, 0, this->_M_flags, this->_M_width,
+                 this->_M_precision, this->_M_fill, this->_M_fd);
+        this->_M_width = 0;
+      }
+
       __ostream_type& put(_CharT __c) { _M_put(8, __c, 0, 0); return *this; }
       __ostream_type& write(const _CharT* __s, long __n) { _M_put(10, 0, __s, __n); return *this; }
       __ostream_type& flush() { _M_put(9, 0, 0, 0); return *this; }
@@ -72,10 +80,10 @@ namespace std {
   inline ostream& operator<<(ostream& __os, unsigned short __n) { __os._M_put(1, __n, 0, 0); return __os; }
   inline ostream& operator<<(ostream& __os, int __n) { __os._M_put(0, __n, 0, 0); return __os; }
   inline ostream& operator<<(ostream& __os, unsigned int __n) { __os._M_put(1, __n, 0, 0); return __os; }
-  inline ostream& operator<<(ostream& __os, long __n) { __os._M_put(3, __n, 0, 0); return __os; }
-  inline ostream& operator<<(ostream& __os, unsigned long __n) { __os._M_put(2, __n, 0, 0); return __os; }
-  inline ostream& operator<<(ostream& __os, long long __n) { __os._M_put(3, __n, 0, 0); return __os; }
-  inline ostream& operator<<(ostream& __os, unsigned long long __n) { __os._M_put(2, __n, 0, 0); return __os; }
+  inline ostream& operator<<(ostream& __os, long __n) { __os._M_put(0, __n, 0, 0); return __os; }
+  inline ostream& operator<<(ostream& __os, unsigned long __n) { __os._M_put(1, __n, 0, 0); return __os; }
+  inline ostream& operator<<(ostream& __os, long long __n) { __os._M_putll(3, __n); return __os; }
+  inline ostream& operator<<(ostream& __os, unsigned long long __n) { __os._M_putll(2, __n); return __os; }
   inline ostream& operator<<(ostream& __os, float __n) { __os._M_put(4, __n, 0, 0); return __os; }
   inline ostream& operator<<(ostream& __os, double __n) { __os._M_put(4, __n, 0, 0); return __os; }
   inline ostream& operator<<(ostream& __os, long double __n) { __os._M_put(4, __n, 0, 0); return __os; }

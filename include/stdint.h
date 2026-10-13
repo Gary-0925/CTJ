@@ -29,8 +29,8 @@ typedef uint32_t uint_fast32_t;
 typedef int64_t int_fast64_t;
 typedef uint64_t uint_fast64_t;
 
-typedef long intptr_t;
-typedef unsigned long uintptr_t;
+typedef int intptr_t;
+typedef unsigned int uintptr_t;
 
 typedef long long intmax_t;
 typedef unsigned long long uintmax_t;
@@ -74,17 +74,17 @@ typedef unsigned long long uintmax_t;
 #define INT_FAST64_MAX INT64_MAX
 #define UINT_FAST64_MAX UINT64_MAX
 
-#define INTPTR_MIN INT64_MIN
-#define INTPTR_MAX INT64_MAX
-#define UINTPTR_MAX UINT64_MAX
+#define INTPTR_MIN INT32_MIN
+#define INTPTR_MAX INT32_MAX
+#define UINTPTR_MAX UINT32_MAX
 
 #define INTMAX_MIN INT64_MIN
 #define INTMAX_MAX INT64_MAX
 #define UINTMAX_MAX UINT64_MAX
 
-#define PTRDIFF_MIN INT64_MIN
-#define PTRDIFF_MAX INT64_MAX
-#define SIZE_MAX UINT64_MAX
+#define PTRDIFF_MIN INT32_MIN
+#define PTRDIFF_MAX INT32_MAX
+#define SIZE_MAX UINT32_MAX
 #define SIG_ATOMIC_MIN INT32_MIN
 #define SIG_ATOMIC_MAX INT32_MAX
 #define WCHAR_MIN (-2147483647 - 1)
