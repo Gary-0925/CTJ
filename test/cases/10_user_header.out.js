@@ -23,9 +23,9 @@ function twice(x) {
 function main() {
   (console.log((twice(21))));
   let c = new Counter();
-  c.bump();
-  c.bump();
-  (console.log((c.value__c())));
+  Counter.prototype.bump.call(c);
+  Counter.prototype.bump.call(c);
+  (console.log((Counter.prototype.value__c.call(c))));
   return 0;
 }
 main();

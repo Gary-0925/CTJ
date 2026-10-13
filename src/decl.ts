@@ -440,12 +440,18 @@ namespace CTJ {
     p.pushScope();
     let tparams: TParam[];
     let ds: Decl[];
+    let leaked: string[] = [];
     try {
       tparams = parseTParams(p);
       ds = p.parseDecls(inClass);
+      // A forward declaration such as "template<class T> class F;" registers F in
+      // the scope of the template parameters, which is about to be discarded.
+      const tnames = new Set(tparams.map(tp => tp.name));
+      leaked = [...last(p.typeScopes)].filter(n => !tnames.has(n));
     } finally {
       p.popScope();
     }
+    for (const n of leaked) p.registerType(n);
     const d = ds[0] || null;
     let specArgs: TypeNode[] = [];
     if (d && d.kind === "func" && d.name.length && last(d.name).a.length) specArgs = last(d.name).a;

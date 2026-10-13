@@ -407,13 +407,13 @@ class std_basic_string_char_std_char_traits_char_std_allocator_char_Alloc_hider 
   }
 }
 class std_basic_string_char_std_char_traits_char_std_allocator_char {
-  _M_dataplus;
+  _M_dataplus$std_basic_string_char_std_char_traits_char_std_allocator_char;
   constructor(...$a) {
     this.__init_std_basic_string_char_std_char_traits_char_std_allocator_char(...$a);
   }
   __init_std_basic_string_char_std_char_traits_char_std_allocator_char(...$a) {
-    this._M_dataplus = new std_basic_string_char_std_char_traits_char_std_allocator_char_Alloc_hider();
-    this._M_dataplus.ctj_a = this; this._M_dataplus.ctj_i = "_M_dataplus";
+    this._M_dataplus$std_basic_string_char_std_char_traits_char_std_allocator_char = new std_basic_string_char_std_char_traits_char_std_allocator_char_Alloc_hider();
+    this._M_dataplus$std_basic_string_char_std_char_traits_char_std_allocator_char.ctj_a = this; this._M_dataplus$std_basic_string_char_std_char_traits_char_std_allocator_char.ctj_i = "_M_dataplus$std_basic_string_char_std_char_traits_char_std_allocator_char";
   }
   __dtor() {
   }
@@ -425,12 +425,12 @@ class std_allocator_char_rebind_char {
   }
 }
 class gnu_cxx_normal_iterator_char_P_std_basic_string_char_std_char_traits_char_std_allocator_char {
-  _M_current;
+  _M_current$gnu_cxx_normal_iterator_char_P_std_basic_string_char_std_char_traits_char_std_allocator_char;
   constructor(...$a) {
     this.__init_gnu_cxx_normal_iterator_char_P_std_basic_string_char_std_char_traits_char_std_allocator_char(...$a);
   }
   __init_gnu_cxx_normal_iterator_char_P_std_basic_string_char_std_char_traits_char_std_allocator_char(...$a) {
-    this._M_current = null;
+    this._M_current$gnu_cxx_normal_iterator_char_P_std_basic_string_char_std_char_traits_char_std_allocator_char = null;
   }
   __dtor() {
   }
@@ -501,13 +501,13 @@ class std_basic_string_wchar_t_std_char_traits_wchar_t_std_allocator_wchar_t_All
   }
 }
 class std_basic_string_wchar_t_std_char_traits_wchar_t_std_allocator_wchar_t {
-  _M_dataplus;
+  _M_dataplus$std_basic_string_wchar_t_std_char_traits_wchar_t_std_allocator_wchar_t;
   constructor(...$a) {
     this.__init_std_basic_string_wchar_t_std_char_traits_wchar_t_std_allocator_wchar_t(...$a);
   }
   __init_std_basic_string_wchar_t_std_char_traits_wchar_t_std_allocator_wchar_t(...$a) {
-    this._M_dataplus = new std_basic_string_wchar_t_std_char_traits_wchar_t_std_allocator_wchar_t_Alloc_hider();
-    this._M_dataplus.ctj_a = this; this._M_dataplus.ctj_i = "_M_dataplus";
+    this._M_dataplus$std_basic_string_wchar_t_std_char_traits_wchar_t_std_allocator_wchar_t = new std_basic_string_wchar_t_std_char_traits_wchar_t_std_allocator_wchar_t_Alloc_hider();
+    this._M_dataplus$std_basic_string_wchar_t_std_char_traits_wchar_t_std_allocator_wchar_t.ctj_a = this; this._M_dataplus$std_basic_string_wchar_t_std_char_traits_wchar_t_std_allocator_wchar_t.ctj_i = "_M_dataplus$std_basic_string_wchar_t_std_char_traits_wchar_t_std_allocator_wchar_t";
   }
   __dtor() {
   }
@@ -519,12 +519,12 @@ class std_allocator_wchar_t_rebind_wchar_t {
   }
 }
 class gnu_cxx_normal_iterator_wchar_t_P_std_basic_string_wchar_t_std_char_traits_wchar_t_std_allocator_wchar_t {
-  _M_current;
+  _M_current$gnu_cxx_normal_iterator_wchar_t_P_std_basic_string_wchar_t_std_char_traits_wchar_t_std_allocator_wchar_t;
   constructor(...$a) {
     this.__init_gnu_cxx_normal_iterator_wchar_t_P_std_basic_string_wchar_t_std_char_traits_wchar_t_std_allocator_wchar_t(...$a);
   }
   __init_gnu_cxx_normal_iterator_wchar_t_P_std_basic_string_wchar_t_std_char_traits_wchar_t_std_allocator_wchar_t(...$a) {
-    this._M_current = null;
+    this._M_current$gnu_cxx_normal_iterator_wchar_t_P_std_basic_string_wchar_t_std_char_traits_wchar_t_std_allocator_wchar_t = null;
   }
   __dtor() {
   }
@@ -595,13 +595,13 @@ class std_basic_string_char16_t_std_char_traits_char16_t_std_allocator_char16_t_
   }
 }
 class std_basic_string_char16_t_std_char_traits_char16_t_std_allocator_char16_t {
-  _M_dataplus;
+  _M_dataplus$std_basic_string_char16_t_std_char_traits_char16_t_std_allocator_char16_t;
   constructor(...$a) {
     this.__init_std_basic_string_char16_t_std_char_traits_char16_t_std_allocator_char16_t(...$a);
   }
   __init_std_basic_string_char16_t_std_char_traits_char16_t_std_allocator_char16_t(...$a) {
-    this._M_dataplus = new std_basic_string_char16_t_std_char_traits_char16_t_std_allocator_char16_t_Alloc_hider();
-    this._M_dataplus.ctj_a = this; this._M_dataplus.ctj_i = "_M_dataplus";
+    this._M_dataplus$std_basic_string_char16_t_std_char_traits_char16_t_std_allocator_char16_t = new std_basic_string_char16_t_std_char_traits_char16_t_std_allocator_char16_t_Alloc_hider();
+    this._M_dataplus$std_basic_string_char16_t_std_char_traits_char16_t_std_allocator_char16_t.ctj_a = this; this._M_dataplus$std_basic_string_char16_t_std_char_traits_char16_t_std_allocator_char16_t.ctj_i = "_M_dataplus$std_basic_string_char16_t_std_char_traits_char16_t_std_allocator_char16_t";
   }
   __dtor() {
   }
@@ -613,12 +613,12 @@ class std_allocator_char16_t_rebind_char16_t {
   }
 }
 class gnu_cxx_normal_iterator_char16_t_P_std_basic_string_char16_t_std_char_traits_char16_t_std_allocator_char16_t {
-  _M_current;
+  _M_current$gnu_cxx_normal_iterator_char16_t_P_std_basic_string_char16_t_std_char_traits_char16_t_std_allocator_char16_t;
   constructor(...$a) {
     this.__init_gnu_cxx_normal_iterator_char16_t_P_std_basic_string_char16_t_std_char_traits_char16_t_std_allocator_char16_t(...$a);
   }
   __init_gnu_cxx_normal_iterator_char16_t_P_std_basic_string_char16_t_std_char_traits_char16_t_std_allocator_char16_t(...$a) {
-    this._M_current = null;
+    this._M_current$gnu_cxx_normal_iterator_char16_t_P_std_basic_string_char16_t_std_char_traits_char16_t_std_allocator_char16_t = null;
   }
   __dtor() {
   }
@@ -689,13 +689,13 @@ class std_basic_string_char32_t_std_char_traits_char32_t_std_allocator_char32_t_
   }
 }
 class std_basic_string_char32_t_std_char_traits_char32_t_std_allocator_char32_t {
-  _M_dataplus;
+  _M_dataplus$std_basic_string_char32_t_std_char_traits_char32_t_std_allocator_char32_t;
   constructor(...$a) {
     this.__init_std_basic_string_char32_t_std_char_traits_char32_t_std_allocator_char32_t(...$a);
   }
   __init_std_basic_string_char32_t_std_char_traits_char32_t_std_allocator_char32_t(...$a) {
-    this._M_dataplus = new std_basic_string_char32_t_std_char_traits_char32_t_std_allocator_char32_t_Alloc_hider();
-    this._M_dataplus.ctj_a = this; this._M_dataplus.ctj_i = "_M_dataplus";
+    this._M_dataplus$std_basic_string_char32_t_std_char_traits_char32_t_std_allocator_char32_t = new std_basic_string_char32_t_std_char_traits_char32_t_std_allocator_char32_t_Alloc_hider();
+    this._M_dataplus$std_basic_string_char32_t_std_char_traits_char32_t_std_allocator_char32_t.ctj_a = this; this._M_dataplus$std_basic_string_char32_t_std_char_traits_char32_t_std_allocator_char32_t.ctj_i = "_M_dataplus$std_basic_string_char32_t_std_char_traits_char32_t_std_allocator_char32_t";
   }
   __dtor() {
   }
@@ -707,12 +707,12 @@ class std_allocator_char32_t_rebind_char32_t {
   }
 }
 class gnu_cxx_normal_iterator_char32_t_P_std_basic_string_char32_t_std_char_traits_char32_t_std_allocator_char32_t {
-  _M_current;
+  _M_current$gnu_cxx_normal_iterator_char32_t_P_std_basic_string_char32_t_std_char_traits_char32_t_std_allocator_char32_t;
   constructor(...$a) {
     this.__init_gnu_cxx_normal_iterator_char32_t_P_std_basic_string_char32_t_std_char_traits_char32_t_std_allocator_char32_t(...$a);
   }
   __init_gnu_cxx_normal_iterator_char32_t_P_std_basic_string_char32_t_std_char_traits_char32_t_std_allocator_char32_t(...$a) {
-    this._M_current = null;
+    this._M_current$gnu_cxx_normal_iterator_char32_t_P_std_basic_string_char32_t_std_char_traits_char32_t_std_allocator_char32_t = null;
   }
   __dtor() {
   }
@@ -1081,7 +1081,7 @@ class gnu_cxx_new_allocator_int {
   }
   allocate(__n, $p1 = {a: [0], i: 0}) {
     let $t0;
-    if ((__n > this.max_size__c())) {
+    if ((__n > gnu_cxx_new_allocator_int.prototype.max_size__c.call(this))) {
       std_throw_bad_alloc();
     }
     return ($t0 = operatornew__unsigned_long(((Math.imul(__n, 4)) >>> 0)), $t0 ? {a: $t0.a, i: $t0.i} : null);
@@ -1129,26 +1129,26 @@ class std_Vector_base_int_std_allocator_int_Vector_impl extends std_allocator_in
   }
 }
 class std_Vector_base_int_std_allocator_int {
-  _M_impl;
+  _M_impl$std_Vector_base_int_std_allocator_int;
   constructor(...$a) {
     this.__init_std_Vector_base_int_std_allocator_int(...$a);
   }
   __init_std_Vector_base_int_std_allocator_int(...$a) {
-    this._M_impl = new std_Vector_base_int_std_allocator_int_Vector_impl();
-    this._M_impl.ctj_a = this; this._M_impl.ctj_i = "_M_impl";
+    this._M_impl$std_Vector_base_int_std_allocator_int = new std_Vector_base_int_std_allocator_int_Vector_impl();
+    this._M_impl$std_Vector_base_int_std_allocator_int.ctj_a = this; this._M_impl$std_Vector_base_int_std_allocator_int.ctj_i = "_M_impl$std_Vector_base_int_std_allocator_int";
   }
   __dtor() {
   }
   _M_get_Tp_allocator() {
-    return {a: this, i: "_M_impl"};
+    return {a: this, i: "_M_impl$std_Vector_base_int_std_allocator_int"};
   }
   _M_allocate(__n) {
     let $t2;
-    return ($t2 = ((__n !== ((0) >>> 0)) ? this._M_impl.allocate(__n, {a: [0], i: 0}) : 0), $t2 ? {a: $t2.a, i: $t2.i} : null);
+    return ($t2 = ((__n !== ((0) >>> 0)) ? gnu_cxx_new_allocator_int.prototype.allocate.call(this._M_impl$std_Vector_base_int_std_allocator_int, __n, {a: [0], i: 0}) : 0), $t2 ? {a: $t2.a, i: $t2.i} : null);
   }
   _M_deallocate(__p, __n) {
     if (__p) {
-      this._M_impl.deallocate((__p ? {a: __p.a, i: __p.i} : null), __n);
+      gnu_cxx_new_allocator_int.prototype.deallocate.call(this._M_impl$std_Vector_base_int_std_allocator_int, (__p ? {a: __p.a, i: __p.i} : null), __n);
     }
   }
 }
@@ -1163,22 +1163,22 @@ class std_vector_int_std_allocator_int extends std_Vector_base_int_std_allocator
     std_Vector_base_int_std_allocator_int.prototype.__dtor.call(this);
   }
   begin() {
-    return new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: this._M_impl, i: "_M_start"});
+    return new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: this._M_impl$std_Vector_base_int_std_allocator_int, i: "_M_start"});
   }
   end() {
-    return new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: this._M_impl, i: "_M_finish"});
+    return new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: this._M_impl$std_Vector_base_int_std_allocator_int, i: "_M_finish"});
   }
   size__c() {
-    return ((((this._M_impl._M_finish ? this._M_impl._M_finish.i : 0) - (this._M_impl._M_start ? this._M_impl._M_start.i : 0))) >>> 0);
+    return ((((this._M_impl$std_Vector_base_int_std_allocator_int._M_finish ? this._M_impl$std_Vector_base_int_std_allocator_int._M_finish.i : 0) - (this._M_impl$std_Vector_base_int_std_allocator_int._M_start ? this._M_impl$std_Vector_base_int_std_allocator_int._M_start.i : 0))) >>> 0);
   }
   max_size__c() {
     return gnu_cxx_alloc_traits_std_allocator_int.max_size(this._M_get_Tp_allocator());
   }
   push_back(__x) {
-    if ((!(this._M_impl._M_finish === this._M_impl._M_end_of_storage || (this._M_impl._M_finish && this._M_impl._M_end_of_storage && this._M_impl._M_finish.a === this._M_impl._M_end_of_storage.a && this._M_impl._M_finish.i === this._M_impl._M_end_of_storage.i)))) {
+    if ((!(this._M_impl$std_Vector_base_int_std_allocator_int._M_finish === this._M_impl$std_Vector_base_int_std_allocator_int._M_end_of_storage || (this._M_impl$std_Vector_base_int_std_allocator_int._M_finish && this._M_impl$std_Vector_base_int_std_allocator_int._M_end_of_storage && this._M_impl$std_Vector_base_int_std_allocator_int._M_finish.a === this._M_impl$std_Vector_base_int_std_allocator_int._M_end_of_storage.a && this._M_impl$std_Vector_base_int_std_allocator_int._M_finish.i === this._M_impl$std_Vector_base_int_std_allocator_int._M_end_of_storage.i)))) {
        {
-        gnu_cxx_alloc_traits_std_allocator_int.construct__gnu_cxx_alloc_traits_std_allocator_int_construct_int({a: this, i: "_M_impl"}, (this._M_impl._M_finish ? {a: this._M_impl._M_finish.a, i: this._M_impl._M_finish.i} : null), __x);
-        ++this._M_impl._M_finish.i;
+        gnu_cxx_alloc_traits_std_allocator_int.construct__gnu_cxx_alloc_traits_std_allocator_int_construct_int({a: this, i: "_M_impl$std_Vector_base_int_std_allocator_int"}, (this._M_impl$std_Vector_base_int_std_allocator_int._M_finish ? {a: this._M_impl$std_Vector_base_int_std_allocator_int._M_finish.a, i: this._M_impl$std_Vector_base_int_std_allocator_int._M_finish.i} : null), __x);
+        ++this._M_impl$std_Vector_base_int_std_allocator_int._M_finish.i;
       }
     }
     else {
@@ -1197,20 +1197,20 @@ class std_vector_int_std_allocator_int extends std_Vector_base_int_std_allocator
   _M_emplace_back_aux__std_vector_int_std_allocator_int_M_emplace_back_aux_int__rv(__args_0) {
     let $t4, $t5, $t6, $t7, $t8;
     let __len = this._M_check_len__c(((1) >>> 0), {a: [118, 101, 99, 116, 111, 114, 58, 58, 95, 77, 95, 101, 109, 112, 108, 97, 99, 101, 95, 98, 97, 99, 107, 95, 97, 117, 120, 0], i: 0});
-    let __new_start = ($t4 = this._M_allocate(__len), $t4 ? {a: $t4.a, i: $t4.i} : null);
+    let __new_start = ($t4 = std_Vector_base_int_std_allocator_int.prototype._M_allocate.call(this, __len), $t4 ? {a: $t4.a, i: $t4.i} : null);
     let __new_finish = (__new_start ? {a: __new_start.a, i: __new_start.i} : null);
     if (true) {
        {
-        gnu_cxx_alloc_traits_std_allocator_int.construct__gnu_cxx_alloc_traits_std_allocator_int_construct_int({a: this, i: "_M_impl"}, ($t5 = ({a: (__new_start ? __new_start.a : null), i: (__new_start ? __new_start.i : 0) + (this.size__c())}), $t5 ? {a: $t5.a, i: $t5.i} : null), std_forward_1_int(__args_0));
+        gnu_cxx_alloc_traits_std_allocator_int.construct__gnu_cxx_alloc_traits_std_allocator_int_construct_int({a: this, i: "_M_impl$std_Vector_base_int_std_allocator_int"}, ($t5 = ({a: (__new_start ? __new_start.a : null), i: (__new_start ? __new_start.i : 0) + (this.size__c())}), $t5 ? {a: $t5.a, i: $t5.i} : null), std_forward_1_int(__args_0));
         __new_finish = null;
-        __new_finish = ($t6 = std_uninitialized_move_if_noexcept_a_int_P_int_P_std_allocator_int((this._M_impl._M_start ? {a: this._M_impl._M_start.a, i: this._M_impl._M_start.i} : null), (this._M_impl._M_finish ? {a: this._M_impl._M_finish.a, i: this._M_impl._M_finish.i} : null), (__new_start ? {a: __new_start.a, i: __new_start.i} : null), this._M_get_Tp_allocator()), $t6 ? {a: $t6.a, i: $t6.i} : null);
+        __new_finish = ($t6 = std_uninitialized_move_if_noexcept_a_int_P_int_P_std_allocator_int((this._M_impl$std_Vector_base_int_std_allocator_int._M_start ? {a: this._M_impl$std_Vector_base_int_std_allocator_int._M_start.a, i: this._M_impl$std_Vector_base_int_std_allocator_int._M_start.i} : null), (this._M_impl$std_Vector_base_int_std_allocator_int._M_finish ? {a: this._M_impl$std_Vector_base_int_std_allocator_int._M_finish.a, i: this._M_impl$std_Vector_base_int_std_allocator_int._M_finish.i} : null), (__new_start ? {a: __new_start.a, i: __new_start.i} : null), this._M_get_Tp_allocator()), $t6 ? {a: $t6.a, i: $t6.i} : null);
         ++__new_finish.i;
       }
     }
     if (false) {
        {
         if ((!__new_finish)) {
-          gnu_cxx_alloc_traits_std_allocator_int.destroy__gnu_cxx_alloc_traits_std_allocator_int_destroy_int({a: this, i: "_M_impl"}, ($t7 = ({a: (__new_start ? __new_start.a : null), i: (__new_start ? __new_start.i : 0) + (this.size__c())}), $t7 ? {a: $t7.a, i: $t7.i} : null));
+          gnu_cxx_alloc_traits_std_allocator_int.destroy__gnu_cxx_alloc_traits_std_allocator_int_destroy_int({a: this, i: "_M_impl$std_Vector_base_int_std_allocator_int"}, ($t7 = ({a: (__new_start ? __new_start.a : null), i: (__new_start ? __new_start.i : 0) + (this.size__c())}), $t7 ? {a: $t7.a, i: $t7.i} : null));
         }
         else {
           std_Destroy_2_int_P_std_allocator_int((__new_start ? {a: __new_start.a, i: __new_start.i} : null), (__new_finish ? {a: __new_finish.a, i: __new_finish.i} : null), this._M_get_Tp_allocator());
@@ -1218,11 +1218,11 @@ class std_vector_int_std_allocator_int extends std_Vector_base_int_std_allocator
         this._M_deallocate((__new_start ? {a: __new_start.a, i: __new_start.i} : null), __len);
       }
     }
-    std_Destroy_2_int_P_std_allocator_int((this._M_impl._M_start ? {a: this._M_impl._M_start.a, i: this._M_impl._M_start.i} : null), (this._M_impl._M_finish ? {a: this._M_impl._M_finish.a, i: this._M_impl._M_finish.i} : null), this._M_get_Tp_allocator());
-    this._M_deallocate((this._M_impl._M_start ? {a: this._M_impl._M_start.a, i: this._M_impl._M_start.i} : null), ((((this._M_impl._M_end_of_storage ? this._M_impl._M_end_of_storage.i : 0) - (this._M_impl._M_start ? this._M_impl._M_start.i : 0))) >>> 0));
-    this._M_impl._M_start = (__new_start ? {a: __new_start.a, i: __new_start.i} : null);
-    this._M_impl._M_finish = (__new_finish ? {a: __new_finish.a, i: __new_finish.i} : null);
-    this._M_impl._M_end_of_storage = ($t8 = ({a: (__new_start ? __new_start.a : null), i: (__new_start ? __new_start.i : 0) + (__len)}), $t8 ? {a: $t8.a, i: $t8.i} : null);
+    std_Destroy_2_int_P_std_allocator_int((this._M_impl$std_Vector_base_int_std_allocator_int._M_start ? {a: this._M_impl$std_Vector_base_int_std_allocator_int._M_start.a, i: this._M_impl$std_Vector_base_int_std_allocator_int._M_start.i} : null), (this._M_impl$std_Vector_base_int_std_allocator_int._M_finish ? {a: this._M_impl$std_Vector_base_int_std_allocator_int._M_finish.a, i: this._M_impl$std_Vector_base_int_std_allocator_int._M_finish.i} : null), this._M_get_Tp_allocator());
+    this._M_deallocate((this._M_impl$std_Vector_base_int_std_allocator_int._M_start ? {a: this._M_impl$std_Vector_base_int_std_allocator_int._M_start.a, i: this._M_impl$std_Vector_base_int_std_allocator_int._M_start.i} : null), ((((this._M_impl$std_Vector_base_int_std_allocator_int._M_end_of_storage ? this._M_impl$std_Vector_base_int_std_allocator_int._M_end_of_storage.i : 0) - (this._M_impl$std_Vector_base_int_std_allocator_int._M_start ? this._M_impl$std_Vector_base_int_std_allocator_int._M_start.i : 0))) >>> 0));
+    this._M_impl$std_Vector_base_int_std_allocator_int._M_start = (__new_start ? {a: __new_start.a, i: __new_start.i} : null);
+    this._M_impl$std_Vector_base_int_std_allocator_int._M_finish = (__new_finish ? {a: __new_finish.a, i: __new_finish.i} : null);
+    this._M_impl$std_Vector_base_int_std_allocator_int._M_end_of_storage = ($t8 = ({a: (__new_start ? __new_start.a : null), i: (__new_start ? __new_start.i : 0) + (__len)}), $t8 ? {a: $t8.a, i: $t8.i} : null);
   }
 }
 class gnu_cxx_alloc_traits_std_allocator_int {
@@ -1230,13 +1230,13 @@ class gnu_cxx_alloc_traits_std_allocator_int {
   __dtor() {
   }
   static construct__gnu_cxx_alloc_traits_std_allocator_int_construct_int(__a, __p, __arg) {
-    (__a.a[__a.i]).construct__gnu_cxx_new_allocator_int_construct_int_int__rv((__p ? {a: __p.a, i: __p.i} : null), __arg);
+    gnu_cxx_new_allocator_int.prototype.construct__gnu_cxx_new_allocator_int_construct_int_int__rv.call(__a.a[__a.i], (__p ? {a: __p.a, i: __p.i} : null), __arg);
   }
   static max_size(__a) {
-    return (__a.a[__a.i]).max_size__c();
+    return gnu_cxx_new_allocator_int.prototype.max_size__c.call(__a.a[__a.i]);
   }
   static destroy__gnu_cxx_alloc_traits_std_allocator_int_destroy_int(__a, __p) {
-    (__a.a[__a.i]).destroy__gnu_cxx_new_allocator_int_destroy_int((__p ? {a: __p.a, i: __p.i} : null));
+    gnu_cxx_new_allocator_int.prototype.destroy__gnu_cxx_new_allocator_int_destroy_int.call(__a.a[__a.i], (__p ? {a: __p.a, i: __p.i} : null));
   }
 }
 class gnu_cxx_alloc_traits_std_allocator_int_rebind_int {
@@ -1250,44 +1250,44 @@ class std_allocator_int_rebind_int {
   }
 }
 class std_initializer_list_int {
-  _M_array;
-  _M_len;
+  _M_array$std_initializer_list_int;
+  _M_len$std_initializer_list_int;
   constructor(...$a) {
     this.__init_std_initializer_list_int(...$a);
   }
   __init_std_initializer_list_int(...$a) {
-    this._M_array = null;
-    this._M_len = 0;
+    this._M_array$std_initializer_list_int = null;
+    this._M_len$std_initializer_list_int = 0;
   }
   __dtor() {
   }
 }
 class gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int {
-  _M_current;
+  _M_current$gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int;
   constructor(...$a) {
     this.__init_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int(...$a);
   }
   __init_gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int(...$a) {
     let $t9, $t10;
     if ($a.length >= 1 && $a.length <= 1 && ($a[0] !== null && typeof $a[0] === "object" && !Array.isArray($a[0]) && $a[0].a !== undefined && $a[0].i !== undefined && $a[0].a[$a[0].i] instanceof gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int)) {
-      this._M_current = ($t9 = (($a[0]).a[($a[0]).i]).base__c(), $t10 = ($t9 ? $t9.a[$t9.i] : null), $t10 && $t10.a !== undefined ? {a: $t10.a, i: $t10.i} : $t10);
+      this._M_current$gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int = ($t9 = gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int.prototype.base__c.call(($a[0]).a[($a[0]).i]), $t10 = ($t9 ? $t9.a[$t9.i] : null), $t10 && $t10.a !== undefined ? {a: $t10.a, i: $t10.i} : $t10);
     }
     else if ($a.length >= 1 && $a.length <= 1 && ($a[0] === null || typeof $a[0] === "object")) {
-      this._M_current = ((($a[0]).a[($a[0]).i]) ? {a: (($a[0]).a[($a[0]).i]).a, i: (($a[0]).a[($a[0]).i]).i} : null);
+      this._M_current$gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int = ((($a[0]).a[($a[0]).i]) ? {a: (($a[0]).a[($a[0]).i]).a, i: (($a[0]).a[($a[0]).i]).i} : null);
     }
     else { throw new Error("no matching constructor"); }
   }
   __dtor() {
   }
   op_mul__c() {
-    return this._M_current;
+    return this._M_current$gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int;
   }
   op_inc() {
-    ++this._M_current.i;
+    ++this._M_current$gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int.i;
     return {a: [this], i: 0};
   }
   base__c() {
-    return {a: this, i: "_M_current"};
+    return {a: this, i: "_M_current$gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int"};
   }
 }
 class std_iterator_traits_int_P {
@@ -1362,64 +1362,64 @@ class std_Identity_int extends std_unary_function_int_int {
   }
 }
 class std_Rb_tree_node_int extends std_Rb_tree_node_base {
-  _M_value_field;
+  _M_value_field$std_Rb_tree_node_int;
   constructor(...$a) {
     super(...[]);
     this.__init_std_Rb_tree_node_int(...$a);
   }
   __init_std_Rb_tree_node_int(...$a) {
     let $t11;
-    this._M_value_field = ($t11 = std_forward_1_int($a[0]), $t11.a[$t11.i]);
+    this._M_value_field$std_Rb_tree_node_int = ($t11 = std_forward_1_int($a[0]), $t11.a[$t11.i]);
   }
   __dtor() {
     std_Rb_tree_node_base.prototype.__dtor.call(this);
   }
 }
 class std_Rb_tree_const_iterator_int {
-  _M_node;
+  _M_node$std_Rb_tree_const_iterator_int;
   constructor(...$a) {
     this.__init_std_Rb_tree_const_iterator_int(...$a);
   }
   __init_std_Rb_tree_const_iterator_int(...$a) {
     if ($a.length >= 1 && $a.length <= 1 && ($a[0] !== null && typeof $a[0] === "object" && !Array.isArray($a[0]) && $a[0].a !== undefined && $a[0].i !== undefined && $a[0].a[$a[0].i] instanceof std_Rb_tree_iterator_int)) {
-      this._M_node = (((($a[0]).a[($a[0]).i])._M_node) ? {a: ((($a[0]).a[($a[0]).i])._M_node).a, i: ((($a[0]).a[($a[0]).i])._M_node).i} : null);
+      this._M_node$std_Rb_tree_const_iterator_int = (((($a[0]).a[($a[0]).i])._M_node$std_Rb_tree_iterator_int) ? {a: ((($a[0]).a[($a[0]).i])._M_node$std_Rb_tree_iterator_int).a, i: ((($a[0]).a[($a[0]).i])._M_node$std_Rb_tree_iterator_int).i} : null);
     }
     else if ($a.length >= 1 && $a.length <= 1 && ($a[0] !== null && typeof $a[0] === "object" && !Array.isArray($a[0]) && $a[0].a !== undefined && $a[0].i !== undefined && $a[0].a[$a[0].i] instanceof std_Rb_tree_const_iterator_int)) {
-      this._M_node = (((($a[0]).a[($a[0]).i])._M_node) ? {a: ((($a[0]).a[($a[0]).i])._M_node).a, i: ((($a[0]).a[($a[0]).i])._M_node).i} : null);
+      this._M_node$std_Rb_tree_const_iterator_int = (((($a[0]).a[($a[0]).i])._M_node$std_Rb_tree_const_iterator_int) ? {a: ((($a[0]).a[($a[0]).i])._M_node$std_Rb_tree_const_iterator_int).a, i: ((($a[0]).a[($a[0]).i])._M_node$std_Rb_tree_const_iterator_int).i} : null);
     }
     else if ($a.length >= 0 && $a.length <= 0) {
-      this._M_node = null;
+      this._M_node$std_Rb_tree_const_iterator_int = null;
     }
     else { throw new Error("no matching constructor"); }
   }
   __dtor() {
   }
   op_mul__c() {
-    return {a: this._M_node.a[this._M_node.i], i: "_M_value_field"};
+    return {a: this._M_node$std_Rb_tree_const_iterator_int.a[this._M_node$std_Rb_tree_const_iterator_int.i], i: "_M_value_field$std_Rb_tree_node_int"};
   }
   op_inc() {
     let $t12;
-    this._M_node = ($t12 = std_Rb_tree_increment__std_Rb_tree_node_baseP((this._M_node ? {a: this._M_node.a, i: this._M_node.i} : null)), $t12 ? {a: $t12.a, i: $t12.i} : null);
+    this._M_node$std_Rb_tree_const_iterator_int = ($t12 = std_Rb_tree_increment__std_Rb_tree_node_baseP((this._M_node$std_Rb_tree_const_iterator_int ? {a: this._M_node$std_Rb_tree_const_iterator_int.a, i: this._M_node$std_Rb_tree_const_iterator_int.i} : null)), $t12 ? {a: $t12.a, i: $t12.i} : null);
     return {a: [this], i: 0};
   }
   op_ne__c(__x) {
-    return (!(this._M_node === ((__x.a[__x.i])._M_node) || (this._M_node && ((__x.a[__x.i])._M_node) && this._M_node.a === ((__x.a[__x.i])._M_node).a && this._M_node.i === ((__x.a[__x.i])._M_node).i)));
+    return (!(this._M_node$std_Rb_tree_const_iterator_int === ((__x.a[__x.i])._M_node$std_Rb_tree_const_iterator_int) || (this._M_node$std_Rb_tree_const_iterator_int && ((__x.a[__x.i])._M_node$std_Rb_tree_const_iterator_int) && this._M_node$std_Rb_tree_const_iterator_int.a === ((__x.a[__x.i])._M_node$std_Rb_tree_const_iterator_int).a && this._M_node$std_Rb_tree_const_iterator_int.i === ((__x.a[__x.i])._M_node$std_Rb_tree_const_iterator_int).i)));
   }
 }
 class std_Rb_tree_iterator_int {
-  _M_node;
+  _M_node$std_Rb_tree_iterator_int;
   constructor(...$a) {
     this.__init_std_Rb_tree_iterator_int(...$a);
   }
   __init_std_Rb_tree_iterator_int(...$a) {
     if ($a.length >= 1 && $a.length <= 1 && ($a[0] !== null && typeof $a[0] === "object" && !Array.isArray($a[0]) && $a[0].a !== undefined && $a[0].i !== undefined && $a[0].a[$a[0].i] instanceof std_Rb_tree_iterator_int)) {
-      this._M_node = (((($a[0]).a[($a[0]).i])._M_node) ? {a: ((($a[0]).a[($a[0]).i])._M_node).a, i: ((($a[0]).a[($a[0]).i])._M_node).i} : null);
+      this._M_node$std_Rb_tree_iterator_int = (((($a[0]).a[($a[0]).i])._M_node$std_Rb_tree_iterator_int) ? {a: ((($a[0]).a[($a[0]).i])._M_node$std_Rb_tree_iterator_int).a, i: ((($a[0]).a[($a[0]).i])._M_node$std_Rb_tree_iterator_int).i} : null);
     }
     else if ($a.length >= 0 && $a.length <= 0) {
-      this._M_node = null;
+      this._M_node$std_Rb_tree_iterator_int = null;
     }
     else if ($a.length >= 1 && $a.length <= 1 && ($a[0] === null || typeof $a[0] === "object")) {
-      this._M_node = (($a[0]) ? {a: ($a[0]).a, i: ($a[0]).i} : null);
+      this._M_node$std_Rb_tree_iterator_int = (($a[0]) ? {a: ($a[0]).a, i: ($a[0]).i} : null);
     }
     else { throw new Error("no matching constructor"); }
   }
@@ -1427,29 +1427,29 @@ class std_Rb_tree_iterator_int {
   }
   op_dec() {
     let $t13;
-    this._M_node = ($t13 = std_Rb_tree_decrement__std_Rb_tree_node_baseP((this._M_node ? {a: this._M_node.a, i: this._M_node.i} : null)), $t13 ? {a: $t13.a, i: $t13.i} : null);
+    this._M_node$std_Rb_tree_iterator_int = ($t13 = std_Rb_tree_decrement__std_Rb_tree_node_baseP((this._M_node$std_Rb_tree_iterator_int ? {a: this._M_node$std_Rb_tree_iterator_int.a, i: this._M_node$std_Rb_tree_iterator_int.i} : null)), $t13 ? {a: $t13.a, i: $t13.i} : null);
     return {a: [this], i: 0};
   }
   op_eq__c(__x) {
-    return (this._M_node === ((__x.a[__x.i])._M_node) || (this._M_node && ((__x.a[__x.i])._M_node) && this._M_node.a === ((__x.a[__x.i])._M_node).a && this._M_node.i === ((__x.a[__x.i])._M_node).i));
+    return (this._M_node$std_Rb_tree_iterator_int === ((__x.a[__x.i])._M_node$std_Rb_tree_iterator_int) || (this._M_node$std_Rb_tree_iterator_int && ((__x.a[__x.i])._M_node$std_Rb_tree_iterator_int) && this._M_node$std_Rb_tree_iterator_int.a === ((__x.a[__x.i])._M_node$std_Rb_tree_iterator_int).a && this._M_node$std_Rb_tree_iterator_int.i === ((__x.a[__x.i])._M_node$std_Rb_tree_iterator_int).i));
   }
 }
 class std_pair_std_Rb_tree_const_iterator_int_bool {
-  first;
-  second;
+  first$std_pair_std_Rb_tree_const_iterator_int_bool;
+  second$std_pair_std_Rb_tree_const_iterator_int_bool;
   constructor(...$a) {
     this.__init_std_pair_std_Rb_tree_const_iterator_int_bool(...$a);
   }
   __init_std_pair_std_Rb_tree_const_iterator_int_bool(...$a) {
     if ($a.length >= 1 && $a.length <= 1 && ($a[0] !== null && typeof $a[0] === "object" && !Array.isArray($a[0]) && $a[0].a !== undefined && $a[0].i !== undefined && $a[0].a[$a[0].i] instanceof std_pair_std_Rb_tree_const_iterator_int_bool)) {
-      this.first = ($a[0] && $a[0].a ? $a[0].a[$a[0].i] : $a[0]).first;
-      this.first.ctj_a = this; this.first.ctj_i = "first";
-      this.second = ($a[0] && $a[0].a ? $a[0].a[$a[0].i] : $a[0]).second;
+      this.first$std_pair_std_Rb_tree_const_iterator_int_bool = ($a[0] && $a[0].a ? $a[0].a[$a[0].i] : $a[0]).first$std_pair_std_Rb_tree_const_iterator_int_bool;
+      this.first$std_pair_std_Rb_tree_const_iterator_int_bool.ctj_a = this; this.first$std_pair_std_Rb_tree_const_iterator_int_bool.ctj_i = "first$std_pair_std_Rb_tree_const_iterator_int_bool";
+      this.second$std_pair_std_Rb_tree_const_iterator_int_bool = ($a[0] && $a[0].a ? $a[0].a[$a[0].i] : $a[0]).second$std_pair_std_Rb_tree_const_iterator_int_bool;
     }
     else if ($a.length >= 2 && $a.length <= 2 && ($a[0] !== null && typeof $a[0] === "object" && !Array.isArray($a[0]) && $a[0].a !== undefined && $a[0].i !== undefined && $a[0].a[$a[0].i] instanceof std_Rb_tree_iterator_int) && ($a[1] === null || typeof $a[1] === "object")) {
-      this.first = new std_Rb_tree_const_iterator_int(std_forward_1_std_Rb_tree_iterator_int($a[0]));
-      this.first.ctj_a = this; this.first.ctj_i = "first";
-      this.second = ($a[1]).a[($a[1]).i];
+      this.first$std_pair_std_Rb_tree_const_iterator_int_bool = new std_Rb_tree_const_iterator_int(std_forward_1_std_Rb_tree_iterator_int($a[0]));
+      this.first$std_pair_std_Rb_tree_const_iterator_int_bool.ctj_a = this; this.first$std_pair_std_Rb_tree_const_iterator_int_bool.ctj_i = "first$std_pair_std_Rb_tree_const_iterator_int_bool";
+      this.second$std_pair_std_Rb_tree_const_iterator_int_bool = ($a[1]).a[($a[1]).i];
     }
     else { throw new Error("no matching constructor"); }
   }
@@ -2306,8 +2306,8 @@ class std_conditional_value1_std_is_convertible_bool_bool_std_is_convertible_std
   }
 }
 class std_pair_int_int {
-  first;
-  second;
+  first$std_pair_int_int;
+  second$std_pair_int_int;
   constructor(...$a) {
     this.__init_std_pair_int_int(...$a);
   }
@@ -2317,12 +2317,12 @@ class std_pair_int_int {
       this.__init_std_pair_int_int({a: [$a[1]], i: 0}, {a: [$a[2]], i: 0}, new std_Index_tuple_value0(), new std_Index_tuple());
     }
     else if ($a.length >= 4 && $a.length <= 4 && ($a[0] !== null && typeof $a[0] === "object" && !Array.isArray($a[0]) && $a[0].a !== undefined && $a[0].i !== undefined && $a[0].a[$a[0].i] instanceof std_tuple_int_R) && !((($a[0] && $a[0].a !== undefined && $a[0].i !== undefined && !Array.isArray($a[0].a)) ? $a[0].a[$a[0].i] : $a[0]) instanceof std_piecewise_construct_t) && ($a[1] !== null && typeof $a[1] === "object" && !Array.isArray($a[1]) && $a[1].a !== undefined && $a[1].i !== undefined && $a[1].a[$a[1].i] instanceof std_tuple) && !((($a[1] && $a[1].a !== undefined && $a[1].i !== undefined && !Array.isArray($a[1].a)) ? $a[1].a[$a[1].i] : $a[1]) instanceof std_tuple_int_R) && $a[2] instanceof std_Index_tuple_value0 && $a[3] instanceof std_Index_tuple) {
-      this.first = ($t14 = std_forward_int_R(std_get_4_value0_int_R($a[0])), $t14.a[$t14.i]);
-      this.second = 0;
+      this.first$std_pair_int_int = ($t14 = std_forward_int_R(std_get_4_value0_int_R($a[0])), $t14.a[$t14.i]);
+      this.second$std_pair_int_int = 0;
     }
     else if ($a.length >= 0 && $a.length <= 0) {
-      this.first = 0;
-      this.second = 0;
+      this.first$std_pair_int_int = 0;
+      this.second$std_pair_int_int = 0;
     }
     else { throw new Error("no matching constructor"); }
   }
@@ -2351,14 +2351,14 @@ class std_binary_function_std_pair_int_int_std_pair_int_int_bool {
   }
 }
 class std_initializer_list_std_pair_int_int {
-  _M_array;
-  _M_len;
+  _M_array$std_initializer_list_std_pair_int_int;
+  _M_len$std_initializer_list_std_pair_int_int;
   constructor(...$a) {
     this.__init_std_initializer_list_std_pair_int_int(...$a);
   }
   __init_std_initializer_list_std_pair_int_int(...$a) {
-    this._M_array = null;
-    this._M_len = 0;
+    this._M_array$std_initializer_list_std_pair_int_int = null;
+    this._M_len$std_initializer_list_std_pair_int_int = 0;
   }
   __dtor() {
   }
@@ -2383,7 +2383,7 @@ class std_Select1st_std_pair_int_int extends std_unary_function_std_pair_int_int
     std_unary_function_std_pair_int_int_int.prototype.__dtor.call(this);
   }
   op_call__c(__x) {
-    return {a: __x.a[__x.i], i: "first"};
+    return {a: __x.a[__x.i], i: "first$std_pair_int_int"};
   }
 }
 class std_allocator_std_pair_int_int_rebind_std_pair_int_int {
@@ -2392,76 +2392,76 @@ class std_allocator_std_pair_int_int_rebind_std_pair_int_int {
   }
 }
 class std_Rb_tree_node_std_pair_int_int extends std_Rb_tree_node_base {
-  _M_value_field;
+  _M_value_field$std_Rb_tree_node_std_pair_int_int;
   constructor(...$a) {
     super(...[]);
     this.__init_std_Rb_tree_node_std_pair_int_int(...$a);
   }
   __init_std_Rb_tree_node_std_pair_int_int(...$a) {
     let $t15, $t16, $t17;
-    this._M_value_field = new std_pair_int_int(($t15 = std_forward_1_std_piecewise_construct_t($a[0]), $t15.a[$t15.i]), ($t16 = std_forward_1_std_tuple_int_R($a[1]), $t16.a[$t16.i]), ($t17 = std_forward_1_std_tuple($a[2]), $t17.a[$t17.i]));
-    this._M_value_field.ctj_a = this; this._M_value_field.ctj_i = "_M_value_field";
+    this._M_value_field$std_Rb_tree_node_std_pair_int_int = new std_pair_int_int(($t15 = std_forward_1_std_piecewise_construct_t($a[0]), $t15.a[$t15.i]), ($t16 = std_forward_1_std_tuple_int_R($a[1]), $t16.a[$t16.i]), ($t17 = std_forward_1_std_tuple($a[2]), $t17.a[$t17.i]));
+    this._M_value_field$std_Rb_tree_node_std_pair_int_int.ctj_a = this; this._M_value_field$std_Rb_tree_node_std_pair_int_int.ctj_i = "_M_value_field$std_Rb_tree_node_std_pair_int_int";
   }
   __dtor() {
     std_Rb_tree_node_base.prototype.__dtor.call(this);
   }
 }
 class std_Rb_tree_iterator_std_pair_int_int {
-  _M_node;
+  _M_node$std_Rb_tree_iterator_std_pair_int_int;
   constructor(...$a) {
     this.__init_std_Rb_tree_iterator_std_pair_int_int(...$a);
   }
   __init_std_Rb_tree_iterator_std_pair_int_int(...$a) {
     if ($a.length >= 1 && $a.length <= 1 && ($a[0] !== null && typeof $a[0] === "object" && !Array.isArray($a[0]) && $a[0].a !== undefined && $a[0].i !== undefined && $a[0].a[$a[0].i] instanceof std_Rb_tree_iterator_std_pair_int_int)) {
-      this._M_node = (((($a[0]).a[($a[0]).i])._M_node) ? {a: ((($a[0]).a[($a[0]).i])._M_node).a, i: ((($a[0]).a[($a[0]).i])._M_node).i} : null);
+      this._M_node$std_Rb_tree_iterator_std_pair_int_int = (((($a[0]).a[($a[0]).i])._M_node$std_Rb_tree_iterator_std_pair_int_int) ? {a: ((($a[0]).a[($a[0]).i])._M_node$std_Rb_tree_iterator_std_pair_int_int).a, i: ((($a[0]).a[($a[0]).i])._M_node$std_Rb_tree_iterator_std_pair_int_int).i} : null);
     }
     else if ($a.length >= 1 && $a.length <= 1 && ($a[0] === null || typeof $a[0] === "object")) {
-      this._M_node = (($a[0]) ? {a: ($a[0]).a, i: ($a[0]).i} : null);
+      this._M_node$std_Rb_tree_iterator_std_pair_int_int = (($a[0]) ? {a: ($a[0]).a, i: ($a[0]).i} : null);
     }
     else { throw new Error("no matching constructor"); }
   }
   __dtor() {
   }
   op_mul__c() {
-    return {a: this._M_node.a[this._M_node.i], i: "_M_value_field"};
+    return {a: this._M_node$std_Rb_tree_iterator_std_pair_int_int.a[this._M_node$std_Rb_tree_iterator_std_pair_int_int.i], i: "_M_value_field$std_Rb_tree_node_std_pair_int_int"};
   }
   op_inc() {
     let $t18;
-    this._M_node = ($t18 = std_Rb_tree_increment__std_Rb_tree_node_baseP((this._M_node ? {a: this._M_node.a, i: this._M_node.i} : null)), $t18 ? {a: $t18.a, i: $t18.i} : null);
+    this._M_node$std_Rb_tree_iterator_std_pair_int_int = ($t18 = std_Rb_tree_increment__std_Rb_tree_node_baseP((this._M_node$std_Rb_tree_iterator_std_pair_int_int ? {a: this._M_node$std_Rb_tree_iterator_std_pair_int_int.a, i: this._M_node$std_Rb_tree_iterator_std_pair_int_int.i} : null)), $t18 ? {a: $t18.a, i: $t18.i} : null);
     return {a: [this], i: 0};
   }
   op_dec() {
     let $t19;
-    this._M_node = ($t19 = std_Rb_tree_decrement__std_Rb_tree_node_baseP((this._M_node ? {a: this._M_node.a, i: this._M_node.i} : null)), $t19 ? {a: $t19.a, i: $t19.i} : null);
+    this._M_node$std_Rb_tree_iterator_std_pair_int_int = ($t19 = std_Rb_tree_decrement__std_Rb_tree_node_baseP((this._M_node$std_Rb_tree_iterator_std_pair_int_int ? {a: this._M_node$std_Rb_tree_iterator_std_pair_int_int.a, i: this._M_node$std_Rb_tree_iterator_std_pair_int_int.i} : null)), $t19 ? {a: $t19.a, i: $t19.i} : null);
     return {a: [this], i: 0};
   }
   op_eq__c(__x) {
-    return (this._M_node === ((__x.a[__x.i])._M_node) || (this._M_node && ((__x.a[__x.i])._M_node) && this._M_node.a === ((__x.a[__x.i])._M_node).a && this._M_node.i === ((__x.a[__x.i])._M_node).i));
+    return (this._M_node$std_Rb_tree_iterator_std_pair_int_int === ((__x.a[__x.i])._M_node$std_Rb_tree_iterator_std_pair_int_int) || (this._M_node$std_Rb_tree_iterator_std_pair_int_int && ((__x.a[__x.i])._M_node$std_Rb_tree_iterator_std_pair_int_int) && this._M_node$std_Rb_tree_iterator_std_pair_int_int.a === ((__x.a[__x.i])._M_node$std_Rb_tree_iterator_std_pair_int_int).a && this._M_node$std_Rb_tree_iterator_std_pair_int_int.i === ((__x.a[__x.i])._M_node$std_Rb_tree_iterator_std_pair_int_int).i));
   }
   op_ne__c(__x) {
-    return (!(this._M_node === ((__x.a[__x.i])._M_node) || (this._M_node && ((__x.a[__x.i])._M_node) && this._M_node.a === ((__x.a[__x.i])._M_node).a && this._M_node.i === ((__x.a[__x.i])._M_node).i)));
+    return (!(this._M_node$std_Rb_tree_iterator_std_pair_int_int === ((__x.a[__x.i])._M_node$std_Rb_tree_iterator_std_pair_int_int) || (this._M_node$std_Rb_tree_iterator_std_pair_int_int && ((__x.a[__x.i])._M_node$std_Rb_tree_iterator_std_pair_int_int) && this._M_node$std_Rb_tree_iterator_std_pair_int_int.a === ((__x.a[__x.i])._M_node$std_Rb_tree_iterator_std_pair_int_int).a && this._M_node$std_Rb_tree_iterator_std_pair_int_int.i === ((__x.a[__x.i])._M_node$std_Rb_tree_iterator_std_pair_int_int).i)));
   }
   op_assign(o) {
-    this._M_node = (((o.a[o.i])._M_node) ? {a: ((o.a[o.i])._M_node).a, i: ((o.a[o.i])._M_node).i} : null);
+    this._M_node$std_Rb_tree_iterator_std_pair_int_int = (((o.a[o.i])._M_node$std_Rb_tree_iterator_std_pair_int_int) ? {a: ((o.a[o.i])._M_node$std_Rb_tree_iterator_std_pair_int_int).a, i: ((o.a[o.i])._M_node$std_Rb_tree_iterator_std_pair_int_int).i} : null);
     return {a: [this], i: 0};
   }
 }
 class std_pair_std_Rb_tree_iterator_int_bool {
-  first;
-  second;
+  first$std_pair_std_Rb_tree_iterator_int_bool;
+  second$std_pair_std_Rb_tree_iterator_int_bool;
   constructor(...$a) {
     this.__init_std_pair_std_Rb_tree_iterator_int_bool(...$a);
   }
   __init_std_pair_std_Rb_tree_iterator_int_bool(...$a) {
     if ($a.length >= 2 && $a.length <= 2 && ($a[0] !== null && typeof $a[0] === "object" && !Array.isArray($a[0]) && $a[0].a !== undefined && $a[0].i !== undefined && $a[0].a[$a[0].i] instanceof std_Rb_tree_iterator_int) && ($a[1] === null || typeof $a[1] === "object")) {
-      this.first = new std_Rb_tree_iterator_int($a[0]);
-      this.first.ctj_a = this; this.first.ctj_i = "first";
-      this.second = ($a[1]).a[($a[1]).i];
+      this.first$std_pair_std_Rb_tree_iterator_int_bool = new std_Rb_tree_iterator_int($a[0]);
+      this.first$std_pair_std_Rb_tree_iterator_int_bool.ctj_a = this; this.first$std_pair_std_Rb_tree_iterator_int_bool.ctj_i = "first$std_pair_std_Rb_tree_iterator_int_bool";
+      this.second$std_pair_std_Rb_tree_iterator_int_bool = ($a[1]).a[($a[1]).i];
     }
     else if ($a.length >= 1 && $a.length <= 1 && ($a[0] !== null && typeof $a[0] === "object" && !Array.isArray($a[0]) && $a[0].a !== undefined && $a[0].i !== undefined && $a[0].a[$a[0].i] instanceof std_pair_std_Rb_tree_iterator_int_bool)) {
-      this.first = ($a[0] && $a[0].a ? $a[0].a[$a[0].i] : $a[0]).first;
-      this.first.ctj_a = this; this.first.ctj_i = "first";
-      this.second = ($a[0] && $a[0].a ? $a[0].a[$a[0].i] : $a[0]).second;
+      this.first$std_pair_std_Rb_tree_iterator_int_bool = ($a[0] && $a[0].a ? $a[0].a[$a[0].i] : $a[0]).first$std_pair_std_Rb_tree_iterator_int_bool;
+      this.first$std_pair_std_Rb_tree_iterator_int_bool.ctj_a = this; this.first$std_pair_std_Rb_tree_iterator_int_bool.ctj_i = "first$std_pair_std_Rb_tree_iterator_int_bool";
+      this.second$std_pair_std_Rb_tree_iterator_int_bool = ($a[0] && $a[0].a ? $a[0].a[$a[0].i] : $a[0]).second$std_pair_std_Rb_tree_iterator_int_bool;
     }
     else { throw new Error("no matching constructor"); }
   }
@@ -3028,17 +3028,17 @@ class std_conditional_value0_std_integral_constant_bool_value0_std_is_empty_non_
   }
 }
 class std_Head_base_value0_int_R_value0 {
-  _M_head_impl;
+  _M_head_impl$std_Head_base_value0_int_R_value0;
   constructor(...$a) {
     this.__init_std_Head_base_value0_int_R_value0(...$a);
   }
   __init_std_Head_base_value0_int_R_value0(...$a) {
-    this._M_head_impl = $a[0];
+    this._M_head_impl$std_Head_base_value0_int_R_value0 = $a[0];
   }
   __dtor() {
   }
   static _M_head(__b) {
-    return (__b.a[__b.i])._M_head_impl;
+    return (__b.a[__b.i])._M_head_impl$std_Head_base_value0_int_R_value0;
   }
 }
 class std_Tuple_impl_value0_int_R extends std_Tuple_impl_value1 {
@@ -3086,23 +3086,23 @@ class std_tuple {
   }
 }
 class std_Rb_tree_const_iterator_std_pair_int_int {
-  _M_node;
+  _M_node$std_Rb_tree_const_iterator_std_pair_int_int;
   constructor(...$a) {
     this.__init_std_Rb_tree_const_iterator_std_pair_int_int(...$a);
   }
   __init_std_Rb_tree_const_iterator_std_pair_int_int(...$a) {
     if ($a.length >= 1 && $a.length <= 1 && ($a[0] !== null && typeof $a[0] === "object" && !Array.isArray($a[0]) && $a[0].a !== undefined && $a[0].i !== undefined && $a[0].a[$a[0].i] instanceof std_Rb_tree_iterator_std_pair_int_int)) {
-      this._M_node = (((($a[0]).a[($a[0]).i])._M_node) ? {a: ((($a[0]).a[($a[0]).i])._M_node).a, i: ((($a[0]).a[($a[0]).i])._M_node).i} : null);
+      this._M_node$std_Rb_tree_const_iterator_std_pair_int_int = (((($a[0]).a[($a[0]).i])._M_node$std_Rb_tree_iterator_std_pair_int_int) ? {a: ((($a[0]).a[($a[0]).i])._M_node$std_Rb_tree_iterator_std_pair_int_int).a, i: ((($a[0]).a[($a[0]).i])._M_node$std_Rb_tree_iterator_std_pair_int_int).i} : null);
     }
     else if ($a.length >= 1 && $a.length <= 1 && ($a[0] !== null && typeof $a[0] === "object" && !Array.isArray($a[0]) && $a[0].a !== undefined && $a[0].i !== undefined && $a[0].a[$a[0].i] instanceof std_Rb_tree_const_iterator_std_pair_int_int)) {
-      this._M_node = (((($a[0]).a[($a[0]).i])._M_node) ? {a: ((($a[0]).a[($a[0]).i])._M_node).a, i: ((($a[0]).a[($a[0]).i])._M_node).i} : null);
+      this._M_node$std_Rb_tree_const_iterator_std_pair_int_int = (((($a[0]).a[($a[0]).i])._M_node$std_Rb_tree_const_iterator_std_pair_int_int) ? {a: ((($a[0]).a[($a[0]).i])._M_node$std_Rb_tree_const_iterator_std_pair_int_int).a, i: ((($a[0]).a[($a[0]).i])._M_node$std_Rb_tree_const_iterator_std_pair_int_int).i} : null);
     }
     else { throw new Error("no matching constructor"); }
   }
   __dtor() {
   }
   _M_const_cast__c() {
-    return new std_Rb_tree_iterator_std_pair_int_int((this._M_node ? {a: this._M_node.a, i: this._M_node.i} : null));
+    return new std_Rb_tree_iterator_std_pair_int_int((this._M_node$std_Rb_tree_const_iterator_std_pair_int_int ? {a: this._M_node$std_Rb_tree_const_iterator_std_pair_int_int.a, i: this._M_node$std_Rb_tree_const_iterator_std_pair_int_int.i} : null));
   }
 }
 class std_remove_reference_int {
@@ -3111,28 +3111,28 @@ class std_remove_reference_int {
   }
 }
 class std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P {
-  first;
-  second;
+  first$std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P;
+  second$std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P;
   constructor(...$a) {
     this.__init_std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P(...$a);
   }
   __init_std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P(...$a) {
     let $t20, $t21, $t22, $t23, $t24, $t25, $t26, $t27;
     if ($a.length >= 1 && $a.length <= 1 && ($a[0] !== null && typeof $a[0] === "object" && !Array.isArray($a[0]) && $a[0].a !== undefined && $a[0].i !== undefined && $a[0].a[$a[0].i] instanceof std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P)) {
-      this.first = ($a[0] && $a[0].a ? $a[0].a[$a[0].i] : $a[0]).first;
-      this.second = ($a[0] && $a[0].a ? $a[0].a[$a[0].i] : $a[0]).second;
+      this.first$std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P = ($a[0] && $a[0].a ? $a[0].a[$a[0].i] : $a[0]).first$std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P;
+      this.second$std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P = ($a[0] && $a[0].a ? $a[0].a[$a[0].i] : $a[0]).second$std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P;
     }
     else if ($a.length >= 2 && $a.length <= 2 && ($a[0] === null || typeof $a[0] === "object") && ($a[1] === null || typeof $a[1] === "object")) {
-      this.first = ((($a[0]).a[($a[0]).i]) ? {a: (($a[0]).a[($a[0]).i]).a, i: (($a[0]).a[($a[0]).i]).i} : null);
-      this.second = ((($a[1]).a[($a[1]).i]) ? {a: (($a[1]).a[($a[1]).i]).a, i: (($a[1]).a[($a[1]).i]).i} : null);
+      this.first$std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P = ((($a[0]).a[($a[0]).i]) ? {a: (($a[0]).a[($a[0]).i]).a, i: (($a[0]).a[($a[0]).i]).i} : null);
+      this.second$std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P = ((($a[1]).a[($a[1]).i]) ? {a: (($a[1]).a[($a[1]).i]).a, i: (($a[1]).a[($a[1]).i]).i} : null);
     }
     else if ($a.length >= 2 && $a.length <= 2 && ($a[0] === null || typeof $a[0] === "object") && ($a[1] === null || typeof $a[1] === "object")) {
-      this.first = ($t20 = std_forward_1_std_Rb_tree_node_int_P($a[0]), $t21 = ($t20 ? $t20.a[$t20.i] : null), $t21 && $t21.a !== undefined ? {a: $t21.a, i: $t21.i} : $t21);
-      this.second = ($t22 = std_forward_1_std_Rb_tree_node_int_P($a[1]), $t23 = ($t22 ? $t22.a[$t22.i] : null), $t23 && $t23.a !== undefined ? {a: $t23.a, i: $t23.i} : $t23);
+      this.first$std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P = ($t20 = std_forward_1_std_Rb_tree_node_int_P($a[0]), $t21 = ($t20 ? $t20.a[$t20.i] : null), $t21 && $t21.a !== undefined ? {a: $t21.a, i: $t21.i} : $t21);
+      this.second$std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P = ($t22 = std_forward_1_std_Rb_tree_node_int_P($a[1]), $t23 = ($t22 ? $t22.a[$t22.i] : null), $t23 && $t23.a !== undefined ? {a: $t23.a, i: $t23.i} : $t23);
     }
     else if ($a.length >= 2 && $a.length <= 2 && ($a[0] === null || typeof $a[0] === "object") && ($a[1] === null || typeof $a[1] === "object")) {
-      this.first = ($t24 = std_forward_1_std_Rb_tree_node_std_pair_int_int_P($a[0]), $t25 = ($t24 ? $t24.a[$t24.i] : null), $t25 && $t25.a !== undefined ? {a: $t25.a, i: $t25.i} : $t25);
-      this.second = ($t26 = std_forward_1_std_Rb_tree_node_std_pair_int_int_P($a[1]), $t27 = ($t26 ? $t26.a[$t26.i] : null), $t27 && $t27.a !== undefined ? {a: $t27.a, i: $t27.i} : $t27);
+      this.first$std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P = ($t24 = std_forward_1_std_Rb_tree_node_std_pair_int_int_P($a[0]), $t25 = ($t24 ? $t24.a[$t24.i] : null), $t25 && $t25.a !== undefined ? {a: $t25.a, i: $t25.i} : $t25);
+      this.second$std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P = ($t26 = std_forward_1_std_Rb_tree_node_std_pair_int_int_P($a[1]), $t27 = ($t26 ? $t26.a[$t26.i] : null), $t27 && $t27.a !== undefined ? {a: $t27.a, i: $t27.i} : $t27);
     }
     else { throw new Error("no matching constructor"); }
   }
@@ -3603,7 +3603,7 @@ class gnu_cxx_new_allocator_std_Rb_tree_node_int {
   }
   allocate(__n, $p1 = {a: [0], i: 0}) {
     let $t28;
-    if ((__n > this.max_size__c())) {
+    if ((__n > gnu_cxx_new_allocator_std_Rb_tree_node_int.prototype.max_size__c.call(this))) {
       std_throw_bad_alloc();
     }
     return ($t28 = operatornew__unsigned_long(((Math.imul(__n, 20)) >>> 0)), $t28 ? {a: $t28.a, i: $t28.i} : null);
@@ -3630,64 +3630,64 @@ class std_allocator_std_Rb_tree_node_int extends gnu_cxx_new_allocator_std_Rb_tr
   }
 }
 class std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int_Rb_tree_impl_std_less_int_value1 extends std_allocator_std_Rb_tree_node_int {
-  _M_key_compare;
-  _M_header;
-  _M_node_count;
+  _M_key_compare$std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int_Rb_tree_impl_std_less_int_value1;
+  _M_header$std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int_Rb_tree_impl_std_less_int_value1;
+  _M_node_count$std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int_Rb_tree_impl_std_less_int_value1;
   constructor(...$a) {
     super(...[]);
     this.__init_std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int_Rb_tree_impl_std_less_int_value1(...$a);
   }
   __init_std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int_Rb_tree_impl_std_less_int_value1(...$a) {
-    this._M_key_compare = new std_less_int();
-    this._M_key_compare.ctj_a = this; this._M_key_compare.ctj_i = "_M_key_compare";
-    this._M_header = new std_Rb_tree_node_base();
-    this._M_header.ctj_a = this; this._M_header.ctj_i = "_M_header";
-    this._M_node_count = ((0) >>> 0);
+    this._M_key_compare$std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int_Rb_tree_impl_std_less_int_value1 = new std_less_int();
+    this._M_key_compare$std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int_Rb_tree_impl_std_less_int_value1.ctj_a = this; this._M_key_compare$std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int_Rb_tree_impl_std_less_int_value1.ctj_i = "_M_key_compare$std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int_Rb_tree_impl_std_less_int_value1";
+    this._M_header$std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int_Rb_tree_impl_std_less_int_value1 = new std_Rb_tree_node_base();
+    this._M_header$std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int_Rb_tree_impl_std_less_int_value1.ctj_a = this; this._M_header$std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int_Rb_tree_impl_std_less_int_value1.ctj_i = "_M_header$std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int_Rb_tree_impl_std_less_int_value1";
+    this._M_node_count$std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int_Rb_tree_impl_std_less_int_value1 = ((0) >>> 0);
     this._M_initialize();
   }
   __dtor() {
     std_allocator_std_Rb_tree_node_int.prototype.__dtor.call(this);
   }
   _M_initialize() {
-    this._M_header._M_color = 0;
-    this._M_header._M_parent = null;
-    this._M_header._M_left = (({a: this, i: "_M_header"}) ? {a: ({a: this, i: "_M_header"}).a, i: ({a: this, i: "_M_header"}).i} : null);
-    this._M_header._M_right = (({a: this, i: "_M_header"}) ? {a: ({a: this, i: "_M_header"}).a, i: ({a: this, i: "_M_header"}).i} : null);
+    this._M_header$std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int_Rb_tree_impl_std_less_int_value1._M_color = 0;
+    this._M_header$std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int_Rb_tree_impl_std_less_int_value1._M_parent = null;
+    this._M_header$std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int_Rb_tree_impl_std_less_int_value1._M_left = (({a: this, i: "_M_header$std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int_Rb_tree_impl_std_less_int_value1"}) ? {a: ({a: this, i: "_M_header$std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int_Rb_tree_impl_std_less_int_value1"}).a, i: ({a: this, i: "_M_header$std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int_Rb_tree_impl_std_less_int_value1"}).i} : null);
+    this._M_header$std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int_Rb_tree_impl_std_less_int_value1._M_right = (({a: this, i: "_M_header$std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int_Rb_tree_impl_std_less_int_value1"}) ? {a: ({a: this, i: "_M_header$std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int_Rb_tree_impl_std_less_int_value1"}).a, i: ({a: this, i: "_M_header$std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int_Rb_tree_impl_std_less_int_value1"}).i} : null);
   }
 }
 class std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int {
-  _M_impl;
+  _M_impl$std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int;
   constructor(...$a) {
     this.__init_std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int(...$a);
   }
   __init_std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int(...$a) {
-    this._M_impl = new std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int_Rb_tree_impl_std_less_int_value1();
-    this._M_impl.ctj_a = this; this._M_impl.ctj_i = "_M_impl";
+    this._M_impl$std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int = new std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int_Rb_tree_impl_std_less_int_value1();
+    this._M_impl$std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int.ctj_a = this; this._M_impl$std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int.ctj_i = "_M_impl$std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int";
   }
   __dtor() {
   }
   _M_get_Node_allocator() {
-    return {a: this, i: "_M_impl"};
+    return {a: this, i: "_M_impl$std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int"};
   }
   _M_get_node() {
     let $t29;
-    return ($t29 = gnu_cxx_new_allocator_std_Rb_tree_node_int.prototype.allocate.call(this._M_impl, ((1) >>> 0), {a: [0], i: 0}), $t29 ? {a: $t29.a, i: $t29.i} : null);
+    return ($t29 = gnu_cxx_new_allocator_std_Rb_tree_node_int.prototype.allocate.call(this._M_impl$std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int, ((1) >>> 0), {a: [0], i: 0}), $t29 ? {a: $t29.a, i: $t29.i} : null);
   }
   _M_put_node(__p) {
-    gnu_cxx_new_allocator_std_Rb_tree_node_int.prototype.deallocate.call(this._M_impl, (__p ? {a: __p.a, i: __p.i} : null), ((1) >>> 0));
+    gnu_cxx_new_allocator_std_Rb_tree_node_int.prototype.deallocate.call(this._M_impl$std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int, (__p ? {a: __p.a, i: __p.i} : null), ((1) >>> 0));
   }
   _M_begin() {
-    return (this._M_impl._M_header._M_parent ? {a: this._M_impl._M_header._M_parent.a, i: this._M_impl._M_header._M_parent.i} : null);
+    return (this._M_impl$std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int._M_header$std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int_Rb_tree_impl_std_less_int_value1._M_parent ? {a: this._M_impl$std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int._M_header$std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int_Rb_tree_impl_std_less_int_value1._M_parent.a, i: this._M_impl$std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int._M_header$std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int_Rb_tree_impl_std_less_int_value1._M_parent.i} : null);
   }
   _M_end() {
-    return (({a: this._M_impl, i: "_M_header"}) ? {a: ({a: this._M_impl, i: "_M_header"}).a, i: ({a: this._M_impl, i: "_M_header"}).i} : null);
+    return (({a: this._M_impl$std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int, i: "_M_header$std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int_Rb_tree_impl_std_less_int_value1"}) ? {a: ({a: this._M_impl$std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int, i: "_M_header$std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int_Rb_tree_impl_std_less_int_value1"}).a, i: ({a: this._M_impl$std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int, i: "_M_header$std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int_Rb_tree_impl_std_less_int_value1"}).i} : null);
   }
   static _S_value(...$a) {
     if ($a.length >= 1 && $a.length <= 1 && ($a[0] === null || typeof $a[0] === "object")) {
-      return {a: ($a[0]).a[($a[0]).i], i: "_M_value_field"};
+      return {a: ($a[0]).a[($a[0]).i], i: "_M_value_field$std_Rb_tree_node_int"};
     }
     else if ($a.length >= 1 && $a.length <= 1 && ($a[0] === null || typeof $a[0] === "object")) {
-      return {a: ($a[0]).a[($a[0]).i], i: "_M_value_field"};
+      return {a: ($a[0]).a[($a[0]).i], i: "_M_value_field$std_Rb_tree_node_int"};
     }
     else { throw new Error("no matching overload"); }
   }
@@ -3715,7 +3715,7 @@ class std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int {
     while ((__x !== null)) {
        {
         __y = (__x ? {a: __x.a, i: __x.i} : null);
-        __comp = this._M_impl._M_key_compare.op_call__c(__k, std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int._S_key((__x ? {a: __x.a, i: __x.i} : null)));
+        __comp = std_less_int.prototype.op_call__c.call(this._M_impl$std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int._M_key_compare$std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int_Rb_tree_impl_std_less_int_value1, __k, std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int._S_key((__x ? {a: __x.a, i: __x.i} : null)));
         __x = ($t34 = (__comp ? std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int._S_left((__x ? {a: __x.a, i: __x.i} : null)) : std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int._S_right((__x ? {a: __x.a, i: __x.i} : null))), $t34 ? {a: $t34.a, i: $t34.i} : null);
       }
     }
@@ -3730,31 +3730,31 @@ class std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int {
         }
       }
     }
-    if (this._M_impl._M_key_compare.op_call__c(std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int._S_key((__j._M_node ? {a: __j._M_node.a, i: __j._M_node.i} : null)), __k)) {
+    if (std_less_int.prototype.op_call__c.call(this._M_impl$std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int._M_key_compare$std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int_Rb_tree_impl_std_less_int_value1, std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int._S_key((__j._M_node$std_Rb_tree_iterator_int ? {a: __j._M_node$std_Rb_tree_iterator_int.a, i: __j._M_node$std_Rb_tree_iterator_int.i} : null)), __k)) {
       return new std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P({a: [__x], i: 0}, {a: [__y], i: 0});
     }
-    return new std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P({a: __j, i: "_M_node"}, {a: [null], i: 0});
+    return new std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P({a: __j, i: "_M_node$std_Rb_tree_iterator_int"}, {a: [null], i: 0});
   }
   begin() {
-    return new std_Rb_tree_iterator_int((this._M_impl._M_header._M_left ? {a: this._M_impl._M_header._M_left.a, i: this._M_impl._M_header._M_left.i} : null));
+    return new std_Rb_tree_iterator_int((this._M_impl$std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int._M_header$std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int_Rb_tree_impl_std_less_int_value1._M_left ? {a: this._M_impl$std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int._M_header$std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int_Rb_tree_impl_std_less_int_value1._M_left.a, i: this._M_impl$std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int._M_header$std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int_Rb_tree_impl_std_less_int_value1._M_left.i} : null));
   }
   end() {
-    return new std_Rb_tree_iterator_int((({a: this._M_impl, i: "_M_header"}) ? {a: ({a: this._M_impl, i: "_M_header"}).a, i: ({a: this._M_impl, i: "_M_header"}).i} : null));
+    return new std_Rb_tree_iterator_int((({a: this._M_impl$std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int, i: "_M_header$std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int_Rb_tree_impl_std_less_int_value1"}) ? {a: ({a: this._M_impl$std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int, i: "_M_header$std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int_Rb_tree_impl_std_less_int_value1"}).a, i: ({a: this._M_impl$std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int, i: "_M_header$std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int_Rb_tree_impl_std_less_int_value1"}).i} : null));
   }
   _M_insert_unique__std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int_M_insert_unique_int__rv(__v) {
     let $t35;
     let __res = this._M_get_insert_unique_pos((($t35 = new std_Identity_int(), $t35)).op_call__c(__v));
-    if (__res.second) {
-      return new std_pair_std_Rb_tree_iterator_int_bool({a: [this._M_insert___std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int_M_insert_int__rv((__res.first ? {a: __res.first.a, i: __res.first.i} : null), (__res.second ? {a: __res.second.a, i: __res.second.i} : null), std_forward_1_int(__v))], i: 0}, {a: [true], i: 0});
+    if (__res.second$std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P) {
+      return new std_pair_std_Rb_tree_iterator_int_bool({a: [this._M_insert___std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int_M_insert_int__rv((__res.first$std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P ? {a: __res.first$std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P.a, i: __res.first$std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P.i} : null), (__res.second$std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P ? {a: __res.second$std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P.a, i: __res.second$std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P.i} : null), std_forward_1_int(__v))], i: 0}, {a: [true], i: 0});
     }
-    return new std_pair_std_Rb_tree_iterator_int_bool({a: [new std_Rb_tree_iterator_int((__res.first ? {a: __res.first.a, i: __res.first.i} : null))], i: 0}, {a: [false], i: 0});
+    return new std_pair_std_Rb_tree_iterator_int_bool({a: [new std_Rb_tree_iterator_int((__res.first$std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P ? {a: __res.first$std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P.a, i: __res.first$std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P.i} : null))], i: 0}, {a: [false], i: 0});
   }
   _M_insert___std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int_M_insert_int__rv(__x, __p, __v) {
     let $t36, $t37, $t38, $t39;
-    let __insert_left = (((__x !== null) || ($t37 = ($t36 = this._M_end(), $t36), (__p === $t37 || (__p && $t37 && __p.a === $t37.a && __p.i === $t37.i)))) || this._M_impl._M_key_compare.op_call__c((($t38 = new std_Identity_int(), $t38)).op_call__c(__v), std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int._S_key((__p ? {a: __p.a, i: __p.i} : null))));
+    let __insert_left = (((__x !== null) || ($t37 = ($t36 = this._M_end(), $t36), (__p === $t37 || (__p && $t37 && __p.a === $t37.a && __p.i === $t37.i)))) || std_less_int.prototype.op_call__c.call(this._M_impl$std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int._M_key_compare$std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int_Rb_tree_impl_std_less_int_value1, (($t38 = new std_Identity_int(), $t38)).op_call__c(__v), std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int._S_key((__p ? {a: __p.a, i: __p.i} : null))));
     let __z = ($t39 = this._M_create_node__std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int_M_create_node_int__rv(std_forward_1_int(__v)), $t39 ? {a: $t39.a, i: $t39.i} : null);
-    std_Rb_tree_insert_and_rebalance(__insert_left, (__z ? {a: __z.a, i: __z.i} : null), (__p ? {a: __p.a, i: __p.i} : null), {a: this._M_impl, i: "_M_header"});
-    (this._M_impl._M_node_count = ((this._M_impl._M_node_count + 1) >>> 0));
+    std_Rb_tree_insert_and_rebalance(__insert_left, (__z ? {a: __z.a, i: __z.i} : null), (__p ? {a: __p.a, i: __p.i} : null), {a: this._M_impl$std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int, i: "_M_header$std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int_Rb_tree_impl_std_less_int_value1"});
+    (this._M_impl$std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int._M_node_count$std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int_Rb_tree_impl_std_less_int_value1 = ((this._M_impl$std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int._M_node_count$std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int_Rb_tree_impl_std_less_int_value1 + 1) >>> 0));
     return new std_Rb_tree_iterator_int((__z ? {a: __z.a, i: __z.i} : null));
   }
   _M_create_node__std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int_M_create_node_int__rv(__args_0) {
@@ -3774,25 +3774,25 @@ class std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int {
   }
 }
 class std_set_int_std_less_int_std_allocator_int {
-  _M_t;
+  _M_t$std_set_int_std_less_int_std_allocator_int;
   constructor(...$a) {
     this.__init_std_set_int_std_less_int_std_allocator_int(...$a);
   }
   __init_std_set_int_std_less_int_std_allocator_int(...$a) {
-    this._M_t = new std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int();
-    this._M_t.ctj_a = this; this._M_t.ctj_i = "_M_t";
+    this._M_t$std_set_int_std_less_int_std_allocator_int = new std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int();
+    this._M_t$std_set_int_std_less_int_std_allocator_int.ctj_a = this; this._M_t$std_set_int_std_less_int_std_allocator_int.ctj_i = "_M_t$std_set_int_std_less_int_std_allocator_int";
   }
   __dtor() {
   }
   begin__c() {
-    return new std_Rb_tree_const_iterator_int({a: [this._M_t.begin()], i: 0});
+    return new std_Rb_tree_const_iterator_int({a: [std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int.prototype.begin.call(this._M_t$std_set_int_std_less_int_std_allocator_int)], i: 0});
   }
   end__c() {
-    return new std_Rb_tree_const_iterator_int({a: [this._M_t.end()], i: 0});
+    return new std_Rb_tree_const_iterator_int({a: [std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int.prototype.end.call(this._M_t$std_set_int_std_less_int_std_allocator_int)], i: 0});
   }
   insert(__x) {
-    let __p = this._M_t._M_insert_unique__std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int_M_insert_unique_int__rv(__x);
-    return new std_pair_std_Rb_tree_const_iterator_int_bool({a: __p, i: "first"}, {a: __p, i: "second"});
+    let __p = std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int.prototype._M_insert_unique__std_Rb_tree_int_int_std_Identity_int_std_less_int_std_allocator_int_M_insert_unique_int__rv.call(this._M_t$std_set_int_std_less_int_std_allocator_int, __x);
+    return new std_pair_std_Rb_tree_const_iterator_int_bool({a: __p, i: "first$std_pair_std_Rb_tree_iterator_int_bool"}, {a: __p, i: "second$std_pair_std_Rb_tree_iterator_int_bool"});
   }
 }
 class std_remove_reference_std_piecewise_construct_t {
@@ -3821,7 +3821,7 @@ class gnu_cxx_new_allocator_std_Rb_tree_node_std_pair_int_int {
   }
   allocate(__n, $p1 = {a: [0], i: 0}) {
     let $t41;
-    if ((__n > this.max_size__c())) {
+    if ((__n > gnu_cxx_new_allocator_std_Rb_tree_node_std_pair_int_int.prototype.max_size__c.call(this))) {
       std_throw_bad_alloc();
     }
     return ($t41 = operatornew__unsigned_long(((Math.imul(__n, 24)) >>> 0)), $t41 ? {a: $t41.a, i: $t41.i} : null);
@@ -3836,7 +3836,7 @@ class gnu_cxx_new_allocator_std_Rb_tree_node_std_pair_int_int {
     (__p.a[__p.i] = new std_Rb_tree_node_std_pair_int_int(std_forward_1_std_piecewise_construct_t(__args_0), std_forward_1_std_tuple_int_R(__args_1), std_forward_1_std_tuple(__args_2)), __p.a[__p.i].ctj_a = __p.a, __p.a[__p.i].ctj_i = __p.i, {a: __p.a, i: __p.i});
   }
   destroy__gnu_cxx_new_allocator_std_Rb_tree_node_std_pair_int_int_destroy_std_Rb_tree_node_std_pair_int_int(__p) {
-    (__p.a[__p.i]).__dtor();
+    std_Rb_tree_node_std_pair_int_int.prototype.__dtor.call(__p.a[__p.i]);
   }
 }
 class std_allocator_std_Rb_tree_node_std_pair_int_int extends gnu_cxx_new_allocator_std_Rb_tree_node_std_pair_int_int {
@@ -3851,75 +3851,75 @@ class std_allocator_std_Rb_tree_node_std_pair_int_int extends gnu_cxx_new_alloca
   }
 }
 class std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int_Rb_tree_impl_std_less_int_value1 extends std_allocator_std_Rb_tree_node_std_pair_int_int {
-  _M_key_compare;
-  _M_header;
-  _M_node_count;
+  _M_key_compare$std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int_Rb_tree_impl_std_less_int_value1;
+  _M_header$std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int_Rb_tree_impl_std_less_int_value1;
+  _M_node_count$std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int_Rb_tree_impl_std_less_int_value1;
   constructor(...$a) {
     super(...[]);
     this.__init_std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int_Rb_tree_impl_std_less_int_value1(...$a);
   }
   __init_std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int_Rb_tree_impl_std_less_int_value1(...$a) {
-    this._M_key_compare = new std_less_int();
-    this._M_key_compare.ctj_a = this; this._M_key_compare.ctj_i = "_M_key_compare";
-    this._M_header = new std_Rb_tree_node_base();
-    this._M_header.ctj_a = this; this._M_header.ctj_i = "_M_header";
-    this._M_node_count = ((0) >>> 0);
+    this._M_key_compare$std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int_Rb_tree_impl_std_less_int_value1 = new std_less_int();
+    this._M_key_compare$std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int_Rb_tree_impl_std_less_int_value1.ctj_a = this; this._M_key_compare$std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int_Rb_tree_impl_std_less_int_value1.ctj_i = "_M_key_compare$std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int_Rb_tree_impl_std_less_int_value1";
+    this._M_header$std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int_Rb_tree_impl_std_less_int_value1 = new std_Rb_tree_node_base();
+    this._M_header$std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int_Rb_tree_impl_std_less_int_value1.ctj_a = this; this._M_header$std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int_Rb_tree_impl_std_less_int_value1.ctj_i = "_M_header$std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int_Rb_tree_impl_std_less_int_value1";
+    this._M_node_count$std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int_Rb_tree_impl_std_less_int_value1 = ((0) >>> 0);
     this._M_initialize();
   }
   __dtor() {
     std_allocator_std_Rb_tree_node_std_pair_int_int.prototype.__dtor.call(this);
   }
   _M_initialize() {
-    this._M_header._M_color = 0;
-    this._M_header._M_parent = null;
-    this._M_header._M_left = (({a: this, i: "_M_header"}) ? {a: ({a: this, i: "_M_header"}).a, i: ({a: this, i: "_M_header"}).i} : null);
-    this._M_header._M_right = (({a: this, i: "_M_header"}) ? {a: ({a: this, i: "_M_header"}).a, i: ({a: this, i: "_M_header"}).i} : null);
+    this._M_header$std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int_Rb_tree_impl_std_less_int_value1._M_color = 0;
+    this._M_header$std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int_Rb_tree_impl_std_less_int_value1._M_parent = null;
+    this._M_header$std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int_Rb_tree_impl_std_less_int_value1._M_left = (({a: this, i: "_M_header$std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int_Rb_tree_impl_std_less_int_value1"}) ? {a: ({a: this, i: "_M_header$std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int_Rb_tree_impl_std_less_int_value1"}).a, i: ({a: this, i: "_M_header$std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int_Rb_tree_impl_std_less_int_value1"}).i} : null);
+    this._M_header$std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int_Rb_tree_impl_std_less_int_value1._M_right = (({a: this, i: "_M_header$std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int_Rb_tree_impl_std_less_int_value1"}) ? {a: ({a: this, i: "_M_header$std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int_Rb_tree_impl_std_less_int_value1"}).a, i: ({a: this, i: "_M_header$std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int_Rb_tree_impl_std_less_int_value1"}).i} : null);
   }
 }
 class std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int {
-  _M_impl;
+  _M_impl$std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int;
   constructor(...$a) {
     this.__init_std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int(...$a);
   }
   __init_std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int(...$a) {
-    this._M_impl = new std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int_Rb_tree_impl_std_less_int_value1();
-    this._M_impl.ctj_a = this; this._M_impl.ctj_i = "_M_impl";
+    this._M_impl$std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int = new std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int_Rb_tree_impl_std_less_int_value1();
+    this._M_impl$std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int.ctj_a = this; this._M_impl$std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int.ctj_i = "_M_impl$std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int";
   }
   __dtor() {
   }
   _M_get_Node_allocator() {
-    return {a: this, i: "_M_impl"};
+    return {a: this, i: "_M_impl$std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int"};
   }
   _M_get_node() {
     let $t42;
-    return ($t42 = gnu_cxx_new_allocator_std_Rb_tree_node_std_pair_int_int.prototype.allocate.call(this._M_impl, ((1) >>> 0), {a: [0], i: 0}), $t42 ? {a: $t42.a, i: $t42.i} : null);
+    return ($t42 = gnu_cxx_new_allocator_std_Rb_tree_node_std_pair_int_int.prototype.allocate.call(this._M_impl$std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int, ((1) >>> 0), {a: [0], i: 0}), $t42 ? {a: $t42.a, i: $t42.i} : null);
   }
   _M_put_node(__p) {
-    gnu_cxx_new_allocator_std_Rb_tree_node_std_pair_int_int.prototype.deallocate.call(this._M_impl, (__p ? {a: __p.a, i: __p.i} : null), ((1) >>> 0));
+    gnu_cxx_new_allocator_std_Rb_tree_node_std_pair_int_int.prototype.deallocate.call(this._M_impl$std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int, (__p ? {a: __p.a, i: __p.i} : null), ((1) >>> 0));
   }
   _M_destroy_node(__p) {
     let $t43;
-    (($t43 = this._M_get_Node_allocator(), $t43.a[$t43.i])).destroy__gnu_cxx_new_allocator_std_Rb_tree_node_std_pair_int_int_destroy_std_Rb_tree_node_std_pair_int_int((__p ? {a: __p.a, i: __p.i} : null));
+    gnu_cxx_new_allocator_std_Rb_tree_node_std_pair_int_int.prototype.destroy__gnu_cxx_new_allocator_std_Rb_tree_node_std_pair_int_int_destroy_std_Rb_tree_node_std_pair_int_int.call(($t43 = this._M_get_Node_allocator(), $t43.a[$t43.i]), (__p ? {a: __p.a, i: __p.i} : null));
     this._M_put_node((__p ? {a: __p.a, i: __p.i} : null));
   }
   _M_leftmost() {
-    return {a: this._M_impl._M_header, i: "_M_left"};
+    return {a: this._M_impl$std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int._M_header$std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int_Rb_tree_impl_std_less_int_value1, i: "_M_left"};
   }
   _M_rightmost() {
-    return {a: this._M_impl._M_header, i: "_M_right"};
+    return {a: this._M_impl$std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int._M_header$std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int_Rb_tree_impl_std_less_int_value1, i: "_M_right"};
   }
   _M_begin() {
-    return (this._M_impl._M_header._M_parent ? {a: this._M_impl._M_header._M_parent.a, i: this._M_impl._M_header._M_parent.i} : null);
+    return (this._M_impl$std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int._M_header$std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int_Rb_tree_impl_std_less_int_value1._M_parent ? {a: this._M_impl$std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int._M_header$std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int_Rb_tree_impl_std_less_int_value1._M_parent.a, i: this._M_impl$std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int._M_header$std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int_Rb_tree_impl_std_less_int_value1._M_parent.i} : null);
   }
   _M_end() {
-    return (({a: this._M_impl, i: "_M_header"}) ? {a: ({a: this._M_impl, i: "_M_header"}).a, i: ({a: this._M_impl, i: "_M_header"}).i} : null);
+    return (({a: this._M_impl$std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int, i: "_M_header$std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int_Rb_tree_impl_std_less_int_value1"}) ? {a: ({a: this._M_impl$std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int, i: "_M_header$std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int_Rb_tree_impl_std_less_int_value1"}).a, i: ({a: this._M_impl$std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int, i: "_M_header$std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int_Rb_tree_impl_std_less_int_value1"}).i} : null);
   }
   static _S_value(...$a) {
     if ($a.length >= 1 && $a.length <= 1 && ($a[0] === null || typeof $a[0] === "object")) {
-      return {a: ($a[0]).a[($a[0]).i], i: "_M_value_field"};
+      return {a: ($a[0]).a[($a[0]).i], i: "_M_value_field$std_Rb_tree_node_std_pair_int_int"};
     }
     else if ($a.length >= 1 && $a.length <= 1 && ($a[0] === null || typeof $a[0] === "object")) {
-      return {a: ($a[0]).a[($a[0]).i], i: "_M_value_field"};
+      return {a: ($a[0]).a[($a[0]).i], i: "_M_value_field$std_Rb_tree_node_std_pair_int_int"};
     }
     else { throw new Error("no matching overload"); }
   }
@@ -3947,7 +3947,7 @@ class std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_i
     while ((__x !== null)) {
        {
         __y = (__x ? {a: __x.a, i: __x.i} : null);
-        __comp = this._M_impl._M_key_compare.op_call__c(__k, std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int._S_key((__x ? {a: __x.a, i: __x.i} : null)));
+        __comp = std_less_int.prototype.op_call__c.call(this._M_impl$std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int._M_key_compare$std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int_Rb_tree_impl_std_less_int_value1, __k, std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int._S_key((__x ? {a: __x.a, i: __x.i} : null)));
         __x = ($t48 = (__comp ? std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int._S_left((__x ? {a: __x.a, i: __x.i} : null)) : std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int._S_right((__x ? {a: __x.a, i: __x.i} : null))), $t48 ? {a: $t48.a, i: $t48.i} : null);
       }
     }
@@ -3962,17 +3962,17 @@ class std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_i
         }
       }
     }
-    if (this._M_impl._M_key_compare.op_call__c(std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int._S_key((__j._M_node ? {a: __j._M_node.a, i: __j._M_node.i} : null)), __k)) {
+    if (std_less_int.prototype.op_call__c.call(this._M_impl$std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int._M_key_compare$std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int_Rb_tree_impl_std_less_int_value1, std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int._S_key((__j._M_node$std_Rb_tree_iterator_std_pair_int_int ? {a: __j._M_node$std_Rb_tree_iterator_std_pair_int_int.a, i: __j._M_node$std_Rb_tree_iterator_std_pair_int_int.i} : null)), __k)) {
       return new std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P({a: [__x], i: 0}, {a: [__y], i: 0});
     }
-    return new std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P({a: __j, i: "_M_node"}, {a: [null], i: 0});
+    return new std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P({a: __j, i: "_M_node$std_Rb_tree_iterator_std_pair_int_int"}, {a: [null], i: 0});
   }
   _M_get_insert_hint_unique_pos(__position, __k) {
     let $t49, $t50, $t51, $t52, $t53, $t54, $t55, $t56, $t57, $t58, $t59, $t60;
-    let __pos = __position._M_const_cast__c();
-    if (($t50 = ($t49 = this._M_end(), $t49), (__pos._M_node === $t50 || (__pos._M_node && $t50 && __pos._M_node.a === $t50.a && __pos._M_node.i === $t50.i)))) {
+    let __pos = std_Rb_tree_const_iterator_std_pair_int_int.prototype._M_const_cast__c.call(__position);
+    if (($t50 = ($t49 = this._M_end(), $t49), (__pos._M_node$std_Rb_tree_iterator_std_pair_int_int === $t50 || (__pos._M_node$std_Rb_tree_iterator_std_pair_int_int && $t50 && __pos._M_node$std_Rb_tree_iterator_std_pair_int_int.a === $t50.a && __pos._M_node$std_Rb_tree_iterator_std_pair_int_int.i === $t50.i)))) {
        {
-        if (((this.size__c() > ((0) >>> 0)) && this._M_impl._M_key_compare.op_call__c(std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int._S_key(($t51 = this._M_rightmost(), $t52 = ($t51 ? $t51.a[$t51.i] : null), $t52 && $t52.a !== undefined ? {a: $t52.a, i: $t52.i} : $t52)), __k))) {
+        if (((this.size__c() > ((0) >>> 0)) && std_less_int.prototype.op_call__c.call(this._M_impl$std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int._M_key_compare$std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int_Rb_tree_impl_std_less_int_value1, std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int._S_key(($t51 = this._M_rightmost(), $t52 = ($t51 ? $t51.a[$t51.i] : null), $t52 && $t52.a !== undefined ? {a: $t52.a, i: $t52.i} : $t52)), __k))) {
           return new std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P({a: [null], i: 0}, this._M_rightmost());
         }
         else {
@@ -3981,20 +3981,20 @@ class std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_i
       }
     }
     else {
-      if (this._M_impl._M_key_compare.op_call__c(__k, std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int._S_key((__pos._M_node ? {a: __pos._M_node.a, i: __pos._M_node.i} : null)))) {
+      if (std_less_int.prototype.op_call__c.call(this._M_impl$std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int._M_key_compare$std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int_Rb_tree_impl_std_less_int_value1, __k, std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int._S_key((__pos._M_node$std_Rb_tree_iterator_std_pair_int_int ? {a: __pos._M_node$std_Rb_tree_iterator_std_pair_int_int.a, i: __pos._M_node$std_Rb_tree_iterator_std_pair_int_int.i} : null)))) {
          {
           let __before = new std_Rb_tree_iterator_std_pair_int_int({a: [__pos], i: 0});
-          if (($t54 = (($t53 = this._M_leftmost(), $t53) ? (($t53 = this._M_leftmost(), $t53)).a[(($t53 = this._M_leftmost(), $t53)).i] : null), (__pos._M_node === $t54 || (__pos._M_node && $t54 && __pos._M_node.a === $t54.a && __pos._M_node.i === $t54.i)))) {
+          if (($t54 = (($t53 = this._M_leftmost(), $t53) ? (($t53 = this._M_leftmost(), $t53)).a[(($t53 = this._M_leftmost(), $t53)).i] : null), (__pos._M_node$std_Rb_tree_iterator_std_pair_int_int === $t54 || (__pos._M_node$std_Rb_tree_iterator_std_pair_int_int && $t54 && __pos._M_node$std_Rb_tree_iterator_std_pair_int_int.a === $t54.a && __pos._M_node$std_Rb_tree_iterator_std_pair_int_int.i === $t54.i)))) {
             return new std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P(this._M_leftmost(), this._M_leftmost());
           }
           else {
-            if (this._M_impl._M_key_compare.op_call__c(std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int._S_key(($t56 = (($t55 = __before.op_dec(), $t55.a[$t55.i]))._M_node, $t56 ? {a: $t56.a, i: $t56.i} : null)), __k)) {
+            if (std_less_int.prototype.op_call__c.call(this._M_impl$std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int._M_key_compare$std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int_Rb_tree_impl_std_less_int_value1, std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int._S_key(($t56 = (($t55 = __before.op_dec(), $t55.a[$t55.i]))._M_node$std_Rb_tree_iterator_std_pair_int_int, $t56 ? {a: $t56.a, i: $t56.i} : null)), __k)) {
                {
-                if ((std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int._S_right((__before._M_node ? {a: __before._M_node.a, i: __before._M_node.i} : null)) === null)) {
-                  return new std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P({a: [null], i: 0}, {a: __before, i: "_M_node"});
+                if ((std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int._S_right((__before._M_node$std_Rb_tree_iterator_std_pair_int_int ? {a: __before._M_node$std_Rb_tree_iterator_std_pair_int_int.a, i: __before._M_node$std_Rb_tree_iterator_std_pair_int_int.i} : null)) === null)) {
+                  return new std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P({a: [null], i: 0}, {a: __before, i: "_M_node$std_Rb_tree_iterator_std_pair_int_int"});
                 }
                 else {
-                  return new std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P({a: __pos, i: "_M_node"}, {a: __pos, i: "_M_node"});
+                  return new std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P({a: __pos, i: "_M_node$std_Rb_tree_iterator_std_pair_int_int"}, {a: __pos, i: "_M_node$std_Rb_tree_iterator_std_pair_int_int"});
                 }
               }
             }
@@ -4005,20 +4005,20 @@ class std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_i
         }
       }
       else {
-        if (this._M_impl._M_key_compare.op_call__c(std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int._S_key((__pos._M_node ? {a: __pos._M_node.a, i: __pos._M_node.i} : null)), __k)) {
+        if (std_less_int.prototype.op_call__c.call(this._M_impl$std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int._M_key_compare$std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int_Rb_tree_impl_std_less_int_value1, std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int._S_key((__pos._M_node$std_Rb_tree_iterator_std_pair_int_int ? {a: __pos._M_node$std_Rb_tree_iterator_std_pair_int_int.a, i: __pos._M_node$std_Rb_tree_iterator_std_pair_int_int.i} : null)), __k)) {
            {
             let __after = new std_Rb_tree_iterator_std_pair_int_int({a: [__pos], i: 0});
-            if (($t58 = (($t57 = this._M_rightmost(), $t57) ? (($t57 = this._M_rightmost(), $t57)).a[(($t57 = this._M_rightmost(), $t57)).i] : null), (__pos._M_node === $t58 || (__pos._M_node && $t58 && __pos._M_node.a === $t58.a && __pos._M_node.i === $t58.i)))) {
+            if (($t58 = (($t57 = this._M_rightmost(), $t57) ? (($t57 = this._M_rightmost(), $t57)).a[(($t57 = this._M_rightmost(), $t57)).i] : null), (__pos._M_node$std_Rb_tree_iterator_std_pair_int_int === $t58 || (__pos._M_node$std_Rb_tree_iterator_std_pair_int_int && $t58 && __pos._M_node$std_Rb_tree_iterator_std_pair_int_int.a === $t58.a && __pos._M_node$std_Rb_tree_iterator_std_pair_int_int.i === $t58.i)))) {
               return new std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P({a: [null], i: 0}, this._M_rightmost());
             }
             else {
-              if (this._M_impl._M_key_compare.op_call__c(__k, std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int._S_key(($t60 = (($t59 = __after.op_inc(), $t59.a[$t59.i]))._M_node, $t60 ? {a: $t60.a, i: $t60.i} : null)))) {
+              if (std_less_int.prototype.op_call__c.call(this._M_impl$std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int._M_key_compare$std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int_Rb_tree_impl_std_less_int_value1, __k, std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int._S_key(($t60 = (($t59 = __after.op_inc(), $t59.a[$t59.i]))._M_node$std_Rb_tree_iterator_std_pair_int_int, $t60 ? {a: $t60.a, i: $t60.i} : null)))) {
                  {
-                  if ((std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int._S_right((__pos._M_node ? {a: __pos._M_node.a, i: __pos._M_node.i} : null)) === null)) {
-                    return new std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P({a: [null], i: 0}, {a: __pos, i: "_M_node"});
+                  if ((std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int._S_right((__pos._M_node$std_Rb_tree_iterator_std_pair_int_int ? {a: __pos._M_node$std_Rb_tree_iterator_std_pair_int_int.a, i: __pos._M_node$std_Rb_tree_iterator_std_pair_int_int.i} : null)) === null)) {
+                    return new std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P({a: [null], i: 0}, {a: __pos, i: "_M_node$std_Rb_tree_iterator_std_pair_int_int"});
                   }
                   else {
-                    return new std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P({a: __after, i: "_M_node"}, {a: __after, i: "_M_node"});
+                    return new std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P({a: __after, i: "_M_node$std_Rb_tree_iterator_std_pair_int_int"}, {a: __after, i: "_M_node$std_Rb_tree_iterator_std_pair_int_int"});
                   }
                 }
               }
@@ -4029,22 +4029,22 @@ class std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_i
           }
         }
         else {
-          return new std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P({a: __pos, i: "_M_node"}, {a: [null], i: 0});
+          return new std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P({a: __pos, i: "_M_node$std_Rb_tree_iterator_std_pair_int_int"}, {a: [null], i: 0});
         }
       }
     }
   }
   _M_insert_node(__x, __p, __z) {
     let $t61, $t62;
-    let __insert_left = (((__x !== null) || ($t62 = ($t61 = this._M_end(), $t61), (__p === $t62 || (__p && $t62 && __p.a === $t62.a && __p.i === $t62.i)))) || this._M_impl._M_key_compare.op_call__c(std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int._S_key((__z ? {a: __z.a, i: __z.i} : null)), std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int._S_key((__p ? {a: __p.a, i: __p.i} : null))));
-    std_Rb_tree_insert_and_rebalance(__insert_left, (__z ? {a: __z.a, i: __z.i} : null), (__p ? {a: __p.a, i: __p.i} : null), {a: this._M_impl, i: "_M_header"});
-    (this._M_impl._M_node_count = ((this._M_impl._M_node_count + 1) >>> 0));
+    let __insert_left = (((__x !== null) || ($t62 = ($t61 = this._M_end(), $t61), (__p === $t62 || (__p && $t62 && __p.a === $t62.a && __p.i === $t62.i)))) || std_less_int.prototype.op_call__c.call(this._M_impl$std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int._M_key_compare$std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int_Rb_tree_impl_std_less_int_value1, std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int._S_key((__z ? {a: __z.a, i: __z.i} : null)), std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int._S_key((__p ? {a: __p.a, i: __p.i} : null))));
+    std_Rb_tree_insert_and_rebalance(__insert_left, (__z ? {a: __z.a, i: __z.i} : null), (__p ? {a: __p.a, i: __p.i} : null), {a: this._M_impl$std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int, i: "_M_header$std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int_Rb_tree_impl_std_less_int_value1"});
+    (this._M_impl$std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int._M_node_count$std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int_Rb_tree_impl_std_less_int_value1 = ((this._M_impl$std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int._M_node_count$std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int_Rb_tree_impl_std_less_int_value1 + 1) >>> 0));
     return new std_Rb_tree_iterator_std_pair_int_int((__z ? {a: __z.a, i: __z.i} : null));
   }
   _M_lower_bound(__x, __y, __k) {
     let $t63, $t64;
     while ((__x !== null)) {
-      if ((!(this._M_impl._M_key_compare.op_call__c(std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int._S_key((__x ? {a: __x.a, i: __x.i} : null)), __k)))) {
+      if ((!(std_less_int.prototype.op_call__c.call(this._M_impl$std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int._M_key_compare$std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int_Rb_tree_impl_std_less_int_value1, std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int._S_key((__x ? {a: __x.a, i: __x.i} : null)), __k)))) {
         (__y = (__x ? {a: __x.a, i: __x.i} : null), __x = ($t63 = std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int._S_left((__x ? {a: __x.a, i: __x.i} : null)), $t63 ? {a: $t63.a, i: $t63.i} : null));
       }
       else {
@@ -4054,16 +4054,16 @@ class std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_i
     return new std_Rb_tree_iterator_std_pair_int_int((__y ? {a: __y.a, i: __y.i} : null));
   }
   key_comp__c() {
-    return new std_less_int({a: this._M_impl, i: "_M_key_compare"});
+    return new std_less_int({a: this._M_impl$std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int, i: "_M_key_compare$std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int_Rb_tree_impl_std_less_int_value1"});
   }
   begin() {
-    return new std_Rb_tree_iterator_std_pair_int_int((this._M_impl._M_header._M_left ? {a: this._M_impl._M_header._M_left.a, i: this._M_impl._M_header._M_left.i} : null));
+    return new std_Rb_tree_iterator_std_pair_int_int((this._M_impl$std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int._M_header$std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int_Rb_tree_impl_std_less_int_value1._M_left ? {a: this._M_impl$std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int._M_header$std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int_Rb_tree_impl_std_less_int_value1._M_left.a, i: this._M_impl$std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int._M_header$std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int_Rb_tree_impl_std_less_int_value1._M_left.i} : null));
   }
   end() {
-    return new std_Rb_tree_iterator_std_pair_int_int((({a: this._M_impl, i: "_M_header"}) ? {a: ({a: this._M_impl, i: "_M_header"}).a, i: ({a: this._M_impl, i: "_M_header"}).i} : null));
+    return new std_Rb_tree_iterator_std_pair_int_int((({a: this._M_impl$std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int, i: "_M_header$std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int_Rb_tree_impl_std_less_int_value1"}) ? {a: ({a: this._M_impl$std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int, i: "_M_header$std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int_Rb_tree_impl_std_less_int_value1"}).a, i: ({a: this._M_impl$std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int, i: "_M_header$std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int_Rb_tree_impl_std_less_int_value1"}).i} : null));
   }
   size__c() {
-    return this._M_impl._M_node_count;
+    return this._M_impl$std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int._M_node_count$std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int_Rb_tree_impl_std_less_int_value1;
   }
   lower_bound(__k) {
     let $t65, $t66;
@@ -4075,11 +4075,11 @@ class std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_i
     if (true) {
        {
         let __res = this._M_get_insert_hint_unique_pos(new std_Rb_tree_const_iterator_std_pair_int_int({a: [__pos], i: 0}), std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int._S_key((__z ? {a: __z.a, i: __z.i} : null)));
-        if (__res.second) {
-          return this._M_insert_node((__res.first ? {a: __res.first.a, i: __res.first.i} : null), (__res.second ? {a: __res.second.a, i: __res.second.i} : null), (__z ? {a: __z.a, i: __z.i} : null));
+        if (__res.second$std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P) {
+          return this._M_insert_node((__res.first$std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P ? {a: __res.first$std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P.a, i: __res.first$std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P.i} : null), (__res.second$std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P ? {a: __res.second$std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P.a, i: __res.second$std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P.i} : null), (__z ? {a: __z.a, i: __z.i} : null));
         }
         this._M_destroy_node((__z ? {a: __z.a, i: __z.i} : null));
-        return new std_Rb_tree_iterator_std_pair_int_int((__res.first ? {a: __res.first.a, i: __res.first.i} : null));
+        return new std_Rb_tree_iterator_std_pair_int_int((__res.first$std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P ? {a: __res.first$std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P.a, i: __res.first$std_pair_std_Rb_tree_node_base_P_std_Rb_tree_node_base_P.i} : null));
       }
     }
     if (false) {
@@ -4105,35 +4105,35 @@ class std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_i
   }
 }
 class std_map_int_int_std_less_int_std_allocator_std_pair_int_int {
-  _M_t;
+  _M_t$std_map_int_int_std_less_int_std_allocator_std_pair_int_int;
   constructor(...$a) {
     this.__init_std_map_int_int_std_less_int_std_allocator_std_pair_int_int(...$a);
   }
   __init_std_map_int_int_std_less_int_std_allocator_std_pair_int_int(...$a) {
-    this._M_t = new std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int();
-    this._M_t.ctj_a = this; this._M_t.ctj_i = "_M_t";
+    this._M_t$std_map_int_int_std_less_int_std_allocator_std_pair_int_int = new std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int();
+    this._M_t$std_map_int_int_std_less_int_std_allocator_std_pair_int_int.ctj_a = this; this._M_t$std_map_int_int_std_less_int_std_allocator_std_pair_int_int.ctj_i = "_M_t$std_map_int_int_std_less_int_std_allocator_std_pair_int_int";
   }
   __dtor() {
   }
   begin() {
-    return this._M_t.begin();
+    return std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int.prototype.begin.call(this._M_t$std_map_int_int_std_less_int_std_allocator_std_pair_int_int);
   }
   end() {
-    return this._M_t.end();
+    return std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int.prototype.end.call(this._M_t$std_map_int_int_std_less_int_std_allocator_std_pair_int_int);
   }
   op_index(__k) {
     let $t69;
     let __i = {v: this.lower_bound(__k)};
-    if ((__i.v.op_eq__c({a: [this.end()], i: 0}) || (($t69 = this.key_comp__c(), $t69)).op_call__c(__k, {a: (__i.v.op_mul__c()).a[(__i.v.op_mul__c()).i], i: "first"}))) {
-      __i.v.op_assign({a: [this._M_t._M_emplace_hint_unique__std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int_M_emplace_hint_unique_std_piecewise_construct_t_std_tuple_int_R_std_tuple__rv(new std_Rb_tree_const_iterator_std_pair_int_int({a: __i, i: "v"}), {a: std_piecewise_construct, i: "v"}, {a: [new std_tuple_int_R(__k)], i: 0}, {a: [new std_tuple()], i: 0})], i: 0});
+    if ((__i.v.op_eq__c({a: [this.end()], i: 0}) || (($t69 = this.key_comp__c(), $t69)).op_call__c(__k, {a: (__i.v.op_mul__c()).a[(__i.v.op_mul__c()).i], i: "first$std_pair_int_int"}))) {
+      __i.v.op_assign({a: [std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int.prototype._M_emplace_hint_unique__std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int_M_emplace_hint_unique_std_piecewise_construct_t_std_tuple_int_R_std_tuple__rv.call(this._M_t$std_map_int_int_std_less_int_std_allocator_std_pair_int_int, new std_Rb_tree_const_iterator_std_pair_int_int({a: __i, i: "v"}), {a: std_piecewise_construct, i: "v"}, {a: [new std_tuple_int_R(__k)], i: 0}, {a: [new std_tuple()], i: 0})], i: 0});
     }
-    return {a: (__i.v.op_mul__c()).a[(__i.v.op_mul__c()).i], i: "second"};
+    return {a: (__i.v.op_mul__c()).a[(__i.v.op_mul__c()).i], i: "second$std_pair_int_int"};
   }
   key_comp__c() {
-    return this._M_t.key_comp__c();
+    return std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int.prototype.key_comp__c.call(this._M_t$std_map_int_int_std_less_int_std_allocator_std_pair_int_int);
   }
   lower_bound(__x) {
-    return this._M_t.lower_bound(__x);
+    return std_Rb_tree_int_std_pair_int_int_std_Select1st_std_pair_int_int_std_less_int_std_allocator_std_pair_int_int.prototype.lower_bound.call(this._M_t$std_map_int_int_std_less_int_std_allocator_std_pair_int_int, __x);
   }
 }
 class std_move_if_noexcept_cond_int extends std_integral_constant_bool_value0 {
@@ -5554,30 +5554,30 @@ class std_conditional_value0_std_is_copy_constructible_int_std_not_std_is_nothro
   }
 }
 class std_move_iterator_int_P {
-  _M_current;
+  _M_current$std_move_iterator_int_P;
   constructor(...$a) {
     this.__init_std_move_iterator_int_P(...$a);
   }
   __init_std_move_iterator_int_P(...$a) {
     let $t70;
     if ($a.length >= 1 && $a.length <= 1 && ($a[0] !== null && typeof $a[0] === "object" && !Array.isArray($a[0]) && $a[0].a !== undefined && $a[0].i !== undefined && $a[0].a[$a[0].i] instanceof std_move_iterator_int_P)) {
-      this._M_current = ($t70 = (($a[0]).a[($a[0]).i]).base__c(), $t70 ? {a: $t70.a, i: $t70.i} : null);
+      this._M_current$std_move_iterator_int_P = ($t70 = std_move_iterator_int_P.prototype.base__c.call(($a[0]).a[($a[0]).i]), $t70 ? {a: $t70.a, i: $t70.i} : null);
     }
     else if ($a.length >= 1 && $a.length <= 1 && ($a[0] === null || typeof $a[0] === "object")) {
-      this._M_current = (($a[0]) ? {a: ($a[0]).a, i: ($a[0]).i} : null);
+      this._M_current$std_move_iterator_int_P = (($a[0]) ? {a: ($a[0]).a, i: ($a[0]).i} : null);
     }
     else { throw new Error("no matching constructor"); }
   }
   __dtor() {
   }
   base__c() {
-    return (this._M_current ? {a: this._M_current.a, i: this._M_current.i} : null);
+    return (this._M_current$std_move_iterator_int_P ? {a: this._M_current$std_move_iterator_int_P.a, i: this._M_current$std_move_iterator_int_P.i} : null);
   }
   op_mul__c() {
-    return std_move_int(this._M_current);
+    return std_move_int(this._M_current$std_move_iterator_int_P);
   }
   op_inc() {
-    ++this._M_current.i;
+    ++this._M_current$std_move_iterator_int_P.i;
     return {a: [this], i: 0};
   }
 }
@@ -6154,7 +6154,7 @@ class std_allocator_traits_std_allocator_std_Rb_tree_node_std_pair_int_int {
     std_allocator_traits_std_allocator_std_Rb_tree_node_std_pair_int_int._S_construct__std_allocator_traits_std_allocator_std_Rb_tree_node_std_pair_int_int_S_construct_std_Rb_tree_node_std_pair_int_int_std_piecewise_construct_t_std_tuple_int_R_std_tuple__rv(__a, (__p ? {a: __p.a, i: __p.i} : null), std_forward_1_std_piecewise_construct_t(__args_0), std_forward_1_std_tuple_int_R(__args_1), std_forward_1_std_tuple(__args_2));
   }
   static _S_construct__std_allocator_traits_std_allocator_std_Rb_tree_node_std_pair_int_int_S_construct_std_Rb_tree_node_std_pair_int_int_std_piecewise_construct_t_std_tuple_int_R_std_tuple__rv(__a, __p, __args_0, __args_1, __args_2) {
-    (__a.a[__a.i]).construct__gnu_cxx_new_allocator_std_Rb_tree_node_std_pair_int_int_construct_std_Rb_tree_node_std_pair_int_int_std_piecewise_construct_t_std_tuple_int_R_std_tuple__rv((__p ? {a: __p.a, i: __p.i} : null), std_forward_1_std_piecewise_construct_t(__args_0), std_forward_1_std_tuple_int_R(__args_1), std_forward_1_std_tuple(__args_2));
+    gnu_cxx_new_allocator_std_Rb_tree_node_std_pair_int_int.prototype.construct__gnu_cxx_new_allocator_std_Rb_tree_node_std_pair_int_int_construct_std_Rb_tree_node_std_pair_int_int_std_piecewise_construct_t_std_tuple_int_R_std_tuple__rv.call(__a.a[__a.i], (__p ? {a: __p.a, i: __p.i} : null), std_forward_1_std_piecewise_construct_t(__args_0), std_forward_1_std_tuple_int_R(__args_1), std_forward_1_std_tuple(__args_2));
   }
 }
 class std_allocator_traits_std_allocator_std_Rb_tree_node_std_pair_int_int_construct_helper_std_Rb_tree_node_std_pair_int_int_std_piecewise_construct_t_std_tuple_int_R_std_tuple {
@@ -7007,7 +7007,7 @@ class std_allocator_traits_std_allocator_std_Rb_tree_node_int {
     std_allocator_traits_std_allocator_std_Rb_tree_node_int._S_construct__std_allocator_traits_std_allocator_std_Rb_tree_node_int_S_construct_std_Rb_tree_node_int_int__rv(__a, (__p ? {a: __p.a, i: __p.i} : null), std_forward_1_int(__args_0));
   }
   static _S_construct__std_allocator_traits_std_allocator_std_Rb_tree_node_int_S_construct_std_Rb_tree_node_int_int__rv(__a, __p, __args_0) {
-    (__a.a[__a.i]).construct__gnu_cxx_new_allocator_std_Rb_tree_node_int_construct_std_Rb_tree_node_int_int__rv((__p ? {a: __p.a, i: __p.i} : null), std_forward_1_int(__args_0));
+    gnu_cxx_new_allocator_std_Rb_tree_node_int.prototype.construct__gnu_cxx_new_allocator_std_Rb_tree_node_int_construct_std_Rb_tree_node_int_int__rv.call(__a.a[__a.i], (__p ? {a: __p.a, i: __p.i} : null), std_forward_1_int(__args_0));
   }
 }
 class std_allocator_traits_std_allocator_std_Rb_tree_node_int_construct_helper_std_Rb_tree_node_int_int {
@@ -8800,9 +8800,9 @@ function main() {
   }
   (console.log((s), (a[4])));
   let v = new std_vector_int_std_allocator_int();
-  v.push_back({a: [3], i: 0});
-  v.push_back({a: [1], i: 0});
-  v.push_back({a: [2], i: 0});
+  std_vector_int_std_allocator_int.prototype.push_back.call(v, {a: [3], i: 0});
+  std_vector_int_std_allocator_int.prototype.push_back.call(v, {a: [1], i: 0});
+  std_vector_int_std_allocator_int.prototype.push_back.call(v, {a: [2], i: 0});
   for (let $b3 = new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [v.begin()], i: 0}), $e3 = new gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int({a: [v.end()], i: 0}); gnu_cxx_operator_int_P_int_P_std_vector_int_std_allocator_int({a: [$b3], i: 0}, {a: [$e3], i: 0}); $b3.op_inc()) {
     let y = $b3.op_mul__c();
     y.a[y.i] = (((((y.a[y.i]) + (10)) | 0)) | 0);
@@ -8814,9 +8814,9 @@ function main() {
   }
   (console.log((t)));
   let st = new std_set_int_std_less_int_std_allocator_int();
-  st.insert({a: [4], i: 0});
-  st.insert({a: [4], i: 0});
-  st.insert({a: [6], i: 0});
+  std_set_int_std_less_int_std_allocator_int.prototype.insert.call(st, {a: [4], i: 0});
+  std_set_int_std_less_int_std_allocator_int.prototype.insert.call(st, {a: [4], i: 0});
+  std_set_int_std_less_int_std_allocator_int.prototype.insert.call(st, {a: [6], i: 0});
   let u = 0;
   for (let $b5 = new std_Rb_tree_const_iterator_int({a: [st.begin__c()], i: 0}), $e5 = new std_Rb_tree_const_iterator_int({a: [st.end__c()], i: 0}); $b5.op_ne__c({a: [$e5], i: 0}); $b5.op_inc()) {
     let x = ($b5.op_mul__c()).a[($b5.op_mul__c()).i];
@@ -8829,14 +8829,14 @@ function main() {
   let w = 0;
   for (let $b6 = new std_Rb_tree_iterator_std_pair_int_int({a: [m.begin()], i: 0}), $e6 = new std_Rb_tree_iterator_std_pair_int_int({a: [m.end()], i: 0}); $b6.op_ne__c({a: [$e6], i: 0}); $b6.op_inc()) {
     let p = $b6.op_mul__c();
-    w = (((((w) + ((p.a[p.i]).second)) | 0)) | 0);
+    w = (((((w) + ((p.a[p.i]).second$std_pair_int_int)) | 0)) | 0);
   }
   (console.log((w)));
   return 0;
 }
 function gnu_cxx_operator_int_P_int_P_std_vector_int_std_allocator_int(__lhs, __rhs) {
   let $t73, $t74, $t75, $t76, $t77, $t78;
-  return ($t77 = (($t75 = (__lhs.a[__lhs.i]).base__c(), $t75) ? (($t75 = (__lhs.a[__lhs.i]).base__c(), $t75)).a[(($t75 = (__lhs.a[__lhs.i]).base__c(), $t75)).i] : null), $t78 = (($t76 = (__rhs.a[__rhs.i]).base__c(), $t76) ? (($t76 = (__rhs.a[__rhs.i]).base__c(), $t76)).a[(($t76 = (__rhs.a[__rhs.i]).base__c(), $t76)).i] : null), (!($t77 === $t78 || ($t77 && $t78 && $t77.a === $t78.a && $t77.i === $t78.i))));
+  return ($t77 = (($t75 = gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int.prototype.base__c.call(__lhs.a[__lhs.i]), $t75) ? (($t75 = gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int.prototype.base__c.call(__lhs.a[__lhs.i]), $t75)).a[(($t75 = gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int.prototype.base__c.call(__lhs.a[__lhs.i]), $t75)).i] : null), $t78 = (($t76 = gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int.prototype.base__c.call(__rhs.a[__rhs.i]), $t76) ? (($t76 = gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int.prototype.base__c.call(__rhs.a[__rhs.i]), $t76)).a[(($t76 = gnu_cxx_normal_iterator_int_P_std_vector_int_std_allocator_int.prototype.base__c.call(__rhs.a[__rhs.i]), $t76)).i] : null), (!($t77 === $t78 || ($t77 && $t78 && $t77.a === $t78.a && $t77.i === $t78.i))));
 }
 function std_declval_std_Rb_tree_const_iterator_int_R() {
   return std_declval_protector_std_Rb_tree_const_iterator_int_R.__delegate();
@@ -8963,7 +8963,7 @@ function std_operator_3_int_P_int_P(__x, __y) {
 }
 function std_operator_3_int_P_int_P_2(__x, __y) {
   let $t82, $t83, $t84, $t85;
-  return ($t84 = ($t82 = (__x.a[__x.i]).base__c(), $t82), $t85 = ($t83 = (__y.a[__y.i]).base__c(), $t83), ($t84 === $t85 || ($t84 && $t85 && $t84.a === $t85.a && $t84.i === $t85.i)));
+  return ($t84 = ($t82 = std_move_iterator_int_P.prototype.base__c.call(__x.a[__x.i]), $t82), $t85 = ($t83 = std_move_iterator_int_P.prototype.base__c.call(__y.a[__y.i]), $t83), ($t84 === $t85 || ($t84 && $t85 && $t84.a === $t85.a && $t84.i === $t85.i)));
 }
 function std_move_int(__t) {
   return __t;

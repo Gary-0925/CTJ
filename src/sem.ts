@@ -3,7 +3,7 @@
 namespace CTJ {
   export class CppType {
     name: string;
-    segs: { n: string; a: CppType[] }[] = [];
+    segs: { n: string; a: CppType[]; tid?: boolean }[] = [];
     ptr = 0;
     ref: "" | "&" | "&&" = "";
     dims: number[] = [];
@@ -303,10 +303,15 @@ namespace CTJ {
     // A braced list passed to a class parameter: the constructor it builds the
     // object with, and the conversions of its items (see matchScore).
     listCtors: Map<FuncInfo, ({ kind: string; fn: FuncInfo } | null)[]> | null;
+    // The type a sizeof names, resolved where its scope (local typedefs included)
+    // is known, so code generation does not need to resolve it again.
+    typeArg: CppType | null;
+    // The value of a case label, evaluated where its scope is known.
+    constVal: number | null;
   }
 
   export function blankAnn(): Ann {
-    return { t: null, sym: null, call: null, conv: null, convs: [], caps: [], var: null, arrowCall: null, initCall: null, copyCtor: null, range: null, needsThis: false, isType: false, boolConv: null, listCtors: null };
+    return { t: null, sym: null, call: null, conv: null, convs: [], caps: [], var: null, arrowCall: null, initCall: null, copyCtor: null, range: null, needsThis: false, isType: false, boolConv: null, listCtors: null, typeArg: null, constVal: null };
   }
 
   export class Cx {
@@ -601,7 +606,9 @@ namespace CTJ {
     isDelegatingCtorInit(cls: ClsInfo, c: CtorInit): boolean {
       const name = c.name.map(s => s.n).join("::");
       const short = last(c.name).n;
-      return short === this.declaredName(cls) || short === cls.short || name === cls.fq;
+      if (!(short === this.declaredName(cls) || short === cls.short || name === cls.fq)) return false;
+      // "B<T...>(r...)" in B<H, T...> names the base B<T...>, which shares the short name.
+      return !(cls.bases.length && this.ctorBase(cls, c.name));
     }
 
     blankCls(fq: string, short: string, decl: ClassDecl, scope: Scope): ClsInfo {
@@ -1307,11 +1314,35 @@ namespace CTJ {
       return null;
     }
 
+    // The property a field has in JS.  A field that hides a field of a base
+    // class gets the class in its name: both would otherwise be "this.name".
+    fieldJsName(cls: ClsInfo, name: string): string {
+      if (cls.fieldStatic.has(name)) return safeJsName(name);
+      // A JS object holds the fields of every base subobject in one namespace, so
+      // two bases of one class can clash: _Head_base<0, int> and _Head_base<1, double>
+      // both declare "h" inside tuple<int, double>.  Fields of a template instance
+      // are therefore qualified by their class, which is unique to it.
+      const shared = !!cls.fromTmpl || this.baseHasField(cls, name, new Set());
+      return shared ? safeJsName(name) + "$" + cls.mangled : safeJsName(name);
+    }
+
+    baseHasField(cls: ClsInfo, name: string, seen: Set<string>): boolean {
+      for (const b of cls.bases) {
+        if (seen.has(b.fq)) continue;
+        seen.add(b.fq);
+        const bc = this.classes.get(b.fq);
+        if (!bc) continue;
+        if (bc.fields.has(name) && !bc.fieldStatic.has(name)) return true;
+        if (this.baseHasField(bc, name, seen)) return true;
+      }
+      return false;
+    }
+
     fieldVar(cls: ClsInfo, name: string, fd: VarDecl): VarInfo {
       return {
         fq: cls.fq + "::" + name,
         short: name,
-        mangled: name,
+        mangled: this.fieldJsName(cls, name),
         decl: fd,
         scope: this.memberScope(cls),
         typeCache: null,
@@ -1332,6 +1363,12 @@ namespace CTJ {
       if (tlist.length) return tlist[0];
       const cls = this.classes.get(clsFq);
       if (!cls) return null;
+      // Member templates of an instantiated class template are stored under the
+      // uninstantiated name.
+      if (cls.fromTmpl) {
+        const base = this.tmplsOf(cls.fromTmpl + "::" + name);
+        if (base.length) return base[0];
+      }
       for (const b of cls.bases) {
         const t = this.lookupTmplMember(b.fq, name, seen);
         if (t) return t;
@@ -1416,7 +1453,7 @@ namespace CTJ {
       if (!parts.length) return null;
       // The injected class name: inside a class its own name, written without
       // arguments, stands for the class itself rather than for its template.
-      if (!global && !parts[0].a.length) {
+      if (!global && !parts[0].a.length && !parts[0].tid) {
         for (let c = scope.cls; c; c = c.scope.cls) {
           if (this.declaredName(c) !== parts[0].n) continue;
           if (parts.length === 1) return { k: "class", cls: c };
@@ -1431,7 +1468,7 @@ namespace CTJ {
       // allocator<U> written inside allocator<T> must name the class template,
       // not a converting constructor template of the current instantiation
       // (which would collapse allocator<_Rb_tree_node<int>> to allocator<int>).
-      if (!global && parts[0].a.length) {
+      if (!global && (parts[0].a.length || parts[0].tid)) {
         for (let c = scope.cls; c; c = c.scope.cls) {
           if (this.declaredName(c) === parts[0].n && c.fromTmpl) {
             const t = this.tmpls.get(c.fromTmpl);
@@ -1494,7 +1531,7 @@ namespace CTJ {
     }
 
     applySegArgs(sym: Sym, seg: QSeg, scope: Scope): Sym | null {
-      if (!seg.a.length) return sym;
+      if (!seg.a.length && !seg.tid) return sym;
       // Instantiating a member function template also registers it as a plain
       // method, so a later "f<A, B>(x)" finds the function before the template.
       // A template-id always names the template.
@@ -1543,6 +1580,11 @@ namespace CTJ {
         } else if (m.methods) next = { k: "func", fns: m.methods };
         else if (m.nested) next = this.symOfNested(m.nested);
         else if (m.constItem) next = { k: "enumval", e: m.constItem.e, item: m.constItem.item };
+        // A member template ("Cls<A>::f<B>(x)") is stored as a template until instantiated.
+        if (!next) {
+          const tm = this.lookupTmplMember(sym.cls.fq, name, new Set());
+          if (tm) next = { k: "tmpl", t: tm };
+        }
       } else if (sym.k === "enum") {
         this.enumValues(sym.e);
         if ((sym.e.values as Map<string, number>).has(name)) next = { k: "enumval", e: sym.e, item: name };
@@ -1771,7 +1813,7 @@ namespace CTJ {
       // are applied here.
       const lastSeg = tn.parts[tn.parts.length - 1];
       if (lastSeg && lastSeg.a.length) {
-        const bare = this.resolveSym(tn.parts.slice(0, -1).concat([{ ...lastSeg, a: [] }]), tn.global, scope);
+        const bare = this.resolveSym(tn.parts.slice(0, -1).concat([qseg(lastSeg.n)]), tn.global, scope);
         if (bare && bare.k === "tmpl" && bare.t.kind === "alias") {
           const aliased = this.instantiateAlias(
             bare.t.fq,
@@ -1791,7 +1833,7 @@ namespace CTJ {
       let base: CppType;
       if (s.k === "class") {
         base = new CppType(s.cls.fq);
-        base.segs = [{ n: s.cls.fromTmpl || s.cls.fq, a: s.cls.instArgs.slice() }];
+        base.segs = [{ n: s.cls.fromTmpl || s.cls.fq, a: s.cls.instArgs.slice(), tid: !!s.cls.fromTmpl }];
         this.markCls(s.cls.fq);
       } else if (s.k === "enum") {
         base = new CppType(s.e.fq);
@@ -1859,7 +1901,7 @@ namespace CTJ {
         base.funcVariadic = tn.func.variadic;
         base.name = "__func";
         base.segs = [{ n: "__func", a: [] }];
-        base.ref = "";
+        base.ref = (tn.func.ptrRef || "") as "" | "&" | "&&";
         base.cnst = false;
         base.dims = [];
       }
@@ -1956,7 +1998,11 @@ namespace CTJ {
       // Every argument has to be accounted for, so the arities must agree - a
       // trailing pack being the one exception, it takes whatever is left over.
       const last = p.specArgs.length ? p.specArgs[p.specArgs.length - 1] : null;
-      const packTn = last && last.packExpand ? last : null;
+      // A pack is "_Tp..." written as a type, or "_Is..." written as a nontype
+      // argument (an expression), which is what a nontype pack parses to.
+      const lastVal = last && !last.parts.length && last.valueArg && last.valueArg.kind === "unary" && last.valueArg.op === "..." ? last.valueArg.arg : null;
+      const packName = last && last.packExpand && last.parts.length ? last.parts[0].n : lastVal && lastVal.kind === "id" ? (lastVal as IdExpr).parts[0].n : null;
+      const packTn = packName !== null ? last : null;
       const fixed = p.specArgs.length - (packTn ? 1 : 0);
       if (packTn ? fixed > args.length : p.specArgs.length !== args.length) return null;
       const env = blankSubstEnv();
@@ -1964,7 +2010,15 @@ namespace CTJ {
       for (let i = 0; i < fixed; i++) {
         if (!this.matchTypeArg(p.specArgs[i], args[i], names, env, tmpl.scope)) return null;
       }
-      if (packTn && packTn.parts.length) env.packs.set(packTn.parts[0].n, args.slice(fixed));
+      if (packName !== null) {
+        const rest = args.slice(fixed);
+        if (p.tparams.some(x => x.name === packName && x.kind === "nontype")) {
+          env.valuePacks.set(
+            packName,
+            rest.map(a => parseInt(a.name.replace("__value", "") || "0", 10))
+          );
+        } else env.packs.set(packName, rest);
+      }
       for (const tp of p.tparams) {
         // A pack binds in env.packs, so it is never in env.types; unlike a plain
         // parameter it needs no default of its own.
@@ -2026,6 +2080,15 @@ namespace CTJ {
       }
       if (!tn.parts.length) return false;
       const first = tn.parts[0].n;
+      if (tn.parts.length === 1 && !tn.parts[0].a.length && names.has(first) && t.name.startsWith("__value") && !tn.ptr && !tn.ref) {
+        // A nontype parameter spelled as a type name ("I" in "Sum<I, Is...>")
+        // binds to a value argument; a type can never be named __value...
+        const v = parseInt(t.name.replace("__value", "") || "0", 10);
+        const have = env.values.get(first);
+        if (have !== undefined) return have === v;
+        env.values.set(first, v);
+        return true;
+      }
       if (tn.parts.length === 1 && !tn.parts[0].a.length && names.has(first)) {
         // "_Res(_Args...)" is a function type: only a function argument matches,
         // and its parameter list has to line up with the pattern.
@@ -2190,6 +2253,14 @@ namespace CTJ {
           // class body carries is the same template, and the definition replaces it.
           // The member's own scope: the class's typedefs are visible in an
           // out-of-line definition.
+          // As for namespace templates, the defaults of the in-class declaration
+          // are kept: "template<typename _Functor, typename = _Requires<...>>
+          // function(_Functor)" is defined out of line without them.
+          const prevT = this.tmpls.get(newFq);
+          rest2.forEach((tp, i) => {
+            const old = prevT && prevT.tparams[i];
+            if (!tp.def && old && old.def) tp.def = old.def;
+          });
           this.registerTmpl({ fq: newFq, kind: t.kind, tparams: rest2, decl, scope: this.memberScope(owner), specs: [] });
         }
       }

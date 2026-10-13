@@ -38,22 +38,22 @@ class Point {
   static count = 5;
 }
 function getSum(p) {
-  return (p.a[p.i]).sum__c();
+  return Point.prototype.sum__c.call(p.a[p.i]);
 }
 function main() {
   let $t0;
   let p = new Point();
-  (console.log((p.sum())));
+  (console.log((Point.prototype.sum.call(p))));
   let q = {v: new Point(3, 4)};
-  (console.log((q.v.sum())));
+  (console.log((Point.prototype.sum.call(q.v))));
   let r = new Point({a: q, i: "v"});
-  (console.log((r.sum())));
+  (console.log((Point.prototype.sum.call(r))));
   (console.log((getSum({a: q, i: "v"}))));
   (console.log((Point.getCount())));
-  q.v.addx(10);
-  (console.log((q.v.sum())));
+  Point.prototype.addx.call(q.v, 10);
+  (console.log((Point.prototype.sum.call(q.v))));
   let pp = ($t0 = {a: [new Point(1, 2)], i: 0}, $t0 ? {a: $t0.a, i: $t0.i} : null);
-  (console.log(((pp.a[pp.i]).sum())));
+  (console.log((Point.prototype.sum.call(pp.a[pp.i]))));
   return 0;
 }
 main();

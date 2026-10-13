@@ -8,6 +8,8 @@ namespace CTJ {
     if (fn.kind === "id") {
       const sym = cx.resolveSym((fn as IdExpr).parts, (fn as IdExpr).global, scope);
       cx.getAnn(fn).sym = sym;
+      // A function pointer member called by its name ("_M_invoker(...)") is read from this.
+      if (sym && sym.k === "var" && sym.v.isField && !sym.v.isStatic && (fn as IdExpr).parts.length === 1) cx.getAnn(fn).needsThis = true;
       if (!sym) {
         const nm = (fn as IdExpr).parts.map(s => s.n).join("::");
         const bname = (fn as IdExpr).parts.length === 1 ? (fn as IdExpr).parts[0].n : "";

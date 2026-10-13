@@ -222,6 +222,12 @@ namespace CTJ {
         const type = p.parseAbstractType();
         p.expect(")");
         const arg = parsePostfix(p, parseUnary(p));
+        // "(int)xs..." expands the cast, not the operand: the ellipsis is moved
+        // outside it, as in "((int)xs)...".
+        if (arg.kind === "unary" && arg.op === "..." && arg.postfix) {
+          const cast: Expr = { kind: "cast", ckind: "cstyle", type, fn: null, arg: arg.arg, ...at(t) };
+          return { kind: "unary", op: "...", arg: cast, postfix: true, ...at(t) };
+        }
         return { kind: "cast", ckind: "cstyle", type, fn: null, arg, ...at(t) };
       }
       p.pos++;
@@ -301,8 +307,10 @@ namespace CTJ {
         const nx = p.peek().t;
         // "tcmp<int>;" or "sort(a, b, tcmp<int>)": nothing that can start an operand
         // follows, so the angle brackets were arguments and not a comparison.
-        if (nx === "(" || nx === "::" || NOT_OPERAND_START.has(nx)) last(parts).a = args;
-        else p.reset(m);
+        if (nx === "(" || nx === "::" || NOT_OPERAND_START.has(nx)) {
+          last(parts).a = args;
+          last(parts).tid = true;
+        } else p.reset(m);
       } catch {
         p.reset(m);
       }

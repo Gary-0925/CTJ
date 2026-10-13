@@ -36,30 +36,30 @@ class Str_char_Traits_char_Rep extends Traits_char {
   }
 }
 class Str_char_Traits_char {
-  buf;
-  rep;
+  buf$Str_char_Traits_char;
+  rep$Str_char_Traits_char;
   constructor(...$a) {
     this.__init_Str_char_Traits_char(...$a);
   }
   __init_Str_char_Traits_char(...$a) {
-    this.buf = new Array(32).fill(0);
-    this.rep = new Str_char_Traits_char_Rep();
-    this.rep.ctj_a = this; this.rep.ctj_i = "rep";
+    this.buf$Str_char_Traits_char = new Array(32).fill(0);
+    this.rep$Str_char_Traits_char = new Str_char_Traits_char_Rep();
+    this.rep$Str_char_Traits_char.ctj_a = this; this.rep$Str_char_Traits_char.ctj_i = "rep$Str_char_Traits_char";
   }
   __dtor() {
   }
   set(s) {
     let $t0;
-    this.rep.len = ((strlen((s ? {a: s.a, i: s.i} : null))) | 0);
-    for (let i = 0; (i < this.rep.len); ($t0 = i, i = (($t0 + 1) | 0), $t0)) {
-      this.buf[i] = s.a[s.i + (i)];
+    this.rep$Str_char_Traits_char.len = ((strlen((s ? {a: s.a, i: s.i} : null))) | 0);
+    for (let i = 0; (i < this.rep$Str_char_Traits_char.len); ($t0 = i, i = (($t0 + 1) | 0), $t0)) {
+      this.buf$Str_char_Traits_char[i] = s.a[s.i + (i)];
     }
   }
   size__c() {
-    return this.rep.len;
+    return this.rep$Str_char_Traits_char.len;
   }
   at__c(i) {
-    return this.buf[i];
+    return this.buf$Str_char_Traits_char[i];
   }
   static compare(a, b) {
     while ((a.a[a.i] && (a.a[a.i] === b.a[b.i]))) {
@@ -73,12 +73,12 @@ class Str_char_Traits_char {
   static npos = -1;
 }
 class Node_double {
-  next;
+  next$Node_double;
   constructor(...$a) {
     this.__init_Node_double(...$a);
   }
   __init_Node_double(...$a) {
-    this.next = null;
+    this.next$Node_double = null;
   }
   __dtor() {
   }
@@ -89,12 +89,12 @@ class Node_double_Rebind_int {
   }
 }
 class Node_int {
-  next;
+  next$Node_int;
   constructor(...$a) {
     this.__init_Node_int(...$a);
   }
   __init_Node_int(...$a) {
-    this.next = null;
+    this.next$Node_int = null;
   }
   __dtor() {
   }
@@ -114,16 +114,16 @@ function strlen(s) {
 }
 function main() {
   let s = new Str_char_Traits_char();
-  s.set({a: [104, 101, 108, 108, 111, 0], i: 0});
-  (console.log((s.size__c())));
+  Str_char_Traits_char.prototype.set.call(s, {a: [104, 101, 108, 108, 111, 0], i: 0});
+  (console.log((Str_char_Traits_char.prototype.size__c.call(s))));
   let c = Str_char_Traits_char.compare({a: [97, 98, 99, 0], i: 0}, {a: [97, 98, 100, 0], i: 0});
   (console.log(((c < 0))));
   (console.log(((Str_char_Traits_char.npos === ((-(1)) | 0)))));
-  (console.log((s.at__c(1))));
+  (console.log((Str_char_Traits_char.prototype.at__c.call(s, 1))));
   let n = new Node_double();
-  (console.log(((n.next === null))));
+  (console.log(((n.next$Node_double === null))));
   let b = new Buf();
-  (console.log((b.front())));
+  (console.log((Buf.prototype.front.call(b))));
   return 0;
 }
 main();

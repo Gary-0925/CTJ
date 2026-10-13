@@ -80,7 +80,9 @@ namespace CTJ {
       return { s: 70, conv: null };
     }
     if (cx.enums.has(pFq || pn) && isIntegerName(an)) return { s: 40, conv: null };
-    if (cx.enums.has(aFq || an) && isIntegerName(pn)) return { s: 60, conv: null };
+    // An unscoped enumeration promotes to int (a promotion); to bool it is a
+    // boolean conversion, which ranks below the others.
+    if (cx.enums.has(aFq || an) && isIntegerName(pn)) return { s: pn === "int" ? 70 : pn === "bool" ? 40 : 60, conv: null };
     if (cx.enums.has(pFq || pn) && cx.enums.has(aFq || an) && pn === an) return { s: 90, conv: null };
     if (isNumericName(pn) && isNumericName(an) && p.ptr === a.ptr && !p.dims.length && !a.dims.length && !p.isFunc && !a.isFunc) {
       if (pn === an) return { s: 90, conv: null };

@@ -34,11 +34,10 @@ namespace CTJ {
     if (t.isFunc && t.ret) {
       const tn = typeToNode(t.ret);
       tn.ptr = t.ptr;
-      tn.ref = t.ref;
-      tn.func = { params: t.funcParams.map(typeToNode), variadic: t.funcVariadic };
+      tn.func = { params: t.funcParams.map(typeToNode), variadic: t.funcVariadic, ptrRef: t.ref || undefined };
       return tn;
     }
-    const tn = typeNode(t.segs.map(g => qseg(g.n, g.a.map(typeToNode))));
+    const tn = typeNode(typeToSegs(t));
     tn.ptr = t.ptr;
     tn.ref = t.ref;
     tn.cnst = t.cnst;
@@ -47,7 +46,11 @@ namespace CTJ {
   }
 
   export function typeToSegs(t: CppType): QSeg[] {
-    return t.segs.map(g => qseg(g.n, g.a.map(typeToNode)));
+    return t.segs.map(g => {
+      const q = qseg(g.n, g.a.map(typeToNode));
+      if (g.tid) q.tid = true;
+      return q;
+    });
   }
 
   export function substTypeNode(tn: TypeNode, env: SubstEnv): TypeNode {
@@ -74,10 +77,13 @@ namespace CTJ {
       for (const s of typeToSegs(base)) out.parts.push(s);
       for (let i = 1; i < tn.parts.length; i++) out.parts.push(substQSeg(tn.parts[i], env));
       out.ptr += rep.ptr;
-      if (!out.ref) out.ref = base.ref;
-      if (isFn && !out.func) {
-        out.func = { params: (rep.funcParams || []).map(typeToNode), variadic: !!rep.funcVariadic };
-      }
+      if (isFn) {
+        // "F&" with F a function pointer refers to the pointer; the return type's
+        // reference stays with the return type.
+        const useRef = out.ref;
+        out.ref = base.ref;
+        if (!out.func) out.func = { params: (rep.funcParams || []).map(typeToNode), variadic: !!rep.funcVariadic, ptrRef: useRef || rep.ref || undefined };
+      } else if (!out.ref) out.ref = base.ref;
       for (const d of base.dims) out.dims.unshift(litNum(d, out) as Expr);
     } else if (tn.parts.length === 1 && !tn.parts[0].a.length && env.values.has(first)) {
       // A nontype parameter written in type position, as in get<_Indexes>.
@@ -89,7 +95,10 @@ namespace CTJ {
   }
 
   function substQSeg(s: QSeg, env: SubstEnv): QSeg {
-    return qseg(s.n, substTArgs(s.a, env));
+    const out = qseg(s.n, substTArgs(s.a, env));
+    // A template-id stays one even when its pack expands to no argument.
+    if (s.tid) out.tid = true;
+    return out;
   }
 
   // A qualified name whose single part is a template parameter is replaced by the
@@ -116,6 +125,20 @@ namespace CTJ {
             const tn = typeNode([]);
             tn.valueArg = litNum(v, a) as Expr;
             out.push(tn);
+          }
+          continue;
+        }
+      }
+      // A pattern wider than one name, as "typename ds<_Elements>::__type...", is
+      // repeated once per element of the pack it mentions.
+      if (a.packExpand) {
+        const nm = [...env.packs.keys()].find(k => typeNodeNames(a, k));
+        if (nm) {
+          const n = (env.packs.get(nm) as CppType[]).length;
+          for (let i = 0; i < n; i++) {
+            const e2 = copySubstEnv(env);
+            bindPackIndex(e2, env, i);
+            out.push(substTypeNode({ ...a, packExpand: false }, e2));
           }
           continue;
         }
@@ -250,6 +273,11 @@ namespace CTJ {
   }
 
   // One argument of a call: a pack expansion becomes one argument per element.
+  // Whether the type names the template parameter nm anywhere, inside its
+  // template arguments too.
+  function typeNodeNames(tn: TypeNode, nm: string): boolean {
+    return tn.parts.some(p => (!p.a.length && p.n === nm) || p.a.some(x => typeNodeNames(x, nm)));
+  }
   function expandArg(a: Expr, env: SubstEnv): Expr[] {
     const pk = peelPack(a);
     if (pk && env.packNames.has(pk.core)) {
@@ -309,8 +337,11 @@ namespace CTJ {
   // pack of one element constructs that element, which is what a cast holds.
   function substCastArg(a: Expr, env: SubstEnv): Expr {
     if (a.kind === "unary" && a.op === "...") {
+      // "W<E...>(std::forward<E>(a)...)" names one argument syntactically; when the
+      // pack has several elements it is the list of them, as "W<E...>(x, y)" is.
       const ex = expandArg(a, env);
       if (ex.length === 1) return ex[0];
+      return { kind: "initlist", items: ex, parens: true, file: a.file, line: a.line };
     }
     return substExpr(a, env);
   }
@@ -400,7 +431,8 @@ namespace CTJ {
           // (including an empty one) becomes a literal.
           if (env.packs.has(ex.packName)) return litNum((env.packs.get(ex.packName) as CppType[]).length, a);
           if (env.valuePacks.has(ex.packName)) return litNum((env.valuePacks.get(ex.packName) as number[]).length, a);
-          if (env.types.has(ex.packName) || env.values.has(ex.packName) || env.packNames.has(ex.packName)) {
+          if (env.packNames.has(ex.packName)) return litNum((env.packNames.get(ex.packName) as string[]).length, a);
+          if (env.types.has(ex.packName) || env.values.has(ex.packName)) {
             return litNum(0, a);
           }
           return { kind: "sizeof", isType: ex.isType, type: ex.type, expr: ex.expr, packName: ex.packName, isAlignof: ex.isAlignof, file: f, line: l };

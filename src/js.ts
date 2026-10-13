@@ -337,7 +337,7 @@ namespace CTJ {
       const base = c.bases.length ? ((this.cx.classes.get(c.bases[0].fq) as ClsInfo).mangled as string) : "";
       this.block(base ? `class ${cn} extends ${base}` : `class ${cn}`, () => {
         for (const [name] of c.fields) {
-          if (!c.fieldStatic.has(name)) this.line(`${safeJsName(name)};`);
+          if (!c.fieldStatic.has(name)) this.line(`${this.cx.fieldJsName(c, name)};`);
         }
         const ctors = (c.methods.get("#ctor") || []).filter(f => f.referenced);
         const inherited = this.inheritedCtors(c);
@@ -700,11 +700,11 @@ namespace CTJ {
         if (c.fieldStatic.has(name)) continue;
         const ft = this.cx.fieldType(c, name);
         const hit = !inh ? fn.decl.ctorInit.find(x => last(x.name).n === name) : null;
-        const fname = safeJsName(name);
+        const fname = this.cx.fieldJsName(c, name);
         if (!hit && copyDefault) {
-          this.fieldAssign(name, ft, `${copySrc}.${fname}`);
+          this.fieldAssign(fname, ft, `${copySrc}.${fname}`);
         } else {
-          this.fieldAssign(name, ft, this.fieldInit(c, ft, fd, hit || null));
+          this.fieldAssign(fname, ft, this.fieldInit(c, ft, fd, hit || null));
         }
       }
       if (!inh) {
@@ -722,7 +722,7 @@ namespace CTJ {
       }
       for (const [name, fd] of c.fields) {
         if (c.fieldStatic.has(name)) continue;
-        this.fieldAssign(name, this.cx.fieldType(c, name), this.fieldInit(c, this.cx.fieldType(c, name), fd, null));
+        this.fieldAssign(this.cx.fieldJsName(c, name), this.cx.fieldType(c, name), this.fieldInit(c, this.cx.fieldType(c, name), fd, null));
       }
     }
 
@@ -1712,9 +1712,9 @@ namespace CTJ {
       if (v.isField) {
         if (v.isStatic) {
           const cls = this.cx.classes.get(v.fq.split("::").slice(0, -1).join("::")) as ClsInfo;
-          return `${cls.mangled}.${safeJsName(v.short)}`;
+          return `${cls.mangled}.${v.mangled}`;
         }
-        return needsThis ? `this.${safeJsName(v.short)}` : safeJsName(v.short);
+        return needsThis ? `this.${v.mangled}` : v.mangled;
       }
       return this.localName(v);
     }
@@ -1979,7 +1979,7 @@ namespace CTJ {
           const t = (v.isField && v.scope.cls ? this.cx.fieldType(v.scope.cls, v.short) : v.typeCache) as CppType;
           if (!t || t.isFunc) return this.ex(e);
           if (v.isField) {
-            const fname = safeJsName(v.short);
+            const fname = v.mangled;
             return v.isStatic ? `{a: ${v.scope.cls!.mangled}, i: "${fname}"}` : `{a: this, i: "${fname}"}`;
           }
           const nm = this.varName(v, this.cx.getAnn(e).needsThis);
@@ -1994,7 +1994,7 @@ namespace CTJ {
           const f = m.sym;
           if (!f || f.k !== "var" || !f.v.isField) return `{a: [${this.ex(e)}], i: 0}`;
           const v = f.v;
-          const fname = safeJsName(v.short);
+          const fname = v.mangled;
           const cls = this.cx.classes.get(v.fq.split("::").slice(0, -1).join("::")) as ClsInfo;
           if (v.isStatic) return `{a: ${cls.mangled}, i: "${fname}"}`;
           let o = this.objOf(e.obj);
@@ -2083,7 +2083,7 @@ namespace CTJ {
           const f = m.sym;
           if (!f || f.k !== "var" || !f.v.isField) this.cx.fail("not assignable", e);
           const v = f.v;
-          const fname = safeJsName(v.short);
+          const fname = v.mangled;
           const cls = this.cx.classes.get(v.fq.split("::").slice(0, -1).join("::")) as ClsInfo;
           if (v.isStatic) return `${cls.mangled}.${fname}`;
           let o = this.objOf(e.obj);
@@ -2264,7 +2264,8 @@ namespace CTJ {
       // "reinterpret_cast<_CharT*>(this + 1)" does in a header that keeps its
       // data behind the object: the instance gets an array to be addressed in.
       if (e.kind === "this") return `{a: (this.ctj_a || (this.ctj_a = [])), i: (this.ctj_i || 0)}`;
-      if (t.dims.length && !t.isBox()) return `{a: ${x}, i: 0}`;
+      // A reference to an array is the array itself, so it is boxed like one.
+      if (t.dims.length && (!t.isBox() || (t.ref && t.ptr === 0))) return `{a: ${x}, i: 0}`;
       // _M_leftmost()/_M_rightmost() are T*&: compare the pointer they refer to.
       if (t.ref && t.ptr > 0 && e.kind === "call") {
         const p = this.paren(x);
@@ -2292,13 +2293,13 @@ namespace CTJ {
         const nm = this.varName(v, ann.needsThis);
         if (v.isStatic) {
           const cls = this.cx.classes.get(v.fq.split("::").slice(0, -1).join("::")) as ClsInfo;
-          return `{a: ${cls.mangled}, i: "${safeJsName(v.short)}"}`;
+          return `{a: ${cls.mangled}, i: "${v.mangled}"}`;
         }
         // A field written without an object ("x" inside a method) is a field of
         // "this", and its storage is the property it lives in.
-        if (v.isField) return ann.needsThis ? `{a: this, i: "${safeJsName(v.short)}"}` : null;
+        if (v.isField) return ann.needsThis ? `{a: this, i: "${v.mangled}"}` : null;
         const t = v.typeCache as CppType | null;
-        if (t && t.ref !== "") return nm;
+        if (t && t.ref !== "") return t.dims.length && !t.ptr ? `{a: ${nm}, i: 0}` : nm;
         if (v.storage === "boxed" || v.storage === "bbox") return `{a: ${nm}, i: "v"}`;
         return null;
       }
@@ -2307,7 +2308,7 @@ namespace CTJ {
         const f = m.sym;
         if (!f || f.k !== "var" || !f.v.isField) return null;
         const v = f.v;
-        const fname = safeJsName(v.short);
+        const fname = v.mangled;
         if (v.isStatic) {
           const cls = this.cx.classes.get(v.fq.split("::").slice(0, -1).join("::")) as ClsInfo;
           return `{a: ${cls.mangled}, i: "${fname}"}`;
@@ -2713,7 +2714,7 @@ namespace CTJ {
           const ma = this.cx.getAnn(m);
           const f = ma.sym;
           if (f && f.k === "var" && f.v.isField) {
-            return `${this.paren(o)}.${safeJsName(f.v.short)}(${aa.join(", ")})`;
+            return `${this.paren(o)}.${f.v.mangled}(${aa.join(", ")})`;
           }
         }
         return `${this.paren(this.ex(e.fn))}(${aa.join(", ")})`;
@@ -2757,6 +2758,12 @@ namespace CTJ {
         // obj.field(args) on a functor field calls operator() on the field.
         if (ma.sym && ma.sym.k === "var" && ma.sym.v.isField) o = this.ex(e.fn);
         if ((e.fn as MemberExpr).qual.length && !(ma.sym && ma.sym.k === "var" && ma.sym.v.isField)) {
+          const cls = this.cx.classes.get(fn.cls as string) as ClsInfo;
+          s = `${cls.mangled}.prototype.${methodJsName(fn)}.call(${o}${aa.length ? ", " + aa.join(", ") : ""})`;
+        } else if (!fn.isVirtual && fn.cls) {
+          // A non-virtual method is bound by the static type: a derived class that
+          // declares the same name (head() in both TI<0,...> and TI<1,...>) must not
+          // replace it on the JS prototype chain.
           const cls = this.cx.classes.get(fn.cls as string) as ClsInfo;
           s = `${cls.mangled}.prototype.${methodJsName(fn)}.call(${o}${aa.length ? ", " + aa.join(", ") : ""})`;
         } else {
@@ -2925,7 +2932,7 @@ namespace CTJ {
       const f = a.sym;
       if (!f || f.k !== "var" || !f.v.isField) this.cx.fail("bad member", e);
       const v = f.v;
-      const fname = safeJsName(v.short);
+      const fname = v.mangled;
       const cls = this.cx.classes.get(v.fq.split("::").slice(0, -1).join("::")) as ClsInfo;
       if (v.isStatic) return `${cls.mangled}.${fname}`;
       let o = this.objOf(e.obj);
@@ -3470,13 +3477,15 @@ namespace CTJ {
     }
 
     sizeofType(e: SizeofExpr): CppType {
-      if (e.isType && e.type) return this.cx.resolveTypeNode(e.type, this.curScope());
+      if (e.isType && e.type) return this.cx.getAnn(e).typeArg || this.cx.resolveTypeNode(e.type, this.curScope());
       if (e.expr) return this.cx.getAnn(e.expr).t as CppType;
       this.cx.fail("bad sizeof", e);
       return CppType.basic("int");
     }
 
     constStr(e: Expr): string {
+      const known = this.cx.getAnn(e).constVal;
+      if (known !== null) return String(known);
       const v = constEval(this.cx, e, this.blankScope());
       if (typeof v === "number") return String(v);
       return this.ex(e);

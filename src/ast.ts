@@ -12,6 +12,8 @@ namespace CTJ {
   export interface QSeg {
     n: string;
     a: TypeNode[];
+    // Spelled as a template-id, even with an empty argument list ("Sz<>").
+    tid?: boolean;
   }
 
   export function qseg(n: string, a: TypeNode[] = []): QSeg {
@@ -26,7 +28,9 @@ namespace CTJ {
     ref: "" | "&" | "&&";
     cnst: boolean;
     dims: Expr[];
-    func: { params: TypeNode[]; variadic: boolean } | null;
+    // ptrRef: the reference of a pointer to function ("int (*&r)(int)"), which is
+    // not the reference of the return type that TypeNode.ref otherwise carries.
+    func: { params: TypeNode[]; variadic: boolean; ptrRef?: string } | null;
     decltypeOf: Expr | null;
     packExpand: boolean;
     valueArg: Expr | null;

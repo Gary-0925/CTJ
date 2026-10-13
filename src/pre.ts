@@ -470,6 +470,8 @@ namespace CTJ {
           let j = i + 1;
           let depth = 0;
           const args: Token[][] = [[]];
+          // The commas that separate the arguments, kept with their whitespace.
+          const seps: Token[] = [];
           for (j = i + 1; j < tokens.length; j++) {
             const u = tokens[j];
             if (u.t === "(") {
@@ -479,15 +481,17 @@ namespace CTJ {
               depth--;
               if (depth === 0) break;
               args[args.length - 1].push(u);
-            } else if (u.t === "," && depth === 1) args.push([]);
-            else args[args.length - 1].push(u);
+            } else if (u.t === "," && depth === 1) {
+              seps.push(u);
+              args.push([]);
+            } else args[args.length - 1].push(u);
           }
           if (j >= tokens.length) {
             out.push(t);
             continue;
           }
           i = j;
-          const subbed = this.substMacro(macro, args);
+          const subbed = this.substMacro(macro, args, seps);
           const sub = this.expandTokens(subbed, new Set([...disabled, t.v]), file, line);
           for (const s of sub) out.push(s);
           continue;
@@ -501,13 +505,13 @@ namespace CTJ {
     // an argument, "##" pastes its neighbours (with the GNU comma rule for an
     // empty variadic list), and __VA_OPT__(...) is kept only when there are
     // variadic arguments.
-    substMacro(macro: Macro, args: Token[][]): Token[] {
+    substMacro(macro: Macro, args: Token[][], seps: Token[] = []): Token[] {
       const params = macro.params || [];
       const vaName = macro.variadic ? macro.vaName || "__VA_ARGS__" : "";
       const vastart = macro.variadic ? args.slice(params.length) : [];
       const vaTokens: Token[] = [];
       vastart.forEach((a, k) => {
-        if (k) vaTokens.push(tok(",", ",", "", 0, 0));
+        if (k) vaTokens.push(seps[params.length + k - 1] || tok(",", ",", "", 0, 0));
         for (const x of a) vaTokens.push(x);
       });
       const vaEmpty = vaTokens.length === 0;
@@ -572,7 +576,7 @@ namespace CTJ {
             }
             inner.push(body[j]);
           }
-          if (!vaEmpty) out.push(...this.substMacro({ ...macro, body: inner }, args));
+          if (!vaEmpty) out.push(...this.substMacro({ ...macro, body: inner }, args, seps));
           i = j;
           continue;
         }

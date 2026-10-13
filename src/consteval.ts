@@ -24,6 +24,8 @@ namespace CTJ {
       try {
         ts.push(cx.resolveTypeNode(tn, scope));
       } catch {
+        // A function type is no class, enum or union: the traits about those are false.
+        if (a.parts.length === 1 && a.parts[0].n === "__func") return 0;
         return null;
       }
     }
@@ -131,8 +133,15 @@ namespace CTJ {
           if (isConstVar(cx, v)) {
             const init = v.decl.init || (v.decl.directInit && v.decl.directInit[0]);
             if (!init || (init as Expr).kind === "initlist") return null;
-            if (v.fq) seen.add(v.fq);
-            return constEvalInner(cx, init as Expr, v.scope, seen);
+            // Only the constants on the current evaluation path count as a cycle:
+            // "N <= M && M % 4 == 0" names M twice.
+            if (!v.fq) return constEvalInner(cx, init as Expr, v.scope, seen);
+            seen.add(v.fq);
+            try {
+              return constEvalInner(cx, init as Expr, v.scope, seen);
+            } finally {
+              seen.delete(v.fq);
+            }
           }
           return null;
         }

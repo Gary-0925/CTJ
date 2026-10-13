@@ -429,7 +429,9 @@ namespace CTJ {
     applyDeclarator(base: TypeNode | null, d: Declarator, t: Token): TypeNode {
       const tn = base ? this.cloneType(base) : typeNode([], at(t));
       tn.ptr += d.ptr;
-      if (d.ref) tn.ref = d.ref;
+      // "int (*&r)(int)": the reference belongs to the pointer, not to the return type.
+      const ptrRef = d.isFunc && d.fnPtr && d.ref ? d.ref : "";
+      if (d.ref && !ptrRef) tn.ref = d.ref;
       for (const dim of d.dims) tn.dims.push(dim);
       if (d.isFunc) {
         // The "..." of a pack parameter stays on the parameter it belongs to, so
@@ -443,6 +445,7 @@ namespace CTJ {
             return pt;
           }),
           variadic: d.params.some(p => p.variadic),
+          ptrRef: ptrRef || undefined,
         };
       }
       return tn;
@@ -451,13 +454,13 @@ namespace CTJ {
     cloneType(t: TypeNode): TypeNode {
       return {
         kind: "type",
-        parts: t.parts.map(s => ({ n: s.n, a: s.a.map(x => this.cloneType(x)) })),
+        parts: t.parts.map(s => ({ ...s, a: s.a.map(x => this.cloneType(x)) })),
         global: t.global,
         ptr: t.ptr,
         ref: t.ref,
         cnst: t.cnst,
         dims: t.dims.slice(),
-        func: t.func ? { params: t.func.params.slice(), variadic: t.func.variadic } : null,
+        func: t.func ? { params: t.func.params.slice(), variadic: t.func.variadic, ptrRef: t.func.ptrRef } : null,
         decltypeOf: t.decltypeOf,
         packExpand: t.packExpand,
         valueArg: t.valueArg,
@@ -820,6 +823,7 @@ namespace CTJ {
         if (t.t !== "ident") fail(`expected name, got '${t.v}'`, t.file, t.line, t.col);
         this.pos++;
         let args: TypeNode[] = [];
+        let hadArgs = false;
         if (this.peek().t === "<") {
           const m = this.mark();
           let ok = true;
@@ -834,8 +838,11 @@ namespace CTJ {
             ok = false;
           }
           if (!ok) args = [];
+          hadArgs = ok;
         }
-        parts.push(qseg(t.v, args));
+        const seg = qseg(t.v, args);
+        if (hadArgs) seg.tid = true;
+        parts.push(seg);
         this.skipGnu();
         if (this.peek().t === "::") {
           this.pos++;
@@ -985,6 +992,14 @@ namespace CTJ {
           tn.ptr++;
           continue;
         }
+        // "MF<_Member _Class::*>": a pointer to member is a pointer.
+        if (t.t === "ident" && this.peek(1).t === "::" && this.peek(2).t === "*") {
+          this.pos += 3;
+          this.skipGnu();
+          while (this.peek().t === "ident" && CV_FLAGS.has(this.peek().v)) this.pos++;
+          tn.ptr++;
+          continue;
+        }
         if (t.t === "&" || t.t === "&&") {
           tn.ref = t.t as "&" | "&&";
           this.pos++;
@@ -1030,7 +1045,7 @@ namespace CTJ {
         if (t.t === "*") {
           this.pos++;
           this.skipGnu();
-          if (this.peek().t === "ident" && CV_FLAGS.has(this.peek().v)) this.pos++;
+          while (this.peek().t === "ident" && CV_FLAGS.has(this.peek().v)) this.pos++;
           d.ptr++;
           continue;
         }
@@ -1041,6 +1056,9 @@ namespace CTJ {
         }
         if (t.t === "ident" && this.peek(1).t === "::" && this.peek(2).t === "*") {
           this.pos += 3;
+          this.skipGnu();
+          // "_Tp _Class::* const& __mp": the qualifiers belong to the pointer, as for "*".
+          while (this.peek().t === "ident" && CV_FLAGS.has(this.peek().v)) this.pos++;
           d.ptr++;
           d.isMemPtr = true;
           continue;

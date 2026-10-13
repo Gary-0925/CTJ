@@ -129,14 +129,14 @@ class std_allocator_int extends gnu_cxx_new_allocator_int {
   }
 }
 class std_List_node_int extends std_detail_List_node_base {
-  _M_data;
+  _M_data$std_List_node_int;
   constructor(...$a) {
     super(...[]);
     this.__init_std_List_node_int(...$a);
   }
   __init_std_List_node_int(...$a) {
     let $t0;
-    this._M_data = ($t0 = std_forward_1_int($a[0]), $t0.a[$t0.i]);
+    this._M_data$std_List_node_int = ($t0 = std_forward_1_int($a[0]), $t0.a[$t0.i]);
   }
   __dtor() {
     std_detail_List_node_base.prototype.__dtor.call(this);
@@ -153,7 +153,7 @@ class gnu_cxx_new_allocator_std_List_node_int {
   }
   allocate(__n, $p1 = {a: [0], i: 0}) {
     let $t1;
-    if ((__n > this.max_size__c())) {
+    if ((__n > gnu_cxx_new_allocator_std_List_node_int.prototype.max_size__c.call(this))) {
       std_throw_bad_alloc();
     }
     return ($t1 = operatornew__unsigned_long(((Math.imul(__n, 12)) >>> 0)), $t1 ? {a: $t1.a, i: $t1.i} : null);
@@ -165,7 +165,7 @@ class gnu_cxx_new_allocator_std_List_node_int {
     return ((Math.trunc((((((-(1)) | 0)) >>> 0)) / (12))) >>> 0);
   }
   destroy__gnu_cxx_new_allocator_std_List_node_int_destroy_std_List_node_int(__p) {
-    (__p.a[__p.i]).__dtor();
+    std_List_node_int.prototype.__dtor.call(__p.a[__p.i]);
   }
   construct__gnu_cxx_new_allocator_std_List_node_int_construct_std_List_node_int_int__rv(__p, __args_0) {
     (__p.a[__p.i] = new std_List_node_int(std_forward_1_int(__args_0)), __p.a[__p.i].ctj_a = __p.a, __p.a[__p.i].ctj_i = __p.i, {a: __p.a, i: __p.i});
@@ -197,42 +197,42 @@ class std_List_base_int_std_allocator_int_List_impl extends std_allocator_std_Li
   }
 }
 class std_List_base_int_std_allocator_int {
-  _M_impl;
+  _M_impl$std_List_base_int_std_allocator_int;
   constructor(...$a) {
     this.__init_std_List_base_int_std_allocator_int(...$a);
   }
   __init_std_List_base_int_std_allocator_int(...$a) {
-    this._M_impl = new std_List_base_int_std_allocator_int_List_impl();
-    this._M_impl.ctj_a = this; this._M_impl.ctj_i = "_M_impl";
+    this._M_impl$std_List_base_int_std_allocator_int = new std_List_base_int_std_allocator_int_List_impl();
+    this._M_impl$std_List_base_int_std_allocator_int.ctj_a = this; this._M_impl$std_List_base_int_std_allocator_int.ctj_i = "_M_impl$std_List_base_int_std_allocator_int";
     this._M_init();
   }
   __dtor() {
   }
   _M_get_node() {
     let $t2;
-    return ($t2 = gnu_cxx_new_allocator_std_List_node_int.prototype.allocate.call(this._M_impl, ((1) >>> 0), {a: [0], i: 0}), $t2 ? {a: $t2.a, i: $t2.i} : null);
+    return ($t2 = gnu_cxx_new_allocator_std_List_node_int.prototype.allocate.call(this._M_impl$std_List_base_int_std_allocator_int, ((1) >>> 0), {a: [0], i: 0}), $t2 ? {a: $t2.a, i: $t2.i} : null);
   }
   _M_put_node(__p) {
-    gnu_cxx_new_allocator_std_List_node_int.prototype.deallocate.call(this._M_impl, (__p ? {a: __p.a, i: __p.i} : null), ((1) >>> 0));
+    gnu_cxx_new_allocator_std_List_node_int.prototype.deallocate.call(this._M_impl$std_List_base_int_std_allocator_int, (__p ? {a: __p.a, i: __p.i} : null), ((1) >>> 0));
   }
   _M_get_Node_allocator() {
-    return {a: this, i: "_M_impl"};
+    return {a: this, i: "_M_impl$std_List_base_int_std_allocator_int"};
   }
   _M_clear() {
     let $t3;
-    let __cur = (this._M_impl._M_node._M_next ? {a: this._M_impl._M_node._M_next.a, i: this._M_impl._M_node._M_next.i} : null);
-    while ((!(__cur === ({a: this._M_impl, i: "_M_node"}) || (__cur && ({a: this._M_impl, i: "_M_node"}) && __cur.a === ({a: this._M_impl, i: "_M_node"}).a && __cur.i === ({a: this._M_impl, i: "_M_node"}).i)))) {
+    let __cur = (this._M_impl$std_List_base_int_std_allocator_int._M_node._M_next ? {a: this._M_impl$std_List_base_int_std_allocator_int._M_node._M_next.a, i: this._M_impl$std_List_base_int_std_allocator_int._M_node._M_next.i} : null);
+    while ((!(__cur === ({a: this._M_impl$std_List_base_int_std_allocator_int, i: "_M_node"}) || (__cur && ({a: this._M_impl$std_List_base_int_std_allocator_int, i: "_M_node"}) && __cur.a === ({a: this._M_impl$std_List_base_int_std_allocator_int, i: "_M_node"}).a && __cur.i === ({a: this._M_impl$std_List_base_int_std_allocator_int, i: "_M_node"}).i)))) {
        {
         let __tmp = (__cur ? {a: __cur.a, i: __cur.i} : null);
         __cur = (((__cur.a[__cur.i])._M_next) ? {a: ((__cur.a[__cur.i])._M_next).a, i: ((__cur.a[__cur.i])._M_next).i} : null);
-        (($t3 = this._M_get_Node_allocator(), $t3.a[$t3.i])).destroy__gnu_cxx_new_allocator_std_List_node_int_destroy_std_List_node_int((__tmp ? {a: __tmp.a, i: __tmp.i} : null));
+        gnu_cxx_new_allocator_std_List_node_int.prototype.destroy__gnu_cxx_new_allocator_std_List_node_int_destroy_std_List_node_int.call(($t3 = this._M_get_Node_allocator(), $t3.a[$t3.i]), (__tmp ? {a: __tmp.a, i: __tmp.i} : null));
         this._M_put_node((__tmp ? {a: __tmp.a, i: __tmp.i} : null));
       }
     }
   }
   _M_init() {
-    this._M_impl._M_node._M_next = (({a: this._M_impl, i: "_M_node"}) ? {a: ({a: this._M_impl, i: "_M_node"}).a, i: ({a: this._M_impl, i: "_M_node"}).i} : null);
-    this._M_impl._M_node._M_prev = (({a: this._M_impl, i: "_M_node"}) ? {a: ({a: this._M_impl, i: "_M_node"}).a, i: ({a: this._M_impl, i: "_M_node"}).i} : null);
+    this._M_impl$std_List_base_int_std_allocator_int._M_node._M_next = (({a: this._M_impl$std_List_base_int_std_allocator_int, i: "_M_node"}) ? {a: ({a: this._M_impl$std_List_base_int_std_allocator_int, i: "_M_node"}).a, i: ({a: this._M_impl$std_List_base_int_std_allocator_int, i: "_M_node"}).i} : null);
+    this._M_impl$std_List_base_int_std_allocator_int._M_node._M_prev = (({a: this._M_impl$std_List_base_int_std_allocator_int, i: "_M_node"}) ? {a: ({a: this._M_impl$std_List_base_int_std_allocator_int, i: "_M_node"}).a, i: ({a: this._M_impl$std_List_base_int_std_allocator_int, i: "_M_node"}).i} : null);
   }
 }
 class std_list_int_std_allocator_int extends std_List_base_int_std_allocator_int {
@@ -246,13 +246,13 @@ class std_list_int_std_allocator_int extends std_List_base_int_std_allocator_int
     std_List_base_int_std_allocator_int.prototype.__dtor.call(this);
   }
   begin() {
-    return new std_List_iterator_int((this._M_impl._M_node._M_next ? {a: this._M_impl._M_node._M_next.a, i: this._M_impl._M_node._M_next.i} : null));
+    return new std_List_iterator_int((this._M_impl$std_List_base_int_std_allocator_int._M_node._M_next ? {a: this._M_impl$std_List_base_int_std_allocator_int._M_node._M_next.a, i: this._M_impl$std_List_base_int_std_allocator_int._M_node._M_next.i} : null));
   }
   end() {
-    return new std_List_iterator_int((({a: this._M_impl, i: "_M_node"}) ? {a: ({a: this._M_impl, i: "_M_node"}).a, i: ({a: this._M_impl, i: "_M_node"}).i} : null));
+    return new std_List_iterator_int((({a: this._M_impl$std_List_base_int_std_allocator_int, i: "_M_node"}) ? {a: ({a: this._M_impl$std_List_base_int_std_allocator_int, i: "_M_node"}).a, i: ({a: this._M_impl$std_List_base_int_std_allocator_int, i: "_M_node"}).i} : null));
   }
   empty__c() {
-    return (this._M_impl._M_node._M_next === ({a: this._M_impl, i: "_M_node"}) || (this._M_impl._M_node._M_next && ({a: this._M_impl, i: "_M_node"}) && this._M_impl._M_node._M_next.a === ({a: this._M_impl, i: "_M_node"}).a && this._M_impl._M_node._M_next.i === ({a: this._M_impl, i: "_M_node"}).i));
+    return (this._M_impl$std_List_base_int_std_allocator_int._M_node._M_next === ({a: this._M_impl$std_List_base_int_std_allocator_int, i: "_M_node"}) || (this._M_impl$std_List_base_int_std_allocator_int._M_node._M_next && ({a: this._M_impl$std_List_base_int_std_allocator_int, i: "_M_node"}) && this._M_impl$std_List_base_int_std_allocator_int._M_node._M_next.a === ({a: this._M_impl$std_List_base_int_std_allocator_int, i: "_M_node"}).a && this._M_impl$std_List_base_int_std_allocator_int._M_node._M_next.i === ({a: this._M_impl$std_List_base_int_std_allocator_int, i: "_M_node"}).i));
   }
   size__c() {
     return ((std_distance_std_List_iterator_int(this.begin(), this.end())) >>> 0);
@@ -267,23 +267,23 @@ class std_list_int_std_allocator_int extends std_List_base_int_std_allocator_int
     return __tmp.op_mul__c();
   }
   push_front(__x) {
-    this._M_insert__std_list_int_std_allocator_int_M_insert_int__rv(this.begin(), __x);
+    std_list_int_std_allocator_int.prototype._M_insert__std_list_int_std_allocator_int_M_insert_int__rv.call(this, this.begin(), __x);
   }
   pop_front() {
-    this._M_erase(this.begin());
+    std_list_int_std_allocator_int.prototype._M_erase.call(this, this.begin());
   }
   push_back(__x) {
-    this._M_insert__std_list_int_std_allocator_int_M_insert_int__rv(this.end(), __x);
+    std_list_int_std_allocator_int.prototype._M_insert__std_list_int_std_allocator_int_M_insert_int__rv.call(this, this.end(), __x);
   }
   clear() {
     std_List_base_int_std_allocator_int.prototype._M_clear.call(this);
     std_List_base_int_std_allocator_int.prototype._M_init.call(this);
   }
   splice__rv(__position, __x) {
-    if ((!((__x.a[__x.i]).empty__c()))) {
+    if ((!(std_list_int_std_allocator_int.prototype.empty__c.call(__x.a[__x.i])))) {
        {
         this._M_check_equal_allocators(__x);
-        this._M_transfer(new std_List_iterator_int({a: [__position], i: 0}), (__x.a[__x.i]).begin(), (__x.a[__x.i]).end());
+        std_list_int_std_allocator_int.prototype._M_transfer.call(this, new std_List_iterator_int({a: [__position], i: 0}), std_list_int_std_allocator_int.prototype.begin.call(__x.a[__x.i]), std_list_int_std_allocator_int.prototype.end.call(__x.a[__x.i]));
       }
     }
   }
@@ -317,34 +317,34 @@ class std_list_int_std_allocator_int extends std_List_base_int_std_allocator_int
     }
   }
   reverse() {
-    this._M_impl._M_node._M_reverse();
+    std_detail_List_node_base.prototype._M_reverse.call(this._M_impl$std_List_base_int_std_allocator_int._M_node);
   }
   _M_transfer(__position, __first, __last) {
-    (__position._M_node.a[__position._M_node.i])._M_transfer((__first._M_node ? {a: __first._M_node.a, i: __first._M_node.i} : null), (__last._M_node ? {a: __last._M_node.a, i: __last._M_node.i} : null));
+    std_detail_List_node_base.prototype._M_transfer.call(__position._M_node$std_List_iterator_int.a[__position._M_node$std_List_iterator_int.i], (__first._M_node$std_List_iterator_int ? {a: __first._M_node$std_List_iterator_int.a, i: __first._M_node$std_List_iterator_int.i} : null), (__last._M_node$std_List_iterator_int ? {a: __last._M_node$std_List_iterator_int.a, i: __last._M_node$std_List_iterator_int.i} : null));
   }
   _M_erase(__position) {
     let $t9;
-    (__position._M_node.a[__position._M_node.i])._M_unhook();
-    let __n = (__position._M_node ? {a: __position._M_node.a, i: __position._M_node.i} : null);
-    (($t9 = this._M_get_Node_allocator(), $t9.a[$t9.i])).destroy__gnu_cxx_new_allocator_std_List_node_int_destroy_std_List_node_int((__n ? {a: __n.a, i: __n.i} : null));
+    std_detail_List_node_base.prototype._M_unhook.call(__position._M_node$std_List_iterator_int.a[__position._M_node$std_List_iterator_int.i]);
+    let __n = (__position._M_node$std_List_iterator_int ? {a: __position._M_node$std_List_iterator_int.a, i: __position._M_node$std_List_iterator_int.i} : null);
+    gnu_cxx_new_allocator_std_List_node_int.prototype.destroy__gnu_cxx_new_allocator_std_List_node_int_destroy_std_List_node_int.call(($t9 = this._M_get_Node_allocator(), $t9.a[$t9.i]), (__n ? {a: __n.a, i: __n.i} : null));
     this._M_put_node((__n ? {a: __n.a, i: __n.i} : null));
   }
   _M_check_equal_allocators(__x) {
-    if (std_alloc_neq_std_allocator_std_List_node_int_value1._S_do_it(this._M_get_Node_allocator(), (__x.a[__x.i])._M_get_Node_allocator())) {
+    if (std_alloc_neq_std_allocator_std_List_node_int_value1._S_do_it(this._M_get_Node_allocator(), std_List_base_int_std_allocator_int.prototype._M_get_Node_allocator.call(__x.a[__x.i]))) {
       std_throw_runtime_error({a: [108, 105, 115, 116, 58, 58, 95, 77, 95, 99, 104, 101, 99, 107, 95, 101, 113, 117, 97, 108, 95, 97, 108, 108, 111, 99, 97, 116, 111, 114, 115, 0], i: 0});
     }
   }
   _M_insert__std_list_int_std_allocator_int_M_insert_int__rv(__position, __args_0) {
     let $t10;
     let __tmp = ($t10 = this._M_create_node__std_list_int_std_allocator_int_M_create_node_int__rv(std_forward_1_int(__args_0)), $t10 ? {a: $t10.a, i: $t10.i} : null);
-    (__tmp.a[__tmp.i])._M_hook((__position._M_node ? {a: __position._M_node.a, i: __position._M_node.i} : null));
+    std_detail_List_node_base.prototype._M_hook.call(__tmp.a[__tmp.i], (__position._M_node$std_List_iterator_int ? {a: __position._M_node$std_List_iterator_int.a, i: __position._M_node$std_List_iterator_int.i} : null));
   }
   _M_create_node__std_list_int_std_allocator_int_M_create_node_int__rv(__args_0) {
     let $t11, $t12;
-    let __p = ($t11 = this._M_get_node(), $t11 ? {a: $t11.a, i: $t11.i} : null);
+    let __p = ($t11 = std_List_base_int_std_allocator_int.prototype._M_get_node.call(this), $t11 ? {a: $t11.a, i: $t11.i} : null);
     if (true) {
        {
-        (($t12 = this._M_get_Node_allocator(), $t12.a[$t12.i])).construct__gnu_cxx_new_allocator_std_List_node_int_construct_std_List_node_int_int__rv((__p ? {a: __p.a, i: __p.i} : null), std_forward_1_int(__args_0));
+        gnu_cxx_new_allocator_std_List_node_int.prototype.construct__gnu_cxx_new_allocator_std_List_node_int_construct_std_List_node_int_int__rv.call(($t12 = this._M_get_Node_allocator(), $t12.a[$t12.i]), (__p ? {a: __p.a, i: __p.i} : null), std_forward_1_int(__args_0));
       }
     }
     if (false) {
@@ -356,50 +356,50 @@ class std_list_int_std_allocator_int extends std_List_base_int_std_allocator_int
   }
 }
 class std_initializer_list_int {
-  _M_array;
-  _M_len;
+  _M_array$std_initializer_list_int;
+  _M_len$std_initializer_list_int;
   constructor(...$a) {
     this.__init_std_initializer_list_int(...$a);
   }
   __init_std_initializer_list_int(...$a) {
-    this._M_array = null;
-    this._M_len = 0;
+    this._M_array$std_initializer_list_int = null;
+    this._M_len$std_initializer_list_int = 0;
   }
   __dtor() {
   }
 }
 class std_List_iterator_int {
-  _M_node;
+  _M_node$std_List_iterator_int;
   constructor(...$a) {
     this.__init_std_List_iterator_int(...$a);
   }
   __init_std_List_iterator_int(...$a) {
     if ($a.length >= 1 && $a.length <= 1 && ($a[0] !== null && typeof $a[0] === "object" && !Array.isArray($a[0]) && $a[0].a !== undefined && $a[0].i !== undefined && $a[0].a[$a[0].i] instanceof std_List_iterator_int)) {
-      this._M_node = (((($a[0]).a[($a[0]).i])._M_node) ? {a: ((($a[0]).a[($a[0]).i])._M_node).a, i: ((($a[0]).a[($a[0]).i])._M_node).i} : null);
+      this._M_node$std_List_iterator_int = (((($a[0]).a[($a[0]).i])._M_node$std_List_iterator_int) ? {a: ((($a[0]).a[($a[0]).i])._M_node$std_List_iterator_int).a, i: ((($a[0]).a[($a[0]).i])._M_node$std_List_iterator_int).i} : null);
     }
     else if ($a.length >= 1 && $a.length <= 1 && ($a[0] === null || typeof $a[0] === "object")) {
-      this._M_node = (($a[0]) ? {a: ($a[0]).a, i: ($a[0]).i} : null);
+      this._M_node$std_List_iterator_int = (($a[0]) ? {a: ($a[0]).a, i: ($a[0]).i} : null);
     }
     else { throw new Error("no matching constructor"); }
   }
   __dtor() {
   }
   op_mul__c() {
-    return {a: this._M_node.a[this._M_node.i], i: "_M_data"};
+    return {a: this._M_node$std_List_iterator_int.a[this._M_node$std_List_iterator_int.i], i: "_M_data$std_List_node_int"};
   }
   op_inc() {
-    this._M_node = (((this._M_node.a[this._M_node.i])._M_next) ? {a: ((this._M_node.a[this._M_node.i])._M_next).a, i: ((this._M_node.a[this._M_node.i])._M_next).i} : null);
+    this._M_node$std_List_iterator_int = (((this._M_node$std_List_iterator_int.a[this._M_node$std_List_iterator_int.i])._M_next) ? {a: ((this._M_node$std_List_iterator_int.a[this._M_node$std_List_iterator_int.i])._M_next).a, i: ((this._M_node$std_List_iterator_int.a[this._M_node$std_List_iterator_int.i])._M_next).i} : null);
     return {a: [this], i: 0};
   }
   op_dec() {
-    this._M_node = (((this._M_node.a[this._M_node.i])._M_prev) ? {a: ((this._M_node.a[this._M_node.i])._M_prev).a, i: ((this._M_node.a[this._M_node.i])._M_prev).i} : null);
+    this._M_node$std_List_iterator_int = (((this._M_node$std_List_iterator_int.a[this._M_node$std_List_iterator_int.i])._M_prev) ? {a: ((this._M_node$std_List_iterator_int.a[this._M_node$std_List_iterator_int.i])._M_prev).a, i: ((this._M_node$std_List_iterator_int.a[this._M_node$std_List_iterator_int.i])._M_prev).i} : null);
     return {a: [this], i: 0};
   }
   op_ne__c(__x) {
-    return (!(this._M_node === ((__x.a[__x.i])._M_node) || (this._M_node && ((__x.a[__x.i])._M_node) && this._M_node.a === ((__x.a[__x.i])._M_node).a && this._M_node.i === ((__x.a[__x.i])._M_node).i)));
+    return (!(this._M_node$std_List_iterator_int === ((__x.a[__x.i])._M_node$std_List_iterator_int) || (this._M_node$std_List_iterator_int && ((__x.a[__x.i])._M_node$std_List_iterator_int) && this._M_node$std_List_iterator_int.a === ((__x.a[__x.i])._M_node$std_List_iterator_int).a && this._M_node$std_List_iterator_int.i === ((__x.a[__x.i])._M_node$std_List_iterator_int).i)));
   }
   op_assign(o) {
-    this._M_node = (((o.a[o.i])._M_node) ? {a: ((o.a[o.i])._M_node).a, i: ((o.a[o.i])._M_node).i} : null);
+    this._M_node$std_List_iterator_int = (((o.a[o.i])._M_node$std_List_iterator_int) ? {a: ((o.a[o.i])._M_node$std_List_iterator_int).a, i: ((o.a[o.i])._M_node$std_List_iterator_int).i} : null);
     return {a: [this], i: 0};
   }
 }
@@ -502,15 +502,15 @@ function operatordelete__voidP(...$a) {  }
 function main() {
   let $t13, $t14;
   let a = {v: new std_list_int_std_allocator_int()};
-  a.v.push_back({a: [3], i: 0});
-  a.v.push_back({a: [1], i: 0});
-  a.v.push_front({a: [9], i: 0});
+  std_list_int_std_allocator_int.prototype.push_back.call(a.v, {a: [3], i: 0});
+  std_list_int_std_allocator_int.prototype.push_back.call(a.v, {a: [1], i: 0});
+  std_list_int_std_allocator_int.prototype.push_front.call(a.v, {a: [9], i: 0});
   let s = 0;
   for (let $b0 = new std_List_iterator_int({a: [a.v.begin()], i: 0}), $e0 = new std_List_iterator_int({a: [a.v.end()], i: 0}); $b0.op_ne__c({a: [$e0], i: 0}); $b0.op_inc()) {
     let x = ($b0.op_mul__c()).a[($b0.op_mul__c()).i];
     s = (((((Math.imul(s, 10)) | 0)) + (x)) | 0);
   }
-  (console.log((s), (((a.v.size__c()) | 0))));
+  (console.log((s), (((std_list_int_std_allocator_int.prototype.size__c.call(a.v)) | 0))));
   for (let $b1 = new std_List_iterator_int({a: [a.v.begin()], i: 0}), $e1 = new std_List_iterator_int({a: [a.v.end()], i: 0}); $b1.op_ne__c({a: [$e1], i: 0}); $b1.op_inc()) {
     let y = $b1.op_mul__c();
     y.a[y.i] = (((((y.a[y.i]) + (1)) | 0)) | 0);
@@ -520,27 +520,27 @@ function main() {
     s = (((((Math.imul(s, 10)) | 0)) + (y.a[y.i])) | 0);
   }
   (console.log((s)));
-  a.v.reverse();
+  std_list_int_std_allocator_int.prototype.reverse.call(a.v);
   s = 0;
   for (let $b3 = new std_List_iterator_int({a: [a.v.begin()], i: 0}), $e3 = new std_List_iterator_int({a: [a.v.end()], i: 0}); $b3.op_ne__c({a: [$e3], i: 0}); $b3.op_inc()) {
     let x = ($b3.op_mul__c()).a[($b3.op_mul__c()).i];
     s = (((((Math.imul(s, 10)) | 0)) + (x)) | 0);
   }
   (console.log((s)));
-  a.v.remove({a: [10], i: 0});
-  a.v.pop_front();
-  (console.log((($t13 = a.v.front(), $t13.a[$t13.i])), (($t14 = a.v.back(), $t14.a[$t14.i])), (((a.v.size__c()) | 0))));
+  std_list_int_std_allocator_int.prototype.remove.call(a.v, {a: [10], i: 0});
+  std_list_int_std_allocator_int.prototype.pop_front.call(a.v);
+  (console.log((($t13 = std_list_int_std_allocator_int.prototype.front.call(a.v), $t13.a[$t13.i])), (($t14 = std_list_int_std_allocator_int.prototype.back.call(a.v), $t14.a[$t14.i])), (((std_list_int_std_allocator_int.prototype.size__c.call(a.v)) | 0))));
   let b = new std_list_int_std_allocator_int();
-  b.push_back({a: [7], i: 0});
-  b.splice(b.end(), {a: a, i: "v"});
+  std_list_int_std_allocator_int.prototype.push_back.call(b, {a: [7], i: 0});
+  std_list_int_std_allocator_int.prototype.splice.call(b, std_list_int_std_allocator_int.prototype.end.call(b), {a: a, i: "v"});
   s = 0;
   for (let $b4 = new std_List_iterator_int({a: [b.begin()], i: 0}), $e4 = new std_List_iterator_int({a: [b.end()], i: 0}); $b4.op_ne__c({a: [$e4], i: 0}); $b4.op_inc()) {
     let x = ($b4.op_mul__c()).a[($b4.op_mul__c()).i];
     s = (((((Math.imul(s, 10)) | 0)) + (x)) | 0);
   }
-  (console.log((s), (((a.v.size__c()) | 0))));
-  b.clear();
-  (console.log((((b.size__c()) | 0)), (((b.empty__c()) | 0))));
+  (console.log((s), (((std_list_int_std_allocator_int.prototype.size__c.call(a.v)) | 0))));
+  std_list_int_std_allocator_int.prototype.clear.call(b);
+  (console.log((((std_list_int_std_allocator_int.prototype.size__c.call(b)) | 0)), (((std_list_int_std_allocator_int.prototype.empty__c.call(b)) | 0))));
   return 0;
 }
 function std_distance_std_List_iterator_int(__first, __last) {

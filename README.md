@@ -96,9 +96,12 @@ npm test                # 运行 test/cases 下的全部用例
 - `<iostream>` 的输出已改为 CTJ 手写的头文件实现（见 `include/ostream`），不再依赖 libstdc++ 原版；`cin` 已支持（见 `include/istream`，输入来自 `globalThis.__ctjin`，没有时才读标准输入）；`<sstream>`、`<fstream>` 仍不支持。
 - `include/stdio.h` 实现了 `printf`、`fprintf`、`sprintf`、`snprintf`、`puts`、`putchar` 等输出函数及其 `v*` 版本，格式化由一段 JavaScript（`_CTJ_VFMT_JS`）完成；`scanf` 一族仍未实现，输入请用 `cin`。
 - `cerr` / `clog` 目前与 `cout` 一样写到标准输出；`ostringstream` 不可用。
+- `std::bind` 尚不可用：`_Bind<R(A...)>` 的返回类型 `R` 为函数指针时，类型表示无法嵌套，实例化失败。
+- `const T` 偏特化对 `const` 实参的区分不完整：实例键（`CppType.key()`）忽略 `const`，`A<const int>` 与 `A<int>` 共用同一实例。直接在键中加入 `const` 会改变既有的名字修饰，暂未做。
+- `decltype(id)` 丢弃了声明的 `const`（`decltype(K)` 对 `const int K` 应为 `const int`）。
 - 未以换行结束的最后一行会留在 `globalThis.__ctjpend`，由宿主（如 `index.html` 的 `run()`）负责输出。
 - 整数模型按 ILP32：`int`、`unsigned`、`long`、`size_t` 与指针为 32 位，以 JavaScript 的 `number` 表示；`long long` 与 `unsigned long long` 以 `BigInt` 表示，溢出与截断按 64 位回绕。
-- 函数与宏的变参（`...`、`va_arg`、`__VA_ARGS__`、`#__VA_ARGS__`、`##__VA_ARGS__`、GNU 的 `args...`、`__VA_OPT__`）已支持；变参模板（`sizeof...`、折叠表达式）尚未完整支持。`strtol` 一族不做溢出饱和。
+- 函数与宏的变参（`...`、`va_arg`、`va_copy`、`__VA_ARGS__`、`#__VA_ARGS__`、`##__VA_ARGS__`、GNU 的 `args...`、`__VA_OPT__`）已支持。C++11 变参模板已支持：参数包、`sizeof...`、包展开（函数实参、初始化列表、模板实参、表达式模式）、递归模板、变参类模板与偏特化、非类型参数包、基类初始化中的包展开。C++14/17 特性（折叠表达式、`index_sequence`、`std::greater<>` 等）不在范围内。`strtol` 一族不做溢出饱和。
 
 ## 开发约定
 

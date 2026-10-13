@@ -40,7 +40,7 @@ namespace CTJ {
           const v: VarInfo = {
             fq: cls.fq + "::" + name,
             short: name,
-            mangled: name,
+            mangled: cx.fieldJsName(cls, name),
             decl: fd,
             scope: cx.memberScope(cls),
             typeCache: ft,
@@ -280,6 +280,7 @@ namespace CTJ {
         if (s.value) {
           const v = constEval(cx, s.value, scope);
           if (typeof v !== "number") cx.fail("case label is not constant", s.value);
+          cx.getAnn(s.value).constVal = v;
         }
         annotateStmt(cx, s.stmt, scope);
         return;

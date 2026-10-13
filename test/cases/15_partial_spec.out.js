@@ -12,17 +12,17 @@ class Twice {
   }
 }
 class Box_char {
-  v;
+  v$Box_char;
   constructor(...$a) {
     this.__init_Box_char(...$a);
   }
   __init_Box_char(...$a) {
-    this.v = $a[0];
+    this.v$Box_char = $a[0];
   }
   __dtor() {
   }
   get() {
-    return this.v;
+    return this.v$Box_char;
   }
 }
 class Same_int_int {
@@ -38,7 +38,7 @@ class Same_int_char {
 function main() {
   let t = new Twice();
   let c = new Box_char(65);
-  (console.log((1), (0), (t.op_call(21)), (((c.get()) | 0))));
+  (console.log((1), (0), (t.op_call(21)), (((Box_char.prototype.get.call(c)) | 0))));
   return 0;
 }
 main();

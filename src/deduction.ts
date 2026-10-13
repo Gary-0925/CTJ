@@ -76,7 +76,7 @@ namespace CTJ {
         if (!p.def) return null;
         continue;
       }
-      if (!deduceOne(cx, p.type, args[ai].t, env, venv, packs, false, names, fixedNames)) {
+      if (!deduceOne(cx, p.type, args[ai].t, env, venv, packs, false, names, fixedNames, p.type.ref !== "")) {
         return null;
       }
       ai++;
@@ -134,12 +134,17 @@ namespace CTJ {
     return false;
   }
 
-  export function deduceOne(cx: Cx, tn: TypeNode, t: CppType, env: Map<string, CppType>, venv: Map<string, number>, packs?: Map<string, CppType[]>, keepRef = false, names?: Set<string>, fixedNames?: Set<string>): boolean {
+  // refParam: the parameter is a reference, which does not decay the argument.
+  export function deduceOne(cx: Cx, tn: TypeNode, t: CppType, env: Map<string, CppType>, venv: Map<string, number>, packs?: Map<string, CppType[]>, keepRef = false, names?: Set<string>, fixedNames?: Set<string>, refParam = false): boolean {
     void cx;
     if (tn.valueArg && tn.valueArg.kind === "id") {
       const id = tn.valueArg as IdExpr;
       if (id.parts.length === 1 && t.name.startsWith("__value")) {
-        venv.set(id.parts[0].n, parseInt(t.name.replace("__value", "") || "0", 10));
+        // A nontype parameter that is already bound, explicitly or by an earlier
+        // argument, must agree with this one: get<1> rejects _Tuple_impl<0, ...>.
+        const v = parseInt(t.name.replace("__value", "") || "0", 10);
+        if (venv.has(id.parts[0].n)) return venv.get(id.parts[0].n) === v;
+        venv.set(id.parts[0].n, v);
         return true;
       }
       return true;
@@ -155,8 +160,9 @@ namespace CTJ {
       }
       const c = keepRef ? copyType(t) : noRef(t);
       // An array passed to a by-value parameter decays to a pointer, exactly as
-      // it does in the language: sort(a, a + n) deduces _RAIter as int*.
-      if (!keepRef && !tn.dims.length && c.dims.length) {
+      // it does in the language: sort(a, a + n) deduces _RAIter as int*.  A
+      // reference parameter binds the array itself: "const T&" takes char[4].
+      if (!keepRef && !refParam && !tn.dims.length && c.dims.length) {
         c.ptr = c.ptr + 1;
         c.dims = [];
       }
@@ -279,6 +285,11 @@ namespace CTJ {
     return short(act) === short(pat) || act === pat || act.endsWith("::" + pat);
   }
 
+  function restore<K, V>(into: Map<K, V>, from: Map<K, V>): void {
+    into.clear();
+    for (const [k, v] of from) into.set(k, v);
+  }
+
   export function deduceFromBases(cx: Cx, tn: TypeNode, t: CppType, env: Map<string, CppType>, venv: Map<string, number>, packs: Map<string, CppType[]> | undefined, keepRef: boolean, names?: Set<string>, fixedNames?: Set<string>): boolean {
     const fq = cx.stripAll(t);
     const cls = cx.classes.get(fq);
@@ -293,7 +304,13 @@ namespace CTJ {
         const bt = classType(bc);
         bt.ref = t.ref;
         bt.cnst = t.cnst;
+        // A base that does not match may have bound some names before it failed;
+        // those bindings are undone so the next base starts from the same state.
+        const saved = { env: new Map(env), venv: new Map(venv), packs: packs ? new Map([...packs].map(([k, v]) => [k, v.slice()] as [string, CppType[]])) : undefined };
         if (deduceOne(cx, tn, bt, env, venv, packs, keepRef, names, fixedNames)) return true;
+        restore(env, saved.env);
+        restore(venv, saved.venv);
+        if (packs && saved.packs) restore(packs, saved.packs);
         if (walk(bc)) return true;
       }
       return false;

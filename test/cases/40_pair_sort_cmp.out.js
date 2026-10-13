@@ -362,13 +362,13 @@ class std_basic_string_char_std_char_traits_char_std_allocator_char_Alloc_hider 
   }
 }
 class std_basic_string_char_std_char_traits_char_std_allocator_char {
-  _M_dataplus;
+  _M_dataplus$std_basic_string_char_std_char_traits_char_std_allocator_char;
   constructor(...$a) {
     this.__init_std_basic_string_char_std_char_traits_char_std_allocator_char(...$a);
   }
   __init_std_basic_string_char_std_char_traits_char_std_allocator_char(...$a) {
-    this._M_dataplus = new std_basic_string_char_std_char_traits_char_std_allocator_char_Alloc_hider();
-    this._M_dataplus.ctj_a = this; this._M_dataplus.ctj_i = "_M_dataplus";
+    this._M_dataplus$std_basic_string_char_std_char_traits_char_std_allocator_char = new std_basic_string_char_std_char_traits_char_std_allocator_char_Alloc_hider();
+    this._M_dataplus$std_basic_string_char_std_char_traits_char_std_allocator_char.ctj_a = this; this._M_dataplus$std_basic_string_char_std_char_traits_char_std_allocator_char.ctj_i = "_M_dataplus$std_basic_string_char_std_char_traits_char_std_allocator_char";
   }
   __dtor() {
   }
@@ -380,12 +380,12 @@ class std_allocator_char_rebind_char {
   }
 }
 class gnu_cxx_normal_iterator_char_P_std_basic_string_char_std_char_traits_char_std_allocator_char {
-  _M_current;
+  _M_current$gnu_cxx_normal_iterator_char_P_std_basic_string_char_std_char_traits_char_std_allocator_char;
   constructor(...$a) {
     this.__init_gnu_cxx_normal_iterator_char_P_std_basic_string_char_std_char_traits_char_std_allocator_char(...$a);
   }
   __init_gnu_cxx_normal_iterator_char_P_std_basic_string_char_std_char_traits_char_std_allocator_char(...$a) {
-    this._M_current = null;
+    this._M_current$gnu_cxx_normal_iterator_char_P_std_basic_string_char_std_char_traits_char_std_allocator_char = null;
   }
   __dtor() {
   }
@@ -456,13 +456,13 @@ class std_basic_string_wchar_t_std_char_traits_wchar_t_std_allocator_wchar_t_All
   }
 }
 class std_basic_string_wchar_t_std_char_traits_wchar_t_std_allocator_wchar_t {
-  _M_dataplus;
+  _M_dataplus$std_basic_string_wchar_t_std_char_traits_wchar_t_std_allocator_wchar_t;
   constructor(...$a) {
     this.__init_std_basic_string_wchar_t_std_char_traits_wchar_t_std_allocator_wchar_t(...$a);
   }
   __init_std_basic_string_wchar_t_std_char_traits_wchar_t_std_allocator_wchar_t(...$a) {
-    this._M_dataplus = new std_basic_string_wchar_t_std_char_traits_wchar_t_std_allocator_wchar_t_Alloc_hider();
-    this._M_dataplus.ctj_a = this; this._M_dataplus.ctj_i = "_M_dataplus";
+    this._M_dataplus$std_basic_string_wchar_t_std_char_traits_wchar_t_std_allocator_wchar_t = new std_basic_string_wchar_t_std_char_traits_wchar_t_std_allocator_wchar_t_Alloc_hider();
+    this._M_dataplus$std_basic_string_wchar_t_std_char_traits_wchar_t_std_allocator_wchar_t.ctj_a = this; this._M_dataplus$std_basic_string_wchar_t_std_char_traits_wchar_t_std_allocator_wchar_t.ctj_i = "_M_dataplus$std_basic_string_wchar_t_std_char_traits_wchar_t_std_allocator_wchar_t";
   }
   __dtor() {
   }
@@ -474,12 +474,12 @@ class std_allocator_wchar_t_rebind_wchar_t {
   }
 }
 class gnu_cxx_normal_iterator_wchar_t_P_std_basic_string_wchar_t_std_char_traits_wchar_t_std_allocator_wchar_t {
-  _M_current;
+  _M_current$gnu_cxx_normal_iterator_wchar_t_P_std_basic_string_wchar_t_std_char_traits_wchar_t_std_allocator_wchar_t;
   constructor(...$a) {
     this.__init_gnu_cxx_normal_iterator_wchar_t_P_std_basic_string_wchar_t_std_char_traits_wchar_t_std_allocator_wchar_t(...$a);
   }
   __init_gnu_cxx_normal_iterator_wchar_t_P_std_basic_string_wchar_t_std_char_traits_wchar_t_std_allocator_wchar_t(...$a) {
-    this._M_current = null;
+    this._M_current$gnu_cxx_normal_iterator_wchar_t_P_std_basic_string_wchar_t_std_char_traits_wchar_t_std_allocator_wchar_t = null;
   }
   __dtor() {
   }
@@ -550,13 +550,13 @@ class std_basic_string_char16_t_std_char_traits_char16_t_std_allocator_char16_t_
   }
 }
 class std_basic_string_char16_t_std_char_traits_char16_t_std_allocator_char16_t {
-  _M_dataplus;
+  _M_dataplus$std_basic_string_char16_t_std_char_traits_char16_t_std_allocator_char16_t;
   constructor(...$a) {
     this.__init_std_basic_string_char16_t_std_char_traits_char16_t_std_allocator_char16_t(...$a);
   }
   __init_std_basic_string_char16_t_std_char_traits_char16_t_std_allocator_char16_t(...$a) {
-    this._M_dataplus = new std_basic_string_char16_t_std_char_traits_char16_t_std_allocator_char16_t_Alloc_hider();
-    this._M_dataplus.ctj_a = this; this._M_dataplus.ctj_i = "_M_dataplus";
+    this._M_dataplus$std_basic_string_char16_t_std_char_traits_char16_t_std_allocator_char16_t = new std_basic_string_char16_t_std_char_traits_char16_t_std_allocator_char16_t_Alloc_hider();
+    this._M_dataplus$std_basic_string_char16_t_std_char_traits_char16_t_std_allocator_char16_t.ctj_a = this; this._M_dataplus$std_basic_string_char16_t_std_char_traits_char16_t_std_allocator_char16_t.ctj_i = "_M_dataplus$std_basic_string_char16_t_std_char_traits_char16_t_std_allocator_char16_t";
   }
   __dtor() {
   }
@@ -568,12 +568,12 @@ class std_allocator_char16_t_rebind_char16_t {
   }
 }
 class gnu_cxx_normal_iterator_char16_t_P_std_basic_string_char16_t_std_char_traits_char16_t_std_allocator_char16_t {
-  _M_current;
+  _M_current$gnu_cxx_normal_iterator_char16_t_P_std_basic_string_char16_t_std_char_traits_char16_t_std_allocator_char16_t;
   constructor(...$a) {
     this.__init_gnu_cxx_normal_iterator_char16_t_P_std_basic_string_char16_t_std_char_traits_char16_t_std_allocator_char16_t(...$a);
   }
   __init_gnu_cxx_normal_iterator_char16_t_P_std_basic_string_char16_t_std_char_traits_char16_t_std_allocator_char16_t(...$a) {
-    this._M_current = null;
+    this._M_current$gnu_cxx_normal_iterator_char16_t_P_std_basic_string_char16_t_std_char_traits_char16_t_std_allocator_char16_t = null;
   }
   __dtor() {
   }
@@ -644,13 +644,13 @@ class std_basic_string_char32_t_std_char_traits_char32_t_std_allocator_char32_t_
   }
 }
 class std_basic_string_char32_t_std_char_traits_char32_t_std_allocator_char32_t {
-  _M_dataplus;
+  _M_dataplus$std_basic_string_char32_t_std_char_traits_char32_t_std_allocator_char32_t;
   constructor(...$a) {
     this.__init_std_basic_string_char32_t_std_char_traits_char32_t_std_allocator_char32_t(...$a);
   }
   __init_std_basic_string_char32_t_std_char_traits_char32_t_std_allocator_char32_t(...$a) {
-    this._M_dataplus = new std_basic_string_char32_t_std_char_traits_char32_t_std_allocator_char32_t_Alloc_hider();
-    this._M_dataplus.ctj_a = this; this._M_dataplus.ctj_i = "_M_dataplus";
+    this._M_dataplus$std_basic_string_char32_t_std_char_traits_char32_t_std_allocator_char32_t = new std_basic_string_char32_t_std_char_traits_char32_t_std_allocator_char32_t_Alloc_hider();
+    this._M_dataplus$std_basic_string_char32_t_std_char_traits_char32_t_std_allocator_char32_t.ctj_a = this; this._M_dataplus$std_basic_string_char32_t_std_char_traits_char32_t_std_allocator_char32_t.ctj_i = "_M_dataplus$std_basic_string_char32_t_std_char_traits_char32_t_std_allocator_char32_t";
   }
   __dtor() {
   }
@@ -662,12 +662,12 @@ class std_allocator_char32_t_rebind_char32_t {
   }
 }
 class gnu_cxx_normal_iterator_char32_t_P_std_basic_string_char32_t_std_char_traits_char32_t_std_allocator_char32_t {
-  _M_current;
+  _M_current$gnu_cxx_normal_iterator_char32_t_P_std_basic_string_char32_t_std_char_traits_char32_t_std_allocator_char32_t;
   constructor(...$a) {
     this.__init_gnu_cxx_normal_iterator_char32_t_P_std_basic_string_char32_t_std_char_traits_char32_t_std_allocator_char32_t(...$a);
   }
   __init_gnu_cxx_normal_iterator_char32_t_P_std_basic_string_char32_t_std_char_traits_char32_t_std_allocator_char32_t(...$a) {
-    this._M_current = null;
+    this._M_current$gnu_cxx_normal_iterator_char32_t_P_std_basic_string_char32_t_std_char_traits_char32_t_std_allocator_char32_t = null;
   }
   __dtor() {
   }
@@ -916,30 +916,30 @@ class std_locale_id {
   static _S_refcount = 0;
 }
 class std_ctype_char extends std_locale_facet {
-  _M_c_locale_ctype;
-  _M_del;
-  _M_toupper;
-  _M_tolower;
-  _M_table;
-  _M_widen_ok;
-  _M_widen;
-  _M_narrow;
-  _M_narrow_ok;
+  _M_c_locale_ctype$std_ctype_char;
+  _M_del$std_ctype_char;
+  _M_toupper$std_ctype_char;
+  _M_tolower$std_ctype_char;
+  _M_table$std_ctype_char;
+  _M_widen_ok$std_ctype_char;
+  _M_widen$std_ctype_char;
+  _M_narrow$std_ctype_char;
+  _M_narrow_ok$std_ctype_char;
   constructor(...$a) {
     super();
     this.__init_std_ctype_char(...$a);
   }
   __init_std_ctype_char(...$a) {
     std_ctype_base.prototype.__init_std_ctype_base.call(this);
-    this._M_c_locale_ctype = null;
-    this._M_del = false;
-    this._M_toupper = null;
-    this._M_tolower = null;
-    this._M_table = null;
-    this._M_widen_ok = 0;
-    this._M_widen = new Array(256).fill(0);
-    this._M_narrow = new Array(256).fill(0);
-    this._M_narrow_ok = 0;
+    this._M_c_locale_ctype$std_ctype_char = null;
+    this._M_del$std_ctype_char = false;
+    this._M_toupper$std_ctype_char = null;
+    this._M_tolower$std_ctype_char = null;
+    this._M_table$std_ctype_char = null;
+    this._M_widen_ok$std_ctype_char = 0;
+    this._M_widen$std_ctype_char = new Array(256).fill(0);
+    this._M_narrow$std_ctype_char = new Array(256).fill(0);
+    this._M_narrow_ok$std_ctype_char = 0;
   }
   __dtor() {
     std_locale_facet.prototype.__dtor.call(this);
@@ -1118,14 +1118,14 @@ class std_Maybe_unary_or_binary_function_bool_std_detail_PatternCursor_R extends
   }
 }
 class std_function_func_bool_std_detail_PatternCursor_R extends std_Maybe_unary_or_binary_function_bool_std_detail_PatternCursor_R {
-  _M_invoker;
+  _M_invoker$std_function_func_bool_std_detail_PatternCursor_R;
   constructor(...$a) {
     super();
     this.__init_std_function_func_bool_std_detail_PatternCursor_R(...$a);
   }
   __init_std_function_func_bool_std_detail_PatternCursor_R(...$a) {
     std_Function_base.prototype.__init_std_Function_base.call(this);
-    this._M_invoker = null;
+    this._M_invoker$std_function_func_bool_std_detail_PatternCursor_R = null;
   }
   __dtor() {
     std_Maybe_unary_or_binary_function_bool_std_detail_PatternCursor_R.prototype.__dtor.call(this);
@@ -1157,14 +1157,14 @@ class std_Maybe_unary_or_binary_function_void_std_detail_PatternCursor_R_std_det
   }
 }
 class std_function_func_void_std_detail_PatternCursor_R_std_detail_Results_R extends std_Maybe_unary_or_binary_function_void_std_detail_PatternCursor_R_std_detail_Results_R {
-  _M_invoker;
+  _M_invoker$std_function_func_void_std_detail_PatternCursor_R_std_detail_Results_R;
   constructor(...$a) {
     super();
     this.__init_std_function_func_void_std_detail_PatternCursor_R_std_detail_Results_R(...$a);
   }
   __init_std_function_func_void_std_detail_PatternCursor_R_std_detail_Results_R(...$a) {
     std_Function_base.prototype.__init_std_Function_base.call(this);
-    this._M_invoker = null;
+    this._M_invoker$std_function_func_void_std_detail_PatternCursor_R_std_detail_Results_R = null;
   }
   __dtor() {
     std_Maybe_unary_or_binary_function_void_std_detail_PatternCursor_R_std_detail_Results_R.prototype.__dtor.call(this);
@@ -1236,13 +1236,13 @@ class std_Vector_base_std_detail_State_std_allocator_std_detail_State_Vector_imp
   }
 }
 class std_Vector_base_std_detail_State_std_allocator_std_detail_State {
-  _M_impl;
+  _M_impl$std_Vector_base_std_detail_State_std_allocator_std_detail_State;
   constructor(...$a) {
     this.__init_std_Vector_base_std_detail_State_std_allocator_std_detail_State(...$a);
   }
   __init_std_Vector_base_std_detail_State_std_allocator_std_detail_State(...$a) {
-    this._M_impl = new std_Vector_base_std_detail_State_std_allocator_std_detail_State_Vector_impl();
-    this._M_impl.ctj_a = this; this._M_impl.ctj_i = "_M_impl";
+    this._M_impl$std_Vector_base_std_detail_State_std_allocator_std_detail_State = new std_Vector_base_std_detail_State_std_allocator_std_detail_State_Vector_impl();
+    this._M_impl$std_Vector_base_std_detail_State_std_allocator_std_detail_State.ctj_a = this; this._M_impl$std_Vector_base_std_detail_State_std_allocator_std_detail_State.ctj_i = "_M_impl$std_Vector_base_std_detail_State_std_allocator_std_detail_State";
   }
   __dtor() {
   }
@@ -1546,54 +1546,54 @@ class std_Placeholder_value29 {
   }
 }
 class std_basic_ostream_char_std_char_traits_char extends std_ios_base {
-  _M_fd;
-  _M_tie;
+  _M_fd$std_basic_ostream_char_std_char_traits_char;
+  _M_tie$std_basic_ostream_char_std_char_traits_char;
   constructor(...$a) {
     super(...[]);
     this.__init_std_basic_ostream_char_std_char_traits_char(...$a);
   }
   __init_std_basic_ostream_char_std_char_traits_char(...$a) {
-    this._M_fd = ($a[0] === undefined ? (((1) | 0)) : $a[0]);
-    this._M_tie = null;
+    this._M_fd$std_basic_ostream_char_std_char_traits_char = ($a[0] === undefined ? (((1) | 0)) : $a[0]);
+    this._M_tie$std_basic_ostream_char_std_char_traits_char = null;
   }
   __dtor() {
     std_ios_base.prototype.__dtor.call(this);
   }
   tie(__tie) {
-    let __old = (this._M_tie ? {a: this._M_tie.a, i: this._M_tie.i} : null);
-    this._M_tie = (__tie ? {a: __tie.a, i: __tie.i} : null);
+    let __old = (this._M_tie$std_basic_ostream_char_std_char_traits_char ? {a: this._M_tie$std_basic_ostream_char_std_char_traits_char.a, i: this._M_tie$std_basic_ostream_char_std_char_traits_char.i} : null);
+    this._M_tie$std_basic_ostream_char_std_char_traits_char = (__tie ? {a: __tie.a, i: __tie.i} : null);
     return (__old ? {a: __old.a, i: __old.i} : null);
   }
   _M_put(__k, __v, __s, __n) {
-    ((function(k,v,s,n,f,w,p,c,fd){var t='',pad=false,base=((f&74)===8)?16:(((f&74)===64)?8:10),j,g,nl=String.fromCharCode(10);function str(q,m){if(q===null||q===undefined)return '';var a=(q.a!==undefined)?q.a:q,i=(q.a!==undefined)?(q.i|0):0,r='',e,x;if(typeof a==='string')return m<0?a:a.slice(0,m);for(e=0;m<0||e<m;e++){x=a[i+e];if(x===undefined||x===null||(m<0&&x===0))break;r+=(typeof x==='number')?String.fromCharCode(x&255):String(x);}return r;}function gfmt(x,q){if(x!==x)return 'nan';if(x===Infinity)return 'inf';if(x===-Infinity)return '-inf';q=q>0?q:1;var e=x.toExponential(q-1),ix=e.indexOf('e'),X=parseInt(e.slice(ix+1),10),r,m;if(X<-4||X>=q){m=e.slice(0,ix);if(m.indexOf('.')>=0){while(m.charAt(m.length-1)==='0')m=m.slice(0,-1);if(m.charAt(m.length-1)==='.')m=m.slice(0,-1);}r=m+'e'+(X<0?'-':'+')+(Math.abs(X)<10?'0':'')+Math.abs(X);}else{r=x.toFixed(q-1-X);if(r.indexOf('.')>=0){while(r.charAt(r.length-1)==='0')r=r.slice(0,-1);if(r.charAt(r.length-1)==='.')r=r.slice(0,-1);}}return r;}if(k===6){t=(f&1)?(v?'true':'false'):(v?'1':'0');pad=true;}else if(k===4){t=gfmt(v,p);pad=true;}else if(k===5){t=String.fromCharCode(v&255);pad=true;}else if(k===7){t=str(s,n);pad=true;}else if(k===8){t=String.fromCharCode(v&255);}else if(k===10){t=str(s,n);}else if(k<=3){if(k>=2){var b=(typeof v==='bigint')?v:BigInt(Math.trunc(v));if(k===2||base!==10)b=BigInt.asUintN(64,b);t=b.toString(base);}else{if(k===1)v=v>>>0;t=(base===10)?String(v):(v<0?(v>>>0):v).toString(base);}pad=true;}if(pad&&w>t.length){var fc=String.fromCharCode(c||32),pd=fc.repeat(w-t.length);t=(f&32)?t+pd:pd+t;}if(typeof process!=='undefined'&&process&&process.stdout){if(t)((fd===2&&process.stderr)?process.stderr:process.stdout).write(t);return;}g=globalThis;g.__ctjpend=(g.__ctjpend||'')+t;while((j=g.__ctjpend.indexOf(nl))>=0){console.log(g.__ctjpend.slice(0,j));g.__ctjpend=g.__ctjpend.slice(j+1);}})((__k),(__v),(__s),(__n),(this._M_flags),(this._M_width),(this._M_precision),(this._M_fill),(this._M_fd)));
+    ((function(k,v,s,n,f,w,p,c,fd){var t='',pad=false,base=((f&74)===8)?16:(((f&74)===64)?8:10),j,g,nl=String.fromCharCode(10);function str(q,m){if(q===null||q===undefined)return '';var a=(q.a!==undefined)?q.a:q,i=(q.a!==undefined)?(q.i|0):0,r='',e,x;if(typeof a==='string')return m<0?a:a.slice(0,m);for(e=0;m<0||e<m;e++){x=a[i+e];if(x===undefined||x===null||(m<0&&x===0))break;r+=(typeof x==='number')?String.fromCharCode(x&255):String(x);}return r;}function gfmt(x,q){if(x!==x)return 'nan';if(x===Infinity)return 'inf';if(x===-Infinity)return '-inf';q=q>0?q:1;var e=x.toExponential(q-1),ix=e.indexOf('e'),X=parseInt(e.slice(ix+1),10),r,m;if(X<-4||X>=q){m=e.slice(0,ix);if(m.indexOf('.')>=0){while(m.charAt(m.length-1)==='0')m=m.slice(0,-1);if(m.charAt(m.length-1)==='.')m=m.slice(0,-1);}r=m+'e'+(X<0?'-':'+')+(Math.abs(X)<10?'0':'')+Math.abs(X);}else{r=x.toFixed(q-1-X);if(r.indexOf('.')>=0){while(r.charAt(r.length-1)==='0')r=r.slice(0,-1);if(r.charAt(r.length-1)==='.')r=r.slice(0,-1);}}return r;}if(k===6){t=(f&1)?(v?'true':'false'):(v?'1':'0');pad=true;}else if(k===4){t=gfmt(v,p);pad=true;}else if(k===5){t=String.fromCharCode(v&255);pad=true;}else if(k===7){t=str(s,n);pad=true;}else if(k===8){t=String.fromCharCode(v&255);}else if(k===10){t=str(s,n);}else if(k<=3){if(k>=2){var b=(typeof v==='bigint')?v:BigInt(Math.trunc(v));if(k===2||base!==10)b=BigInt.asUintN(64,b);t=b.toString(base);}else{if(k===1)v=v>>>0;t=(base===10)?String(v):(v<0?(v>>>0):v).toString(base);}pad=true;}if(pad&&w>t.length){var fc=String.fromCharCode(c||32),pd=fc.repeat(w-t.length);t=(f&32)?t+pd:pd+t;}if(typeof process!=='undefined'&&process&&process.stdout){if(t)((fd===2&&process.stderr)?process.stderr:process.stdout).write(t);return;}g=globalThis;g.__ctjpend=(g.__ctjpend||'')+t;while((j=g.__ctjpend.indexOf(nl))>=0){console.log(g.__ctjpend.slice(0,j));g.__ctjpend=g.__ctjpend.slice(j+1);}})((__k),(__v),(__s),(__n),(this._M_flags),(this._M_width),(this._M_precision),(this._M_fill),(this._M_fd$std_basic_ostream_char_std_char_traits_char)));
     this._M_width = 0;
   }
   _M_putll(__k, __v) {
-    ((function(k,v,s,n,f,w,p,c,fd){var t='',pad=false,base=((f&74)===8)?16:(((f&74)===64)?8:10),j,g,nl=String.fromCharCode(10);function str(q,m){if(q===null||q===undefined)return '';var a=(q.a!==undefined)?q.a:q,i=(q.a!==undefined)?(q.i|0):0,r='',e,x;if(typeof a==='string')return m<0?a:a.slice(0,m);for(e=0;m<0||e<m;e++){x=a[i+e];if(x===undefined||x===null||(m<0&&x===0))break;r+=(typeof x==='number')?String.fromCharCode(x&255):String(x);}return r;}function gfmt(x,q){if(x!==x)return 'nan';if(x===Infinity)return 'inf';if(x===-Infinity)return '-inf';q=q>0?q:1;var e=x.toExponential(q-1),ix=e.indexOf('e'),X=parseInt(e.slice(ix+1),10),r,m;if(X<-4||X>=q){m=e.slice(0,ix);if(m.indexOf('.')>=0){while(m.charAt(m.length-1)==='0')m=m.slice(0,-1);if(m.charAt(m.length-1)==='.')m=m.slice(0,-1);}r=m+'e'+(X<0?'-':'+')+(Math.abs(X)<10?'0':'')+Math.abs(X);}else{r=x.toFixed(q-1-X);if(r.indexOf('.')>=0){while(r.charAt(r.length-1)==='0')r=r.slice(0,-1);if(r.charAt(r.length-1)==='.')r=r.slice(0,-1);}}return r;}if(k===6){t=(f&1)?(v?'true':'false'):(v?'1':'0');pad=true;}else if(k===4){t=gfmt(v,p);pad=true;}else if(k===5){t=String.fromCharCode(v&255);pad=true;}else if(k===7){t=str(s,n);pad=true;}else if(k===8){t=String.fromCharCode(v&255);}else if(k===10){t=str(s,n);}else if(k<=3){if(k>=2){var b=(typeof v==='bigint')?v:BigInt(Math.trunc(v));if(k===2||base!==10)b=BigInt.asUintN(64,b);t=b.toString(base);}else{if(k===1)v=v>>>0;t=(base===10)?String(v):(v<0?(v>>>0):v).toString(base);}pad=true;}if(pad&&w>t.length){var fc=String.fromCharCode(c||32),pd=fc.repeat(w-t.length);t=(f&32)?t+pd:pd+t;}if(typeof process!=='undefined'&&process&&process.stdout){if(t)((fd===2&&process.stderr)?process.stderr:process.stdout).write(t);return;}g=globalThis;g.__ctjpend=(g.__ctjpend||'')+t;while((j=g.__ctjpend.indexOf(nl))>=0){console.log(g.__ctjpend.slice(0,j));g.__ctjpend=g.__ctjpend.slice(j+1);}})((__k),(__v),(0),(0),(this._M_flags),(this._M_width),(this._M_precision),(this._M_fill),(this._M_fd)));
+    ((function(k,v,s,n,f,w,p,c,fd){var t='',pad=false,base=((f&74)===8)?16:(((f&74)===64)?8:10),j,g,nl=String.fromCharCode(10);function str(q,m){if(q===null||q===undefined)return '';var a=(q.a!==undefined)?q.a:q,i=(q.a!==undefined)?(q.i|0):0,r='',e,x;if(typeof a==='string')return m<0?a:a.slice(0,m);for(e=0;m<0||e<m;e++){x=a[i+e];if(x===undefined||x===null||(m<0&&x===0))break;r+=(typeof x==='number')?String.fromCharCode(x&255):String(x);}return r;}function gfmt(x,q){if(x!==x)return 'nan';if(x===Infinity)return 'inf';if(x===-Infinity)return '-inf';q=q>0?q:1;var e=x.toExponential(q-1),ix=e.indexOf('e'),X=parseInt(e.slice(ix+1),10),r,m;if(X<-4||X>=q){m=e.slice(0,ix);if(m.indexOf('.')>=0){while(m.charAt(m.length-1)==='0')m=m.slice(0,-1);if(m.charAt(m.length-1)==='.')m=m.slice(0,-1);}r=m+'e'+(X<0?'-':'+')+(Math.abs(X)<10?'0':'')+Math.abs(X);}else{r=x.toFixed(q-1-X);if(r.indexOf('.')>=0){while(r.charAt(r.length-1)==='0')r=r.slice(0,-1);if(r.charAt(r.length-1)==='.')r=r.slice(0,-1);}}return r;}if(k===6){t=(f&1)?(v?'true':'false'):(v?'1':'0');pad=true;}else if(k===4){t=gfmt(v,p);pad=true;}else if(k===5){t=String.fromCharCode(v&255);pad=true;}else if(k===7){t=str(s,n);pad=true;}else if(k===8){t=String.fromCharCode(v&255);}else if(k===10){t=str(s,n);}else if(k<=3){if(k>=2){var b=(typeof v==='bigint')?v:BigInt(Math.trunc(v));if(k===2||base!==10)b=BigInt.asUintN(64,b);t=b.toString(base);}else{if(k===1)v=v>>>0;t=(base===10)?String(v):(v<0?(v>>>0):v).toString(base);}pad=true;}if(pad&&w>t.length){var fc=String.fromCharCode(c||32),pd=fc.repeat(w-t.length);t=(f&32)?t+pd:pd+t;}if(typeof process!=='undefined'&&process&&process.stdout){if(t)((fd===2&&process.stderr)?process.stderr:process.stdout).write(t);return;}g=globalThis;g.__ctjpend=(g.__ctjpend||'')+t;while((j=g.__ctjpend.indexOf(nl))>=0){console.log(g.__ctjpend.slice(0,j));g.__ctjpend=g.__ctjpend.slice(j+1);}})((__k),(__v),(0),(0),(this._M_flags),(this._M_width),(this._M_precision),(this._M_fill),(this._M_fd$std_basic_ostream_char_std_char_traits_char)));
     this._M_width = 0;
   }
 }
 class std_basic_istream_char_std_char_traits_char extends std_ios_base {
-  _M_tie;
-  _M_state;
+  _M_tie$std_basic_istream_char_std_char_traits_char;
+  _M_state$std_basic_istream_char_std_char_traits_char;
   constructor(...$a) {
     super(...[]);
     this.__init_std_basic_istream_char_std_char_traits_char(...$a);
   }
   __init_std_basic_istream_char_std_char_traits_char(...$a) {
-    this._M_tie = null;
-    this._M_state = 0;
+    this._M_tie$std_basic_istream_char_std_char_traits_char = null;
+    this._M_state$std_basic_istream_char_std_char_traits_char = 0;
   }
   __dtor() {
     std_ios_base.prototype.__dtor.call(this);
   }
   tie(__tie) {
-    let __old = (this._M_tie ? {a: this._M_tie.a, i: this._M_tie.i} : null);
-    this._M_tie = (__tie ? {a: __tie.a, i: __tie.i} : null);
+    let __old = (this._M_tie$std_basic_istream_char_std_char_traits_char ? {a: this._M_tie$std_basic_istream_char_std_char_traits_char.a, i: this._M_tie$std_basic_istream_char_std_char_traits_char.i} : null);
+    this._M_tie$std_basic_istream_char_std_char_traits_char = (__tie ? {a: __tie.a, i: __tie.i} : null);
     return (__old ? {a: __old.a, i: __old.i} : null);
   }
   setstate(__s) {
-    this._M_state = (((this._M_state) | (__s)) | 0);
+    this._M_state$std_basic_istream_char_std_char_traits_char = (((this._M_state$std_basic_istream_char_std_char_traits_char) | (__s)) | 0);
   }
   _M_peek() {
     return ((function(){var q=(globalThis.__ctjin||(globalThis.__ctjin={s:(typeof require==='function'?require('fs').readFileSync(0,'utf8'):''),p:0}));return q.p<q.s.length?q.s.charCodeAt(q.p):-1})());
@@ -1652,12 +1652,12 @@ class std_basic_istream_char_std_char_traits_char extends std_ios_base {
   }
 }
 class std_Base_bitset_value1 {
-  _M_w;
+  _M_w$std_Base_bitset_value1;
   constructor(...$a) {
     this.__init_std_Base_bitset_value1(...$a);
   }
   __init_std_Base_bitset_value1(...$a) {
-    this._M_w = Number(BigInt.asUintN(32, $a[0]));
+    this._M_w$std_Base_bitset_value1 = Number(BigInt.asUintN(32, $a[0]));
   }
   __dtor() {
   }
@@ -1723,13 +1723,13 @@ class std_basic_string_int_std_char_traits_int_std_allocator_int_Alloc_hider ext
   }
 }
 class std_basic_string_int_std_char_traits_int_std_allocator_int {
-  _M_dataplus;
+  _M_dataplus$std_basic_string_int_std_char_traits_int_std_allocator_int;
   constructor(...$a) {
     this.__init_std_basic_string_int_std_char_traits_int_std_allocator_int(...$a);
   }
   __init_std_basic_string_int_std_char_traits_int_std_allocator_int(...$a) {
-    this._M_dataplus = new std_basic_string_int_std_char_traits_int_std_allocator_int_Alloc_hider();
-    this._M_dataplus.ctj_a = this; this._M_dataplus.ctj_i = "_M_dataplus";
+    this._M_dataplus$std_basic_string_int_std_char_traits_int_std_allocator_int = new std_basic_string_int_std_char_traits_int_std_allocator_int_Alloc_hider();
+    this._M_dataplus$std_basic_string_int_std_char_traits_int_std_allocator_int.ctj_a = this; this._M_dataplus$std_basic_string_int_std_char_traits_int_std_allocator_int.ctj_i = "_M_dataplus$std_basic_string_int_std_char_traits_int_std_allocator_int";
   }
   __dtor() {
   }
@@ -1741,52 +1741,52 @@ class std_allocator_int_rebind_int {
   }
 }
 class gnu_cxx_normal_iterator_int_P_std_basic_string_int_std_char_traits_int_std_allocator_int {
-  _M_current;
+  _M_current$gnu_cxx_normal_iterator_int_P_std_basic_string_int_std_char_traits_int_std_allocator_int;
   constructor(...$a) {
     this.__init_gnu_cxx_normal_iterator_int_P_std_basic_string_int_std_char_traits_int_std_allocator_int(...$a);
   }
   __init_gnu_cxx_normal_iterator_int_P_std_basic_string_int_std_char_traits_int_std_allocator_int(...$a) {
-    this._M_current = null;
+    this._M_current$gnu_cxx_normal_iterator_int_P_std_basic_string_int_std_char_traits_int_std_allocator_int = null;
   }
   __dtor() {
   }
 }
 class std_pair_long_long_long_long {
-  first;
-  second;
+  first$std_pair_long_long_long_long;
+  second$std_pair_long_long_long_long;
   constructor(...$a) {
     this.__init_std_pair_long_long_long_long(...$a);
   }
   __init_std_pair_long_long_long_long(...$a) {
     if ($a.length >= 1 && $a.length <= 1 && ($a[0] !== null && typeof $a[0] === "object" && !Array.isArray($a[0]) && $a[0].a !== undefined && $a[0].i !== undefined && $a[0].a[$a[0].i] instanceof std_pair_long_long_long_long)) {
-      this.first = ($a[0] && $a[0].a ? $a[0].a[$a[0].i] : $a[0]).first;
-      this.second = ($a[0] && $a[0].a ? $a[0].a[$a[0].i] : $a[0]).second;
+      this.first$std_pair_long_long_long_long = ($a[0] && $a[0].a ? $a[0].a[$a[0].i] : $a[0]).first$std_pair_long_long_long_long;
+      this.second$std_pair_long_long_long_long = ($a[0] && $a[0].a ? $a[0].a[$a[0].i] : $a[0]).second$std_pair_long_long_long_long;
     }
     else if ($a.length >= 1 && $a.length <= 1 && ($a[0] !== null && typeof $a[0] === "object" && !Array.isArray($a[0]) && $a[0].a !== undefined && $a[0].i !== undefined && $a[0].a[$a[0].i] instanceof std_pair_long_long_long_long)) {
-      this.first = ($a[0] && $a[0].a ? $a[0].a[$a[0].i] : $a[0]).first;
-      this.second = ($a[0] && $a[0].a ? $a[0].a[$a[0].i] : $a[0]).second;
+      this.first$std_pair_long_long_long_long = ($a[0] && $a[0].a ? $a[0].a[$a[0].i] : $a[0]).first$std_pair_long_long_long_long;
+      this.second$std_pair_long_long_long_long = ($a[0] && $a[0].a ? $a[0].a[$a[0].i] : $a[0]).second$std_pair_long_long_long_long;
     }
     else if ($a.length >= 0 && $a.length <= 0) {
-      this.first = 0n;
-      this.second = 0n;
+      this.first$std_pair_long_long_long_long = 0n;
+      this.second$std_pair_long_long_long_long = 0n;
     }
     else if ($a.length >= 2 && $a.length <= 2 && ($a[0] === null || typeof $a[0] === "object") && ($a[1] === null || typeof $a[1] === "object")) {
-      this.first = ($a[0]).a[($a[0]).i];
-      this.second = ($a[1]).a[($a[1]).i];
+      this.first$std_pair_long_long_long_long = ($a[0]).a[($a[0]).i];
+      this.second$std_pair_long_long_long_long = ($a[1]).a[($a[1]).i];
     }
     else { throw new Error("no matching constructor"); }
   }
   __dtor() {
   }
   op_assign(__p) {
-    this.first = (__p.a[__p.i]).first;
-    this.second = (__p.a[__p.i]).second;
+    this.first$std_pair_long_long_long_long = (__p.a[__p.i]).first$std_pair_long_long_long_long;
+    this.second$std_pair_long_long_long_long = (__p.a[__p.i]).second$std_pair_long_long_long_long;
     return {a: [this], i: 0};
   }
   op_assign__rv(__p) {
     let $t0, $t1;
-    this.first = ($t0 = std_forward_long_long({a: __p.a[__p.i], i: "first"}), $t0.a[$t0.i]);
-    this.second = ($t1 = std_forward_long_long({a: __p.a[__p.i], i: "second"}), $t1.a[$t1.i]);
+    this.first$std_pair_long_long_long_long = ($t0 = std_forward_long_long({a: __p.a[__p.i], i: "first$std_pair_long_long_long_long"}), $t0.a[$t0.i]);
+    this.second$std_pair_long_long_long_long = ($t1 = std_forward_long_long({a: __p.a[__p.i], i: "second$std_pair_long_long_long_long"}), $t1.a[$t1.i]);
     return {a: [this], i: 0};
   }
 }
@@ -1810,14 +1810,14 @@ class std_basic_ios_char_std_char_traits_char extends std_ios_base {
   }
 }
 class std_initializer_list_char {
-  _M_array;
-  _M_len;
+  _M_array$std_initializer_list_char;
+  _M_len$std_initializer_list_char;
   constructor(...$a) {
     this.__init_std_initializer_list_char(...$a);
   }
   __init_std_initializer_list_char(...$a) {
-    this._M_array = null;
-    this._M_len = 0;
+    this._M_array$std_initializer_list_char = null;
+    this._M_len$std_initializer_list_char = 0;
   }
   __dtor() {
   }
@@ -2281,14 +2281,14 @@ class std_tuple {
   }
 }
 class std_complex_std_pair_long_long_long_long_P {
-  _M_real;
-  _M_imag;
+  _M_real$std_complex_std_pair_long_long_long_long_P;
+  _M_imag$std_complex_std_pair_long_long_long_long_P;
   constructor(...$a) {
     this.__init_std_complex_std_pair_long_long_long_long_P(...$a);
   }
   __init_std_complex_std_pair_long_long_long_long_P(...$a) {
-    this._M_real = null;
-    this._M_imag = null;
+    this._M_real$std_complex_std_pair_long_long_long_long_P = null;
+    this._M_imag$std_complex_std_pair_long_long_long_long_P = null;
   }
   __dtor() {
   }
@@ -2418,19 +2418,19 @@ function std_lg__long(__n) {
   return ((((((((((Math.imul(4, ((8) >>> 0))) >>> 0)) - (((1) >>> 0))) >>> 0)) - (((Math.clz32(__n)) >>> 0))) >>> 0)) | 0);
 }
 function std_operator__std_basic_ostream_char_std_char_traits_char_R_long_long(__os, __n) {
-  (__os.a[__os.i])._M_putll(3, __n);
+  std_basic_ostream_char_std_char_traits_char.prototype._M_putll.call(__os.a[__os.i], 3, __n);
   return __os;
 }
 function std_operator__std_basic_ostream_char_std_char_traits_char_R_charP(__os, __s) {
-  (__os.a[__os.i])._M_put(7, 0, (__s ? {a: __s.a, i: __s.i} : null), ((-(1)) | 0));
+  std_basic_ostream_char_std_char_traits_char.prototype._M_put.call(__os.a[__os.i], 7, 0, (__s ? {a: __s.a, i: __s.i} : null), ((-(1)) | 0));
   return __os;
 }
 function std_operator__std_basic_istream_char_std_char_traits_char_R_intR(__in, __v) {
-  __v.a[__v.i] = Number(BigInt.asIntN(32, (__in.a[__in.i])._M_read_int()));
+  __v.a[__v.i] = Number(BigInt.asIntN(32, std_basic_istream_char_std_char_traits_char.prototype._M_read_int.call(__in.a[__in.i])));
   return __in;
 }
 function std_operator__std_basic_istream_char_std_char_traits_char_R_long_longR(__in, __v) {
-  __v.a[__v.i] = (__in.a[__in.i])._M_read_int();
+  __v.a[__v.i] = std_basic_istream_char_std_char_traits_char.prototype._M_read_int.call(__in.a[__in.i]);
   return __in;
 }
 function std_swap_long_long(__a, __b) {
@@ -2445,7 +2445,7 @@ function std_swap_std_pair_long_long_long_long(__a, __b) {
   (__b.a[__b.i]).op_assign__rv(std_move_std_pair_long_long_long_long({a: __tmp, i: "v"}));
 }
 function cmp(x, y) {
-  return (BigInt.asIntN(64, (x.first) * (y.second)) < BigInt.asIntN(64, (y.first) * (x.second)));
+  return (BigInt.asIntN(64, (x.first$std_pair_long_long_long_long) * (y.second$std_pair_long_long_long_long)) < BigInt.asIntN(64, (y.first$std_pair_long_long_long_long) * (x.second$std_pair_long_long_long_long)));
 }
 function calc() {
   let $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14;
@@ -2469,10 +2469,10 @@ function calc() {
   let s = 0n;
   for (let i = 1; (i <= hl); ($t13 = i, i = (($t13 + 1) | 0), $t13)) {
      {
-      s = BigInt.asIntN(64, (s) + ((h[i]).second));
+      s = BigInt.asIntN(64, (s) + ((h[i]).second$std_pair_long_long_long_long));
       if ((BigInt.asIntN(64, (s) * (2n)) >= sm)) {
          {
-          (x = (h[i]).first, y = (h[i]).second);
+          (x = (h[i]).first$std_pair_long_long_long_long, y = (h[i]).second$std_pair_long_long_long_long);
           break;
         }
       }
@@ -2493,7 +2493,7 @@ function calc() {
 }
 function main() {
   let $t15, $t16, $t17;
-  ((std_ios_base.sync_with_stdio(0), std_cin.v.tie(null)), std_cout.v.tie(null));
+  ((std_ios_base.sync_with_stdio(0), std_basic_istream_char_std_char_traits_char.prototype.tie.call(std_cin.v, null)), std_basic_ostream_char_std_char_traits_char.prototype.tie.call(std_cout.v, null));
   std_operator__std_basic_istream_char_std_char_traits_char_R_intR({a: std_cin, i: "v"}, {a: n, i: "v"});
   for (let i = 1; (i <= n.v); ($t15 = i, i = (($t15 + 1) | 0), $t15)) {
     std_operator__std_basic_istream_char_std_char_traits_char_R_long_longR({a: std_cin, i: "v"}, {a: a.v, i: (i)});
@@ -2506,11 +2506,11 @@ function main() {
     std_swap_long_long({a: a.v, i: (i)}, {a: b.v, i: (i)});
   }
   let y = calc();
-  if ((BigInt.asIntN(64, (x.first) * (y.second)) > BigInt.asIntN(64, (y.first) * (x.second)))) {
-    std_operator__std_basic_ostream_char_std_char_traits_char_R_long_long(std_operator__std_basic_ostream_char_std_char_traits_char_R_charP(std_operator__std_basic_ostream_char_std_char_traits_char_R_long_long({a: std_cout, i: "v"}, y.first), {a: [32, 0], i: 0}), y.second);
+  if ((BigInt.asIntN(64, (x.first$std_pair_long_long_long_long) * (y.second$std_pair_long_long_long_long)) > BigInt.asIntN(64, (y.first$std_pair_long_long_long_long) * (x.second$std_pair_long_long_long_long)))) {
+    std_operator__std_basic_ostream_char_std_char_traits_char_R_long_long(std_operator__std_basic_ostream_char_std_char_traits_char_R_charP(std_operator__std_basic_ostream_char_std_char_traits_char_R_long_long({a: std_cout, i: "v"}, y.first$std_pair_long_long_long_long), {a: [32, 0], i: 0}), y.second$std_pair_long_long_long_long);
   }
   else {
-    std_operator__std_basic_ostream_char_std_char_traits_char_R_long_long(std_operator__std_basic_ostream_char_std_char_traits_char_R_charP(std_operator__std_basic_ostream_char_std_char_traits_char_R_long_long({a: std_cout, i: "v"}, x.first), {a: [32, 0], i: 0}), x.second);
+    std_operator__std_basic_ostream_char_std_char_traits_char_R_long_long(std_operator__std_basic_ostream_char_std_char_traits_char_R_charP(std_operator__std_basic_ostream_char_std_char_traits_char_R_long_long({a: std_cout, i: "v"}, x.first$std_pair_long_long_long_long), {a: [32, 0], i: 0}), x.second$std_pair_long_long_long_long);
   }
   return 0;
 }

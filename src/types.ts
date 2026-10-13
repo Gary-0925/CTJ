@@ -53,7 +53,7 @@ namespace CTJ {
         return typeOfCast(cx, e, scope);
       case "sizeof": {
         if (e.packName) cx.fail("sizeof... outside template", e);
-        if (e.isType && e.type) cx.resolveTypeNode(e.type, scope);
+        if (e.isType && e.type) cx.getAnn(e).typeArg = cx.resolveTypeNode(e.type, scope);
         if (e.expr) typeOf(cx, e.expr, scope);
         return CppType.basic("unsigned long");
       }
