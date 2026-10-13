@@ -536,7 +536,7 @@ namespace CTJ {
   }
 
   export function annotateLocalVar(cx: Cx, vd: VarDecl, scope: Scope): void {
-    if (vd.type.func && vd.name.length) {
+    if (vd.type.func && !vd.type.ptr && vd.name.length) {
       cx.fail(`function type variable '${last(vd.name).n}' needs initializer`, vd);
     }
     let t = cx.resolveTypeNode(vd.type, scope);
@@ -603,9 +603,20 @@ namespace CTJ {
     void isDirectMulti;
   }
 
+  // An array of class objects is filled by "new" for each element, so the default
+  // constructor it calls has to be resolved and emitted.
+  export function markArrayElemCtor(cx: Cx, t: CppType, scope: Scope): void {
+    if (!t.dims.length || t.ptr || t.ref || t.isFunc) return;
+    const fq = cx.stripAll(t);
+    if (!cx.classes.has(fq)) return;
+    const r = tryResolveCtor(cx, fq, [], scope);
+    if (r) cx.markFunc(r.fn);
+  }
+
   export function annotateVarInit(cx: Cx, v: VarInfo, scope: Scope): void {
     const vd = v.decl;
     const t = v.typeCache as CppType;
+    markArrayElemCtor(cx, t, scope);
     const clsFq = !t.isBox() && !t.dims.length && !t.isFunc ? cx.stripAll(t) : "";
     const cls = clsFq && cx.classes.has(clsFq) ? (cx.classes.get(clsFq) as ClsInfo) : null;
     if (vd.init) {
@@ -622,7 +633,12 @@ namespace CTJ {
             return;
           }
           const asList = [{ t: initListType(cx, items, vd), e: vd.init }];
-          const lr = tryResolveCtor(cx, cls.fq, asList, scope);
+          // The whole list is one argument only for a constructor that takes an
+          // initializer_list; a copy constructor reached by converting the list
+          // would build the members from the list's elements.
+          const lr0 = tryResolveCtor(cx, cls.fq, asList, scope);
+          const lr0Ps = lr0 ? cx.funcParams(lr0.fn) : [];
+          const lr = lr0 && lr0Ps.length && !lr0Ps[0].variadic && initListElemOf(cx, lr0Ps[0].type) ? lr0 : null;
           if (lr) {
             annotateListElems(cx, lr.fn, vd.init, scope);
             cx.getAnn(vd.init).call = lr.fn;
@@ -800,10 +816,10 @@ namespace CTJ {
         f.mangled = mangleType(fq) + "__" + ps.map(p => mangleSig(p.type)).join("_");
       }
     }
-    const seen = new Set<string>();
+    const seen = cx.fnMangles;
     for (const list of cx.funcs.values()) {
       for (const f of list) {
-        if (seen.has(f.mangled)) f.mangled = f.mangled + "_" + f.decl.line;
+        if (seen.has(f.mangled) && !cx.funcInsts.has(f.fq)) f.mangled = f.mangled + "_" + f.decl.line;
         seen.add(f.mangled);
       }
     }

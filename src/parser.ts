@@ -37,6 +37,9 @@ namespace CTJ {
     isMemPtr: boolean;
     special: string;
     isPack: boolean;
+    // A parenthesized pointer declarator, "(*fp)(int)": the name declares a
+    // variable of pointer-to-function type, not a function.
+    fnPtr: boolean;
   }
 
   export function blankDeclarator(): Declarator {
@@ -56,6 +59,7 @@ namespace CTJ {
       isMemPtr: false,
       special: "",
       isPack: false,
+      fnPtr: false,
     };
   }
 
@@ -382,7 +386,7 @@ namespace CTJ {
           fail("expected declarator", this.peek().file, this.peek().line, this.peek().col);
         }
         const type = this.applyDeclarator(spec.type, d, start);
-        if (d.isFunc) {
+        if (d.isFunc && !d.fnPtr) {
           const fn = this.finishFunc(spec, d, type, inClass, start);
           out.push(spec.isFriend ? this.wrapFriend(fn, start) : fn);
           break;
@@ -1068,6 +1072,7 @@ namespace CTJ {
         d.op = inner.op;
         d.convType = inner.convType;
         d.ptr += inner.ptr;
+        if (inner.ptr > 0) d.fnPtr = true;
         if (inner.ref) d.ref = inner.ref;
         for (const x of inner.dims) d.dims.push(x);
         if (inner.isFunc) {

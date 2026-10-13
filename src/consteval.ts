@@ -57,19 +57,19 @@ namespace CTJ {
         return empty ? 1 : 0;
       }
       case "__is_pod":
-      case "__is_trivial":
       case "__is_standard_layout":
       case "__is_literal_type":
-      // The compiler's own "__has_trivial_*" traits stand for the same idea: a
-      // builtin type constructs, copies and destroys trivially, a class does
-      // not, so the branches they guard in the headers ("if
-      // (!__has_trivial_destructor(value_type)) _M_destroy_data_aux(...)") are
-      // the ones a class needs.
+        return ts[0].ptr === 0 && ts[0].dims.length === 0 && isPlainType(cx, ts[0], new Set()) ? 1 : 0;
+      // The library copies trivially copyable types with memmove, which moves
+      // the values of a builtin type. A class is held as an object, and a byte
+      // copy of an array of objects would share them, so no class is treated as
+      // trivial here: the library then copies its elements one by one.
+      case "__is_trivial":
       case "__has_trivial_destructor":
       case "__has_trivial_constructor":
       case "__has_trivial_copy":
       case "__has_trivial_assign":
-        return ts[0].ptr === 0 && ts[0].dims.length === 0 && isPlainType(cx, ts[0], new Set()) ? 1 : 0;
+        return ts[0].ptr === 0 && ts[0].dims.length === 0 && !cls ? 1 : 0;
       case "__has_virtual_destructor":
         return cls && hasVirtualMethod(cx, cls.fq, false) ? 1 : 0;
       case "__is_base_of": {

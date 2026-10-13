@@ -82,6 +82,16 @@ namespace CTJ {
       const t = p.peek();
       if (t.t === "(") {
         p.pos++;
+        // "va_arg(ap, T)" names a type as its second argument, so it is read here
+        // rather than as a list of expressions.
+        if (e.kind === "id" && last(e.parts).n === "__builtin_va_arg") {
+          const ap = parseExpr(p, 2);
+          p.expect(",");
+          const type = p.parseAbstractType();
+          p.expect(")");
+          e = { kind: "cast", ckind: "va_arg", type, fn: null, arg: ap, ...at(t) };
+          continue;
+        }
         const args = p.parseExprList(")");
         e = maybeFunctional(p, e, args, t);
         continue;
@@ -152,6 +162,15 @@ namespace CTJ {
     return e;
   }
 
+  // Joins two string literal tokens, each spelled as an optional prefix, a quote,
+  // the body and a closing quote. The prefix of either one is kept.
+  function joinStrLit(a: string, b: string): string {
+    const pa = a.indexOf('"');
+    const pb = b.indexOf('"');
+    const prefix = a.slice(0, pa) || b.slice(0, pb);
+    return prefix + '"' + a.slice(pa + 1, -1) + b.slice(pb + 1, -1) + '"';
+  }
+
   function maybeFunctional(p: Parser, e: Expr, args: Expr[], t: Token): Expr {
     // "Cls::name(...)": when Cls is a class this parser saw, only what that
     // class declares decides the name ("std::_Hash_impl::hash", a static
@@ -212,9 +231,16 @@ namespace CTJ {
     }
     if (t.t === "{") return p.parseInitList();
     if (t.t === "[") return parseLambda(p);
-    if (t.t === "number" || t.t === "string" || t.t === "char") {
+    if (t.t === "string") {
+      // Adjacent string literals are one literal: "ab" "cd" is "abcd".
+      let v = t.v;
       p.pos++;
-      const lkind = t.t === "number" ? "int" : t.t === "string" ? "string" : "char";
+      while (p.peek().t === "string") ((v = joinStrLit(v, p.peek().v)), p.pos++);
+      return { kind: "lit", lkind: "string", value: v, ...at(t) };
+    }
+    if (t.t === "number" || t.t === "char") {
+      p.pos++;
+      const lkind = t.t === "number" ? "int" : "char";
       return { kind: "lit", lkind, value: t.v, ...at(t) };
     }
     if (t.t === "ident") {
@@ -273,7 +299,9 @@ namespace CTJ {
       try {
         const args = p.parseTArgList();
         const nx = p.peek().t;
-        if (nx === "(" || nx === "::") last(parts).a = args;
+        // "tcmp<int>;" or "sort(a, b, tcmp<int>)": nothing that can start an operand
+        // follows, so the angle brackets were arguments and not a comparison.
+        if (nx === "(" || nx === "::" || NOT_OPERAND_START.has(nx)) last(parts).a = args;
         else p.reset(m);
       } catch {
         p.reset(m);

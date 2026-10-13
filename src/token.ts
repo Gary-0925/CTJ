@@ -8,6 +8,8 @@ namespace CTJ {
     file: string;
     line: number;
     col: number;
+    // Whether whitespace or a comment preceded the token in its source.
+    sp?: boolean;
   }
 
   export function tok(t: Tok, v: string, file = "", line = 0, col = 0): Token {

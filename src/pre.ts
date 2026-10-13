@@ -4,6 +4,9 @@ namespace CTJ {
   export interface Macro {
     params: string[] | null;
     variadic: boolean;
+    // The name the variadic arguments are called by: "__VA_ARGS__", or the
+    // parameter name of a GNU "args..." declaration.
+    vaName?: string;
     body: Token[];
   }
 
@@ -31,8 +34,48 @@ namespace CTJ {
     __GNUC_MINOR__: "8",
     __GNUC_PATCHLEVEL__: "1",
     __GNUG__: "4",
-    __SIZE_TYPE__: "unsigned int",
-    __PTRDIFF_TYPE__: "int",
+    __SIZE_TYPE__: "unsigned long",
+    __DBL_MIN_EXP__: "(-1021)",
+    __FLT_MIN__: "1.17549435082228750796873653722224568e-38F",
+    __DBL_MIN_10_EXP__: "(-307)",
+    __LDBL_MAX__: "1.18973149535723176502126385303097021e+4932L",
+    __DBL_DENORM_MIN__: "double(4.94065645841246544176568792868221372e-324L)",
+    __DBL_DIG__: "15",
+    __FLT_EPSILON__: "1.19209289550781250000000000000000000e-7F",
+    __LDBL_MIN__: "3.36210314311209350626267781732175260e-4932L",
+    __LDBL_HAS_QUIET_NAN__: "1",
+    __FLT_HAS_DENORM__: "1",
+    __DBL_MAX__: "double(1.79769313486231570814527423731704357e+308L)",
+    __DBL_HAS_INFINITY__: "1",
+    __LDBL_HAS_DENORM__: "1",
+    __DBL_MAX_EXP__: "1024",
+    __FLT_MIN_EXP__: "(-125)",
+    __DBL_MIN__: "double(2.22507385850720138309023271733240406e-308L)",
+    __DBL_HAS_QUIET_NAN__: "1",
+    __LDBL_HAS_INFINITY__: "1",
+    __FLT_DIG__: "6",
+    __FLT_MANT_DIG__: "24",
+    __DBL_HAS_DENORM__: "1",
+    __FLT_RADIX__: "2",
+    __LDBL_EPSILON__: "1.08420217248550443400745280086994171e-19L",
+    __LDBL_DIG__: "18",
+    __FLT_HAS_QUIET_NAN__: "1",
+    __FLT_MAX_10_EXP__: "38",
+    __FLT_HAS_INFINITY__: "1",
+    __LDBL_MANT_DIG__: "64",
+    __FLT_MAX_EXP__: "128",
+    __DBL_MANT_DIG__: "53",
+    __LDBL_MIN_EXP__: "(-16381)",
+    __LDBL_MAX_EXP__: "16384",
+    __LDBL_MAX_10_EXP__: "4932",
+    __DBL_EPSILON__: "double(2.22044604925031308084726333618164062e-16L)",
+    __FLT_DENORM_MIN__: "1.40129846432481707092372958328991613e-45F",
+    __FLT_MAX__: "3.40282346638528859811704183484516925e+38F",
+    __FLT_MIN_10_EXP__: "(-37)",
+    __DBL_MAX_10_EXP__: "308",
+    __LDBL_DENORM_MIN__: "3.64519953188247460252840593361941982e-4951L",
+    __LDBL_MIN_10_EXP__: "(-4931)",
+    __PTRDIFF_TYPE__: "long",
     __WCHAR_TYPE__: "int",
     __CHAR16_TYPE__: "short unsigned int",
     __CHAR32_TYPE__: "unsigned int",
@@ -117,7 +160,7 @@ namespace CTJ {
       this.loadFile = loadFile;
       this.includeDirs = includeDirs;
       for (const k of Object.keys(DEFAULT_PREDEFINED)) {
-        const toks = lexFile(DEFAULT_PREDEFINED[k], "<predefined>");
+        const toks = lexFile(DEFAULT_PREDEFINED[k], "<predefined>", false);
         toks.pop();
         this.macros.set(k, { params: null, variadic: false, body: toks });
       }
@@ -356,27 +399,31 @@ namespace CTJ {
       if (isFunc && rest.indexOf(")") < 0) isFunc = false;
       if (!isFunc) {
         const body = m[4] || "";
-        const toks = lexFile(body, file).filter(t => t.t !== "eof");
+        const toks = lexFile(body, file, false).filter(t => t.t !== "eof");
         this.macros.set(name, { params: null, variadic: false, body: toks });
         return;
       }
       const argText = m[3] || "";
       const params: string[] = [];
       let variadic = false;
+      let vaName = "__VA_ARGS__";
       if (argText.trim()) {
         for (const p of argText.split(",")) {
           const t = p.trim();
           if (t === "...") variadic = true;
-          else if (t) params.push(t);
+          else if (t.endsWith("...")) {
+            variadic = true;
+            vaName = t.slice(0, -3).trim();
+          } else if (t) params.push(t);
         }
       }
       const body = rest.slice(rest.indexOf(")") + 1);
-      const toks = lexFile(body, file).filter(t => t.t !== "eof");
-      this.macros.set(name, { params, variadic, body: toks });
+      const toks = lexFile(body, file, false).filter(t => t.t !== "eof");
+      this.macros.set(name, { params, variadic, vaName, body: toks });
     }
 
     expandText(text: string, file: string, line: number): Token[] {
-      const toks = lexFile(text, file).filter(t => t.t !== "eof");
+      const toks = lexFile(text, file, false).filter(t => t.t !== "eof");
       return this.expandTokens(toks, new Set(), file, line);
     }
 
@@ -450,62 +497,89 @@ namespace CTJ {
       return out;
     }
 
+    // Replaces the parameters of a macro body by their arguments. "#" stringizes
+    // an argument, "##" pastes its neighbours (with the GNU comma rule for an
+    // empty variadic list), and __VA_OPT__(...) is kept only when there are
+    // variadic arguments.
     substMacro(macro: Macro, args: Token[][]): Token[] {
       const params = macro.params || [];
-      const fixed = macro.variadic ? args.slice(0, params.length) : args;
-      while (fixed.length < params.length) fixed.push([]);
+      const vaName = macro.variadic ? macro.vaName || "__VA_ARGS__" : "";
       const vastart = macro.variadic ? args.slice(params.length) : [];
-      const getArg = (name: string): Token[] | null => {
+      const vaTokens: Token[] = [];
+      vastart.forEach((a, k) => {
+        if (k) vaTokens.push(tok(",", ",", "", 0, 0));
+        for (const x of a) vaTokens.push(x);
+      });
+      const vaEmpty = vaTokens.length === 0;
+      // The tokens an identifier stands for: an argument, the variadic list, or
+      // null when it is not a parameter.
+      const paramTokens = (name: string): Token[] | null => {
         const idx = params.indexOf(name);
-        if (idx >= 0) return fixed[idx];
-        if (macro.variadic && name === "__VA_ARGS__") {
-          const r: Token[] = [];
-          vastart.forEach((a, k) => {
-            if (k) r.push(tok(",", ",", "", 0, 0));
-            for (const t of a) r.push(t);
-          });
-          return r;
-        }
+        if (idx >= 0) return args[idx] || [];
+        if (vaName && name === vaName) return vaTokens;
         return null;
       };
+      const stringize = (a: Token[]): Token => {
+        let text = "";
+        a.forEach((x, k) => {
+          if (k && x.sp) text += " ";
+          text += x.t === "string" || x.t === "char" ? x.v.replace(/[\\"]/g, c => "\\" + c) : x.v;
+        });
+        return tok("string", '"' + text + '"', a[0] ? a[0].file : "", a[0] ? a[0].line : 0, a[0] ? a[0].col : 0);
+      };
+      const paste = (a: Token, b: Token): Token[] => lexFile(a.v + b.v, a.file, false).filter(x => x.t !== "eof");
       const body = macro.body;
       const out: Token[] = [];
+      // Where the most recent operand begins in out: the left side of a "##".
+      let lastOp = -1;
       for (let i = 0; i < body.length; i++) {
         const t = body[i];
-        if (t.t === "#" && body[i + 1] && body[i + 1].t === "ident") {
-          const a = getArg(body[i + 1].v);
-          i++;
-          if (!a) {
-            out.push(t);
+        if (t.t === "##" && i + 1 < body.length) {
+          const rb = body[++i];
+          const rTokens = rb.t === "ident" && paramTokens(rb.v) !== null ? (paramTokens(rb.v) as Token[]) : [rb];
+          const left = lastOp >= 0 ? out.slice(lastOp) : [];
+          if (left.length === 1 && left[0].t === "," && rb.t === "ident" && vaName && rb.v === vaName) {
+            if (vaEmpty) out.length = lastOp;
+            else out.push(...rTokens);
             continue;
           }
-          out.push(tok("string", JSON.stringify(a.map(x => x.v).join(" ")), t.file, t.line, t.col));
+          if (!left.length) {
+            lastOp = out.length;
+            out.push(...rTokens);
+            continue;
+          }
+          if (!rTokens.length) continue;
+          const pasted = paste(out.pop() as Token, rTokens[0]);
+          out.push(...(pasted.length ? pasted : []), ...rTokens.slice(1));
           continue;
         }
-        if (t.t === "##") {
-          const prev = out.pop();
-          const next = body[++i];
-          if (!prev || !next) continue;
-          const pv = prev.t === "ident" && params.includes(prev.v) ? getArg(prev.v) : null;
-          const nv = next.t === "ident" && params.includes(next.v) ? getArg(next.v) : null;
-          const ps = pv ? pv.map(x => x.v).join("") : prev.v;
-          const ns = nv ? nv.map(x => x.v).join("") : next.v;
-          const joined = ps + ns;
-          if (/^[A-Za-z_$][A-Za-z0-9_$]*$/.test(joined)) out.push(tok("ident", joined, prev.file, prev.line, prev.col));
-          else if (/^[0-9]/.test(joined)) out.push(tok("number", joined, prev.file, prev.line, prev.col));
-          else {
-            for (const x of lexFile(joined, prev.file)) {
-              if (x.t !== "eof") out.push(x);
+        lastOp = out.length;
+        if (t.t === "#" && i + 1 < body.length && body[i + 1].t === "ident" && paramTokens(body[i + 1].v) !== null) {
+          out.push(stringize(paramTokens(body[++i].v) as Token[]));
+          continue;
+        }
+        if (macro.variadic && t.t === "ident" && t.v === "__VA_OPT__" && body[i + 1] && body[i + 1].t === "(") {
+          let depth = 0;
+          let j = i + 1;
+          const inner: Token[] = [];
+          for (; j < body.length; j++) {
+            if (body[j].t === "(") {
+              depth++;
+              if (depth === 1) continue;
+            } else if (body[j].t === ")") {
+              depth--;
+              if (depth === 0) break;
             }
+            inner.push(body[j]);
           }
+          if (!vaEmpty) out.push(...this.substMacro({ ...macro, body: inner }, args));
+          i = j;
           continue;
         }
-        if (t.t === "ident") {
-          const a = getArg(t.v);
-          if (a) {
-            for (const x of a) out.push(x);
-            continue;
-          }
+        const pt = t.t === "ident" ? paramTokens(t.v) : null;
+        if (pt) {
+          out.push(...pt);
+          continue;
         }
         out.push(t);
       }
@@ -513,7 +587,7 @@ namespace CTJ {
     }
 
     evalCond(text: string, file: string, line: number): number {
-      let toks = lexFile(text, file).filter(t => t.t !== "eof");
+      let toks = lexFile(text, file, false).filter(t => t.t !== "eof");
       const pre: Token[] = [];
       for (let i = 0; i < toks.length; i++) {
         const t = toks[i];

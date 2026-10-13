@@ -71,14 +71,21 @@ class std_nothrow_t {
   }
 }
 class IO_FILE {
-  __flags;
+  __fd;
   __dummy;
   constructor(...$a) {
     this.__init_IO_FILE(...$a);
   }
   __init_IO_FILE(...$a) {
-    this.__flags = 0;
-    this.__dummy = 0;
+    if ($a.length >= 1 && $a.length <= 1 && ($a[0] !== null && typeof $a[0] === "object" && !Array.isArray($a[0]) && $a[0].a !== undefined && $a[0].i !== undefined && $a[0].a[$a[0].i] instanceof IO_FILE)) {
+      this.__fd = (($a[0]).a[($a[0]).i]).__fd;
+      this.__dummy = (($a[0]).a[($a[0]).i]).__dummy;
+    }
+    else if ($a.length >= 2 && $a.length <= 2 && (typeof $a[0] === "number" || typeof $a[0] === "boolean") && (typeof $a[1] === "number" || typeof $a[1] === "boolean")) {
+      this.__fd = $a[0];
+      this.__dummy = $a[1];
+    }
+    else { throw new Error("no matching constructor"); }
   }
   __dtor() {
   }
@@ -183,20 +190,20 @@ class lconv {
   __dtor() {
   }
 }
-class std_hash_base_unsigned_int_long_long {
-  __init_std_hash_base_unsigned_int_long_long(...$a) { }
+class std_hash_base_unsigned_long_long_double {
+  __init_std_hash_base_unsigned_long_long_double(...$a) { }
   __dtor() {
   }
 }
-class std_hash_long_long extends std_hash_base_unsigned_int_long_long {
+class std_hash_long_double extends std_hash_base_unsigned_long_long_double {
   constructor(...$a) {
     super();
-    this.__init_std_hash_long_long(...$a);
+    this.__init_std_hash_long_double(...$a);
   }
-  __init_std_hash_long_long(...$a) {
+  __init_std_hash_long_double(...$a) {
   }
   __dtor() {
-    std_hash_base_unsigned_int_long_long.prototype.__dtor.call(this);
+    std_hash_base_unsigned_long_long_double.prototype.__dtor.call(this);
   }
 }
 class std_char_traits_char {
@@ -277,12 +284,12 @@ class gnu_cxx_normal_iterator_char_P_std_basic_string_char_std_char_traits_char_
   __dtor() {
   }
 }
-class std_hash_base_unsigned_int_std_basic_string_char_std_char_traits_char_std_allocator_char {
-  __init_std_hash_base_unsigned_int_std_basic_string_char_std_char_traits_char_std_allocator_char(...$a) { }
+class std_hash_base_unsigned_long_std_basic_string_char_std_char_traits_char_std_allocator_char {
+  __init_std_hash_base_unsigned_long_std_basic_string_char_std_char_traits_char_std_allocator_char(...$a) { }
   __dtor() {
   }
 }
-class std_hash_std_basic_string_char_std_char_traits_char_std_allocator_char extends std_hash_base_unsigned_int_std_basic_string_char_std_char_traits_char_std_allocator_char {
+class std_hash_std_basic_string_char_std_char_traits_char_std_allocator_char extends std_hash_base_unsigned_long_std_basic_string_char_std_char_traits_char_std_allocator_char {
   constructor(...$a) {
     super();
     this.__init_std_hash_std_basic_string_char_std_char_traits_char_std_allocator_char(...$a);
@@ -290,7 +297,7 @@ class std_hash_std_basic_string_char_std_char_traits_char_std_allocator_char ext
   __init_std_hash_std_basic_string_char_std_char_traits_char_std_allocator_char(...$a) {
   }
   __dtor() {
-    std_hash_base_unsigned_int_std_basic_string_char_std_char_traits_char_std_allocator_char.prototype.__dtor.call(this);
+    std_hash_base_unsigned_long_std_basic_string_char_std_char_traits_char_std_allocator_char.prototype.__dtor.call(this);
   }
 }
 class std_char_traits_wchar_t {
@@ -371,12 +378,12 @@ class gnu_cxx_normal_iterator_wchar_t_P_std_basic_string_wchar_t_std_char_traits
   __dtor() {
   }
 }
-class std_hash_base_unsigned_int_std_basic_string_wchar_t_std_char_traits_wchar_t_std_allocator_wchar_t {
-  __init_std_hash_base_unsigned_int_std_basic_string_wchar_t_std_char_traits_wchar_t_std_allocator_wchar_t(...$a) { }
+class std_hash_base_unsigned_long_std_basic_string_wchar_t_std_char_traits_wchar_t_std_allocator_wchar_t {
+  __init_std_hash_base_unsigned_long_std_basic_string_wchar_t_std_char_traits_wchar_t_std_allocator_wchar_t(...$a) { }
   __dtor() {
   }
 }
-class std_hash_std_basic_string_wchar_t_std_char_traits_wchar_t_std_allocator_wchar_t extends std_hash_base_unsigned_int_std_basic_string_wchar_t_std_char_traits_wchar_t_std_allocator_wchar_t {
+class std_hash_std_basic_string_wchar_t_std_char_traits_wchar_t_std_allocator_wchar_t extends std_hash_base_unsigned_long_std_basic_string_wchar_t_std_char_traits_wchar_t_std_allocator_wchar_t {
   constructor(...$a) {
     super();
     this.__init_std_hash_std_basic_string_wchar_t_std_char_traits_wchar_t_std_allocator_wchar_t(...$a);
@@ -384,7 +391,7 @@ class std_hash_std_basic_string_wchar_t_std_char_traits_wchar_t_std_allocator_wc
   __init_std_hash_std_basic_string_wchar_t_std_char_traits_wchar_t_std_allocator_wchar_t(...$a) {
   }
   __dtor() {
-    std_hash_base_unsigned_int_std_basic_string_wchar_t_std_char_traits_wchar_t_std_allocator_wchar_t.prototype.__dtor.call(this);
+    std_hash_base_unsigned_long_std_basic_string_wchar_t_std_char_traits_wchar_t_std_allocator_wchar_t.prototype.__dtor.call(this);
   }
 }
 class std_char_traits_char16_t {
@@ -465,12 +472,12 @@ class gnu_cxx_normal_iterator_char16_t_P_std_basic_string_char16_t_std_char_trai
   __dtor() {
   }
 }
-class std_hash_base_unsigned_int_std_basic_string_char16_t_std_char_traits_char16_t_std_allocator_char16_t {
-  __init_std_hash_base_unsigned_int_std_basic_string_char16_t_std_char_traits_char16_t_std_allocator_char16_t(...$a) { }
+class std_hash_base_unsigned_long_std_basic_string_char16_t_std_char_traits_char16_t_std_allocator_char16_t {
+  __init_std_hash_base_unsigned_long_std_basic_string_char16_t_std_char_traits_char16_t_std_allocator_char16_t(...$a) { }
   __dtor() {
   }
 }
-class std_hash_std_basic_string_char16_t_std_char_traits_char16_t_std_allocator_char16_t extends std_hash_base_unsigned_int_std_basic_string_char16_t_std_char_traits_char16_t_std_allocator_char16_t {
+class std_hash_std_basic_string_char16_t_std_char_traits_char16_t_std_allocator_char16_t extends std_hash_base_unsigned_long_std_basic_string_char16_t_std_char_traits_char16_t_std_allocator_char16_t {
   constructor(...$a) {
     super();
     this.__init_std_hash_std_basic_string_char16_t_std_char_traits_char16_t_std_allocator_char16_t(...$a);
@@ -478,7 +485,7 @@ class std_hash_std_basic_string_char16_t_std_char_traits_char16_t_std_allocator_
   __init_std_hash_std_basic_string_char16_t_std_char_traits_char16_t_std_allocator_char16_t(...$a) {
   }
   __dtor() {
-    std_hash_base_unsigned_int_std_basic_string_char16_t_std_char_traits_char16_t_std_allocator_char16_t.prototype.__dtor.call(this);
+    std_hash_base_unsigned_long_std_basic_string_char16_t_std_char_traits_char16_t_std_allocator_char16_t.prototype.__dtor.call(this);
   }
 }
 class std_char_traits_char32_t {
@@ -559,12 +566,12 @@ class gnu_cxx_normal_iterator_char32_t_P_std_basic_string_char32_t_std_char_trai
   __dtor() {
   }
 }
-class std_hash_base_unsigned_int_std_basic_string_char32_t_std_char_traits_char32_t_std_allocator_char32_t {
-  __init_std_hash_base_unsigned_int_std_basic_string_char32_t_std_char_traits_char32_t_std_allocator_char32_t(...$a) { }
+class std_hash_base_unsigned_long_std_basic_string_char32_t_std_char_traits_char32_t_std_allocator_char32_t {
+  __init_std_hash_base_unsigned_long_std_basic_string_char32_t_std_char_traits_char32_t_std_allocator_char32_t(...$a) { }
   __dtor() {
   }
 }
-class std_hash_std_basic_string_char32_t_std_char_traits_char32_t_std_allocator_char32_t extends std_hash_base_unsigned_int_std_basic_string_char32_t_std_char_traits_char32_t_std_allocator_char32_t {
+class std_hash_std_basic_string_char32_t_std_char_traits_char32_t_std_allocator_char32_t extends std_hash_base_unsigned_long_std_basic_string_char32_t_std_char_traits_char32_t_std_allocator_char32_t {
   constructor(...$a) {
     super();
     this.__init_std_hash_std_basic_string_char32_t_std_char_traits_char32_t_std_allocator_char32_t(...$a);
@@ -572,7 +579,7 @@ class std_hash_std_basic_string_char32_t_std_char_traits_char32_t_std_allocator_
   __init_std_hash_std_basic_string_char32_t_std_char_traits_char32_t_std_allocator_char32_t(...$a) {
   }
   __dtor() {
-    std_hash_base_unsigned_int_std_basic_string_char32_t_std_char_traits_char32_t_std_allocator_char32_t.prototype.__dtor.call(this);
+    std_hash_base_unsigned_long_std_basic_string_char32_t_std_char_traits_char32_t_std_allocator_char32_t.prototype.__dtor.call(this);
   }
 }
 class std_Swallow_assign {
@@ -597,12 +604,12 @@ class std_Bit_reference {
   __dtor() {
   }
 }
-class std_iterator_std_random_access_iterator_tag_bool_int_bool_P_bool_R {
-  __init_std_iterator_std_random_access_iterator_tag_bool_int_bool_P_bool_R(...$a) { }
+class std_iterator_std_random_access_iterator_tag_bool_long_bool_P_bool_R {
+  __init_std_iterator_std_random_access_iterator_tag_bool_long_bool_P_bool_R(...$a) { }
   __dtor() {
   }
 }
-class std_Bit_iterator_base extends std_iterator_std_random_access_iterator_tag_bool_int_bool_P_bool_R {
+class std_Bit_iterator_base extends std_iterator_std_random_access_iterator_tag_bool_long_bool_P_bool_R {
   _M_p;
   _M_offset;
   constructor(...$a) {
@@ -614,7 +621,7 @@ class std_Bit_iterator_base extends std_iterator_std_random_access_iterator_tag_
     this._M_offset = 0;
   }
   __dtor() {
-    std_iterator_std_random_access_iterator_tag_bool_int_bool_P_bool_R.prototype.__dtor.call(this);
+    std_iterator_std_random_access_iterator_tag_bool_long_bool_P_bool_R.prototype.__dtor.call(this);
   }
 }
 class std_Bit_iterator extends std_Bit_iterator_base {
@@ -913,7 +920,7 @@ class gnu_cxx_new_allocator_int {
     if ((__n > this.max_size__c())) {
       std_throw_bad_alloc();
     }
-    return ($t0 = operatornew__unsigned_int(((Math.imul(__n, 4)) >>> 0)), $t0 ? {a: $t0.a, i: $t0.i} : null);
+    return ($t0 = operatornew__unsigned_long(((Math.imul(__n, 4)) >>> 0)), $t0 ? {a: $t0.a, i: $t0.i} : null);
   }
   deallocate(__p, $p1) {
     operatordelete__voidP((__p ? {a: __p.a, i: __p.i} : null));
@@ -921,14 +928,14 @@ class gnu_cxx_new_allocator_int {
   max_size__c() {
     return ((Math.trunc((((((-(1)) | 0)) >>> 0)) / (4))) >>> 0);
   }
-  construct__rv(__p, __args_0) {
+  construct__gnu_cxx_new_allocator_int_construct_int_int__rv(__p, __args_0) {
     let $t1;
     (__p.a[__p.i] = ($t1 = std_forward_1_int(__args_0), $t1.a[$t1.i]));
   }
-  construct(__p) {
+  construct__gnu_cxx_new_allocator_int_construct_int(__p) {
     (__p.a[__p.i] = 0);
   }
-  destroy(__p) {
+  destroy__gnu_cxx_new_allocator_int_destroy_int(__p) {
     void 0;
   }
 }
@@ -1039,19 +1046,19 @@ class std_vector_int_std_allocator_int extends std_Vector_base_int_std_allocator
   push_back(__x) {
     if ((!(this._M_impl._M_finish === this._M_impl._M_end_of_storage || (this._M_impl._M_finish && this._M_impl._M_end_of_storage && this._M_impl._M_finish.a === this._M_impl._M_end_of_storage.a && this._M_impl._M_finish.i === this._M_impl._M_end_of_storage.i)))) {
        {
-        gnu_cxx_alloc_traits_std_allocator_int.construct({a: this, i: "_M_impl"}, (this._M_impl._M_finish ? {a: this._M_impl._M_finish.a, i: this._M_impl._M_finish.i} : null), __x);
+        gnu_cxx_alloc_traits_std_allocator_int.construct__gnu_cxx_alloc_traits_std_allocator_int_construct_int({a: this, i: "_M_impl"}, (this._M_impl._M_finish ? {a: this._M_impl._M_finish.a, i: this._M_impl._M_finish.i} : null), __x);
         ++this._M_impl._M_finish.i;
       }
     }
     else {
-      this._M_emplace_back_aux__rv(__x);
+      this._M_emplace_back_aux__std_vector_int_std_allocator_int_M_emplace_back_aux_int__rv(__x);
     }
   }
   clear() {
     this._M_erase_at_end((this._M_impl._M_start ? {a: this._M_impl._M_start.a, i: this._M_impl._M_start.i} : null));
   }
   _M_default_initialize(__n) {
-    std_uninitialized_default_n_a_int_P_unsigned_int_std_allocator_int((this._M_impl._M_start ? {a: this._M_impl._M_start.a, i: this._M_impl._M_start.i} : null), __n, this._M_get_Tp_allocator());
+    std_uninitialized_default_n_a_int_P_unsigned_long_std_allocator_int((this._M_impl._M_start ? {a: this._M_impl._M_start.a, i: this._M_impl._M_start.i} : null), __n, this._M_get_Tp_allocator());
     this._M_impl._M_finish = (this._M_impl._M_end_of_storage ? {a: this._M_impl._M_end_of_storage.a, i: this._M_impl._M_end_of_storage.i} : null);
   }
   _M_check_len__c(__n, __s) {
@@ -1060,21 +1067,21 @@ class std_vector_int_std_allocator_int extends std_Vector_base_int_std_allocator
     if (((((this.max_size__c()) - (this.size__c())) >>> 0) < __n.v)) {
       std_throw_length_error((__s ? {a: __s.a, i: __s.i} : null));
     }
-    let __len = (((this.size__c()) + (($t5 = std_max_unsigned_int({a: [this.size__c()], i: 0}, {a: __n, i: "v"}), $t5.a[$t5.i]))) >>> 0);
+    let __len = (((this.size__c()) + (($t5 = std_max_unsigned_long({a: [this.size__c()], i: 0}, {a: __n, i: "v"}), $t5.a[$t5.i]))) >>> 0);
     return (((__len < this.size__c()) || (__len > this.max_size__c())) ? ((this.max_size__c()) >>> 0) : ((__len) >>> 0));
   }
   _M_erase_at_end(__pos) {
     std_Destroy_2_int_P_std_allocator_int((__pos ? {a: __pos.a, i: __pos.i} : null), (this._M_impl._M_finish ? {a: this._M_impl._M_finish.a, i: this._M_impl._M_finish.i} : null), this._M_get_Tp_allocator());
     this._M_impl._M_finish = (__pos ? {a: __pos.a, i: __pos.i} : null);
   }
-  _M_emplace_back_aux__rv(__args_0) {
+  _M_emplace_back_aux__std_vector_int_std_allocator_int_M_emplace_back_aux_int__rv(__args_0) {
     let $t6, $t7, $t8, $t9, $t10;
     let __len = this._M_check_len__c(((1) >>> 0), {a: [118, 101, 99, 116, 111, 114, 58, 58, 95, 77, 95, 101, 109, 112, 108, 97, 99, 101, 95, 98, 97, 99, 107, 95, 97, 117, 120, 0], i: 0});
     let __new_start = ($t6 = this._M_allocate(__len), $t6 ? {a: $t6.a, i: $t6.i} : null);
     let __new_finish = (__new_start ? {a: __new_start.a, i: __new_start.i} : null);
     if (true) {
        {
-        gnu_cxx_alloc_traits_std_allocator_int.construct({a: this, i: "_M_impl"}, ($t7 = ({a: (__new_start ? __new_start.a : null), i: (__new_start ? __new_start.i : 0) + (this.size__c())}), $t7 ? {a: $t7.a, i: $t7.i} : null), std_forward_1_int(__args_0));
+        gnu_cxx_alloc_traits_std_allocator_int.construct__gnu_cxx_alloc_traits_std_allocator_int_construct_int({a: this, i: "_M_impl"}, ($t7 = ({a: (__new_start ? __new_start.a : null), i: (__new_start ? __new_start.i : 0) + (this.size__c())}), $t7 ? {a: $t7.a, i: $t7.i} : null), std_forward_1_int(__args_0));
         __new_finish = null;
         __new_finish = ($t8 = std_uninitialized_move_if_noexcept_a_int_P_int_P_std_allocator_int((this._M_impl._M_start ? {a: this._M_impl._M_start.a, i: this._M_impl._M_start.i} : null), (this._M_impl._M_finish ? {a: this._M_impl._M_finish.a, i: this._M_impl._M_finish.i} : null), (__new_start ? {a: __new_start.a, i: __new_start.i} : null), this._M_get_Tp_allocator()), $t8 ? {a: $t8.a, i: $t8.i} : null);
         ++__new_finish.i;
@@ -1083,7 +1090,7 @@ class std_vector_int_std_allocator_int extends std_Vector_base_int_std_allocator
     if (false) {
        {
         if ((!__new_finish)) {
-          gnu_cxx_alloc_traits_std_allocator_int.destroy({a: this, i: "_M_impl"}, ($t9 = ({a: (__new_start ? __new_start.a : null), i: (__new_start ? __new_start.i : 0) + (this.size__c())}), $t9 ? {a: $t9.a, i: $t9.i} : null));
+          gnu_cxx_alloc_traits_std_allocator_int.destroy__gnu_cxx_alloc_traits_std_allocator_int_destroy_int({a: this, i: "_M_impl"}, ($t9 = ({a: (__new_start ? __new_start.a : null), i: (__new_start ? __new_start.i : 0) + (this.size__c())}), $t9 ? {a: $t9.a, i: $t9.i} : null));
         }
         else {
           std_Destroy_2_int_P_std_allocator_int((__new_start ? {a: __new_start.a, i: __new_start.i} : null), (__new_finish ? {a: __new_finish.a, i: __new_finish.i} : null), this._M_get_Tp_allocator());
@@ -1102,20 +1109,17 @@ class gnu_cxx_alloc_traits_std_allocator_int {
   __init_gnu_cxx_alloc_traits_std_allocator_int(...$a) { }
   __dtor() {
   }
-  static construct(...$a) {
-    if ($a.length >= 2 && $a.length <= 2 && ($a[0] !== null && typeof $a[0] === "object" && !Array.isArray($a[0]) && $a[0].a !== undefined && $a[0].i !== undefined && $a[0].a[$a[0].i] instanceof std_allocator_int) && ($a[1] === null || typeof $a[1] === "object")) {
-      (($a[0]).a[($a[0]).i]).construct((($a[1]) ? {a: ($a[1]).a, i: ($a[1]).i} : null));
-    }
-    else if ($a.length >= 3 && $a.length <= 3 && ($a[0] !== null && typeof $a[0] === "object" && !Array.isArray($a[0]) && $a[0].a !== undefined && $a[0].i !== undefined && $a[0].a[$a[0].i] instanceof std_allocator_int) && ($a[1] === null || typeof $a[1] === "object") && ($a[2] === null || typeof $a[2] === "object")) {
-      (($a[0]).a[($a[0]).i]).construct__rv((($a[1]) ? {a: ($a[1]).a, i: ($a[1]).i} : null), $a[2]);
-    }
-    else { throw new Error("no matching overload"); }
+  static construct(__a, __p) {
+    (__a.a[__a.i]).construct__gnu_cxx_new_allocator_int_construct_int((__p ? {a: __p.a, i: __p.i} : null));
+  }
+  static construct__gnu_cxx_alloc_traits_std_allocator_int_construct_int(__a, __p, __arg) {
+    (__a.a[__a.i]).construct__gnu_cxx_new_allocator_int_construct_int_int__rv((__p ? {a: __p.a, i: __p.i} : null), __arg);
   }
   static max_size(__a) {
     return (__a.a[__a.i]).max_size__c();
   }
-  static destroy(__a, __p) {
-    (__a.a[__a.i]).destroy((__p ? {a: __p.a, i: __p.i} : null));
+  static destroy__gnu_cxx_alloc_traits_std_allocator_int_destroy_int(__a, __p) {
+    (__a.a[__a.i]).destroy__gnu_cxx_new_allocator_int_destroy_int((__p ? {a: __p.a, i: __p.i} : null));
   }
 }
 class gnu_cxx_alloc_traits_std_allocator_int_rebind_int {
@@ -1745,17 +1749,17 @@ class std_is_array_int extends std_integral_constant_bool_value0 {
     std_integral_constant_bool_value0.prototype.__dtor.call(this);
   }
 }
-class std_integral_constant_unsigned_int_value0 {
+class std_integral_constant_unsigned_long_value0 {
   constructor(...$a) {
-    this.__init_std_integral_constant_unsigned_int_value0(...$a);
+    this.__init_std_integral_constant_unsigned_long_value0(...$a);
   }
-  __init_std_integral_constant_unsigned_int_value0(...$a) {
+  __init_std_integral_constant_unsigned_long_value0(...$a) {
   }
   __dtor() {
   }
   static value = 0;
 }
-class std_extent_int_value0 extends std_integral_constant_unsigned_int_value0 {
+class std_extent_int_value0 extends std_integral_constant_unsigned_long_value0 {
   constructor(...$a) {
     super();
     this.__init_std_extent_int_value0(...$a);
@@ -1763,7 +1767,7 @@ class std_extent_int_value0 extends std_integral_constant_unsigned_int_value0 {
   __init_std_extent_int_value0(...$a) {
   }
   __dtor() {
-    std_integral_constant_unsigned_int_value0.prototype.__dtor.call(this);
+    std_integral_constant_unsigned_long_value0.prototype.__dtor.call(this);
   }
 }
 class std_not_std_extent_int_value0 extends std_integral_constant_bool_value1 {
@@ -2643,7 +2647,7 @@ class std_declval_protector_int_R {
 }
 function std_throw_bad_alloc(...$a) { throw new Error("unresolved external: std::__throw_bad_alloc"); }
 function std_throw_length_error(...$a) { throw new Error("unresolved external: std::__throw_length_error"); }
-function operatornew__unsigned_int(...$a) { return {a: new Array($a[0]).fill(0), i: 0}; }
+function operatornew__unsigned_long(...$a) { return {a: new Array($a[0]).fill(0), i: 0}; }
 function operatordelete__voidP(...$a) {  }
 function main() {
   let $t12, $t13, $t14, $t15, $t16;
@@ -2674,10 +2678,10 @@ function std_uninitialized_move_if_noexcept_a_int_P_int_P_std_allocator_int(__fi
 function std_Destroy_2_int_P_std_allocator_int(__first, __last, __alloc) {
   let $t18;
   for (; (!(__first === __last || (__first && __last && __first.a === __last.a && __first.i === __last.i))); ++__first.i) {
-    gnu_cxx_alloc_traits_std_allocator_int.destroy(__alloc, ($t18 = std_addressof_int(__first), $t18 ? {a: $t18.a, i: $t18.i} : null));
+    gnu_cxx_alloc_traits_std_allocator_int.destroy__gnu_cxx_alloc_traits_std_allocator_int_destroy_int(__alloc, ($t18 = std_addressof_int(__first), $t18 ? {a: $t18.a, i: $t18.i} : null));
   }
 }
-function std_uninitialized_default_n_a_int_P_unsigned_int_std_allocator_int(__first, __n, __alloc) {
+function std_uninitialized_default_n_a_int_P_unsigned_long_std_allocator_int(__first, __n, __alloc) {
   let $t19;
   let __cur = (__first ? {a: __first.a, i: __first.i} : null);
   if (true) {
@@ -2693,7 +2697,7 @@ function std_uninitialized_default_n_a_int_P_unsigned_int_std_allocator_int(__fi
     }
   }
 }
-function std_max_unsigned_int(__a, __b) {
+function std_max_unsigned_long(__a, __b) {
   if ((__a.a[__a.i] < __b.a[__b.i])) {
     return __b;
   }
@@ -2714,7 +2718,7 @@ function std_uninitialized_copy_a_std_move_iterator_int_P_int_P_std_allocator_in
   if (true) {
      {
       for (; std_operator_3_int_P_int_P({a: [__first], i: 0}, {a: [__last], i: 0}); (__first.op_inc(), ++__cur.i)) {
-        gnu_cxx_alloc_traits_std_allocator_int.construct(__alloc, ($t20 = std_addressof_int(__cur), $t20 ? {a: $t20.a, i: $t20.i} : null), __first.op_mul__c());
+        gnu_cxx_alloc_traits_std_allocator_int.construct__gnu_cxx_alloc_traits_std_allocator_int_construct_int(__alloc, ($t20 = std_addressof_int(__cur), $t20 ? {a: $t20.a, i: $t20.i} : null), __first.op_mul__c());
       }
       return (__cur ? {a: __cur.a, i: __cur.i} : null);
     }
@@ -2729,9 +2733,9 @@ function std_addressof_int(__r) {
   return (__r ? {a: __r.a, i: __r.i} : null);
 }
 function std_operator_3_int_P_int_P(__x, __y) {
-  return (!(std_operator_3_int_P_int_P_1030(__x, __y)));
+  return (!(std_operator_3_int_P_int_P_2(__x, __y)));
 }
-function std_operator_3_int_P_int_P_1030(__x, __y) {
+function std_operator_3_int_P_int_P_2(__x, __y) {
   let $t21, $t22, $t23, $t24;
   return ($t23 = ($t21 = (__x.a[__x.i]).base__c(), $t21), $t24 = ($t22 = (__y.a[__y.i]).base__c(), $t22), ($t23 === $t24 || ($t23 && $t24 && $t23.a === $t24.a && $t23.i === $t24.i)));
 }
@@ -2739,7 +2743,13 @@ function std_move_int(__t) {
   return __t;
 }
 let std_piecewise_construct = new std_piecewise_construct_t();
+let ctj_stdin_file = {v: new IO_FILE(0, 0)};
+let ctj_stdout_file = {v: new IO_FILE(1, 0)};
+let ctj_stderr_file = {v: new IO_FILE(2, 0)};
+let stdin = (({a: ctj_stdin_file, i: "v"}) ? {a: ({a: ctj_stdin_file, i: "v"}).a, i: ({a: ctj_stdin_file, i: "v"}).i} : null);
+let stdout = (({a: ctj_stdout_file, i: "v"}) ? {a: ({a: ctj_stdout_file, i: "v"}).a, i: ({a: ctj_stdout_file, i: "v"}).i} : null);
+let stderr = (({a: ctj_stderr_file, i: "v"}) ? {a: ({a: ctj_stderr_file, i: "v"}).a, i: ({a: ctj_stderr_file, i: "v"}).i} : null);
 let std_allocator_arg = new std_allocator_arg_t();
-let std_ignore = [];
+let std_ignore = new std_Swallow_assign();
 let gnu_cxx_default_lock_policy = 0;
 main();

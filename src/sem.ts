@@ -63,8 +63,10 @@ namespace CTJ {
     if (s === "unsigned short" || s === "unsigned short int") return "unsigned short";
     if (s === "long" || s === "long int" || s === "signed long" || s === "signed long int") return "long";
     if (s === "unsigned long" || s === "unsigned long int") return "unsigned long";
-    if (has("long", "long") && words.includes("unsigned")) return "unsigned long long";
-    if (has("long", "long")) return "long long";
+    // "long double" has one "long", so it is counted rather than matched by name.
+    const longs = words.filter(w => w === "long").length;
+    if (longs >= 2 && words.includes("unsigned")) return "unsigned long long";
+    if (longs >= 2) return "long long";
     if (s === "long double") return "long double";
     if (s === "signed char") return "signed char";
     if (s === "unsigned char") return "unsigned char";
@@ -209,6 +211,10 @@ namespace CTJ {
     analyzed: boolean;
     referenced: boolean;
     fromTmpl: string;
+    // An instance of a member function template, with parameters of its own:
+    // its JavaScript name carries the instance, as the template's arguments
+    // (not the class) tell the instances of one name apart.
+    ownTmpl?: boolean;
     baseAssigns: string[];
   }
 
@@ -314,6 +320,9 @@ namespace CTJ {
     // above cannot hold: it keeps one template per name for type resolution.
     tmplOverloads = new Map<string, TmplInfo[]>();
     funcInsts = new Map<string, FuncInfo>();
+    // JavaScript names of the functions emitted so far: an instance and a plain
+    // overload can spell the same type ("abs<long long>" and "abs(long long)").
+    fnMangles = new Set<string>();
     nsFuncIndex = new Map<string, FuncInfo[]>();
     nss = new Map<string, NsInfo>();
     nsAlias = new Map<string, string>();
@@ -1008,6 +1017,14 @@ namespace CTJ {
           this.tmplOverloads.set(t.fq, list);
           return;
         }
+        // A default argument written in the declaration stays in force for the out-of-line definition that replaces it ("basic_string(..., _Alloc = _Alloc())").
+        neu.params.forEach((p, j) => {
+          const o = old.params[j];
+          if (!p.def && o && o.def) p.def = o.def;
+        });
+        // "static" is written on the in-class declaration only ("static T f(...)"
+        // in the class, "T C::f(...)" out of line).
+        if (old.flags.includes("static") && !neu.flags.includes("static")) neu.flags.push("static");
         list[i] = t;
       } else {
         t.ovl = list.length;
@@ -1741,9 +1758,28 @@ namespace CTJ {
         }
         const canon = canonBasic(first.split(" "));
         if (canon) {
-          const t = CppType.basic(canon);
+          // va_list is a pointer to the variadic arguments, so it is a box that
+          // va_arg advances in place.
+          const t = CppType.basic(canon === "__builtin_va_list" ? "void" : canon);
+          if (canon === "__builtin_va_list") t.ptr = 1;
           this.applyTypeSuffix(t, tn, scope);
           return t;
+        }
+      }
+      // An alias template whose target is not a class ("Req<It>" for "typename
+      // enable_if<...>::type" or "int") has no symbol to return, so its arguments
+      // are applied here.
+      const lastSeg = tn.parts[tn.parts.length - 1];
+      if (lastSeg && lastSeg.a.length) {
+        const bare = this.resolveSym(tn.parts.slice(0, -1).concat([{ ...lastSeg, a: [] }]), tn.global, scope);
+        if (bare && bare.k === "tmpl" && bare.t.kind === "alias") {
+          const aliased = this.instantiateAlias(
+            bare.t.fq,
+            lastSeg.a.map(x => this.resolveTypeNode(x, scope)),
+            scope
+          );
+          this.applyTypeSuffix(aliased, tn, scope);
+          return aliased;
         }
       }
       let sym = this.resolveSym(tn.parts, tn.global, scope);
@@ -2270,10 +2306,13 @@ namespace CTJ {
       }
       const decl = substDecl(tmpl.decl, env) as FuncDecl;
       this.annDefaults(decl, this.snapScope(tmpl.scope));
+      let mangled = mangleType(key);
+      for (let k = 2; this.fnMangles.has(mangled); k++) mangled = mangleType(key) + "_" + k;
+      this.fnMangles.add(mangled);
       const fn: FuncInfo = {
         fq: key,
         short: last(tmpl.fq.split("::")),
-        mangled: mangleType(key),
+        mangled,
         decl,
         scope: this.snapScope(tmpl.scope),
         paramCache: null,
@@ -2293,6 +2332,7 @@ namespace CTJ {
         analyzed: false,
         referenced: false,
         fromTmpl: tmpl.fq,
+        ownTmpl: tmpl.tparams.length > 0,
         baseAssigns: [],
       };
       this.funcInsts.set(key, fn);

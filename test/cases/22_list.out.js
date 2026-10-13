@@ -156,7 +156,7 @@ class gnu_cxx_new_allocator_std_List_node_int {
     if ((__n > this.max_size__c())) {
       std_throw_bad_alloc();
     }
-    return ($t1 = operatornew__unsigned_int(((Math.imul(__n, 12)) >>> 0)), $t1 ? {a: $t1.a, i: $t1.i} : null);
+    return ($t1 = operatornew__unsigned_long(((Math.imul(__n, 12)) >>> 0)), $t1 ? {a: $t1.a, i: $t1.i} : null);
   }
   deallocate(__p, $p1) {
     operatordelete__voidP((__p ? {a: __p.a, i: __p.i} : null));
@@ -164,10 +164,10 @@ class gnu_cxx_new_allocator_std_List_node_int {
   max_size__c() {
     return ((Math.trunc((((((-(1)) | 0)) >>> 0)) / (12))) >>> 0);
   }
-  destroy(__p) {
+  destroy__gnu_cxx_new_allocator_std_List_node_int_destroy_std_List_node_int(__p) {
     (__p.a[__p.i]).__dtor();
   }
-  construct__rv(__p, __args_0) {
+  construct__gnu_cxx_new_allocator_std_List_node_int_construct_std_List_node_int_int__rv(__p, __args_0) {
     (__p.a[__p.i] = new std_List_node_int(std_forward_1_int(__args_0)), __p.a[__p.i].ctj_a = __p.a, __p.a[__p.i].ctj_i = __p.i, {a: __p.a, i: __p.i});
   }
 }
@@ -225,7 +225,7 @@ class std_List_base_int_std_allocator_int {
        {
         let __tmp = (__cur ? {a: __cur.a, i: __cur.i} : null);
         __cur = (((__cur.a[__cur.i])._M_next) ? {a: ((__cur.a[__cur.i])._M_next).a, i: ((__cur.a[__cur.i])._M_next).i} : null);
-        (($t3 = this._M_get_Node_allocator(), $t3.a[$t3.i])).destroy((__tmp ? {a: __tmp.a, i: __tmp.i} : null));
+        (($t3 = this._M_get_Node_allocator(), $t3.a[$t3.i])).destroy__gnu_cxx_new_allocator_std_List_node_int_destroy_std_List_node_int((__tmp ? {a: __tmp.a, i: __tmp.i} : null));
         this._M_put_node((__tmp ? {a: __tmp.a, i: __tmp.i} : null));
       }
     }
@@ -267,13 +267,13 @@ class std_list_int_std_allocator_int extends std_List_base_int_std_allocator_int
     return __tmp.op_mul__c();
   }
   push_front(__x) {
-    this._M_insert__rv(this.begin(), __x);
+    this._M_insert__std_list_int_std_allocator_int_M_insert_int__rv(this.begin(), __x);
   }
   pop_front() {
     this._M_erase(this.begin());
   }
   push_back(__x) {
-    this._M_insert__rv(this.end(), __x);
+    this._M_insert__std_list_int_std_allocator_int_M_insert_int__rv(this.end(), __x);
   }
   clear() {
     std_List_base_int_std_allocator_int.prototype._M_clear.call(this);
@@ -326,7 +326,7 @@ class std_list_int_std_allocator_int extends std_List_base_int_std_allocator_int
     let $t9;
     (__position._M_node.a[__position._M_node.i])._M_unhook();
     let __n = (__position._M_node ? {a: __position._M_node.a, i: __position._M_node.i} : null);
-    (($t9 = this._M_get_Node_allocator(), $t9.a[$t9.i])).destroy((__n ? {a: __n.a, i: __n.i} : null));
+    (($t9 = this._M_get_Node_allocator(), $t9.a[$t9.i])).destroy__gnu_cxx_new_allocator_std_List_node_int_destroy_std_List_node_int((__n ? {a: __n.a, i: __n.i} : null));
     this._M_put_node((__n ? {a: __n.a, i: __n.i} : null));
   }
   _M_check_equal_allocators(__x) {
@@ -334,17 +334,17 @@ class std_list_int_std_allocator_int extends std_List_base_int_std_allocator_int
       std_throw_runtime_error({a: [108, 105, 115, 116, 58, 58, 95, 77, 95, 99, 104, 101, 99, 107, 95, 101, 113, 117, 97, 108, 95, 97, 108, 108, 111, 99, 97, 116, 111, 114, 115, 0], i: 0});
     }
   }
-  _M_insert__rv(__position, __args_0) {
+  _M_insert__std_list_int_std_allocator_int_M_insert_int__rv(__position, __args_0) {
     let $t10;
-    let __tmp = ($t10 = this._M_create_node__rv(std_forward_1_int(__args_0)), $t10 ? {a: $t10.a, i: $t10.i} : null);
+    let __tmp = ($t10 = this._M_create_node__std_list_int_std_allocator_int_M_create_node_int__rv(std_forward_1_int(__args_0)), $t10 ? {a: $t10.a, i: $t10.i} : null);
     (__tmp.a[__tmp.i])._M_hook((__position._M_node ? {a: __position._M_node.a, i: __position._M_node.i} : null));
   }
-  _M_create_node__rv(__args_0) {
+  _M_create_node__std_list_int_std_allocator_int_M_create_node_int__rv(__args_0) {
     let $t11, $t12;
     let __p = ($t11 = this._M_get_node(), $t11 ? {a: $t11.a, i: $t11.i} : null);
     if (true) {
        {
-        (($t12 = this._M_get_Node_allocator(), $t12.a[$t12.i])).construct__rv((__p ? {a: __p.a, i: __p.i} : null), std_forward_1_int(__args_0));
+        (($t12 = this._M_get_Node_allocator(), $t12.a[$t12.i])).construct__gnu_cxx_new_allocator_std_List_node_int_construct_std_List_node_int_int__rv((__p ? {a: __p.a, i: __p.i} : null), std_forward_1_int(__args_0));
       }
     }
     if (false) {
@@ -497,7 +497,7 @@ class std_alloc_neq_std_allocator_std_List_node_int_value1 {
 }
 function std_throw_bad_alloc(...$a) { throw new Error("unresolved external: std::__throw_bad_alloc"); }
 function std_throw_runtime_error(...$a) { throw new Error("unresolved external: std::__throw_runtime_error"); }
-function operatornew__unsigned_int(...$a) { return {a: new Array($a[0]).fill(0), i: 0}; }
+function operatornew__unsigned_long(...$a) { return {a: new Array($a[0]).fill(0), i: 0}; }
 function operatordelete__voidP(...$a) {  }
 function main() {
   let $t13, $t14;
@@ -545,7 +545,7 @@ function main() {
 }
 function std_distance_std_List_iterator_int(__first, __last) {
   __first = {v: __first};
-  return std_distance_std_List_iterator_int_72(new std_List_iterator_int({a: __first, i: "v"}), new std_List_iterator_int({a: [__last], i: 0}), std_iterator_category_std_List_iterator_int({a: __first, i: "v"}));
+  return std_distance_std_List_iterator_int_2(new std_List_iterator_int({a: __first, i: "v"}), new std_List_iterator_int({a: [__last], i: 0}), std_iterator_category_std_List_iterator_int({a: __first, i: "v"}));
 }
 function std_addressof_int(__r) {
   return (__r ? {a: __r.a, i: __r.i} : null);
@@ -559,7 +559,7 @@ function std_forward_1_int(__t) {
 function std_iterator_category_std_List_iterator_int($p0) {
   return new std_bidirectional_iterator_tag();
 }
-function std_distance_std_List_iterator_int_72(__first, __last, $p2) {
+function std_distance_std_List_iterator_int_2(__first, __last, $p2) {
   let __n = 0;
   while (__first.op_ne__c({a: [__last], i: 0})) {
      {

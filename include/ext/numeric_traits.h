@@ -29,11 +29,11 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
   template<typename _Value>
     struct __numeric_traits_floating
     {
-      static const int __max_digits10 = __glibcxx_max_digits10(_Value);
+      static const int __max_digits10 = std::numeric_limits<_Value>::max_digits10;
       static const bool __is_signed = true;
-      static const int __digits10 = __glibcxx_digits10(_Value);
+      static const int __digits10 = std::numeric_limits<_Value>::digits10;
       static const bool __is_integer = false;
-      static const int __digits = __glibcxx_digits(_Value);
+      static const int __digits = std::numeric_limits<_Value>::digits;
       static const int __max_exponent10 = std::numeric_limits<_Value>::max_exponent10;
     };
 
@@ -50,7 +50,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
       static const _Value __min = __glibcxx_min(_Value);
       static const _Value __max = __glibcxx_max(_Value);
       static const bool __is_signed = __glibcxx_signed(_Value);
-      static const int __digits = __glibcxx_digits(_Value);
+      static const int __digits = std::numeric_limits<_Value>::digits;
     };
 
   template<typename _Value> const _Value __numeric_traits_integer<_Value>::__min;

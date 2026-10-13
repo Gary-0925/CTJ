@@ -168,6 +168,8 @@ namespace CTJ {
     }
     if (s.k === "func") {
       for (const f of s.fns) cx.markFunc(f);
+      // A static member function named as a value needs its class emitted.
+      if (s.fns[0].isMethod && s.fns[0].cls) cx.markCls(s.fns[0].cls);
       return funcSig(cx, s.fns[0]);
     }
     if (s.k === "class") {
@@ -188,6 +190,20 @@ namespace CTJ {
     }
     if (s.k === "tmpl") {
       if (s.t.kind === "func") {
+        // "tcmp<int>" names one instance when its arguments are all given (a
+        // comparator passed to sort, say).
+        const targs = last(e.parts).a;
+        const tps = s.t.tparams;
+        if (targs.length && targs.length === tps.length && tps.every(tp => tp.kind === "type" && !tp.isPack)) {
+          const fn = cx.instantiateFunc(
+            s.t,
+            targs.map(x => cx.resolveTypeNode(x, scope)),
+            new Map()
+          );
+          ann.sym = { k: "func", fns: [fn] };
+          cx.markFunc(fn);
+          return funcSig(cx, fn);
+        }
         // std::endl is a function template used as a value; the call site's
         // expected function-pointer type instantiates it.
         const t = new CppType("__overload");
@@ -349,6 +365,7 @@ namespace CTJ {
       cx.fail("indirection on non-pointer", e);
     }
     if (e.op === "&") {
+      if (at.isFunc) return at;
       const t = new CppType(at.name);
       t.segs = at.segs;
       t.ptr = at.ptr + 1;
@@ -543,6 +560,8 @@ namespace CTJ {
     const st = typeOf(cx, e.arg, scope);
     const ann = cx.getAnn(e);
     const kind = e.ckind;
+    // va_arg(ap, T) reads the next variadic argument as T.
+    if (kind === "va_arg") return target;
     if (target.name === "void" && !target.ptr) return target;
     const tn = coreName(target);
     const sn = coreName(st);
@@ -653,7 +672,7 @@ namespace CTJ {
       case "unary":
         return e.op === "*" || ((e.op === "++" || e.op === "--") && !e.postfix);
       case "cast":
-        return isLvalueExpr(cx, e.arg);
+        return e.ckind !== "va_arg" && isLvalueExpr(cx, e.arg);
       case "call":
       case "binary":
       case "assign": {

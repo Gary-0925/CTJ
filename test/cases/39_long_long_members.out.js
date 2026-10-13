@@ -170,14 +170,21 @@ class std_random_access_iterator_tag extends std_bidirectional_iterator_tag {
   }
 }
 class IO_FILE {
-  __flags;
+  __fd;
   __dummy;
   constructor(...$a) {
     this.__init_IO_FILE(...$a);
   }
   __init_IO_FILE(...$a) {
-    this.__flags = 0;
-    this.__dummy = 0;
+    if ($a.length >= 1 && $a.length <= 1 && ($a[0] !== null && typeof $a[0] === "object" && !Array.isArray($a[0]) && $a[0].a !== undefined && $a[0].i !== undefined && $a[0].a[$a[0].i] instanceof IO_FILE)) {
+      this.__fd = (($a[0]).a[($a[0]).i]).__fd;
+      this.__dummy = (($a[0]).a[($a[0]).i]).__dummy;
+    }
+    else if ($a.length >= 2 && $a.length <= 2 && (typeof $a[0] === "number" || typeof $a[0] === "boolean") && (typeof $a[1] === "number" || typeof $a[1] === "boolean")) {
+      this.__fd = $a[0];
+      this.__dummy = $a[1];
+    }
+    else { throw new Error("no matching constructor"); }
   }
   __dtor() {
   }
@@ -328,20 +335,20 @@ class lconv {
   __dtor() {
   }
 }
-class std_hash_base_unsigned_int_long_long {
-  __init_std_hash_base_unsigned_int_long_long(...$a) { }
+class std_hash_base_unsigned_long_long_double {
+  __init_std_hash_base_unsigned_long_long_double(...$a) { }
   __dtor() {
   }
 }
-class std_hash_long_long extends std_hash_base_unsigned_int_long_long {
+class std_hash_long_double extends std_hash_base_unsigned_long_long_double {
   constructor(...$a) {
     super();
-    this.__init_std_hash_long_long(...$a);
+    this.__init_std_hash_long_double(...$a);
   }
-  __init_std_hash_long_long(...$a) {
+  __init_std_hash_long_double(...$a) {
   }
   __dtor() {
-    std_hash_base_unsigned_int_long_long.prototype.__dtor.call(this);
+    std_hash_base_unsigned_long_long_double.prototype.__dtor.call(this);
   }
 }
 class std_char_traits_char {
@@ -422,12 +429,12 @@ class gnu_cxx_normal_iterator_char_P_std_basic_string_char_std_char_traits_char_
   __dtor() {
   }
 }
-class std_hash_base_unsigned_int_std_basic_string_char_std_char_traits_char_std_allocator_char {
-  __init_std_hash_base_unsigned_int_std_basic_string_char_std_char_traits_char_std_allocator_char(...$a) { }
+class std_hash_base_unsigned_long_std_basic_string_char_std_char_traits_char_std_allocator_char {
+  __init_std_hash_base_unsigned_long_std_basic_string_char_std_char_traits_char_std_allocator_char(...$a) { }
   __dtor() {
   }
 }
-class std_hash_std_basic_string_char_std_char_traits_char_std_allocator_char extends std_hash_base_unsigned_int_std_basic_string_char_std_char_traits_char_std_allocator_char {
+class std_hash_std_basic_string_char_std_char_traits_char_std_allocator_char extends std_hash_base_unsigned_long_std_basic_string_char_std_char_traits_char_std_allocator_char {
   constructor(...$a) {
     super();
     this.__init_std_hash_std_basic_string_char_std_char_traits_char_std_allocator_char(...$a);
@@ -435,7 +442,7 @@ class std_hash_std_basic_string_char_std_char_traits_char_std_allocator_char ext
   __init_std_hash_std_basic_string_char_std_char_traits_char_std_allocator_char(...$a) {
   }
   __dtor() {
-    std_hash_base_unsigned_int_std_basic_string_char_std_char_traits_char_std_allocator_char.prototype.__dtor.call(this);
+    std_hash_base_unsigned_long_std_basic_string_char_std_char_traits_char_std_allocator_char.prototype.__dtor.call(this);
   }
 }
 class std_char_traits_wchar_t {
@@ -516,12 +523,12 @@ class gnu_cxx_normal_iterator_wchar_t_P_std_basic_string_wchar_t_std_char_traits
   __dtor() {
   }
 }
-class std_hash_base_unsigned_int_std_basic_string_wchar_t_std_char_traits_wchar_t_std_allocator_wchar_t {
-  __init_std_hash_base_unsigned_int_std_basic_string_wchar_t_std_char_traits_wchar_t_std_allocator_wchar_t(...$a) { }
+class std_hash_base_unsigned_long_std_basic_string_wchar_t_std_char_traits_wchar_t_std_allocator_wchar_t {
+  __init_std_hash_base_unsigned_long_std_basic_string_wchar_t_std_char_traits_wchar_t_std_allocator_wchar_t(...$a) { }
   __dtor() {
   }
 }
-class std_hash_std_basic_string_wchar_t_std_char_traits_wchar_t_std_allocator_wchar_t extends std_hash_base_unsigned_int_std_basic_string_wchar_t_std_char_traits_wchar_t_std_allocator_wchar_t {
+class std_hash_std_basic_string_wchar_t_std_char_traits_wchar_t_std_allocator_wchar_t extends std_hash_base_unsigned_long_std_basic_string_wchar_t_std_char_traits_wchar_t_std_allocator_wchar_t {
   constructor(...$a) {
     super();
     this.__init_std_hash_std_basic_string_wchar_t_std_char_traits_wchar_t_std_allocator_wchar_t(...$a);
@@ -529,7 +536,7 @@ class std_hash_std_basic_string_wchar_t_std_char_traits_wchar_t_std_allocator_wc
   __init_std_hash_std_basic_string_wchar_t_std_char_traits_wchar_t_std_allocator_wchar_t(...$a) {
   }
   __dtor() {
-    std_hash_base_unsigned_int_std_basic_string_wchar_t_std_char_traits_wchar_t_std_allocator_wchar_t.prototype.__dtor.call(this);
+    std_hash_base_unsigned_long_std_basic_string_wchar_t_std_char_traits_wchar_t_std_allocator_wchar_t.prototype.__dtor.call(this);
   }
 }
 class std_char_traits_char16_t {
@@ -610,12 +617,12 @@ class gnu_cxx_normal_iterator_char16_t_P_std_basic_string_char16_t_std_char_trai
   __dtor() {
   }
 }
-class std_hash_base_unsigned_int_std_basic_string_char16_t_std_char_traits_char16_t_std_allocator_char16_t {
-  __init_std_hash_base_unsigned_int_std_basic_string_char16_t_std_char_traits_char16_t_std_allocator_char16_t(...$a) { }
+class std_hash_base_unsigned_long_std_basic_string_char16_t_std_char_traits_char16_t_std_allocator_char16_t {
+  __init_std_hash_base_unsigned_long_std_basic_string_char16_t_std_char_traits_char16_t_std_allocator_char16_t(...$a) { }
   __dtor() {
   }
 }
-class std_hash_std_basic_string_char16_t_std_char_traits_char16_t_std_allocator_char16_t extends std_hash_base_unsigned_int_std_basic_string_char16_t_std_char_traits_char16_t_std_allocator_char16_t {
+class std_hash_std_basic_string_char16_t_std_char_traits_char16_t_std_allocator_char16_t extends std_hash_base_unsigned_long_std_basic_string_char16_t_std_char_traits_char16_t_std_allocator_char16_t {
   constructor(...$a) {
     super();
     this.__init_std_hash_std_basic_string_char16_t_std_char_traits_char16_t_std_allocator_char16_t(...$a);
@@ -623,7 +630,7 @@ class std_hash_std_basic_string_char16_t_std_char_traits_char16_t_std_allocator_
   __init_std_hash_std_basic_string_char16_t_std_char_traits_char16_t_std_allocator_char16_t(...$a) {
   }
   __dtor() {
-    std_hash_base_unsigned_int_std_basic_string_char16_t_std_char_traits_char16_t_std_allocator_char16_t.prototype.__dtor.call(this);
+    std_hash_base_unsigned_long_std_basic_string_char16_t_std_char_traits_char16_t_std_allocator_char16_t.prototype.__dtor.call(this);
   }
 }
 class std_char_traits_char32_t {
@@ -704,12 +711,12 @@ class gnu_cxx_normal_iterator_char32_t_P_std_basic_string_char32_t_std_char_trai
   __dtor() {
   }
 }
-class std_hash_base_unsigned_int_std_basic_string_char32_t_std_char_traits_char32_t_std_allocator_char32_t {
-  __init_std_hash_base_unsigned_int_std_basic_string_char32_t_std_char_traits_char32_t_std_allocator_char32_t(...$a) { }
+class std_hash_base_unsigned_long_std_basic_string_char32_t_std_char_traits_char32_t_std_allocator_char32_t {
+  __init_std_hash_base_unsigned_long_std_basic_string_char32_t_std_char_traits_char32_t_std_allocator_char32_t(...$a) { }
   __dtor() {
   }
 }
-class std_hash_std_basic_string_char32_t_std_char_traits_char32_t_std_allocator_char32_t extends std_hash_base_unsigned_int_std_basic_string_char32_t_std_char_traits_char32_t_std_allocator_char32_t {
+class std_hash_std_basic_string_char32_t_std_char_traits_char32_t_std_allocator_char32_t extends std_hash_base_unsigned_long_std_basic_string_char32_t_std_char_traits_char32_t_std_allocator_char32_t {
   constructor(...$a) {
     super();
     this.__init_std_hash_std_basic_string_char32_t_std_char_traits_char32_t_std_allocator_char32_t(...$a);
@@ -717,7 +724,7 @@ class std_hash_std_basic_string_char32_t_std_char_traits_char32_t_std_allocator_
   __init_std_hash_std_basic_string_char32_t_std_char_traits_char32_t_std_allocator_char32_t(...$a) {
   }
   __dtor() {
-    std_hash_base_unsigned_int_std_basic_string_char32_t_std_char_traits_char32_t_std_allocator_char32_t.prototype.__dtor.call(this);
+    std_hash_base_unsigned_long_std_basic_string_char32_t_std_char_traits_char32_t_std_allocator_char32_t.prototype.__dtor.call(this);
   }
 }
 class gnu_cxx_mutex {
@@ -800,12 +807,12 @@ class std_Bit_reference {
   __dtor() {
   }
 }
-class std_iterator_std_random_access_iterator_tag_bool_int_bool_P_bool_R {
-  __init_std_iterator_std_random_access_iterator_tag_bool_int_bool_P_bool_R(...$a) { }
+class std_iterator_std_random_access_iterator_tag_bool_long_bool_P_bool_R {
+  __init_std_iterator_std_random_access_iterator_tag_bool_long_bool_P_bool_R(...$a) { }
   __dtor() {
   }
 }
-class std_Bit_iterator_base extends std_iterator_std_random_access_iterator_tag_bool_int_bool_P_bool_R {
+class std_Bit_iterator_base extends std_iterator_std_random_access_iterator_tag_bool_long_bool_P_bool_R {
   _M_p;
   _M_offset;
   constructor(...$a) {
@@ -817,7 +824,7 @@ class std_Bit_iterator_base extends std_iterator_std_random_access_iterator_tag_
     this._M_offset = 0;
   }
   __dtor() {
-    std_iterator_std_random_access_iterator_tag_bool_int_bool_P_bool_R.prototype.__dtor.call(this);
+    std_iterator_std_random_access_iterator_tag_bool_long_bool_P_bool_R.prototype.__dtor.call(this);
   }
 }
 class std_Bit_iterator extends std_Bit_iterator_base {
@@ -1220,15 +1227,15 @@ class gnu_cxx_new_allocator_long_long {
     if ((__n > this.max_size__c())) {
       std_throw_bad_alloc();
     }
-    return ($t0 = operatornew__unsigned_int(((Math.imul(__n, 8)) >>> 0)), $t0 ? {a: $t0.a, i: $t0.i} : null);
+    return ($t0 = operatornew__unsigned_long(((Math.imul(__n, 8)) >>> 0)), $t0 ? {a: $t0.a, i: $t0.i} : null);
   }
   max_size__c() {
     return ((Math.trunc((((((-(1)) | 0)) >>> 0)) / (8))) >>> 0);
   }
-  construct(__p) {
+  construct__gnu_cxx_new_allocator_long_long_construct_long_long(__p) {
     (__p.a[__p.i] = 0n);
   }
-  destroy(__p) {
+  destroy__gnu_cxx_new_allocator_long_long_destroy_long_long(__p) {
     void 0;
   }
 }
@@ -1317,7 +1324,7 @@ class std_vector_long_long_std_allocator_long_long extends std_Vector_base_long_
     return ({a: (this._M_impl._M_start ? this._M_impl._M_start.a : null), i: (this._M_impl._M_start ? this._M_impl._M_start.i : 0) + (__n)});
   }
   _M_default_initialize(__n) {
-    std_uninitialized_default_n_a_long_long_P_unsigned_int_std_allocator_long_long((this._M_impl._M_start ? {a: this._M_impl._M_start.a, i: this._M_impl._M_start.i} : null), __n, this._M_get_Tp_allocator());
+    std_uninitialized_default_n_a_long_long_P_unsigned_long_std_allocator_long_long((this._M_impl._M_start ? {a: this._M_impl._M_start.a, i: this._M_impl._M_start.i} : null), __n, this._M_get_Tp_allocator());
     this._M_impl._M_finish = (this._M_impl._M_end_of_storage ? {a: this._M_impl._M_end_of_storage.a, i: this._M_impl._M_end_of_storage.i} : null);
   }
 }
@@ -1326,10 +1333,10 @@ class gnu_cxx_alloc_traits_std_allocator_long_long {
   __dtor() {
   }
   static construct(__a, __p) {
-    (__a.a[__a.i]).construct((__p ? {a: __p.a, i: __p.i} : null));
+    (__a.a[__a.i]).construct__gnu_cxx_new_allocator_long_long_construct_long_long((__p ? {a: __p.a, i: __p.i} : null));
   }
-  static destroy(__a, __p) {
-    (__a.a[__a.i]).destroy((__p ? {a: __p.a, i: __p.i} : null));
+  static destroy__gnu_cxx_alloc_traits_std_allocator_long_long_destroy_long_long(__a, __p) {
+    (__a.a[__a.i]).destroy__gnu_cxx_new_allocator_long_long_destroy_long_long((__p ? {a: __p.a, i: __p.i} : null));
   }
 }
 class gnu_cxx_alloc_traits_std_allocator_long_long_rebind_long_long {
@@ -2147,7 +2154,7 @@ class gnu_cxx_new_allocator_std_Rb_tree_node_std_pair_long_long_unsigned_long_lo
     if ((__n > this.max_size__c())) {
       std_throw_bad_alloc();
     }
-    return ($t14 = operatornew__unsigned_int(((Math.imul(__n, 32)) >>> 0)), $t14 ? {a: $t14.a, i: $t14.i} : null);
+    return ($t14 = operatornew__unsigned_long(((Math.imul(__n, 32)) >>> 0)), $t14 ? {a: $t14.a, i: $t14.i} : null);
   }
   deallocate(__p, $p1) {
     operatordelete__voidP((__p ? {a: __p.a, i: __p.i} : null));
@@ -2155,10 +2162,10 @@ class gnu_cxx_new_allocator_std_Rb_tree_node_std_pair_long_long_unsigned_long_lo
   max_size__c() {
     return ((Math.trunc((((((-(1)) | 0)) >>> 0)) / (32))) >>> 0);
   }
-  construct__rv(__p, __args_0, __args_1, __args_2) {
+  construct__gnu_cxx_new_allocator_std_Rb_tree_node_std_pair_long_long_unsigned_long_long_construct_std_Rb_tree_node_std_pair_long_long_unsigned_long_long_std_piecewise_construct_t_std_tuple_long_long_R_std_tuple__rv(__p, __args_0, __args_1, __args_2) {
     (__p.a[__p.i] = new std_Rb_tree_node_std_pair_long_long_unsigned_long_long(std_forward_1_std_piecewise_construct_t(__args_0), std_forward_1_std_tuple_long_long_R(__args_1), std_forward_1_std_tuple(__args_2)), __p.a[__p.i].ctj_a = __p.a, __p.a[__p.i].ctj_i = __p.i, {a: __p.a, i: __p.i});
   }
-  destroy(__p) {
+  destroy__gnu_cxx_new_allocator_std_Rb_tree_node_std_pair_long_long_unsigned_long_long_destroy_std_Rb_tree_node_std_pair_long_long_unsigned_long_long(__p) {
     (__p.a[__p.i]).__dtor();
   }
 }
@@ -2222,7 +2229,7 @@ class std_Rb_tree_long_long_std_pair_long_long_unsigned_long_long_std_Select1st_
   }
   _M_destroy_node(__p) {
     let $t16;
-    (($t16 = this._M_get_Node_allocator(), $t16.a[$t16.i])).destroy((__p ? {a: __p.a, i: __p.i} : null));
+    (($t16 = this._M_get_Node_allocator(), $t16.a[$t16.i])).destroy__gnu_cxx_new_allocator_std_Rb_tree_node_std_pair_long_long_unsigned_long_long_destroy_std_Rb_tree_node_std_pair_long_long_unsigned_long_long((__p ? {a: __p.a, i: __p.i} : null));
     this._M_put_node((__p ? {a: __p.a, i: __p.i} : null));
   }
   _M_leftmost() {
@@ -2392,9 +2399,9 @@ class std_Rb_tree_long_long_std_pair_long_long_unsigned_long_long_std_Select1st_
     let $t38, $t39;
     return this._M_lower_bound(($t38 = this._M_begin(), $t38 ? {a: $t38.a, i: $t38.i} : null), ($t39 = this._M_end(), $t39 ? {a: $t39.a, i: $t39.i} : null), __k);
   }
-  _M_emplace_hint_unique__rv(__pos, __args_0, __args_1, __args_2) {
+  _M_emplace_hint_unique__std_Rb_tree_long_long_std_pair_long_long_unsigned_long_long_std_Select1st_std_pair_long_long_unsigned_long_long_std_less_long_long_std_allocator_std_pair_long_long_unsigned_long_long_M_emplace_hint_unique_std_piecewise_construct_t_std_tuple_long_long_R_std_tuple__rv(__pos, __args_0, __args_1, __args_2) {
     let $t40;
-    let __z = ($t40 = this._M_create_node__rv(std_forward_1_std_piecewise_construct_t(__args_0), std_forward_1_std_tuple_long_long_R(__args_1), std_forward_1_std_tuple(__args_2)), $t40 ? {a: $t40.a, i: $t40.i} : null);
+    let __z = ($t40 = this._M_create_node__std_Rb_tree_long_long_std_pair_long_long_unsigned_long_long_std_Select1st_std_pair_long_long_unsigned_long_long_std_less_long_long_std_allocator_std_pair_long_long_unsigned_long_long_M_create_node_std_piecewise_construct_t_std_tuple_long_long_R_std_tuple__rv(std_forward_1_std_piecewise_construct_t(__args_0), std_forward_1_std_tuple_long_long_R(__args_1), std_forward_1_std_tuple(__args_2)), $t40 ? {a: $t40.a, i: $t40.i} : null);
     if (true) {
        {
         let __res = this._M_get_insert_hint_unique_pos(new std_Rb_tree_const_iterator_std_pair_long_long_unsigned_long_long({a: [__pos], i: 0}), std_Rb_tree_long_long_std_pair_long_long_unsigned_long_long_std_Select1st_std_pair_long_long_unsigned_long_long_std_less_long_long_std_allocator_std_pair_long_long_unsigned_long_long._S_key((__z ? {a: __z.a, i: __z.i} : null)));
@@ -2411,12 +2418,12 @@ class std_Rb_tree_long_long_std_pair_long_long_unsigned_long_long_std_Select1st_
       }
     }
   }
-  _M_create_node__rv(__args_0, __args_1, __args_2) {
+  _M_create_node__std_Rb_tree_long_long_std_pair_long_long_unsigned_long_long_std_Select1st_std_pair_long_long_unsigned_long_long_std_less_long_long_std_allocator_std_pair_long_long_unsigned_long_long_M_create_node_std_piecewise_construct_t_std_tuple_long_long_R_std_tuple__rv(__args_0, __args_1, __args_2) {
     let $t41;
     let __tmp = ($t41 = this._M_get_node(), $t41 ? {a: $t41.a, i: $t41.i} : null);
     if (true) {
        {
-        std_allocator_traits_std_allocator_std_Rb_tree_node_std_pair_long_long_unsigned_long_long.construct__rv(this._M_get_Node_allocator(), (__tmp ? {a: __tmp.a, i: __tmp.i} : null), std_forward_1_std_piecewise_construct_t(__args_0), std_forward_1_std_tuple_long_long_R(__args_1), std_forward_1_std_tuple(__args_2));
+        std_allocator_traits_std_allocator_std_Rb_tree_node_std_pair_long_long_unsigned_long_long.construct__std_allocator_traits_std_allocator_std_Rb_tree_node_std_pair_long_long_unsigned_long_long_construct_std_Rb_tree_node_std_pair_long_long_unsigned_long_long_std_piecewise_construct_t_std_tuple_long_long_R_std_tuple__rv(this._M_get_Node_allocator(), (__tmp ? {a: __tmp.a, i: __tmp.i} : null), std_forward_1_std_piecewise_construct_t(__args_0), std_forward_1_std_tuple_long_long_R(__args_1), std_forward_1_std_tuple(__args_2));
       }
     }
     if (false) {
@@ -2448,7 +2455,7 @@ class std_map_long_long_unsigned_long_long_std_less_long_long_std_allocator_std_
     let $t42;
     let __i = {v: this.lower_bound(__k)};
     if ((__i.v.op_eq__c({a: [this.end()], i: 0}) || (($t42 = this.key_comp__c(), $t42)).op_call__c(__k, {a: (__i.v.op_mul__c()).a[(__i.v.op_mul__c()).i], i: "first"}))) {
-      __i.v.op_assign({a: [this._M_t._M_emplace_hint_unique__rv(new std_Rb_tree_const_iterator_std_pair_long_long_unsigned_long_long({a: __i, i: "v"}), {a: std_piecewise_construct, i: "v"}, {a: [new std_tuple_long_long_R(__k)], i: 0}, {a: [new std_tuple()], i: 0})], i: 0});
+      __i.v.op_assign({a: [this._M_t._M_emplace_hint_unique__std_Rb_tree_long_long_std_pair_long_long_unsigned_long_long_std_Select1st_std_pair_long_long_unsigned_long_long_std_less_long_long_std_allocator_std_pair_long_long_unsigned_long_long_M_emplace_hint_unique_std_piecewise_construct_t_std_tuple_long_long_R_std_tuple__rv(new std_Rb_tree_const_iterator_std_pair_long_long_unsigned_long_long({a: __i, i: "v"}), {a: std_piecewise_construct, i: "v"}, {a: [new std_tuple_long_long_R(__k)], i: 0}, {a: [new std_tuple()], i: 0})], i: 0});
     }
     return {a: (__i.v.op_mul__c()).a[(__i.v.op_mul__c()).i], i: "second"};
   }
@@ -2680,11 +2687,11 @@ class std_allocator_traits_std_allocator_std_Rb_tree_node_std_pair_long_long_uns
   __init_std_allocator_traits_std_allocator_std_Rb_tree_node_std_pair_long_long_unsigned_long_long(...$a) { }
   __dtor() {
   }
-  static construct__rv(__a, __p, __args_0, __args_1, __args_2) {
-    std_allocator_traits_std_allocator_std_Rb_tree_node_std_pair_long_long_unsigned_long_long._S_construct__rv(__a, (__p ? {a: __p.a, i: __p.i} : null), std_forward_1_std_piecewise_construct_t(__args_0), std_forward_1_std_tuple_long_long_R(__args_1), std_forward_1_std_tuple(__args_2));
+  static construct__std_allocator_traits_std_allocator_std_Rb_tree_node_std_pair_long_long_unsigned_long_long_construct_std_Rb_tree_node_std_pair_long_long_unsigned_long_long_std_piecewise_construct_t_std_tuple_long_long_R_std_tuple__rv(__a, __p, __args_0, __args_1, __args_2) {
+    std_allocator_traits_std_allocator_std_Rb_tree_node_std_pair_long_long_unsigned_long_long._S_construct__std_allocator_traits_std_allocator_std_Rb_tree_node_std_pair_long_long_unsigned_long_long_S_construct_std_Rb_tree_node_std_pair_long_long_unsigned_long_long_std_piecewise_construct_t_std_tuple_long_long_R_std_tuple__rv(__a, (__p ? {a: __p.a, i: __p.i} : null), std_forward_1_std_piecewise_construct_t(__args_0), std_forward_1_std_tuple_long_long_R(__args_1), std_forward_1_std_tuple(__args_2));
   }
-  static _S_construct__rv(__a, __p, __args_0, __args_1, __args_2) {
-    (__a.a[__a.i]).construct__rv((__p ? {a: __p.a, i: __p.i} : null), std_forward_1_std_piecewise_construct_t(__args_0), std_forward_1_std_tuple_long_long_R(__args_1), std_forward_1_std_tuple(__args_2));
+  static _S_construct__std_allocator_traits_std_allocator_std_Rb_tree_node_std_pair_long_long_unsigned_long_long_S_construct_std_Rb_tree_node_std_pair_long_long_unsigned_long_long_std_piecewise_construct_t_std_tuple_long_long_R_std_tuple__rv(__a, __p, __args_0, __args_1, __args_2) {
+    (__a.a[__a.i]).construct__gnu_cxx_new_allocator_std_Rb_tree_node_std_pair_long_long_unsigned_long_long_construct_std_Rb_tree_node_std_pair_long_long_unsigned_long_long_std_piecewise_construct_t_std_tuple_long_long_R_std_tuple__rv((__p ? {a: __p.a, i: __p.i} : null), std_forward_1_std_piecewise_construct_t(__args_0), std_forward_1_std_tuple_long_long_R(__args_1), std_forward_1_std_tuple(__args_2));
   }
 }
 class std_allocator_traits_std_allocator_std_Rb_tree_node_std_pair_long_long_unsigned_long_long_construct_helper_std_Rb_tree_node_std_pair_long_long_unsigned_long_long_std_piecewise_construct_t_std_tuple_long_long_R_std_tuple {
@@ -4310,7 +4317,7 @@ function std_operator__std_basic_ostream_char_std_char_traits_char_R_int(__os, _
   (__os.a[__os.i])._M_put(0, __n, null, 0);
   return __os;
 }
-function std_operator__std_basic_ostream_char_std_char_traits_char_R_unsigned_int(__os, __n) {
+function std_operator__std_basic_ostream_char_std_char_traits_char_R_unsigned_long(__os, __n) {
   (__os.a[__os.i])._M_put(1, __n, null, 0);
   return __os;
 }
@@ -4340,7 +4347,7 @@ function std_operator__std_basic_ostream_char_std_char_traits_char_R_std_Ios_opR
   }
   return __os;
 }
-function operatornew__unsigned_int(...$a) { return {a: new Array($a[0]).fill(0), i: 0}; }
+function operatornew__unsigned_long(...$a) { return {a: new Array($a[0]).fill(0), i: 0}; }
 function operatordelete__voidP(...$a) {  }
 function std_Rb_tree_increment__std_Rb_tree_node_baseP(...$a) { var x=$a[0]; if(!x) return null; var n=x.a[x.i]; if(n._M_right){ x=n._M_right; n=x.a[x.i]; while(n._M_left){ x=n._M_left; n=x.a[x.i]; } return {a:x.a,i:x.i}; } var y=n._M_parent; while(y){ var p=y.a[y.i]; if(!_ctj_peq(x,p._M_right)) break; x=y; n=p; y=n._M_parent; } n=x.a[x.i]; if(!n._M_right||!_ctj_peq(n._M_right,y)) x=y; return x?{a:x.a,i:x.i}:null; }
 function std_Rb_tree_decrement__std_Rb_tree_node_baseP(...$a) { var x=$a[0]; if(!x) return null; var n=x.a[x.i]; var yp=n._M_parent&&n._M_parent.a[n._M_parent.i]; if(n._M_color===0&&yp&&yp._M_parent&&_ctj_peq(yp._M_parent,x)){ x=n._M_right; return x?{a:x.a,i:x.i}:null; } if(n._M_left){ x=n._M_left; n=x.a[x.i]; while(n._M_right){ x=n._M_right; n=x.a[x.i]; } return {a:x.a,i:x.i}; } var y=n._M_parent; while(y){ var p=y.a[y.i]; if(!_ctj_peq(x,p._M_left)) break; x=y; n=p; y=n._M_parent; } return y?{a:y.a,i:y.i}:null; }
@@ -4361,11 +4368,11 @@ function main() {
   std_operator__std_basic_ostream_char_std_char_traits_char_R_std_Ios_opR(std_operator__std_basic_ostream_char_std_char_traits_char_R_long_long(std_operator__std_basic_ostream_char_std_char_traits_char_R_charP(std_operator__std_basic_ostream_char_std_char_traits_char_R_long_long({a: std_cout, i: "v"}, arr[2]), {a: [32, 0], i: 0}), BigInt.asIntN(64, (arr[0]) + (arr[1]))), {a: [std_endl], i: 0});
   let v = new std_vector_long_long_std_allocator_long_long(((3) >>> 0), {a: [new std_allocator_long_long()], i: 0});
   ($t43 = v.op_index(((1) >>> 0)), $t43.a[$t43.i] = BigInt(((-(1)) | 0)));
-  std_operator__std_basic_ostream_char_std_char_traits_char_R_std_Ios_opR(std_operator__std_basic_ostream_char_std_char_traits_char_R_unsigned_int(std_operator__std_basic_ostream_char_std_char_traits_char_R_charP(std_operator__std_basic_ostream_char_std_char_traits_char_R_long_long(std_operator__std_basic_ostream_char_std_char_traits_char_R_charP(std_operator__std_basic_ostream_char_std_char_traits_char_R_long_long({a: std_cout, i: "v"}, ($t44 = v.op_index(((0) >>> 0)), $t44.a[$t44.i])), {a: [32, 0], i: 0}), ($t45 = v.op_index(((1) >>> 0)), $t45.a[$t45.i])), {a: [32, 0], i: 0}), v.size__c()), {a: [std_endl], i: 0});
+  std_operator__std_basic_ostream_char_std_char_traits_char_R_std_Ios_opR(std_operator__std_basic_ostream_char_std_char_traits_char_R_unsigned_long(std_operator__std_basic_ostream_char_std_char_traits_char_R_charP(std_operator__std_basic_ostream_char_std_char_traits_char_R_long_long(std_operator__std_basic_ostream_char_std_char_traits_char_R_charP(std_operator__std_basic_ostream_char_std_char_traits_char_R_long_long({a: std_cout, i: "v"}, ($t44 = v.op_index(((0) >>> 0)), $t44.a[$t44.i])), {a: [32, 0], i: 0}), ($t45 = v.op_index(((1) >>> 0)), $t45.a[$t45.i])), {a: [32, 0], i: 0}), v.size__c()), {a: [std_endl], i: 0});
   let mp = new std_map_long_long_unsigned_long_long_std_less_long_long_std_allocator_std_pair_long_long_unsigned_long_long();
   ($t46 = mp.op_index({a: [5n], i: 0}), $t46.a[$t46.i] = BigInt.asUintN(64, ($t46.a[$t46.i]) + (3n)));
   ($t47 = mp.op_index({a: [BigInt(((-(5)) | 0))], i: 0}), $t47.a[$t47.i] = 1n);
-  std_operator__std_basic_ostream_char_std_char_traits_char_R_std_Ios_opR(std_operator__std_basic_ostream_char_std_char_traits_char_R_unsigned_int(std_operator__std_basic_ostream_char_std_char_traits_char_R_charP(std_operator__std_basic_ostream_char_std_char_traits_char_R_unsigned_long_long(std_operator__std_basic_ostream_char_std_char_traits_char_R_charP(std_operator__std_basic_ostream_char_std_char_traits_char_R_unsigned_long_long({a: std_cout, i: "v"}, ($t48 = mp.op_index({a: [5n], i: 0}), $t48.a[$t48.i])), {a: [32, 0], i: 0}), ($t49 = mp.op_index({a: [BigInt(((-(5)) | 0))], i: 0}), $t49.a[$t49.i])), {a: [32, 0], i: 0}), mp.size__c()), {a: [std_endl], i: 0});
+  std_operator__std_basic_ostream_char_std_char_traits_char_R_std_Ios_opR(std_operator__std_basic_ostream_char_std_char_traits_char_R_unsigned_long(std_operator__std_basic_ostream_char_std_char_traits_char_R_charP(std_operator__std_basic_ostream_char_std_char_traits_char_R_unsigned_long_long(std_operator__std_basic_ostream_char_std_char_traits_char_R_charP(std_operator__std_basic_ostream_char_std_char_traits_char_R_unsigned_long_long({a: std_cout, i: "v"}, ($t48 = mp.op_index({a: [5n], i: 0}), $t48.a[$t48.i])), {a: [32, 0], i: 0}), ($t49 = mp.op_index({a: [BigInt(((-(5)) | 0))], i: 0}), $t49.a[$t49.i])), {a: [32, 0], i: 0}), mp.size__c()), {a: [std_endl], i: 0});
   let p = {v: 3n};
   let pp = (({a: p, i: "v"}) ? {a: ({a: p, i: "v"}).a, i: ({a: p, i: "v"}).i} : null);
   pp.a[pp.i] = BigInt.asIntN(64, (pp.a[pp.i]) + (4n));
@@ -4376,7 +4383,7 @@ function main() {
   partial();
   return 0;
 }
-function std_uninitialized_default_n_a_long_long_P_unsigned_int_std_allocator_long_long(__first, __n, __alloc) {
+function std_uninitialized_default_n_a_long_long_P_unsigned_long_std_allocator_long_long(__first, __n, __alloc) {
   let $t51;
   let __cur = (__first ? {a: __first.a, i: __first.i} : null);
   if (true) {
@@ -4440,7 +4447,7 @@ function std_addressof_long_long(__r) {
 function std_Destroy_2_long_long_P_std_allocator_long_long(__first, __last, __alloc) {
   let $t52;
   for (; (!(__first === __last || (__first && __last && __first.a === __last.a && __first.i === __last.i))); ++__first.i) {
-    gnu_cxx_alloc_traits_std_allocator_long_long.destroy(__alloc, ($t52 = std_addressof_long_long(__first), $t52 ? {a: $t52.a, i: $t52.i} : null));
+    gnu_cxx_alloc_traits_std_allocator_long_long.destroy__gnu_cxx_alloc_traits_std_allocator_long_long_destroy_long_long(__alloc, ($t52 = std_addressof_long_long(__first), $t52 ? {a: $t52.a, i: $t52.i} : null));
   }
 }
 function std_get_4_value0_long_long_R(__t) {
@@ -4450,6 +4457,12 @@ function std_get_helper_value0_long_long_R(__t) {
   return std_Tuple_impl_value0_long_long_R._M_head(__t);
 }
 let std_piecewise_construct = {v: new std_piecewise_construct_t()};
+let ctj_stdin_file = {v: new IO_FILE(0, 0)};
+let ctj_stdout_file = {v: new IO_FILE(1, 0)};
+let ctj_stderr_file = {v: new IO_FILE(2, 0)};
+let stdin = (({a: ctj_stdin_file, i: "v"}) ? {a: ({a: ctj_stdin_file, i: "v"}).a, i: ({a: ctj_stdin_file, i: "v"}).i} : null);
+let stdout = (({a: ctj_stdout_file, i: "v"}) ? {a: ({a: ctj_stdout_file, i: "v"}).a, i: ({a: ctj_stdout_file, i: "v"}).i} : null);
+let stderr = (({a: ctj_stderr_file, i: "v"}) ? {a: ({a: ctj_stderr_file, i: "v"}).a, i: ({a: ctj_stderr_file, i: "v"}).i} : null);
 let std_boolalpha = new std_Ios_fmt(1, 1);
 let std_noboolalpha = new std_Ios_fmt(1, 0);
 let std_dec = new std_Ios_fmt(74, 2);
@@ -4465,7 +4478,7 @@ let std_cerr = new std_basic_ostream_char_std_char_traits_char(2);
 let std_clog = new std_basic_ostream_char_std_char_traits_char(2);
 let std_cin = new std_basic_istream_char_std_char_traits_char(0);
 let std_allocator_arg = new std_allocator_arg_t();
-let std_ignore = [];
+let std_ignore = new std_Swallow_assign();
 let gnu_cxx_default_lock_policy = 0;
 let K = BigInt.asIntN(64, (1n) << (40n));
 let G = BigInt(((-(3)) | 0));

@@ -61,13 +61,23 @@ namespace CTJ {
     "#": "#",
   };
 
-  export function lexFile(src: string, file: string): Token[] {
+  // "lineStart" tells whether the text begins a line, where "#" starts a directive;
+  // macro bodies and expression text never do.
+  export function lexFile(src: string, file: string, lineStart = true): Token[] {
     const out: Token[] = [];
     const n = src.length;
     let i = 0;
     let line = 1;
     let col = 1;
-    let atLineStart = true;
+    let atLineStart = lineStart;
+    // Whether whitespace or a comment came before the next token: stringizing
+    // a macro argument keeps exactly the spaces the source had.
+    let spaced = false;
+    const emit = (t: Token) => {
+      t.sp = spaced;
+      spaced = false;
+      out.push(t);
+    };
 
     const adv = (k: number) => {
       for (let j = 0; j < k; j++) {
@@ -80,6 +90,7 @@ namespace CTJ {
     };
     const skipSplice = () => {
       while (src[i] === "\\" && (src[i + 1] === "\n" || (src[i + 1] === "\r" && src[i + 2] === "\n"))) {
+        spaced = true;
         if (src[i + 1] === "\r") adv(3);
         else adv(2);
       }
@@ -91,11 +102,13 @@ namespace CTJ {
       const c = src[i];
       if (c === "\n") {
         adv(1);
+        spaced = true;
         atLineStart = true;
         continue;
       }
       if (c === " " || c === "\t" || c === "\r" || c === "\v" || c === "\f") {
         adv(1);
+        spaced = true;
         continue;
       }
 
@@ -118,13 +131,14 @@ namespace CTJ {
           text += src[j];
           j++;
         }
-        out.push(tok("directive", text, file, line, sc));
+        emit(tok("directive", text, file, line, sc));
         adv(j - i);
         continue;
       }
       atLineStart = false;
 
       if (c === "/" && src[i + 1] === "/") {
+        spaced = true;
         while (i < n && src[i] !== "\n") {
           i++;
           col++;
@@ -132,6 +146,7 @@ namespace CTJ {
         continue;
       }
       if (c === "/" && src[i + 1] === "*") {
+        spaced = true;
         const sl = line,
           so = col;
         adv(2);
@@ -170,7 +185,7 @@ namespace CTJ {
           } else col++;
         }
         i = k + end.length;
-        out.push(tok("string", JSON.stringify(body), file, sl, so));
+        emit(tok("string", JSON.stringify(body), file, sl, so));
         continue;
       }
 
@@ -200,7 +215,7 @@ namespace CTJ {
           adv(1);
         }
         if (!closed) fail("unterminated string", file, sl, so);
-        out.push(tok("string", quote + v + '"', file, sl, so));
+        emit(tok("string", quote + v + '"', file, sl, so));
         continue;
       }
 
@@ -228,7 +243,7 @@ namespace CTJ {
           adv(1);
         }
         if (!closed) fail("unterminated character", file, sl, so);
-        out.push(tok("char", "'" + v + "'", file, sl, so));
+        emit(tok("char", "'" + v + "'", file, sl, so));
         continue;
       }
 
@@ -244,7 +259,7 @@ namespace CTJ {
             adv(1);
           }
         }
-        out.push(tok("number", v, file, sl, so));
+        emit(tok("number", v, file, sl, so));
         continue;
       }
 
@@ -256,30 +271,30 @@ namespace CTJ {
           v += src[i];
           adv(1);
         }
-        out.push(tok("ident", v, file, sl, so));
+        emit(tok("ident", v, file, sl, so));
         continue;
       }
 
       const three = src.slice(i, i + 3);
       if (OPS3[three]) {
-        out.push(tok(OPS3[three], three, file, line, col));
+        emit(tok(OPS3[three], three, file, line, col));
         adv(3);
         continue;
       }
       const two = src.slice(i, i + 2);
       if (OPS2[two]) {
-        out.push(tok(OPS2[two], two, file, line, col));
+        emit(tok(OPS2[two], two, file, line, col));
         adv(2);
         continue;
       }
       if (OPS1[c]) {
-        out.push(tok(OPS1[c], c, file, line, col));
+        emit(tok(OPS1[c], c, file, line, col));
         adv(1);
         continue;
       }
       fail(`unexpected character '${c}'`, file, line, col);
     }
-    out.push(tok("eof", "", file, line, col));
+    emit(tok("eof", "", file, line, col));
     return out;
   }
 

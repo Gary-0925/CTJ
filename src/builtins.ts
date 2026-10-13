@@ -65,9 +65,7 @@ namespace CTJ {
       cx.warn("__builtin_offsetof approximated as 0", e);
       return CppType.basic("unsigned int");
     }
-    if (name === "__builtin_va_start" || name === "__builtin_va_end" || name === "__builtin_va_copy" || name === "va_arg") {
-      cx.fail("C varargs are not supported", e);
-    }
+    if (name === "__builtin_va_start" || name === "__builtin_va_end" || name === "__builtin_va_copy") return CppType.basic("void");
     if (name === "__builtin_types_compatible_p") return CppType.basic("int");
     if (name === "__builtin_alloca") return voidPtr();
     if (name === "__builtin_frame_address" || name === "__builtin_return_address" || name === "__builtin_extract_return_addr") {

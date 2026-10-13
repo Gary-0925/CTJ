@@ -16,7 +16,7 @@ namespace CTJ {
     const pre = new Preprocessor(path => (path in headers ? headers[path] : null), []);
     const defines = options.defines || {};
     for (const k of Object.keys(defines)) {
-      const toks = lexFile(defines[k], "<define>");
+      const toks = lexFile(defines[k], "<define>", false);
       toks.pop();
       pre.macros.set(k, { params: null, variadic: false, body: toks });
     }

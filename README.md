@@ -92,13 +92,13 @@ npm test                # 运行 test/cases 下的全部用例
 
 已知限制：
 
-- `#include <algorithm>` 会让解析器在 `bits/random.tcc` 里失去同步，把后面的 `main` 一起吃掉，最后只剩一条 `no main function found`；`<algorithm>` 目前不要用（`std::max`、`std::min` 由 `bits/stl_algobase.h` 提供，随 `<vector>` 一起可用）。另外 `include/` 还缺少 `bits/uniform_int_dist.h`。
+- `include/` 还缺少 `bits/uniform_int_dist.h`，依赖它的 `<random>` 分布不可用。`<algorithm>` 的 `sort` 等可以接受函数、函数指针、模板函数实例与 lambda 作比较器；`std::greater<>` 这类 C++14 透明比较器不可用，因为 `include/bits/stl_function.h` 是较旧的版本。
 - `<iostream>` 的输出已改为 CTJ 手写的头文件实现（见 `include/ostream`），不再依赖 libstdc++ 原版；`cin` 已支持（见 `include/istream`，输入来自 `globalThis.__ctjin`，没有时才读标准输入）；`<sstream>`、`<fstream>` 仍不支持。
-- `include/stdio.h` 只声明了 `printf` 一族而没有实现，调用它们会在运行时抛出 `unresolved external`；请用 `__ctj_js` 输出。
+- `include/stdio.h` 实现了 `printf`、`fprintf`、`sprintf`、`snprintf`、`puts`、`putchar` 等输出函数及其 `v*` 版本，格式化由一段 JavaScript（`_CTJ_VFMT_JS`）完成；`scanf` 一族仍未实现，输入请用 `cin`。
 - `cerr` / `clog` 目前与 `cout` 一样写到标准输出；`ostringstream` 不可用。
 - 未以换行结束的最后一行会留在 `globalThis.__ctjpend`，由宿主（如 `index.html` 的 `run()`）负责输出。
 - 整数模型按 ILP32：`int`、`unsigned`、`long`、`size_t` 与指针为 32 位，以 JavaScript 的 `number` 表示；`long long` 与 `unsigned long long` 以 `BigInt` 表示，溢出与截断按 64 位回绕。
-- 函数的变参（`...`、`va_arg`）没有实现，因此 `to_string` 与 `printf` 族不可用；`strtol` 一族不做溢出饱和。
+- 函数与宏的变参（`...`、`va_arg`、`__VA_ARGS__`、`#__VA_ARGS__`、`##__VA_ARGS__`、GNU 的 `args...`、`__VA_OPT__`）已支持；变参模板（`sizeof...`、折叠表达式）尚未完整支持。`strtol` 一族不做溢出饱和。
 
 ## 开发约定
 

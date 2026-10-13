@@ -63,6 +63,7 @@ namespace CTJ {
       if (OP_METHOD[op]) return OP_METHOD[op] + suf;
     }
     if (fn.short === "operator()") return "op_call" + suf;
+    if (fn.ownTmpl && fn.mangled) return safeJsName(fn.short) + "__" + safeJsName(fn.mangled) + suf;
     return safeJsName(fn.short) + suf;
   }
 
@@ -614,6 +615,7 @@ namespace CTJ {
       if (t.dims.length) return `Array.isArray(${v})`;
       const n = coreName(t);
       if (n === "bool") return `typeof ${v} === "boolean"`;
+      if (isNumericName(n) && intKindOf(t)?.big) return `(typeof ${v} === "bigint" || typeof ${v} === "number" || typeof ${v} === "boolean")`;
       if (isNumericName(n) || this.cx.enums.has(this.cx.stripAll(t))) return `(typeof ${v} === "number" || typeof ${v} === "boolean")`;
       const fq = this.cx.stripAll(t);
       if (this.cx.classes.has(fq)) {
@@ -1264,7 +1266,10 @@ namespace CTJ {
       const wrap = (s: string) => (v.storage === "boxed" || v.storage === "bbox" ? `{v: ${s}}` : s);
       const init = v.decl.init;
       if (init) {
-        this.line(`let ${v.mangled} = ${wrap(this.argFor(t, init, null))};`);
+        // A brace-enclosed initializer of a class is its constructor's arguments,
+        // or its members for an aggregate: the same as for a local variable.
+        const ilCls = init.kind === "initlist" && !t.isBox() && !t.dims.length && this.cx.classes.has(this.cx.stripAll(t));
+        this.line(`let ${v.mangled} = ${wrap(ilCls ? this.varInitEx(v.decl, v, t) : this.argFor(t, init, null))};`);
         return;
       }
       if (v.decl.directInit && v.decl.directInit.length) {
@@ -1936,11 +1941,30 @@ namespace CTJ {
           return !this.cx.getAnn(e).call && this.isSimple(e.arr) && this.isSimple(e.idx);
         case "unary":
           return (e.op === "*" || e.op === "&") && this.isSimple(e.arg);
+        // va_arg advances its list each time it runs, so it is never simple.
         case "cast":
-          return !this.cx.getAnn(e).call && !this.cx.getAnn(e).conv && this.isSimple(e.arg);
+          return e.ckind !== "va_arg" && !this.cx.getAnn(e).call && !this.cx.getAnn(e).conv && this.isSimple(e.arg);
         default:
           return false;
       }
+    }
+
+    // "++p" or "p--" on a pointer whose value is read (the operand of "*" in "*--last"):
+    // the expression itself gives an index, so its value is built as a box here.
+    isPtrStep(e: Expr): boolean {
+      if (e.kind !== "unary" || !incKind(e) || !this.isSimple((e as UnaryExpr).arg)) return false;
+      const at = this.cx.getAnn((e as UnaryExpr).arg).t as CppType | null;
+      return !!at && at.ptr > 0 && !at.isFunc && !at.dims.length;
+    }
+
+    ptrStepBox(e: UnaryExpr): string {
+      const p = this.paren(this.lvalue(e.arg));
+      const inc = incKind(e);
+      if (isPostfix(e)) {
+        const t = this.tmp();
+        return `(${t} = {a: ${p}.a, i: ${p}.i}, ${p}.i${inc}, ${t})`;
+      }
+      return `(${inc}${p}.i, {a: ${p}.a, i: ${p}.i})`;
     }
 
     exBox(e: Expr): string {
@@ -2000,6 +2024,7 @@ namespace CTJ {
             // "this" is the object, not a fat pointer; *this passed by reference
             // is a box around it (endl, manipulator operator<<).
             if (e.arg.kind === "this") return `{a: [this], i: 0}`;
+            if (this.isPtrStep(e.arg)) return this.ptrStepBox(e.arg as UnaryExpr);
             return this.ex(e.arg);
           }
           if (e.op === "&") return this.exBox(e.arg);
@@ -2695,7 +2720,12 @@ namespace CTJ {
       }
       const ps = this.cx.funcParams(fn);
       const aa: string[] = [];
+      const cvar = ps.length > 0 && last(ps).variadic && !last(ps).isPack ? ps.length - 1 : -1;
       e.args.forEach((x, i) => {
+        if (cvar >= 0 && i >= cvar) {
+          aa.push(this.vargFor(x));
+          return;
+        }
         // A parameter pack keeps the type it was deduced to for this call.
         const pt = i < ps.length ? ps[i].type : null;
         if (pt && this.isInitListParam(pt) && x.kind === "initlist") {
@@ -2825,6 +2855,9 @@ namespace CTJ {
         const x = castInt(this.ex(e.args[0]), intKindOf(this.cx.getAnn(e.args[0]).t as CppType | null), LONG_LONG);
         return `((v) => BigInt.asIntN(64, v < 0n ? -v : v))(${x})`;
       }
+      if (name === "__builtin_va_start") return `(${this.lvalue(e.args[0])} = {a: ${this.varRest(e)}, i: 0}, undefined)`;
+      if (name === "__builtin_va_end") return `(${this.ex(e.args[0])}, undefined)`;
+      if (name === "__builtin_va_copy") return `(${this.lvalue(e.args[0])} = ((s) => ({a: s.a, i: s.i}))(${this.ex(e.args[1])}), undefined)`;
       if (name === "__builtin_alloca") return `{a: new Array(${this.ex(e.args[0])}).fill(0), i: 0}`;
       if (name === "__builtin_offsetof") return "0";
       if (name === "__builtin_types_compatible_p") {
@@ -3124,6 +3157,10 @@ namespace CTJ {
           if (initListElemOf(this.cx, t)) return `${this.lvalue(e.l)} = ${this.argFor(t, e.r, null)}`;
           const cn = (this.cx.classes.get(this.cx.stripAll(t)) as ClsInfo).mangled as string;
           rhs = this.ctorExpr(cn, a.initCall, items, a.convs, t);
+          // The temporary a braced list builds is passed as the reference it is
+          // (a box around it), as argFor passes any other class value.
+          const rp = ps[ps.length - 1].type;
+          if (rp.ref !== "" && rp.ptr === 0 && !rp.dims.length) rhs = `{a: [${rhs}], i: 0}`;
         } else {
           rhs = this.argFor(ps[ps.length - 1].type, e.r, a.convs[a.convs.length - 1] || null);
         }
@@ -3267,7 +3304,46 @@ namespace CTJ {
       return `{a: [Object.create(${tc.mangled}.prototype)], i: 0}`;
     }
 
+    // va_arg(ap, T): the argument at ap's position, converted to T, and ap moves past it.
+    exVaArg(e: CastExpr): string {
+      const t = this.cx.getAnn(e).t as CppType;
+      return `((p) => { const v = p.a[p.i++]; return ${this.vaConv(t, "v")}; })(${this.ex(e.arg)})`;
+    }
+
+    // An argument read by va_arg has the type its caller passed, which the
+    // default promotions of C leave as a number, a BigInt or a boolean.
+    vaConv(t: CppType, x: string): string {
+      if (t.isBox() || t.dims.length || t.isFunc) return x;
+      const k = intKindOf(t);
+      if (k) {
+        if (k.big) return `BigInt.${k.signed ? "asIntN" : "asUintN"}(64, typeof ${x} === "bigint" ? ${x} : BigInt(Math.trunc(Number(${x}))))`;
+        return wrapInt(`Number(typeof ${x} === "bigint" ? BigInt.asIntN(32, ${x}) : ${x})`, k);
+      }
+      if (coreName(t) === "bool") return `!!${x}`;
+      if (isNumericName(coreName(t))) return `Number(${x})`;
+      return x;
+    }
+
+    // An argument in the variadic part of a call is passed as its value; an
+    // array in it decays to a pointer, as it does for any parameter.
+    vargFor(x: Expr): string {
+      const at = this.cx.getAnn(x).t as CppType | null;
+      if (at && at.dims.length && !at.isFunc) return this.argFor(decayed(at), x, null);
+      return this.exVal(x);
+    }
+
+    // The JS parameter holding the variadic arguments of the function being emitted.
+    varRest(e: Expr): string {
+      const f = this.fnStack.length ? this.fnStack[this.fnStack.length - 1] : null;
+      const ps = f ? this.cx.funcParams(f) : [];
+      const i = ps.findIndex(p => p.variadic);
+      if (i < 0) this.cx.fail("va_start in a function without a variadic parameter", e);
+      const p = ps[i];
+      return `${p.name ? safeJsName(p.name) : `$p${i}`}_rest`;
+    }
+
     exCast(e: CastExpr): string {
+      if (e.ckind === "va_arg") return this.exVaArg(e);
       const a = this.cx.getAnn(e);
       const t = a.t as CppType;
       if (a.call) {
