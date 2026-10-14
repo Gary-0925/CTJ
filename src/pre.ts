@@ -142,6 +142,12 @@ namespace CTJ {
     memory: ["bits/alloc_traits.h"],
   };
 
+  // The directory of the library sources in the include tree (their file names start with it).
+  export const LIBRARY_DIR = "ctj_lib/";
+  export function isLibraryFile(file: string): boolean {
+    return file.startsWith(LIBRARY_DIR);
+  }
+
   // libstdc++ defines some of the functions its headers declare in src/*.cc files,
   // which are not headers.  Here the file is attached to the end of the translation
   // unit once the header that declares its functions has been included, as the

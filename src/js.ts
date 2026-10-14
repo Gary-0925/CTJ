@@ -155,7 +155,12 @@ namespace CTJ {
       const glines: string[] = [];
       const save = this.out;
       this.out = glines;
-      for (const v of this.cx.vars.values()) this.emitGlobal(v);
+      // Static locals are declared before any global is initialized, since a
+      // global's constructor may call a function that uses them. The tables of
+      // a library file come next: the library is set up before main, as in C++.
+      const rank = (v: VarInfo): number => (v.lifted ? 0 : isLibraryFile(v.decl.file) ? 1 : 2);
+      const vars = [...this.cx.vars.values()].sort((a, b) => rank(a) - rank(b));
+      for (const v of vars) this.emitGlobal(v);
       this.out = save;
       if (this.tmpN > gbase) this.line(this.tmpDecl(gbase, this.tmpN));
       for (const l of glines) this.out.push(l);

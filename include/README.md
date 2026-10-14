@@ -43,6 +43,8 @@ libstdc++ 有一些函数声明在头文件里、定义在 `src/*.cc` 中（链�
 - `ctj_lib/tree.cc`：`_Rb_tree` 的插入、删除后的重新平衡、`increment`、`decrement`，由 `bits/stl_tree.h` 挂载。
 - `ctj_lib/list.cc`：`_List_node_base` 的 `_M_hook`、`_M_unhook`、`_M_transfer`、`_M_reverse`、`swap`，由 `bits/stl_list.h` 挂载。
 
+库文件中的全局变量（如 `__prime_list`）在程序自己的全局变量之前初始化，与 libstdc++ 在 `main` 之前已经就绪一致；函数内的 `static` 变量则最先声明。
+
 挂载在 `src/pre.ts` 的 `LIBRARY_SOURCES` 中进行：包含某个头文件时，对应的 `.cc` 会在翻译单元的末尾被预处理。没有被程序引用的函数不会输出，所以挂载只增加解析时间。
 
 - `ctj_lib/hash_bytes.cc`：`std::_Hash_bytes`、`_Fnv_hash_bytes`，由 `bits/hash_bytes.h` 挂载。
