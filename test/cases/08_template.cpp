@@ -1,3 +1,4 @@
+#include <iostream>
 template <typename T>
 T maxOf(T a, T b) { return a > b ? a : b; }
 
@@ -19,15 +20,15 @@ struct Pair {
 };
 
 int main() {
-  __ctj_js("console.log($1)", maxOf(3, 7));
-  __ctj_js("console.log($1)", maxOf(2.5, 1.5));
+  std::cout << (maxOf(3, 7)) << "\n";
+  std::cout << (maxOf(2.5, 1.5)) << "\n";
   Stack<int, 8> s;
   s.push(1);
   s.push(2);
   s.push(3);
-  __ctj_js("console.log($1)", s.pop());
-  __ctj_js("console.log($1)", s.size());
+  std::cout << (s.pop()) << "\n";
+  std::cout << (s.size()) << "\n";
   Pair<int> p(4, 5);
-  __ctj_js("console.log($1)", p.sum());
+  std::cout << (p.sum()) << "\n";
   return 0;
 }

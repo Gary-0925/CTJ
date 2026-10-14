@@ -1,3 +1,4 @@
+#include <iostream>
 #include <vector>
 
 int main() {
@@ -9,8 +10,8 @@ int main() {
   int second = v[1];
   int n = (int)v.size();
   v.clear();
-  __ctj_js("console.log($1, $2, $3, $4)", sum, second, n, (int)v.size());
+  std::cout << (sum) << " " << (second) << " " << (n) << " " << ((int)v.size()) << "\n";
   std::vector<int> w(3);
-  __ctj_js("console.log($1)", (int)w.size());
+  std::cout << ((int)w.size()) << "\n";
   return 0;
 }

@@ -1,10 +1,11 @@
+#include <iostream>
 #include <math.h>
 
 int main() {
   double a = -2.5;
-  __ctj_js("console.log($1)", fabs(a));
-  __ctj_js("console.log($1)", (int)sqrt(16.0));
-  __ctj_js("console.log($1)", (int)floor(3.7));
-  __ctj_js("console.log($1)", (int)fmod(7.5, 2.0));
+  std::cout << (fabs(a)) << "\n";
+  std::cout << ((int)sqrt(16.0)) << "\n";
+  std::cout << ((int)floor(3.7)) << "\n";
+  std::cout << ((int)fmod(7.5, 2.0)) << "\n";
   return 0;
 }

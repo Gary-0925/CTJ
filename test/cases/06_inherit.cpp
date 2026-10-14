@@ -1,3 +1,4 @@
+#include <iostream>
 class Base {
 public:
   int v;
@@ -15,14 +16,14 @@ public:
 int use(Base& b) { return b.get(); }
 int main() {
   Derived d;
-  __ctj_js("console.log($1)", d.get());
+  std::cout << (d.get()) << "\n";
   Base* p = new Derived();
-  __ctj_js("console.log($1)", p->get());
-  __ctj_js("console.log($1)", use(d));
+  std::cout << (p->get()) << "\n";
+  std::cout << (use(d)) << "\n";
   Base b;
-  __ctj_js("console.log($1)", use(b));
+  std::cout << (use(b)) << "\n";
   d.Base::get();
-  __ctj_js("console.log($1)", d.Base::get());
+  std::cout << (d.Base::get()) << "\n";
   delete p;
   return 0;
 }

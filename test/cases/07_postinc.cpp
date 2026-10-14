@@ -1,16 +1,17 @@
+#include <iostream>
 int main() {
   int a[4] = {10, 20, 30, 40};
   int i = 0;
-  __ctj_js("console.log($1)", a[i++]);
-  __ctj_js("console.log($1)", a[i]);
-  __ctj_js("console.log($1)", a[++i]);
+  std::cout << (a[i++]) << "\n";
+  std::cout << (a[i]) << "\n";
+  std::cout << (a[++i]) << "\n";
   int x = 5;
-  __ctj_js("console.log($1)", x++);
-  __ctj_js("console.log($1)", x);
-  __ctj_js("console.log($1)", x--);
-  __ctj_js("console.log($1)", x);
+  std::cout << (x++) << "\n";
+  std::cout << (x) << "\n";
+  std::cout << (x--) << "\n";
+  std::cout << (x) << "\n";
   int* p = a;
-  __ctj_js("console.log($1)", *p++);
-  __ctj_js("console.log($1)", *p);
+  std::cout << (*p++) << "\n";
+  std::cout << (*p) << "\n";
   return 0;
 }

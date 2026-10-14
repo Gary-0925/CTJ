@@ -53,34 +53,27 @@ const r = result.run("3 4\n");  // 运行一次，input 即 cin 的输入
 
 `run(input)` 每次调用都在独立的作用域里重新声明全部类、全局变量与函数，然后执行 `main()`，因此多次运行互不影响。`cout` 写入 `stdout`，`cerr` 写入 `stderr`，`clog` 写入 `stdlog`，`printf` 族写入 `stdout`（`fprintf(stderr, …)` 写入 `stderr`）。`exit(n)` 与 `abort()` 结束运行，退出码分别为 `n` 与 `134`；未捕获的运行时错误把信息写入 `stderr`，退出码为 `1`；`main` 的返回值即退出码。
 
-转译结果是完全独立的代码：没有 `require`、没有 `import`、不依赖任何运行时库。程序自己的输出也可以显式写出来，转译器提供了内建函数 `__ctj_js` 把表达式原样嵌入生成的 JavaScript。在 `run` 内 `console.log` 与 `console.error` 分别写入 `stdout` 与 `stderr`：
-
-```cpp
-__ctj_js("console.log($1)", x);
-```
-
-`$1`、`$2`… 会被替换为对应实参在 JavaScript 中的表达式。
+转译结果是完全独立的代码：没有 `require`、没有 `import`、不依赖任何运行时库。转译器提供内建函数 `__ctj_js`，把字符串字面量原样嵌入生成的 JavaScript，`$1`、`$2`… 会被替换为对应实参在 JavaScript 中的表达式。标准库的输出流（`include/ostream`）就是用它实现的，用户代码一般不需要直接使用。
 
 指针采用胖指针模型：`int*` 转译为 `{a: 数组, i: 下标}`，取地址得到 `{v: …}` 盒子，`*p` 即 `p.a[p.i]`。类转译为 `class`，虚函数依赖 JavaScript 自身的动态派发，全局对象在 `main()` 之前构造。
 
 ## Playground
 
-`index.html` 需要与 `dist/ctj.js`、`include.json` 一起通过 HTTP 提供（`include.json` 是用 `fetch` 读取的）：
+`index.html` 是独立的页面，需要与 `dist/ctj.js`、`include.json` 放在同一目录并通过 HTTP 提供（页面用 `fetch` 读取 `include.json`）：
 
 ```
-npm run serve          # 缺少构建产物时先构建；把转译器内联进页面；禁止缓存
+npm run serve          # 缺少构建产物时先构建；禁止缓存；默认端口 8000
 # 或者用任意静态服务器
 python3 -m http.server 8080
 ```
 
-打开 `http://localhost:8000/`（或 `http://localhost:8080/`）即可：左侧写 C++，右侧得到 JavaScript 代码，转译结果可以直接在页面里运行，警告与运行输出分别显示在下方。页面内置了基础语法、指针与数组、类与继承、模板、类模板与成员、标准库容器、标准库头文件、输入（cin）八个示例。页面下方的“输入（cin）”文本框内容会在运行前交给程序，`cin` 按空白分隔读取；选择“输入（cin）”示例时会自动填入示例数据。`npm run serve` 提供的页面已把 `dist/ctj.js` 内联进 HTML（磁盘上的 `index.html` 仍是普通的 `<script src>`），因此除 `include.json` 外不再有第二个请求——某些反向代理会缓存或拦掉对子资源脚本的请求，页面就会一直停在“转译器未加载”。若用其它静态服务器且页面提示转译器未加载，页面会带时间戳重新获取一次（先 `<script>` 标签，失败再 `fetch`），也可以强制刷新（Ctrl+Shift+R）；状态栏会写明失败原因（HTTP 状态、content-type、字节数）。就绪后状态栏还会显示构建标记（`CTJ.version`，即 commit 短哈希加构建时间）和一次自检结果：页面自己转译并运行一段 `vector` 代码，若不是 `55` 就报“自检失败”，这样“页面用的是旧构建”会直接写在脸上，而不是表现成莫名其妙的运行结果。
+打开 `http://localhost:8000/`（或 `http://localhost:8080/`）即可。左侧是 C++ 源码，右侧依次是转译得到的 JavaScript、警告、输入（stdin）和输出。页面内置五个示例：求和与最大值、指针数组反转、继承与虚函数、模板与栈、词频统计。它们都从标准输入读取数据、向标准输出写结果，选择示例时会同时填入示例的输入。「运行」会先转译再执行，Ctrl+Enter 只转译。`stderr` 与 `clog` 的内容显示在标准输出之后，非零退出码显示在最后一行。
 
 ## 命令行
 
 ```
-npm run demo            # 转译并运行内置示例
-node test/demo.js a.cpp       # 转译并运行指定文件
-npm test                # 运行 test/cases 下的全部用例
+node test/demo.js a.cpp < input.txt   # 转译并运行一个文件，stdin 作为程序输入
+npm test                              # 运行 test/cases 下的全部用例
 ```
 
 `npm test` 会把每个 `*.cpp` 转译为 JavaScript、写入同名的 `*.out.js`、用 `node` 执行，并把输出与 `*.txt` 比对。用例可以用 `#include <...>` 引用 `include` 中的标准头文件，也可以用 `#include "..."` 引用 `test/cases` 下的头文件。

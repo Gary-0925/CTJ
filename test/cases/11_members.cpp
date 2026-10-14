@@ -1,3 +1,4 @@
+#include <iostream>
 #include <cstring>
 
 template <typename T> struct Traits {
@@ -58,14 +59,14 @@ struct Buf {
 int main() {
   Str<char> s;
   s.set("hello");
-  __ctj_js("console.log($1)", (int)s.size());
+  std::cout << ((int)s.size()) << "\n";
   int c = (int)Str<char>::compare("abc", "abd");
-  __ctj_js("console.log($1)", c < 0);
-  __ctj_js("console.log($1)", (int)Str<char>::npos == -1);
-  __ctj_js("console.log($1)", (char)s.at(1));
+  std::cout << (c < 0) << "\n";
+  std::cout << ((int)Str<char>::npos == -1) << "\n";
+  std::cout << ((char)s.at(1)) << "\n";
   Node<double> n;
-  __ctj_js("console.log($1)", n.next == 0);
+  std::cout << (n.next == 0) << "\n";
   Buf b;
-  __ctj_js("console.log($1)", b.front());
+  std::cout << (b.front()) << "\n";
   return 0;
 }

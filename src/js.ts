@@ -176,7 +176,7 @@ namespace CTJ {
         const args = ps.length >= 3 ? ["0", `{a: [], i: 0}`, "null"] : ps.length === 2 ? ["0", `{a: [], i: 0}`] : ps.length === 1 ? ["0"] : [];
         this.line(`$rc = main(${args.join(", ")}) | 0;`);
       }
-      const head = ['"use strict";', "return {", '  run($input = "") {', "    const $io = {", '      inp: { s: $input == null ? "" : String($input), p: 0 },', '      out: "", err: "", log: "", vf: null, addr: 0,', "      write(fd, t) {", "        if (fd === 2) this.err += t;", "        else if (fd === 3) this.log += t;", "        else this.out += t;", "      },", "    };", "    const console = {", '      log: (...a) => $io.write(1, a.map(String).join(" ") + "\\n"),', '      error: (...a) => $io.write(2, a.map(String).join(" ") + "\\n"),', "    };", "    let $rc = 0;", "    try {"];
+      const head = ['"use strict";', "return {", '  run($input = "") {', "    const $io = {", '      inp: { s: $input == null ? "" : String($input), p: 0 },', '      out: "", err: "", log: "", vf: null, addr: 0,', "      write(fd, t) {", "        if (fd === 2) this.err += t;", "        else if (fd === 3) this.log += t;", "        else this.out += t;", "      },", "    };", "    let $rc = 0;", "    try {"];
       const tail = ["    } catch (e) {", '      if (typeof e === "object" && e !== null && "$exit" in e) $rc = e.$exit;', '      else if (typeof e === "object" && e !== null && "$fpe" in e) { $io.err += "Floating point exception\\n"; $rc = 136; }', "      else {", '        $io.err += String(e && e.message !== undefined ? e.message : e) + "\\n";', "        $rc = 1;", "      }", "    }", "    return { stdout: $io.out, stderr: $io.err, stdlog: $io.log, exitCode: $rc };", "  },", "};"];
       if (this.usesLibc) body.unshift(...libcPrelude());
       return [...head, ...body.map(l => "      " + l), ...tail].join("\n") + "\n";
@@ -1823,6 +1823,7 @@ namespace CTJ {
             const t = this.tmp();
             return `(${t} = ${this.ex(e)}, ${t}.a[${t}.i])`;
           }
+          if (e.arg.kind === "unary" && incKind(e.arg)) return this.ptrIncElem(e.arg);
           const p = this.complex(this.ex(e.arg), e.arg);
           const pp = this.paren(p);
           return `${pp}.a[${pp}.i]`;
@@ -1877,6 +1878,16 @@ namespace CTJ {
       }
       const tmp = this.tmp();
       return `(${tmp} = ${this.ex(e)}, ${tmp}.a[${tmp}.i])`;
+    }
+
+    // "*p++" and "*++p" for a pointer p, as the element it designates. The pointer is
+    // evaluated once, into a temporary that refers to the same pointer object, so the
+    // step is made on p itself.
+    ptrIncElem(e: UnaryExpr): string {
+      const inc = incKind(e) as string;
+      const t = this.tmp();
+      const src = this.ex(e.arg);
+      return isPostfix(e) ? `(${t} = ${src}).a[${t}.i${inc}]` : `(${t} = ${src}).a[${inc}${t}.i]`;
     }
 
     deref(e: Expr): string {
@@ -2180,7 +2191,7 @@ namespace CTJ {
       if (coreName(p) === "bool" && !p.ref && at && !isNumericName(coreName(at)) && !this.cx.enums.has(this.cx.stripAll(at)) && at.name !== "__null") {
         return `(${this.ex(x)} != null)`;
       }
-      if (p.ptr > 0 && !p.ref && at && at.dims.length && !at.isBox()) return this.exBox(x);
+      if (p.ptr > 0 && !p.ref && at && at.dims.length && !at.isBox()) return `{a: ${this.ex(x)}, i: 0}`;
       if (pB && aB) {
         // An array, or a reference to one, is the array object itself (see isBoxedVar):
         // a reference parameter takes that object, a pointer parameter the address
@@ -2188,7 +2199,9 @@ namespace CTJ {
         const arrArg = !!at && at.dims.length > 0 && at.ptr === 0 && !at.isFunc;
         if (arrArg && p.ptr === 0 && p.ref !== "") return this.ex(x);
         if (arrArg && p.ptr > 0 && !p.isFunc) {
-          const ptr = x.kind === "id" ? this.exBox(x) : `{a: ${this.ex(x)}, i: 0}`;
+          // The array decays to the address of its first element; ex() yields the
+          // array object for every array expression, boxed or not.
+          const ptr = `{a: ${this.ex(x)}, i: 0}`;
           return p.ref !== "" ? `{a: [${ptr}], i: 0}` : ptr;
         }
         if (at && at.ref) {
@@ -2685,16 +2698,7 @@ namespace CTJ {
       if (e.op === "*") {
         const at = this.cx.getAnn(e.arg).t as CppType;
         if (at.isFunc) return this.ex(e.arg);
-        if (e.arg.kind === "unary" && incKind(e.arg) && isPostfix(e.arg)) {
-          const p = this.complex(this.ex(e.arg.arg), e.arg.arg);
-          const pp = this.paren(p);
-          return `${pp}.a[${pp}.i${incKind(e.arg)}]`;
-        }
-        if (e.arg.kind === "unary" && incKind(e.arg)) {
-          const p = this.complex(this.ex(e.arg.arg), e.arg.arg);
-          const pp = this.paren(p);
-          return `${pp}.a[${incKind(e.arg)}${pp}.i]`;
-        }
+        if (e.arg.kind === "unary" && incKind(e.arg)) return this.ptrIncElem(e.arg);
         return this.deref(e.arg);
       }
       if (e.op === "&") {
@@ -2712,8 +2716,14 @@ namespace CTJ {
           return `(${t} = ${this.ex(e.arg)}, ${post ? inner + inc : inc + inner})`;
         }
         if (at.ptr > 0 && !at.isFunc) {
+          // The value is a pointer: a copy of the pointer before (postfix) or after (prefix) the step.
+          const t = this.tmp();
           const p = this.paren(this.lvalue(e.arg));
-          return post ? `${p}.i${inc}` : `${inc}${p}.i`;
+          if (post) {
+            const old = this.tmp();
+            return `(${t} = ${p}, ${old} = {a: ${t}.a, i: ${t}.i}, ${t}.i${inc}, ${old})`;
+          }
+          return `(${t} = ${p}, ${t}.i${inc}, {a: ${t}.a, i: ${t}.i})`;
         }
         const l = this.lvalue(e.arg);
         const ik = intKindOf(at);

@@ -1,3 +1,4 @@
+#include <iostream>
 class Point {
 public:
   int x;
@@ -17,17 +18,17 @@ int getSum(const Point& p) { return p.sum(); }
 
 int main() {
   Point p;
-  __ctj_js("console.log($1)", p.sum());
+  std::cout << (p.sum()) << "\n";
   Point q(3, 4);
-  __ctj_js("console.log($1)", q.sum());
+  std::cout << (q.sum()) << "\n";
   Point r = q;
-  __ctj_js("console.log($1)", r.sum());
-  __ctj_js("console.log($1)", getSum(q));
-  __ctj_js("console.log($1)", Point::getCount());
+  std::cout << (r.sum()) << "\n";
+  std::cout << (getSum(q)) << "\n";
+  std::cout << (Point::getCount()) << "\n";
   q.addx(10);
-  __ctj_js("console.log($1)", q.sum());
+  std::cout << (q.sum()) << "\n";
   Point* pp = new Point(1, 2);
-  __ctj_js("console.log($1)", pp->sum());
+  std::cout << (pp->sum()) << "\n";
   delete pp;
   return 0;
 }

@@ -1,3 +1,4 @@
+#include <iostream>
 #include <set>
 
 int main() {
@@ -5,6 +6,6 @@ int main() {
   s.insert(1);
   s.insert(2);
   s.insert(2);
-  __ctj_js("console.log($1)", (int)s.size());
+  std::cout << ((int)s.size()) << "\n";
   return 0;
 }

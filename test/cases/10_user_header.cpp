@@ -1,10 +1,11 @@
+#include <iostream>
 #include "helper.h"
 
 int main() {
-  __ctj_js("console.log($1)", twice(21));
+  std::cout << (twice(21)) << "\n";
   Counter c;
   c.bump();
   c.bump();
-  __ctj_js("console.log($1)", c.value());
+  std::cout << (c.value()) << "\n";
   return 0;
 }

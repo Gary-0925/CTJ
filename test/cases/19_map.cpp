@@ -6,7 +6,7 @@ int main() {
   m.insert(std::make_pair(1, 2));
   m.insert(std::make_pair(3, 4));
   m.insert(std::make_pair(1, 9));
-  __ctj_js("console.log($1)", (int)m.size());
+  std::cout << ((int)m.size()) << "\n";
   std::map<int, int> n;
   n[1] = 2;
   n[2] = 3;

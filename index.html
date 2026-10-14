@@ -24,33 +24,30 @@
   button:hover { background: #303541; }
   button.primary { background: #2f6feb; border-color: #2f6feb; color: #fff; }
   button.primary:hover { background: #3d7bf0; }
-  button:disabled { opacity: .45; cursor: default; }
-  main { flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: #2c303a; min-height: 0; }
+  main {
+    flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 1px;
+    background: #2c303a; min-height: 0;
+  }
   section { background: #16181d; display: flex; flex-direction: column; min-width: 0; min-height: 0; }
-  section > h2 {
+  h2 {
     margin: 0; padding: 5px 12px; font-size: 12px; font-weight: 600; letter-spacing: .04em;
     color: #9aa1b1; text-transform: uppercase; background: #1e2128;
   }
   textarea, pre {
-    flex: 1; margin: 0; padding: 10px 12px; overflow: auto; min-height: 0;
+    margin: 0; padding: 10px 12px; overflow: auto; min-height: 0;
     font: 13px/1.55 ui-monospace, "Cascadia Code", Consolas, monospace;
     background: #16181d; color: #e6e6e6; border: 0; resize: none; white-space: pre; tab-size: 2;
   }
+  textarea { flex: 1; }
   textarea:focus { outline: 1px solid #2f6feb; }
   #warnings {
     max-height: 26%; overflow: auto; padding: 6px 12px; font-size: 12px;
     color: #e0b341; background: #1c1a14; border-top: 1px solid #3a3220; display: none;
   }
   #warnings div { white-space: pre-wrap; }
-  #output { border-top: 1px solid #2c303a; max-height: 34%; }
-  #output pre { padding: 8px 12px; }
-  #stdinBox { display: flex; flex-direction: column; border-top: 1px solid #2c303a; }
-  #stdinBox label {
-    padding: 5px 12px; font-size: 12px; font-weight: 600; letter-spacing: .04em;
-    color: #9aa1b1; text-transform: uppercase; background: #1e2128;
-  }
-  #stdin { flex: none; height: 84px; }
-  #output .err { color: #f0717a; }
+  #stdin { flex: none; height: 96px; border-top: 1px solid #2c303a; }
+  #output { flex: 1; min-height: 0; border-top: 1px solid #2c303a; }
+  #output.err { color: #f0717a; }
   footer { padding: 4px 12px; font-size: 12px; color: #6f7686; background: #1e2128; }
 </style>
 </head>
@@ -59,9 +56,9 @@
   <h1>CTJ Playground</h1>
   <span class="sub">C++ → JavaScript</span>
   <select id="example" title="示例"></select>
-  <button id="transpile" class="primary">转译 (Ctrl+Enter)</button>
-  <button id="run">运行</button>
-  <button id="copy">复制结果</button>
+  <button id="transpile">转译 (Ctrl+Enter)</button>
+  <button id="run" class="primary">运行</button>
+  <button id="copy">复制 JavaScript</button>
 </header>
 <main>
   <section>
@@ -69,63 +66,128 @@
     <textarea id="source" spellcheck="false"></textarea>
   </section>
   <section>
-    <h2 id="codeTitle">转译结果</h2>
+    <h2>转译结果 — JavaScript</h2>
     <pre id="code"></pre>
     <div id="warnings"></div>
-    <div id="stdinBox">
-      <label for="stdin">输入（cin）</label>
-      <textarea id="stdin" spellcheck="false" placeholder="运行前在这里输入；cin 按空白分隔读取，可用 Enter 换行"></textarea>
-    </div>
-    <div id="output"><pre id="out"></pre></div>
+    <h2>输入（stdin）</h2>
+    <textarea id="stdin" spellcheck="false"></textarea>
+    <h2>输出</h2>
+    <pre id="output"></pre>
   </section>
 </main>
-<footer><span id="status">就绪</span></footer>
+<footer><span id="status"></span></footer>
 
 <script src="./dist/ctj.js"></script>
 <script>
 "use strict";
 
-const EXAMPLES = {
-  "基础语法": `int fib(int n) {
-  return n < 2 ? n : fib(n - 1) + fib(n - 2);
+// Each example reads its data from standard input (cin / scanf / getline)
+// and writes its result to standard output.
+const EXAMPLES = [
+  {
+    name: "求和与最大值",
+    code: `#include <iostream>
+using namespace std;
+
+int main() {
+  int n;
+  cin >> n;
+  long long sum = 0;
+  int best = 0;
+  for (int i = 0; i < n; i++) {
+    int x;
+    cin >> x;
+    sum += x;
+    if (i == 0 || x > best) best = x;
+  }
+  cout << "sum = " << sum << "\\n";
+  cout << "max = " << best << "\\n";
+  return 0;
+}
+`,
+    input: "5\n3 -1 4 1 5\n",
+  },
+  {
+    name: "指针：数组反转",
+    code: `#include <cstdio>
+#include <iostream>
+using namespace std;
+
+int a[100];
+
+void reverseRange(int* lo, int* hi) {
+  while (lo < hi) {
+    int t = *lo;
+    *lo++ = *--hi;
+    *hi = t;
+  }
 }
 
 int main() {
-  for (int i = 0; i < 10; i++) {
-    int v = fib(i);
-    __ctj_js("console.log($1)", v);
+  int n;
+  cin >> n;
+  for (int i = 0; i < n; i++) cin >> a[i];
+  reverseRange(a, a + n);
+  for (int i = 0; i < n; i++) printf("%d%c", a[i], i + 1 < n ? ' ' : '\\n');
+  return 0;
+}
+`,
+    input: "5\n1 2 3 4 5\n",
+  },
+  {
+    name: "继承与虚函数",
+    code: `#include <iostream>
+#include <string>
+using namespace std;
+
+struct Shape {
+  virtual ~Shape() {}
+  virtual double area() const = 0;
+  virtual string name() const = 0;
+};
+
+struct Rect : Shape {
+  double w, h;
+  Rect(double w, double h) : w(w), h(h) {}
+  double area() const { return w * h; }
+  string name() const { return "rect"; }
+};
+
+struct Square : Rect {
+  Square(double s) : Rect(s, s) {}
+  string name() const { return "square"; }
+};
+
+int main() {
+  int n;
+  cin >> n;
+  for (int i = 0; i < n; i++) {
+    string kind;
+    cin >> kind;
+    Shape* s;
+    if (kind == "square") {
+      double a;
+      cin >> a;
+      s = new Square(a);
+    } else {
+      double w, h;
+      cin >> w >> h;
+      s = new Rect(w, h);
+    }
+    cout << s->name() << " " << s->area() << "\\n";
+    delete s;
   }
   return 0;
 }
 `,
-  "指针与数组": `int main() {
-  int a[5] = {1, 2, 3, 4, 5};
-  int* p = a + 2;
-  *p = 99;
-  __ctj_js("console.log($1)", a[2]);
-  __ctj_js("console.log($1)", *(a + 4));
-  return 0;
-}
-`,
-  "类与继承": `struct Shape {
-  virtual int area() { return 0; }
-  virtual ~Shape() {}
-};
+    input: "3\nrect 2 3.5\nsquare 4\nrect 1 1\n",
+  },
+  {
+    name: "模板与栈",
+    code: `#include <iostream>
+using namespace std;
 
-struct Rect : Shape {
-  int w, h;
-  Rect(int w, int h) : w(w), h(h) {}
-  int area() override { return w * h; }
-};
-
-int main() {
-  Rect r(3, 4);
-  Shape* s = &r;
-  __ctj_js("console.log($1)", s->area());
-  return 0;
-}
-`,
-  "模板": `template <typename T>
+template <typename T>
 T maxOf(T a, T b) { return a > b ? a : b; }
 
 template <typename T, int N>
@@ -135,308 +197,153 @@ struct Stack {
   Stack() : top(0) {}
   void push(T v) { data[top++] = v; }
   T pop() { return data[--top]; }
+  bool empty() const { return top == 0; }
 };
 
 int main() {
-  __ctj_js("console.log($1)", maxOf(3, 7));
-  Stack<int, 8> s;
-  s.push(1);
-  s.push(2);
-  __ctj_js("console.log($1)", s.pop());
-  return 0;
-}
-`,
-  "类模板与成员": `#include <cstring>
-
-template <typename T> struct Traits {
-  typedef T value_type;
-  typedef long size_type;
-};
-
-template <typename C, typename Tr = Traits<C> > class Str {
-public:
-  typedef typename Tr::value_type value_type;
-  typedef typename Tr::size_type size_type;
-  static const size_type npos = (size_type)-1;
-
-  // 嵌套类可以直接把模板参数当基类
-  struct Rep : Tr {
-    size_type len;
-    Rep() : len(0) {}
-  };
-
-  Str() {}
-
-  void assign(const value_type* s) {
-    rep.len = (size_type)std::strlen(s);
-    for (size_type i = 0; i < rep.len; i++) buf[i] = s[i];
-  }
-
-  size_type size() const { return rep.len; }
-  value_type at(size_type i) const { return buf[i]; }
-
-  static size_type compare(const value_type* a, const value_type* b);
-
-private:
-  value_type buf[32];
-  Rep rep;
-};
-
-// 类外定义的静态成员模板：返回类型和参数里都能用类内的 typedef
-template <typename C, typename Tr>
-typename Str<C, Tr>::size_type Str<C, Tr>::compare(const value_type* a, const value_type* b) {
-  while (*a && *a == *b) { a++; b++; }
-  return (size_type)(*a - *b);
-}
-
-int main() {
-  Str<char> s;
-  s.assign("hello");
-  int d = (int)Str<char>::compare("abc", "abd");
-  __ctj_js("console.log($1, $2, $3, $4)", (int)s.size(), (int)s.at(1), d < 0, (int)Str<char>::npos == -1);
-  return 0;
-}
-`,
-  "标准库容器": `#include <vector>
-
-int main() {
-  std::vector<int> v;
-  for (int i = 1; i <= 5; i++) v.push_back(i * i);
-  int sum = 0;
-  for (unsigned i = 0; i < v.size(); i++) sum += v[i];
-  v[2] = 100;
-  int third = v[2];
-  int n = (int)v.size();
-  v.clear();
-  __ctj_js("console.log($1, $2, $3, $4)", sum, third, n, (int)v.size());
-  return 0;
-}
-`,
-  "标准库头文件": `#include <cstring>
-#include <limits>
-
-int main() {
-  char buf[16];
-  std::strcpy(buf, "hello");
-  __ctj_js("console.log($1)", (int)std::strlen(buf));
-  __ctj_js("console.log($1)", std::numeric_limits<int>::max());
-  return 0;
-}
-`,
-  "输入（cin）": `#include <iostream>
-#include <string>
-
-int main() {
+  Stack<int, 16> st;
   int n;
-  std::cin >> n;
-  long long sum = 0;
+  cin >> n;
+  int best = 0;
   for (int i = 0; i < n; i++) {
     int x;
-    std::cin >> x;
-    sum += x;
+    cin >> x;
+    st.push(x);
+    best = maxOf(best, x);
   }
-  std::cout << "sum = " << sum << std::endl;
-  std::string name;
-  std::cin >> name;
-  std::cout << "hello, " << name << std::endl;
+  cout << "max = " << best << "\\n";
+  while (!st.empty()) cout << st.pop() << "\\n";
   return 0;
 }
 `,
-};
+    input: "4\n2 9 4 7\n",
+  },
+  {
+    name: "词频统计（map / vector）",
+    code: `#include <algorithm>
+#include <iostream>
+#include <map>
+#include <string>
+#include <vector>
+using namespace std;
 
-// The input text of an example, placed in the input box when it is chosen.
-const EXAMPLE_INPUT = {
-  "输入（cin）": "3\n10 20 30\nCTJ\n",
-};
+int main() {
+  map<string, int> count;
+  string w;
+  while (cin >> w) count[w]++;
+  vector<int> freq;
+  for (map<string, int>::iterator it = count.begin(); it != count.end(); ++it) {
+    cout << it->first << " " << it->second << "\\n";
+    freq.push_back(it->second);
+  }
+  sort(freq.begin(), freq.end());
+  cout << "distinct = " << count.size() << ", max freq = " << freq.back() << "\\n";
+  return 0;
+}
+`,
+    input: "the cat and the dog and the bird\n",
+  },
+];
 
 const $ = id => document.getElementById(id);
-let headers = null;
-let headersPromise = null;
 let lastCode = "";
-let lastProgram = null; // the transpile result; its run(input) executes the program
-
-function loadHeaders() {
-  if (!headersPromise) {
-    headersPromise = fetch("./include.json")
-      .then(r => { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
-      .then(j => { headers = j; return j; })
-      .catch(err => {
-        headers = {};
-        setStatus("include.json 不可用（" + err.message + "），请先运行 npm run build；本次仅转译不含标准库的代码");
-        return headers;
-      });
-  }
-  return headersPromise;
-}
+let program = null; // the result of the last successful transpile; program.run(input) executes it
 
 function setStatus(text) { $("status").textContent = text; }
 
-// Two ways to get the transpiler, because a preview frame may allow one and
-// not the other: a <script src> needs script-src, a fetch needs connect-src.
-// Both bypass the cache, and both say what went wrong.
-let loadNote = "正在加载 dist/ctj.js …";
+// The header table is fetched once, when the page loads.
+const headersReady = fetch("./include.json").then(r => {
+  if (!r.ok) throw new Error("HTTP " + r.status);
+  return r.json();
+});
+headersReady.catch(err => setStatus("include.json 加载失败：" + err.message + "（请先运行 npm run build）"));
 
-function transpilerFailed(msg) {
-  loadNote = "加载失败：" + msg;
-  setStatus("dist/ctj.js " + loadNote);
-  $("out").className = "err";
-  $("out").textContent = "dist/ctj.js 加载失败：" + msg +
-    "\n\n请在项目目录运行 npm run build（或 npm run serve）后刷新页面。";
+function showOutput(text, isError) {
+  $("output").textContent = text;
+  $("output").className = isError ? "err" : "";
 }
 
-function transpilerReady() {
-  loadNote = "就绪" + (CTJ.version ? " · " + CTJ.version : "");
-  setStatus(loadNote);
-  selfCheck();
-}
-
-// A page that runs an older bundle is the failure that is hardest to see, so
-// the page checks its own transpiler on the case that used to break.
-let selfChecked = false;
-function selfCheck() {
-  if (selfChecked || typeof CTJ === "undefined" || !headers) return;
-  selfChecked = true;
-  const src = [
-    "#include <vector>",
-    "int main() {",
-    "  std::vector<int> v;",
-    "  for (int i = 1; i <= 5; i++) v.push_back(i * i);",
-    "  int sum = 0;",
-    "  for (unsigned i = 0; i < v.size(); i++) sum += v[i];",
-    '  __ctj_js("console.log($1)", sum);',
-    "  return 0;",
-    "}",
-  ].join("\n");
-  let note;
-  try {
-    const res = CTJ.transpile(src, { headers });
-    const got = res.run("").stdout.trim();
-    note = got === "55" ? "自检通过" : "自检失败：vector 示例得到 " + (got || "(没有输出)");
-  } catch (err) {
-    note = "自检失败：" + err.message;
-  }
-  setStatus(loadNote + " · " + note);
-  if (note !== "自检通过") {
-    $("out").className = "err";
-    $("out").textContent = note + "\n\n页面里的转译器不是当前构建的，请重新加载页面。";
-  }
-}
-
-function fetchTranspiler(url) {
-  loadNote = "script 标签方式没有定义 CTJ，改用 fetch";
-  fetch(url, { cache: "no-store" })
-    .then(r => {
-      if (!r.ok) throw new Error("HTTP " + r.status + " " + r.statusText);
-      const type = r.headers.get("content-type") || "(none)";
-      return r.text().then(text => {
-        if (!text.trim()) throw new Error("返回内容为空（content-type: " + type + "）");
-        if (text.indexOf("CTJ") < 0) throw new Error("返回的不是转译器（content-type: " + type + "，" + text.length + " 字节）");
-        const el = document.createElement("script");
-        el.textContent = text;
-        document.head.appendChild(el);
-        if (typeof CTJ === "undefined") throw new Error("已执行 " + text.length + " 字节但没有定义 CTJ");
-        transpilerReady();
-      });
-    })
-    .catch(err => transpilerFailed(err.message + "（script 标签方式也未成功）"));
-}
-
-function loadTranspiler() {
-  if (typeof CTJ !== "undefined") { transpilerReady(); return; }
-  setStatus("正在加载 dist/ctj.js …");
-  const stamp = Date.now();
-  const url = "dist/ctj.js?v=" + stamp + "&via=tag";
-  const el = document.createElement("script");
-  el.src = url;
-  el.onload = () => {
-    if (typeof CTJ !== "undefined") transpilerReady();
-    else fetchTranspiler("dist/ctj.js?v=" + stamp + "&via=fetch");
-  };
-  el.onerror = () => fetchTranspiler(url);
-  document.head.appendChild(el);
-}
-loadTranspiler();
-
-function transpile() {
+// Transpiles the source. Returns the program, or null after showing the error.
+async function transpile() {
   if (typeof CTJ === "undefined") {
-    $("code").textContent = "";
-    $("out").className = "err";
-    $("out").textContent = "转译器还没就绪 —— " + loadNote +
-      "\n\n若为加载失败，请在项目目录运行 npm run build（或 npm run serve）后刷新页面。";
-    setStatus("转译器未加载：" + loadNote);
-    return;
+    setStatus("dist/ctj.js 未加载，请先运行 npm run build 并通过 npm run serve 打开本页");
+    return null;
   }
-  const source = $("source").value;
+  let headers;
+  try {
+    headers = await headersReady;
+  } catch (err) {
+    setStatus("include.json 加载失败：" + err.message);
+    return null;
+  }
   $("warnings").style.display = "none";
-  $("out").textContent = "";
-  $("out").className = "";
+  $("warnings").innerHTML = "";
   const t0 = performance.now();
-  loadHeaders().then(hdrs => {
-    let res;
-    try {
-      res = CTJ.transpile(source, { headers: hdrs });
-    } catch (err) {
-      lastCode = "";
-      lastProgram = null;
-      $("code").textContent = "";
-      $("out").className = "err";
-      $("out").textContent = (err.file ? err.file + ":" + (err.line || 0) + ": " : "") + err.message;
-      setStatus("转译失败");
-      return;
-    }
-    lastCode = res.code;
-    lastProgram = res;
-    $("code").textContent = res.code;
-    $("codeTitle").textContent = "转译结果 — JavaScript · " + res.code.length + " 字符";
-    const warns = res.warnings || [];
-    if (warns.length) {
-      $("warnings").innerHTML = "";
-      warns.slice(0, 50).forEach(w => {
-        const d = document.createElement("div");
-        d.textContent = w;
-        $("warnings").appendChild(d);
-      });
-      if (warns.length > 50) {
-        const d = document.createElement("div");
-        d.textContent = "… 另有 " + (warns.length - 50) + " 条警告";
-        $("warnings").appendChild(d);
-      }
-      $("warnings").style.display = "block";
-    }
-    setStatus("转译完成，用时 " + (performance.now() - t0).toFixed(0) + " ms" +
-      (headers ? "，标准库头文件 " + Object.keys(headers).length + " 个" : ""));
+  try {
+    program = CTJ.transpile($("source").value, { headers });
+  } catch (err) {
+    program = null;
+    lastCode = "";
+    $("code").textContent = "";
+    showOutput((err.file ? err.file + ":" + (err.line || 0) + ": " : "") + err.message, true);
+    setStatus("转译失败");
+    return null;
+  }
+  lastCode = program.code;
+  $("code").textContent = lastCode;
+  const warnings = program.warnings || [];
+  warnings.slice(0, 50).forEach(w => {
+    const d = document.createElement("div");
+    d.textContent = w;
+    $("warnings").appendChild(d);
   });
+  if (warnings.length > 50) {
+    const d = document.createElement("div");
+    d.textContent = "… 另有 " + (warnings.length - 50) + " 条警告";
+    $("warnings").appendChild(d);
+  }
+  if (warnings.length) $("warnings").style.display = "block";
+  setStatus("转译完成，用时 " + (performance.now() - t0).toFixed(0) + " ms");
+  return program;
 }
 
-function run() {
-  if (!lastProgram) { setStatus("请先转译"); return; }
-  // The input box is the standard input (cin) of the program.
-  const res = lastProgram.run($("stdin").value);
-  const sections = [[res.stdout, ""], [res.stderr, "[stderr]"], [res.stdlog, "[log]"]];
-  let text = "";
-  for (const [body, label] of sections) {
+async function run() {
+  const prog = await transpile();
+  if (!prog) return;
+  const res = prog.run($("stdin").value);
+  // stdout is the program's output; stderr and clog are shown after it.
+  let text = res.stdout;
+  for (const [body, label] of [[res.stderr, "[stderr]"], [res.stdlog, "[clog]"]]) {
     if (!body) continue;
-    if (label) text += (text && !text.endsWith("\n") ? "\n" : "") + label + "\n";
-    text += body;
+    if (text && !text.endsWith("\n")) text += "\n";
+    text += label + "\n" + body;
   }
-  $("out").className = res.exitCode === 0 ? "" : "err";
-  $("out").textContent = text + (res.exitCode === 0 ? "" : (text && !text.endsWith("\n") ? "\n" : "") + "退出码: " + res.exitCode);
+  if (res.exitCode !== 0) {
+    if (text && !text.endsWith("\n")) text += "\n";
+    text += "退出码: " + res.exitCode;
+  }
+  showOutput(text, res.exitCode !== 0);
   setStatus(res.exitCode === 0 ? "运行完成" : "运行结束（退出码 " + res.exitCode + "）");
 }
 
 const exampleSelect = $("example");
-Object.keys(EXAMPLES).forEach(name => {
+EXAMPLES.forEach((ex, i) => {
   const o = document.createElement("option");
-  o.value = name;
-  o.textContent = name;
+  o.value = i;
+  o.textContent = ex.name;
   exampleSelect.appendChild(o);
 });
-exampleSelect.addEventListener("change", () => {
-  $("source").value = EXAMPLES[exampleSelect.value];
-  $("stdin").value = EXAMPLE_INPUT[exampleSelect.value] || "";
-});
-exampleSelect.value = "基础语法";
-$("source").value = EXAMPLES[exampleSelect.value];
+function loadExample(i) {
+  const ex = EXAMPLES[i];
+  $("source").value = ex.code;
+  $("stdin").value = ex.input;
+  $("code").textContent = "";
+  $("warnings").style.display = "none";
+  showOutput("", false);
+  program = null;
+  lastCode = "";
+}
+exampleSelect.addEventListener("change", () => loadExample(+exampleSelect.value));
 
 $("transpile").addEventListener("click", transpile);
 $("run").addEventListener("click", run);
@@ -454,9 +361,10 @@ $("source").addEventListener("keydown", e => {
   }
 });
 
-// Headers finishing must not report "ready" while the transpiler is still
-// missing, or a failed load would be hidden behind a green status.
-loadHeaders().then(() => { if (typeof CTJ !== "undefined") { setStatus(loadNote); selfCheck(); } });
+loadExample(0);
+exampleSelect.value = "0";
+if (typeof CTJ === "undefined") setStatus("dist/ctj.js 未加载，请先运行 npm run build 并通过 npm run serve 打开本页");
+else headersReady.then(() => setStatus("就绪" + (CTJ.version ? " · " + CTJ.version : "")), () => {});
 </script>
 </body>
 </html>
