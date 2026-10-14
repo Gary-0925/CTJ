@@ -4,5 +4,3 @@ include/
 include.json
 test/cases/
 *.md
-*.html
-package-lock.json

@@ -1,92 +1,187 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-CN">
-<head>
-<meta charset="utf-8">
-<title>CTJ Playground — C++ → JavaScript</title>
-<style>
-  :root { color-scheme: dark; }
-  * { box-sizing: border-box; }
-  body {
-    margin: 0; height: 100vh; display: flex; flex-direction: column;
-    font: 14px/1.5 system-ui, "Segoe UI", "Microsoft YaHei", sans-serif;
-    background: #16181d; color: #e6e6e6;
-  }
-  header {
-    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
-    padding: 8px 12px; background: #1e2128; border-bottom: 1px solid #2c303a;
-  }
-  header h1 { font-size: 15px; margin: 0 12px 0 0; font-weight: 600; }
-  header .sub { color: #8a90a0; font-size: 12px; margin-right: auto; }
-  select, button {
-    font: inherit; color: #e6e6e6; background: #262a33;
-    border: 1px solid #3a3f4b; border-radius: 6px; padding: 4px 10px; cursor: pointer;
-  }
-  button:hover { background: #303541; }
-  button.primary { background: #2f6feb; border-color: #2f6feb; color: #fff; }
-  button.primary:hover { background: #3d7bf0; }
-  main {
-    flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 1px;
-    background: #2c303a; min-height: 0;
-  }
-  section { background: #16181d; display: flex; flex-direction: column; min-width: 0; min-height: 0; }
-  h2 {
-    margin: 0; padding: 5px 12px; font-size: 12px; font-weight: 600; letter-spacing: .04em;
-    color: #9aa1b1; text-transform: uppercase; background: #1e2128;
-  }
-  textarea, pre {
-    margin: 0; padding: 10px 12px; overflow: auto; min-height: 0;
-    font: 13px/1.55 ui-monospace, "Cascadia Code", Consolas, monospace;
-    background: #16181d; color: #e6e6e6; border: 0; resize: none; white-space: pre; tab-size: 2;
-  }
-  textarea { flex: 1; }
-  textarea:focus { outline: 1px solid #2f6feb; }
-  #warnings {
-    max-height: 26%; overflow: auto; padding: 6px 12px; font-size: 12px;
-    color: #e0b341; background: #1c1a14; border-top: 1px solid #3a3220; display: none;
-  }
-  #warnings div { white-space: pre-wrap; }
-  #stdin { flex: none; height: 96px; border-top: 1px solid #2c303a; }
-  #output { flex: 1; min-height: 0; border-top: 1px solid #2c303a; }
-  #output.err { color: #f0717a; }
-  footer { padding: 4px 12px; font-size: 12px; color: #6f7686; background: #1e2128; }
-</style>
-</head>
-<body>
-<header>
-  <h1>CTJ Playground</h1>
-  <span class="sub">C++ → JavaScript</span>
-  <select id="example" title="示例"></select>
-  <button id="transpile">转译 (Ctrl+Enter)</button>
-  <button id="run" class="primary">运行</button>
-  <button id="copy">复制 JavaScript</button>
-</header>
-<main>
-  <section>
-    <h2>C++ 源码</h2>
-    <textarea id="source" spellcheck="false"></textarea>
-  </section>
-  <section>
-    <h2>转译结果 — JavaScript</h2>
-    <pre id="code"></pre>
-    <div id="warnings"></div>
-    <h2>输入（stdin）</h2>
-    <textarea id="stdin" spellcheck="false"></textarea>
-    <h2>输出</h2>
-    <pre id="output"></pre>
-  </section>
-</main>
-<footer><span id="status"></span></footer>
+  <head>
+    <meta charset="utf-8" />
+    <title>CTJ</title>
+    <style>
+      :root {
+        color-scheme: dark;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        font:
+          14px/1.5 system-ui,
+          "Segoe UI",
+          "Microsoft YaHei",
+          sans-serif;
+        background: #16181d;
+        color: #e6e6e6;
+      }
+      header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+        padding: 8px 12px;
+        background: #1e2128;
+        border-bottom: 1px solid #2c303a;
+      }
+      header h1 {
+        font-size: 15px;
+        margin: 0 12px 0 0;
+        font-weight: 600;
+      }
+      header .sub {
+        color: #8a90a0;
+        font-size: 12px;
+        margin-right: auto;
+      }
+      select,
+      button {
+        font: inherit;
+        color: #e6e6e6;
+        background: #262a33;
+        border: 1px solid #3a3f4b;
+        border-radius: 6px;
+        padding: 4px 10px;
+        cursor: pointer;
+      }
+      button:hover {
+        background: #303541;
+      }
+      button.primary {
+        background: #2f6feb;
+        border-color: #2f6feb;
+        color: #fff;
+      }
+      button.primary:hover {
+        background: #3d7bf0;
+      }
+      main {
+        flex: 1;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1px;
+        background: #2c303a;
+        min-height: 0;
+      }
+      section {
+        background: #16181d;
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+        min-height: 0;
+      }
+      h2 {
+        margin: 0;
+        padding: 5px 12px;
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        color: #9aa1b1;
+        text-transform: uppercase;
+        background: #1e2128;
+      }
+      textarea,
+      pre {
+        margin: 0;
+        padding: 10px 12px;
+        overflow: auto;
+        min-height: 0;
+        font:
+          13px/1.55 ui-monospace,
+          "Cascadia Code",
+          Consolas,
+          monospace;
+        background: #16181d;
+        color: #e6e6e6;
+        border: 0;
+        resize: none;
+        white-space: pre;
+        tab-size: 2;
+      }
+      textarea {
+        flex: 1;
+      }
+      textarea:focus {
+        outline: 1px solid #2f6feb;
+      }
+      #warnings {
+        max-height: 26%;
+        overflow: auto;
+        padding: 6px 12px;
+        font-size: 12px;
+        color: #e0b341;
+        background: #1c1a14;
+        border-top: 1px solid #3a3220;
+        display: none;
+      }
+      #warnings div {
+        white-space: pre-wrap;
+      }
+      #stdin {
+        flex: none;
+        height: 96px;
+        border-top: 1px solid #2c303a;
+      }
+      #output {
+        flex: 1;
+        min-height: 0;
+        border-top: 1px solid #2c303a;
+      }
+      #output.err {
+        color: #f0717a;
+      }
+      footer {
+        padding: 4px 12px;
+        font-size: 12px;
+        color: #6f7686;
+        background: #1e2128;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>CTJ</h1>
+      <span class="sub">C++ to JavaScript</span>
+      <select id="example" title="示例"></select>
+      <button id="transpile">转译 (Ctrl+Enter)</button>
+      <button id="run" class="primary">运行</button>
+      <button id="copy">复制 JavaScript</button>
+    </header>
+    <main>
+      <section>
+        <h2>C++ 源码</h2>
+        <textarea id="source" spellcheck="false"></textarea>
+      </section>
+      <section>
+        <h2>JavaScript 转译结果</h2>
+        <pre id="code"></pre>
+        <div id="warnings"></div>
+        <h2>输入</h2>
+        <textarea id="stdin" spellcheck="false"></textarea>
+        <h2>输出</h2>
+        <pre id="output"></pre>
+      </section>
+    </main>
+    <footer><span id="status"></span></footer>
 
-<script src="./dist/ctj.js"></script>
-<script>
-"use strict";
+    <script src="./dist/ctj.js"></script>
+    <script>
+      "use strict";
 
-// Each example reads its data from standard input (cin / scanf / getline)
-// and writes its result to standard output.
-const EXAMPLES = [
-  {
-    name: "求和与最大值",
-    code: `#include <iostream>
+      // Each example reads its data from standard input (cin / scanf / getline)
+      // and writes its result to standard output.
+      const EXAMPLES = [
+        {
+          name: "基础",
+          code: `#include <iostream>
 using namespace std;
 
 int main() {
@@ -105,11 +200,11 @@ int main() {
   return 0;
 }
 `,
-    input: "5\n3 -1 4 1 5\n",
-  },
-  {
-    name: "指针：数组反转",
-    code: `#include <cstdio>
+          input: "5\n3 -1 4 1 5\n",
+        },
+        {
+          name: "指针",
+          code: `#include <cstdio>
 #include <iostream>
 using namespace std;
 
@@ -132,11 +227,11 @@ int main() {
   return 0;
 }
 `,
-    input: "5\n1 2 3 4 5\n",
-  },
-  {
-    name: "继承与虚函数",
-    code: `#include <iostream>
+          input: "5\n1 2 3 4 5\n",
+        },
+        {
+          name: "类继承",
+          code: `#include <iostream>
 #include <string>
 using namespace std;
 
@@ -180,11 +275,11 @@ int main() {
   return 0;
 }
 `,
-    input: "3\nrect 2 3.5\nsquare 4\nrect 1 1\n",
-  },
-  {
-    name: "模板与栈",
-    code: `#include <iostream>
+          input: "3\nrect 2 3.5\nsquare 4\nrect 1 1\n",
+        },
+        {
+          name: "模板类",
+          code: `#include <iostream>
 using namespace std;
 
 template <typename T>
@@ -216,11 +311,11 @@ int main() {
   return 0;
 }
 `,
-    input: "4\n2 9 4 7\n",
-  },
-  {
-    name: "词频统计（map / vector）",
-    code: `#include <algorithm>
+          input: "4\n2 9 4 7\n",
+        },
+        {
+          name: "标准库",
+          code: `#include <algorithm>
 #include <iostream>
 #include <map>
 #include <string>
@@ -241,130 +336,146 @@ int main() {
   return 0;
 }
 `,
-    input: "the cat and the dog and the bird\n",
-  },
-];
+          input: "the cat and the dog and the bird\n",
+        },
+      ];
 
-const $ = id => document.getElementById(id);
-let lastCode = "";
-let program = null; // the result of the last successful transpile; program.run(input) executes it
+      const $ = id => document.getElementById(id);
+      let lastCode = "";
+      let program = null; // the result of the last successful transpile; program.run(input) executes it
 
-function setStatus(text) { $("status").textContent = text; }
+      function setStatus(text) {
+        $("status").textContent = text;
+      }
 
-// The header table is fetched once, when the page loads.
-const headersReady = fetch("./include.json").then(r => {
-  if (!r.ok) throw new Error("HTTP " + r.status);
-  return r.json();
-});
-headersReady.catch(err => setStatus("include.json 加载失败：" + err.message + "（请先运行 npm run build）"));
+      // The header table is fetched once, when the page loads.
+      const headersReady = fetch("./include.json").then(r => {
+        if (!r.ok) throw new Error("HTTP " + r.status);
+        return r.json();
+      });
+      headersReady.catch(err => setStatus("include.json 加载失败：" + err.message + "（请先运行 npm run build）"));
 
-function showOutput(text, isError) {
-  $("output").textContent = text;
-  $("output").className = isError ? "err" : "";
-}
+      function showOutput(text, isError) {
+        $("output").textContent = text;
+        $("output").className = isError ? "err" : "";
+      }
 
-// Transpiles the source. Returns the program, or null after showing the error.
-async function transpile() {
-  if (typeof CTJ === "undefined") {
-    setStatus("dist/ctj.js 未加载，请先运行 npm run build 并通过 npm run serve 打开本页");
-    return null;
-  }
-  let headers;
-  try {
-    headers = await headersReady;
-  } catch (err) {
-    setStatus("include.json 加载失败：" + err.message);
-    return null;
-  }
-  $("warnings").style.display = "none";
-  $("warnings").innerHTML = "";
-  const t0 = performance.now();
-  try {
-    program = CTJ.transpile($("source").value, { headers });
-  } catch (err) {
-    program = null;
-    lastCode = "";
-    $("code").textContent = "";
-    showOutput((err.file ? err.file + ":" + (err.line || 0) + ": " : "") + err.message, true);
-    setStatus("转译失败");
-    return null;
-  }
-  lastCode = program.code;
-  $("code").textContent = lastCode;
-  const warnings = program.warnings || [];
-  warnings.slice(0, 50).forEach(w => {
-    const d = document.createElement("div");
-    d.textContent = w;
-    $("warnings").appendChild(d);
-  });
-  if (warnings.length > 50) {
-    const d = document.createElement("div");
-    d.textContent = "… 另有 " + (warnings.length - 50) + " 条警告";
-    $("warnings").appendChild(d);
-  }
-  if (warnings.length) $("warnings").style.display = "block";
-  setStatus("转译完成，用时 " + (performance.now() - t0).toFixed(0) + " ms");
-  return program;
-}
+      // Transpiles the source. Returns the program, or null after showing the error.
+      async function transpile() {
+        if (typeof CTJ === "undefined") {
+          setStatus("dist/ctj.js 未加载，请先运行 npm run build 并通过 npm run serve 打开本页");
+          return null;
+        }
+        let headers;
+        try {
+          headers = await headersReady;
+        } catch (err) {
+          setStatus("include.json 加载失败：" + err.message);
+          return null;
+        }
+        $("warnings").style.display = "none";
+        $("warnings").innerHTML = "";
+        const t0 = performance.now();
+        try {
+          program = CTJ.transpile($("source").value, { headers });
+        } catch (err) {
+          program = null;
+          lastCode = "";
+          $("code").textContent = "";
+          showOutput((err.file ? err.file + ":" + (err.line || 0) + ": " : "") + err.message, true);
+          setStatus("转译失败");
+          return null;
+        }
+        lastCode = program.code;
+        $("code").textContent = lastCode;
+        const warnings = program.warnings || [];
+        warnings.slice(0, 50).forEach(w => {
+          const d = document.createElement("div");
+          d.textContent = w;
+          $("warnings").appendChild(d);
+        });
+        if (warnings.length > 50) {
+          const d = document.createElement("div");
+          d.textContent = "… 另有 " + (warnings.length - 50) + " 条警告";
+          $("warnings").appendChild(d);
+        }
+        if (warnings.length) $("warnings").style.display = "block";
+        setStatus("转译完成，用时 " + (performance.now() - t0).toFixed(0) + " ms");
+        return program;
+      }
 
-async function run() {
-  const prog = await transpile();
-  if (!prog) return;
-  const res = prog.run($("stdin").value);
-  // stdout is the program's output; stderr and clog are shown after it.
-  let text = res.stdout;
-  for (const [body, label] of [[res.stderr, "[stderr]"], [res.stdlog, "[clog]"]]) {
-    if (!body) continue;
-    if (text && !text.endsWith("\n")) text += "\n";
-    text += label + "\n" + body;
-  }
-  if (res.exitCode !== 0) {
-    if (text && !text.endsWith("\n")) text += "\n";
-    text += "退出码: " + res.exitCode;
-  }
-  showOutput(text, res.exitCode !== 0);
-  setStatus(res.exitCode === 0 ? "运行完成" : "运行结束（退出码 " + res.exitCode + "）");
-}
+      async function run() {
+        const prog = await transpile();
+        if (!prog) return;
+        const res = prog.run($("stdin").value);
+        // stdout is the program's output; stderr and clog are shown after it.
+        let text = res.stdout;
+        for (const [body, label] of [
+          [res.stderr, "[stderr]"],
+          [res.stdlog, "[clog]"],
+        ]) {
+          if (!body) continue;
+          if (text && !text.endsWith("\n")) text += "\n";
+          text += label + "\n" + body;
+        }
+        if (res.exitCode !== 0) {
+          if (text && !text.endsWith("\n")) text += "\n";
+          text += "退出码: " + res.exitCode;
+        }
+        showOutput(text, res.exitCode !== 0);
+        setStatus(res.exitCode === 0 ? "运行完成" : "运行结束（退出码 " + res.exitCode + "）");
+      }
 
-const exampleSelect = $("example");
-EXAMPLES.forEach((ex, i) => {
-  const o = document.createElement("option");
-  o.value = i;
-  o.textContent = ex.name;
-  exampleSelect.appendChild(o);
-});
-function loadExample(i) {
-  const ex = EXAMPLES[i];
-  $("source").value = ex.code;
-  $("stdin").value = ex.input;
-  $("code").textContent = "";
-  $("warnings").style.display = "none";
-  showOutput("", false);
-  program = null;
-  lastCode = "";
-}
-exampleSelect.addEventListener("change", () => loadExample(+exampleSelect.value));
+      const exampleSelect = $("example");
+      EXAMPLES.forEach((ex, i) => {
+        const o = document.createElement("option");
+        o.value = i;
+        o.textContent = ex.name;
+        exampleSelect.appendChild(o);
+      });
+      function loadExample(i) {
+        const ex = EXAMPLES[i];
+        $("source").value = ex.code;
+        $("stdin").value = ex.input;
+        $("code").textContent = "";
+        $("warnings").style.display = "none";
+        showOutput("", false);
+        program = null;
+        lastCode = "";
+      }
+      exampleSelect.addEventListener("change", () => loadExample(+exampleSelect.value));
 
-$("transpile").addEventListener("click", transpile);
-$("run").addEventListener("click", run);
-$("copy").addEventListener("click", () => {
-  if (!lastCode) return;
-  navigator.clipboard.writeText(lastCode).then(() => setStatus("已复制到剪贴板"), () => setStatus("复制失败"));
-});
-$("source").addEventListener("keydown", e => {
-  if ((e.ctrlKey || e.metaKey) && e.key === "Enter") { e.preventDefault(); transpile(); }
-  if (e.key === "Tab") {
-    e.preventDefault();
-    const s = e.target, p = s.selectionStart;
-    s.value = s.value.slice(0, p) + "  " + s.value.slice(s.selectionEnd);
-    s.selectionStart = s.selectionEnd = p + 2;
-  }
-});
+      $("transpile").addEventListener("click", transpile);
+      $("run").addEventListener("click", run);
+      $("copy").addEventListener("click", () => {
+        if (!lastCode) return;
+        navigator.clipboard.writeText(lastCode).then(
+          () => setStatus("已复制到剪贴板"),
+          () => setStatus("复制失败")
+        );
+      });
+      $("source").addEventListener("keydown", e => {
+        if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+          e.preventDefault();
+          transpile();
+        }
+        if (e.key === "Tab") {
+          e.preventDefault();
+          const s = e.target,
+            p = s.selectionStart;
+          s.value = s.value.slice(0, p) + "  " + s.value.slice(s.selectionEnd);
+          s.selectionStart = s.selectionEnd = p + 2;
+        }
+      });
 
-loadExample(0);
-exampleSelect.value = "0";
-if (typeof CTJ === "undefined") setStatus("dist/ctj.js 未加载，请先运行 npm run build 并通过 npm run serve 打开本页");
-else headersReady.then(() => setStatus("就绪" + (CTJ.version ? " · " + CTJ.version : "")), () => {});
-</script>
-</body>
+      loadExample(0);
+      exampleSelect.value = "0";
+      if (typeof CTJ === "undefined") setStatus("dist/ctj.js 未加载，请先运行 npm run build 并通过 npm run serve 打开本页");
+      else
+        headersReady.then(
+          () => setStatus("就绪" + (CTJ.version ? " · " + CTJ.version : "")),
+          () => {}
+        );
+    </script>
+  </body>
 </html>

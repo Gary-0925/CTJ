@@ -52,6 +52,6 @@ http
       res.end(body);
     });
   })
-  .listen(port, "0.0.0.0", () => {
-    console.log(`CTJ playground on http://0.0.0.0:${port}/`);
+  .listen(port, "127.0.0.1", () => {
+    console.log(`CTJ playground on http://127.0.0.1:${port}/`);
   });

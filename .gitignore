@@ -1,5 +1,5 @@
 node_modules/
 dist/
 include.json
-*.log
 test/cases/*.out.js
+*.log
