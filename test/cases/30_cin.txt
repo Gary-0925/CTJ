@@ -1,8 +1,0 @@
-7
-3
-[hello]
-c=X
-rest=[ tail]
-line2=[next line]
-0
-1
