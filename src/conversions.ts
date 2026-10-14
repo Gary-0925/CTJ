@@ -35,10 +35,13 @@ namespace CTJ {
     }
     const pn = coreName(p);
     const an = coreName(a);
-    if (a.dims.length && !a.isBox() && p.ptr > 0 && pn === an && p.ptr === a.ptr + 1) {
+    // An array decays to a pointer to its first element, whether it is passed by
+    // value or by reference ("std::declval<char(&)[5]>()" converts to "const char*").
+    const decays = a.dims.length > 0 && (!a.isBox() || (a.ref !== "" && a.ptr === 0));
+    if (decays && p.ptr > 0 && pn === an && p.ptr === a.ptr + 1) {
       return { s: 90, conv: null };
     }
-    if (a.dims.length && !a.isBox() && p.ptr > 0 && pn === "void") return { s: 70, conv: null };
+    if (decays && p.ptr > 0 && pn === "void") return { s: 70, conv: null };
     if (p.isFunc && e) {
       const fn = instantiateAddrOf(cx, e, p, scope);
       if (fn) {

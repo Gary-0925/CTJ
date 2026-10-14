@@ -1583,7 +1583,7 @@ namespace CTJ {
       et.ptr = t.ptr;
       et.ref = t.ref;
       et.dims = t.dims.slice(1);
-      const vals = items.map(x => this.argFor(et, x, null));
+      const vals = items.map(x => this.argFor(et, x, this.cx.getAnn(x).conv || null));
       // Elements the list leaves out take their default value, as in C++.
       const n = t.dims[0];
       if (typeof n === "number" && n > vals.length) {
@@ -2433,9 +2433,7 @@ namespace CTJ {
         // exception: "std::forward<char*>(__x)" gives the fat pointer itself,
         // and reading through it would yield the character it points at
         // instead of the pointer.
-        const ch0 = coreName(at);
-        const chrPtr = at.ptr === 1 && (ch0 === "char" || ch0 === "signed char" || ch0 === "unsigned char" || ch0 === "wchar_t" || ch0 === "char16_t" || ch0 === "char32_t");
-        if (at.ref && x.kind === "call" && !chrPtr) {
+        if (at.ref && x.kind === "call") {
           const t = this.tmp();
           return `(${pre}${t} = (${src} ? ${src}.a[${src}.i] : null), ${t} && ${t}.a !== undefined ? {a: ${t}.a, i: ${t}.i} : ${t})`;
         }
@@ -2474,9 +2472,24 @@ namespace CTJ {
       if (coreName(p) === "bool" && !p.ref && at && !isNumericName(coreName(at)) && !this.cx.enums.has(this.cx.stripAll(at)) && at.name !== "__null") {
         return `(${this.ex(x)} != null)`;
       }
-      if (p.ptr > 0 && at && at.dims.length && !at.isBox()) return this.exBox(x);
+      if (p.ptr > 0 && !p.ref && at && at.dims.length && !at.isBox()) return this.exBox(x);
       if (pB && aB) {
+        // An array, or a reference to one, is the array object itself (see isBoxedVar):
+        // a reference parameter takes that object, a pointer parameter the address
+        // of its first element.
+        const arrArg = !!at && at.dims.length > 0 && at.ptr === 0 && !at.isFunc;
+        if (arrArg && p.ptr === 0 && p.ref !== "") return this.ex(x);
+        if (arrArg && p.ptr > 0 && !p.isFunc) {
+          const ptr = x.kind === "id" ? this.exBox(x) : `{a: ${this.ex(x)}, i: 0}`;
+          return p.ref !== "" ? `{a: [${ptr}], i: 0}` : ptr;
+        }
         if (at && at.ref) {
+          // A by-value pointer parameter takes the pointer a reference call result
+          // refers to, so its box is read (an identifier already reads through).
+          if (p.ptr > 0 && !p.ref && !p.isFunc && x.kind !== "id") {
+            const v = this.tmp();
+            return `(${v} = ${this.ex(x)}, ${v}.a[${v}.i])`;
+          }
           if (p.ptr > 0 && !p.isFunc) {
             const r = this.refBox(x);
             if (r !== null) return r;
@@ -3390,6 +3403,8 @@ namespace CTJ {
       // to a base class names the base subobject instead.  This comes before the
       // conversions below: a reference to a bool is the bool's own storage, not
       // the boolean value a cast to the plain type gives.
+      // A reference to an array is the array itself (see isBoxedVar).
+      if (t.ref && t.dims.length && !t.ptr) return this.ex(e.arg);
       if (t.ref) return this.baseRefView(e, t) || this.exBox(e.arg);
       if (coreName(t) === "bool" && at.isBox() && !at.isFunc) return `(${this.ex(e.arg)} != null)`;
       const ak = intKindOf(at);

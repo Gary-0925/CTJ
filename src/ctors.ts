@@ -74,6 +74,37 @@ namespace CTJ {
     }
   }
 
+  // The elements of an array of class objects that a braced list initializes
+  // are converted by the constructor that takes each item\"std::string words[] =
+  // {\"a\"}\" makes strings of the literals).  Recorded on the items, which the
+  // code generator reads when it builds the array.
+  export function annotateArrayElems(cx: Cx, t: CppType, items: Expr[], scope: Scope): void {
+    const et = new CppType(t.name);
+    et.segs = t.segs;
+    et.ptr = t.ptr;
+    et.ref = t.ref;
+    et.dims = t.dims.slice(1);
+    if (et.dims.length || et.ptr || et.ref || et.isFunc || et.isBox()) return;
+    const fq = cx.stripAll(et);
+    if (!cx.classes.has(fq)) return;
+    for (const item of items) {
+      if (item.kind === "initlist") continue;
+      const it = typeOf(cx, item, scope);
+      if (it.isFunc || it.ref !== "" || cx.stripAll(it) === fq) continue;
+      try {
+        const r = tryResolveCtor(cx, fq, [{ t: it, e: item }], scope);
+        if (r) {
+          cx.getAnn(item).conv = { kind: "ctor", fn: r.fn };
+          cx.getAnn(item).convs = r.convs;
+          cx.markFunc(r.fn);
+          for (const c of r.convs) if (c && c.fn) cx.markFunc(c.fn);
+        }
+      } catch {
+        // the emitter reports a value it cannot build
+      }
+    }
+  }
+
   export function resolveCtor(cx: Cx, clsFq: string, args: { t: CppType; e: Expr }[], scope: Scope, t: At, allowExplicit = true): { fn: FuncInfo; convs: ({ kind: string; fn: FuncInfo } | null)[] } {
     const cls = cx.classes.get(clsFq);
     if (!cls) cx.fail(`unknown class '${clsFq}'`, t);

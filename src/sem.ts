@@ -106,6 +106,9 @@ namespace CTJ {
     // The typedefs declared in the body of the function being read, which are
     // visible from there on and nowhere else.
     localTypedefs?: Map<string, string>;
+    // The class whose member typedef is being read: its other member typedefs
+    // are visible by bare name ("typedef typename Sel<RT>::type type").
+    owner?: string;
   }
 
   // A type spelled well enough to tell two resolutions of the same name apart,
@@ -1451,6 +1454,10 @@ namespace CTJ {
 
     resolveSym(parts: QSeg[], global: boolean, scope: Scope): Sym | null {
       if (!parts.length) return null;
+      if (!global && scope.owner && parts.length === 1 && !parts[0].a.length && !parts[0].tid) {
+        const sibling = scope.owner + "::" + parts[0].n;
+        if (this.typedefs.has(sibling)) return { k: "typedef", fq: sibling };
+      }
       // The injected class name: inside a class its own name, written without
       // arguments, stands for the class itself rather than for its template.
       if (!global && !parts[0].a.length && !parts[0].tid) {
@@ -1519,7 +1526,7 @@ namespace CTJ {
         // "basic_string<_CharT, ...>::_Rep" written inside the class: the plain
         // head finds the constructor before the class template, so the whole path
         // is looked up again where only the namespaces are in scope.
-        return this.resolveSym(parts, global, { ns: scope.ns.slice(), cls: null, locals: [], fn: null, returns: [] });
+        return this.resolveSym(parts, global, { ns: scope.ns.slice(), cls: null, locals: [], fn: null, returns: [], owner: scope.owner });
       }
       return sym;
     }
@@ -1914,15 +1921,18 @@ namespace CTJ {
       const td = this.typedefs.get(fq);
       if (!td) this.fail(`unknown typedef '${fq}'`);
       const target = (td as { target: TypeNode }).target;
+      const cut = fq.lastIndexOf("::");
+      const base = (td as { scope: Scope }).scope;
+      const scope: Scope = cut > 0 ? { ...base, owner: fq.slice(0, cut) } : base;
       if (target.parts.length === 1 && !target.parts[0].a.length && !target.ptr && !target.ref && !target.func && !target.dims.length && !target.decltypeOf && !target.valueArg) {
-        const s = this.resolveSym(target.parts, target.global, (td as { scope: Scope }).scope);
+        const s = this.resolveSym(target.parts, target.global, scope);
         if (s && s.k === "typedef") {
           const t = this.expandTypedef(s.fq, seen);
           seen.delete(fq);
           return t;
         }
       }
-      const t = this.resolveTypeNode(target, (td as { scope: Scope }).scope);
+      const t = this.resolveTypeNode(target, scope);
       seen.delete(fq);
       return t;
     }
@@ -2097,7 +2107,12 @@ namespace CTJ {
         if (t.ptr < tn.ptr || (tn.ref && tn.ref !== t.ref)) return false;
         // "_Tp[]" and "_Tp[_Size]" only match arrays; without this the array
         // specialization of remove_all_extents is picked for a plain int.
-        if (tn.dims.length !== t.dims.length) return false;
+        // A parameter binds a reference to an array whole (is_same<_Tp, _Tp> with
+        // char(&)[6]), while an array pattern has to agree with the argument.
+        const refBinds = t.ref !== "" && !tn.dims.length && t.dims.length > 0;
+        if (tn.dims.length !== t.dims.length && !refBinds) return false;
+        // An array pattern does not match a reference to an array: is_array<_Tp(&)[N]> is false.
+        if (tn.dims.length && t.ref !== "") return false;
         if (env.types.has(first)) return (env.types.get(first) as CppType).key() === t.key();
         const c = new CppType(t.name);
         c.segs = t.segs;
@@ -2732,7 +2747,10 @@ namespace CTJ {
     }
   }
 
+  // A reference to an array holds the array itself: arrays are objects already,
+  // so the reference is that object and needs no box of its own.
   export function isBoxedVar(t: CppType): boolean {
+    if (t.ref !== "" && t.ptr === 0 && t.dims.length > 0) return false;
     return t.isBox() && !t.isFunc;
   }
 

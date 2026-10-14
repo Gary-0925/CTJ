@@ -301,7 +301,7 @@ namespace CTJ {
     if (p.peek().t === "{") {
       const nm = p.anonName("ns");
       p.pos++;
-      const decls = parseNsBody(p, at(t));
+      const decls = parseNsBody(p, at(t), []);
       return { kind: "ns", name: nm, aliasOf: [], decls, isInline, ...at(t) };
     }
     const first = p.expect("ident").v;
@@ -323,7 +323,7 @@ namespace CTJ {
       kind: "ns",
       name: last(parts),
       aliasOf: [],
-      decls: parseNsBody(p, at(t)),
+      decls: parseNsBody(p, at(t), parts),
       isInline,
       ...at(t),
     };
@@ -333,23 +333,34 @@ namespace CTJ {
     return inner as NamespaceDecl;
   }
 
-  function parseNsBody(p: Parser, opened: At): Decl[] {
+  // The declarations of a namespace body; \"path\" names the namespace (possibly
+  // nested) so that its functions and variables are recorded under it.
+  function parseNsBody(p: Parser, opened: At, path: string[]): Decl[] {
     const out: Decl[] = [];
-    while (!p.eat("}")) {
-      if (p.atEnd()) {
-        p.warn(`unterminated namespace body opened at ${opened.file}:${opened.line}, ` + "keeping the declarations parsed so far", p.peek());
-        return out;
+    const saved = p.nsPath;
+    p.nsPath = [...saved, ...path];
+    try {
+      while (!p.eat("}")) {
+        if (p.atEnd()) {
+          p.warn(`unterminated namespace body opened at ${opened.file}:${opened.line}, ` + "keeping the declarations parsed so far", p.peek());
+          return out;
+        }
+        try {
+          for (const d of p.parseDecls(false)) {
+            out.push(d);
+            if (d.kind === "func" || d.kind === "var") p.registerNsValue(last(d.name).n);
+          }
+        } catch (e) {
+          if (e instanceof CtxError) {
+            p.warn(`parse error: ${e.message}, skipping`, p.peek());
+            p.recover();
+          } else throw e;
+        }
       }
-      try {
-        for (const d of p.parseDecls(false)) out.push(d);
-      } catch (e) {
-        if (e instanceof CtxError) {
-          p.warn(`parse error: ${e.message}, skipping`, p.peek());
-          p.recover();
-        } else throw e;
-      }
+      return out;
+    } finally {
+      p.nsPath = saved;
     }
-    return out;
   }
 
   export function parseUsing(p: Parser): Decl[] {

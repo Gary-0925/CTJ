@@ -9,6 +9,8 @@ namespace CTJ {
     // parameter is out of scope by the time the body is parsed, and without it
     // "_Up(args)" is not a construction.
     types: Set<string>[];
+    // The namespaces the body is written in.
+    nsPath: string[];
   }
 
   export interface DeclSpec {
@@ -82,6 +84,10 @@ namespace CTJ {
     inClass: ClassDecl[] = [];
     typeScopes: Set<string>[] = [new Set()];
     nsNames: Set<string> = new Set();
+    // The namespaces being parsed, outermost first, and the qualified names
+    // ("ns::f") of the functions and variables declared in them.
+    nsPath: string[] = [];
+    nsValues: Set<string> = new Set();
     classTypes: Map<string, Set<string>> = new Map();
     pending: PendingBody[] = [];
     anon: { n: number } = { n: 0 };
@@ -207,6 +213,35 @@ namespace CTJ {
       this.nsNames.add(name);
     }
 
+    registerNsValue(name: string): void {
+      if (this.nsPath.length) this.nsValues.add([...this.nsPath, name].join("::"));
+    }
+
+    // \"ns::f\": the name is a function or variable when a namespace it is written
+    // against declares it, so \"my_namespace::MyClass()\" calls the function even
+    // when a class of the same name is in scope.
+    isNsValueName(parts: QSeg[]): boolean {
+      if (parts.length < 2) return false;
+      const qual = parts
+        .slice(0, -1)
+        .map(s => s.n)
+        .join("::");
+      const full = `${qual}::${last(parts).n}`;
+      for (const key of this.nsValues) {
+        if (key === full || key.endsWith(`::${full}`)) return true;
+      }
+      return false;
+    }
+
+    // An unqualified name declared as a function or variable in the namespace
+    // being parsed, or in one enclosing it, hides a class of that name outside.
+    isNsScopeValue(name: string): boolean {
+      for (let k = this.nsPath.length; k >= 1; k--) {
+        if (this.nsValues.has(`${this.nsPath.slice(0, k).join("::")}::${name}`)) return true;
+      }
+      return false;
+    }
+
     // The type names declared inside a class, kept so that they can be made
     // visible again when a member of that class is defined outside of it.
     recordClassTypes(name: string): void {
@@ -261,6 +296,8 @@ namespace CTJ {
       p.warnings = this.warnings;
       p.typeScopes = this.typeScopes;
       p.nsNames = this.nsNames;
+      p.nsPath = this.nsPath.slice();
+      p.nsValues = this.nsValues;
       p.classTypes = this.classTypes;
       p.anon = this.anon;
       return p;
@@ -527,7 +564,7 @@ namespace CTJ {
       if (this.peek().t === "{" || this.isIdent("try")) {
         if (inClass) {
           const toks = this.collectBalancedTry();
-          this.pending.push({ func: fn, toks, types: this.typeScopes.map(s => new Set(s)) });
+          this.pending.push({ func: fn, toks, types: this.typeScopes.map(s => new Set(s)), nsPath: this.nsPath.slice() });
         } else {
           // The members of the class are in scope in the body of an out-of-line
           // member definition, so its type names stay visible while parsing it.
@@ -608,6 +645,7 @@ namespace CTJ {
       for (const p of list) {
         const sub = this.spawn(p.toks);
         sub.typeScopes = p.types;
+        sub.nsPath = p.nsPath;
         p.func.body = sub.parseFuncBody();
         if (!sub.atEnd()) sub.warn("trailing tokens in function body");
       }

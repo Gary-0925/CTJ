@@ -625,6 +625,7 @@ namespace CTJ {
       if (vd.init.kind === "initlist") {
         const items = (vd.init as InitListExpr).items.map(e => ({ t: typeOf(cx, e, scope), e }));
         if (t.dims.length || (t.name === "char" && t.dims.length)) {
+          if (t.dims.length) annotateArrayElems(cx, t, (vd.init as InitListExpr).items, scope);
           return;
         }
         if (cls) {

@@ -271,7 +271,8 @@ namespace CTJ {
   const POINTER_SIZE = 4;
 
   export function constSizeof(cx: Cx, t: CppType, seen: Set<string>): number {
-    if (t.ptr > 0 || t.ref !== "" || t.isFunc) return POINTER_SIZE;
+    // A reference to an array is the size of the array, not of a pointer.
+    if (t.ptr > 0 || (t.ref !== "" && !t.dims.length) || t.isFunc) return POINTER_SIZE;
     if (t.dims.length) {
       const n = t.dims[0];
       if (n < 0) cx.fail("sizeof incomplete array");

@@ -177,7 +177,7 @@ namespace CTJ {
     // function, is not a type just because the class being parsed is called
     // "hash").  Otherwise the type names in scope are all there is to go on
     // ("std::size_t(...)" of a typedef, "hash<int>(...)" of a class).
-    const isType = e.kind === "id" && e.parts.length > 0 && (e.parts.length > 1 && p.ownerIsClass(e.parts) ? p.isQualifiedTypeName(e.parts) : p.isTypeName(last(e.parts).n));
+    const isType = e.kind === "id" && e.parts.length > 0 && (e.parts.length > 1 && p.ownerIsClass(e.parts) ? p.isQualifiedTypeName(e.parts) : e.parts.length > 1 ? !p.isNsValueName(e.parts) && p.isTypeName(last(e.parts).n) : !p.isNsScopeValue(last(e.parts).n) && p.isTypeName(last(e.parts).n));
     if (e.kind === "id" && isType) {
       const arg: Expr = args.length === 1 ? args[0] : { kind: "initlist", items: args, parens: true, ...at(t) };
       return {

@@ -83,7 +83,11 @@ namespace CTJ {
         const useRef = out.ref;
         out.ref = base.ref;
         if (!out.func) out.func = { params: (rep.funcParams || []).map(typeToNode), variadic: !!rep.funcVariadic, ptrRef: useRef || rep.ref || undefined };
-      } else if (!out.ref) out.ref = base.ref;
+      } else {
+        // Reference collapsing: an lvalue reference wins, so "_Tp&&" with _Tp = "const X&" is "const X&".
+        if (out.ref === "&" || base.ref === "&") out.ref = "&";
+        else if (out.ref || base.ref) out.ref = "&&";
+      }
       for (const d of base.dims) out.dims.unshift(litNum(d, out) as Expr);
     } else if (tn.parts.length === 1 && !tn.parts[0].a.length && env.values.has(first)) {
       // A nontype parameter written in type position, as in get<_Indexes>.
