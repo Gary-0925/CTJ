@@ -54,6 +54,8 @@
             return v.v + " '" + String.fromCharCode(v.v) + "'";
           case "bool":
             return v.v ? "true" : "false";
+          case "elem":
+            return "#" + v.to;
           case "null":
             return "null";
           case "ptr":
@@ -102,7 +104,10 @@
       // Boxes for the root and every node, and an edge for every pointer.  The layout walks the
       // graph depth first from the root.  A pointer back to a box on the current path (a parent
       // pointer, a cycle) is not drawn: its row shows "↑#n" instead.  A pointer to a box already
-      // placed is drawn as a plain edge.  Boxes sit in a column by their depth in the walk.
+      // placed is drawn as a plain edge.  Boxes the walk reaches sit in a column by their depth.
+      // The others (array elements, listed by number in the array row) are set out in a grid
+      // below, in index order.
+      const GRID_W = 900;
       function shapeLayout(snap) {
         const boxes = new Map();
         const rootRows = snap.root.k === "ptr" ? [{ label: "", text: "→", targets: [snap.root.to] }] : shapeRows("", snap.root, []);
@@ -135,6 +140,10 @@
           for (const r of b.rows) {
             if (r.back.length) r.text += "  ↑ " + r.back.map(x => "#" + x.slice(1)).join(" ");
           }
+          let w = b.title.length * CHAR_W;
+          for (const r of b.rows) w = Math.max(w, (r.label.length + 1 + r.text.length) * CHAR_W);
+          b.w = Math.max(96, Math.ceil(w) + 24);
+          b.h = 30 + b.rows.length * 20 + 8;
         }
         const cols = [];
         for (const id of order) {
@@ -145,13 +154,7 @@
         let maxY = 0;
         cols.forEach(col => {
           let colW = 0;
-          for (const b of col) {
-            let w = b.title.length * CHAR_W;
-            for (const r of b.rows) w = Math.max(w, (r.label.length + 1 + r.text.length) * CHAR_W);
-            b.w = Math.max(96, Math.ceil(w) + 24);
-            b.h = 30 + b.rows.length * 20 + 8;
-            colW = Math.max(colW, b.w);
-          }
+          for (const b of col) colW = Math.max(colW, b.w);
           let y = 16;
           for (const b of col) {
             b.x = x;
@@ -161,18 +164,36 @@
           maxY = Math.max(maxY, y);
           x += colW + 64;
         });
+        const rest = [...boxes.values()].filter(b => !depth.has(b.id));
+        const gridW = Math.max(x, GRID_W);
+        let gx = 16;
+        let gy = maxY ? maxY + 40 : 16;
+        let rowH = 0;
+        let right = x;
+        for (const b of rest) {
+          if (gx > 16 && gx + b.w > gridW) {
+            gx = 16;
+            gy += rowH + 22;
+            rowH = 0;
+          }
+          b.x = gx;
+          b.y = gy;
+          gx += b.w + 24;
+          rowH = Math.max(rowH, b.h);
+          right = Math.max(right, gx);
+        }
+        const bottom = rest.length ? gy + rowH + 16 : maxY;
         const edges = [];
         for (const b of boxes.values()) {
-          if (!depth.has(b.id)) continue;
           b.rows.forEach((r, i) => {
             for (const t of r.targets) {
               const id = "n" + t;
-              if (r.back.includes(id) || !depth.has(id)) continue;
+              if (r.back.includes(id) || !boxes.has(id)) continue;
               edges.push({ from: b, row: i, to: boxes.get(id), inf: (r.inf || []).includes(t) });
             }
           });
         }
-        return { boxes: order.map(id => boxes.get(id)), edges, width: Math.max(x, 120), height: Math.max(maxY, 60) };
+        return { boxes: [...order.map(id => boxes.get(id)), ...rest], edges, width: Math.max(right, 120), height: Math.max(bottom, 60) };
       }
 
       function el(name, attrs, text) {

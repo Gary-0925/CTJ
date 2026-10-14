@@ -9,7 +9,7 @@
 // A snapshot is written to the log channel as one line:
 //   @@ctj-show {"label": ..., "root": V, "nodes": [{"id": n, "type": ..., "value": V}]}
 // V is a value: {k:"int",v} {k:"char",v} {k:"bool",v} {k:"float",v} {k:"null"}
-// {k:"ptr",to:id} {k:"cstr",v} {k:"struct",n,f:[{n,base,v}]} {k:"arr",items} {k:"str",v}
+// {k:"ptr",to:id} {k:"elem",to:id} {k:"cstr",v} {k:"struct",n,f:[{n,base,v}]} {k:"arr",items} {k:"str",v}
 // {k:"vec",items} {k:"opaque",n} {k:"more",n?}.
 //
 // A snapshot is cut to keep it small, and says so: at most 300 nodes, 32 items of an array
@@ -37,6 +37,7 @@ namespace CTJ {
     f?: ShapeField[];
     sp?: string | null;
     lf?: string[];
+    rt?: { a: string; r: string | null };
     dyn?: { m: string; t: number }[];
     hide?: string[];
   }
@@ -72,6 +73,8 @@ namespace CTJ {
   const CHAR_NAMES = new Set(["char", "signed char", "unsigned char", "wchar_t", "char16_t", "char32_t"]);
   const FLOAT_NAMES = new Set(["float", "double", "long double"]);
   // Field names that read as a link to another element of the same array.
+  // Integer fields that name the root of a tree stored in an array of link elements.
+  const ROOT_FIELDS = new Set(["root", "rt", "rot"]);
   const LINK_FIELDS = new Set(["l", "lc", "lch", "left", "lchild", "r", "rc", "rch", "right", "rchild", "next"]);
 
   class ShapeBuilder {
@@ -180,6 +183,13 @@ namespace CTJ {
       if (/^std::_Rb_tree_node(_base)?(<|$)/.test(fq)) this.tab[id].hide = ["_M_color", "_M_parent"];
       const lf = fields.filter(f => !f.base && LINK_FIELDS.has(f.n) && this.tab[f.t].k === "int").map(f => f.n);
       if (lf.length) this.tab[id].lf = lf;
+      // A struct holding an array of link elements: the tree is rooted at the element a root
+      // field names, or at element 1 when there is no such field.
+      const arrF = fields.find(f => !f.base && this.tab[f.t].k === "arr" && this.tab[this.tab[f.t].of ?? 0].lf !== undefined);
+      if (arrF) {
+        const rf = fields.find(f => !f.base && ROOT_FIELDS.has(f.n) && this.tab[f.t].k === "int");
+        this.tab[id].rt = { a: arrF.n, r: rf ? rf.n : null };
+      }
       return id;
     }
   }
@@ -230,6 +240,10 @@ namespace CTJ {
     "    var nm = o && o.constructor && o.constructor.name;",
     "    for (var i = 0; i < d.dyn.length; i++) if (d.dyn[i].m === nm) return d.dyn[i].t;",
     "    return d.to;",
+    "  }",
+    "  function fieldJs(d, name) {",
+    "    for (var i = 0; i < d.f.length; i++) if (d.f[i].n === name) return d.f[i].j;",
+    "    return null;",
     "  }",
     "  function nodeFor(tid, arr, idx) {",
     "    var target = arr[idx];",
@@ -285,7 +299,7 @@ namespace CTJ {
     "        for (var j = 0; j < lim; j++) {",
     "          if (!linked) { items.push(enc(d.of, v[j], v)); continue; }",
     "          var r = nodeFor(d.of, v, j);",
-    "          items.push(r < 0 ? { k: 'more' } : { k: 'ptr', to: r });",
+    "          items.push(r < 0 ? { k: 'more' } : { k: 'elem', to: r });",
     "        }",
     "        if (d.len > lim) { items.push({ k: 'more', n: d.len - lim }); truncated = true; }",
     "        return { k: 'arr', items: items };",
@@ -312,6 +326,14 @@ namespace CTJ {
     "          return { k: 'vec', items: vitems };",
     "        }",
     "        var fields = [];",
+    "        var rootArr = null, rootIdx = 1, rootT = -1, rootOn = null;",
+    "        if (d.rt) {",
+    "          var raj = fieldJs(d, d.rt.a);",
+    "          for (var q = 0; q < d.f.length; q++) if (d.f[q].n === d.rt.a) rootT = tab[d.f[q].t].of;",
+    "          rootArr = raj === null ? null : v[raj];",
+    "          rootOn = d.rt.r || d.rt.a;",
+    "          if (d.rt.r) { var rfj = fieldJs(d, d.rt.r); rootIdx = rfj === null ? 0 : v[rfj]; }",
+    "        }",
     "        for (var i = 0; i < d.f.length; i++) {",
     "          var fd = d.f[i];",
     "          if (d.hide && d.hide.indexOf(fd.n) >= 0) continue;",
@@ -320,6 +342,10 @@ namespace CTJ {
     "          if (owner && d.lf && d.lf.indexOf(fd.n) >= 0 && typeof ix === 'number' && ix > 0 && owner[ix] && typeof owner[ix] === 'object') {",
     "            var lk = nodeFor(tid, owner, ix);",
     "            if (lk >= 0) fo.to = lk;",
+    "          }",
+    "          if (rootOn !== null && fd.n === rootOn && rootArr && typeof rootIdx === 'number' && rootIdx > 0 && rootArr[rootIdx] && typeof rootArr[rootIdx] === 'object') {",
+    "            var rr = nodeFor(rootT, rootArr, rootIdx);",
+    "            if (rr >= 0) fo.to = rr;",
     "          }",
     "          fields.push(fo);",
     "        }",

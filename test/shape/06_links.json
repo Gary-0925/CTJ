@@ -11,7 +11,8 @@
      "v": {
       "k": "int",
       "v": 1
-     }
+     },
+     "to": 0
     },
     {
      "n": "p",
@@ -20,35 +21,35 @@
       "k": "arr",
       "items": [
        {
-        "k": "ptr",
-        "to": 0
-       },
-       {
-        "k": "ptr",
+        "k": "elem",
         "to": 1
        },
        {
-        "k": "ptr",
+        "k": "elem",
+        "to": 0
+       },
+       {
+        "k": "elem",
         "to": 2
        },
        {
-        "k": "ptr",
+        "k": "elem",
         "to": 3
        },
        {
-        "k": "ptr",
+        "k": "elem",
         "to": 4
        },
        {
-        "k": "ptr",
+        "k": "elem",
         "to": 5
        },
        {
-        "k": "ptr",
+        "k": "elem",
         "to": 6
        },
        {
-        "k": "ptr",
+        "k": "elem",
         "to": 7
        }
       ]
@@ -59,40 +60,6 @@
   "nodes": [
    {
     "id": 0,
-    "type": "Tree::Node",
-    "value": {
-     "k": "struct",
-     "n": "Tree::Node",
-     "f": [
-      {
-       "n": "key",
-       "base": false,
-       "v": {
-        "k": "int",
-        "v": 0
-       }
-      },
-      {
-       "n": "l",
-       "base": false,
-       "v": {
-        "k": "int",
-        "v": 0
-       }
-      },
-      {
-       "n": "r",
-       "base": false,
-       "v": {
-        "k": "int",
-        "v": 0
-       }
-      }
-     ]
-    }
-   },
-   {
-    "id": 1,
     "type": "Tree::Node",
     "value": {
      "k": "struct",
@@ -123,6 +90,40 @@
         "v": 3
        },
        "to": 3
+      }
+     ]
+    }
+   },
+   {
+    "id": 1,
+    "type": "Tree::Node",
+    "value": {
+     "k": "struct",
+     "n": "Tree::Node",
+     "f": [
+      {
+       "n": "key",
+       "base": false,
+       "v": {
+        "k": "int",
+        "v": 0
+       }
+      },
+      {
+       "n": "l",
+       "base": false,
+       "v": {
+        "k": "int",
+        "v": 0
+       }
+      },
+      {
+       "n": "r",
+       "base": false,
+       "v": {
+        "k": "int",
+        "v": 0
+       }
       }
      ]
     }
