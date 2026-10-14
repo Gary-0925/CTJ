@@ -13,6 +13,27 @@ if (!fs.existsSync(tsc)) {
   process.exit(1);
 }
 execFileSync(process.execPath, [tsc, "-p", root], { stdio: "inherit" });
+bundle();
+
+// TypeScript 7 has no outFile, so tsc emits one file per source.  The bundle is those
+// files joined in the order tsconfig lists them, which is the order they depend on:
+// they share the namespace CTJ.  Only the first "use strict" is kept.
+function bundle() {
+  const cfg = JSON.parse(fs.readFileSync(path.join(root, "tsconfig.json"), "utf8"));
+  const parts = path.join(root, cfg.compilerOptions.outDir);
+  const srcDir = path.join(root, cfg.compilerOptions.rootDir);
+  const js = ['"use strict";'];
+  const dts = [];
+  for (const f of cfg.files) {
+    const base = path.relative(srcDir, path.join(root, f)).replace(/\.ts$/, "");
+    js.push(fs.readFileSync(path.join(parts, base + ".js"), "utf8").replace(/^"use strict";\n/, ""));
+    dts.push(fs.readFileSync(path.join(parts, base + ".d.ts"), "utf8"));
+  }
+  fs.mkdirSync(path.join(root, "dist"), { recursive: true });
+  fs.writeFileSync(path.join(root, "dist", "ctj.js"), js.join("\n"));
+  fs.writeFileSync(path.join(root, "dist", "ctj.d.ts"), dts.join("\n"));
+  fs.rmSync(parts, { recursive: true, force: true });
+}
 
 const dist = path.join(root, "dist", "ctj.js");
 const kb = n => (n / 1024).toFixed(0) + " KB";

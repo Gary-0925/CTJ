@@ -2,8 +2,9 @@
   "compilerOptions": {
     "target": "es2019",
     "lib": ["es2020"],
-    "module": "none",
-    "outFile": "dist/ctj.js",
+    "module": "es2020",
+    "rootDir": "src",
+    "outDir": "dist/parts",
     "declaration": true,
     "strict": true,
     "skipLibCheck": true,
