@@ -200,6 +200,12 @@ namespace CTJ {
     if (!argTs.length || argTs[0].e.kind !== "lit" || (argTs[0].e as LitExpr).lkind !== "string") {
       cx.fail(`${name} first argument must be a string literal`, e);
     }
+    if (name === "__ctj_show") {
+      // __ctj_show("label", expr): the descriptor table is built for the type of expr.
+      if (argTs.length !== 2) cx.fail("__ctj_show takes a label and one expression", e);
+      cx.getAnn(e).call = { builtin: name, shape: shapeTableFor(cx, argTs[1].t) };
+      return CppType.basic("void");
+    }
     cx.getAnn(e).call = { builtin: name };
     return CppType.basic("__any");
   }

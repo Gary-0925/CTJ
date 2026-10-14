@@ -292,7 +292,7 @@ namespace CTJ {
   export interface Ann {
     t: CppType | null;
     sym: Sym | null;
-    call: FuncInfo | { builtin: string; value?: number } | null;
+    call: FuncInfo | { builtin: string; value?: number; shape?: ShapeTable } | null;
     conv: { kind: string; fn: FuncInfo } | null;
     convs: ({ kind: string; fn: FuncInfo } | null)[];
     caps: { name: string; mode: string; v: VarInfo }[];
@@ -1318,7 +1318,7 @@ namespace CTJ {
     }
 
     lookupBuiltin(name: string): Sym | null {
-      if (name === "__ctj_js") return { k: "builtin", name };
+      if (name === "__ctj_js" || name === "__ctj_show") return { k: "builtin", name };
       return null;
     }
 

@@ -1,0 +1,92 @@
+[
+ {
+  "label": "arr",
+  "root": {
+   "k": "arr",
+   "items": [
+    {
+     "k": "int",
+     "v": 7
+    },
+    {
+     "k": "int",
+     "v": 8
+    },
+    {
+     "k": "int",
+     "v": 9
+    }
+   ]
+  },
+  "nodes": []
+ },
+ {
+  "label": "lit",
+  "root": {
+   "k": "cstr",
+   "v": "xy"
+  },
+  "nodes": []
+ },
+ {
+  "label": "pn",
+  "root": {
+   "k": "ptr",
+   "to": 0
+  },
+  "nodes": [
+   {
+    "id": 0,
+    "type": "int",
+    "value": {
+     "k": "int",
+     "v": 42
+    }
+   }
+  ]
+ },
+ {
+  "label": "derived",
+  "root": {
+   "k": "struct",
+   "n": "Derived",
+   "f": [
+    {
+     "n": "Base",
+     "base": true,
+     "v": {
+      "k": "struct",
+      "n": "Base",
+      "f": [
+       {
+        "n": "id",
+        "base": false,
+        "v": {
+         "k": "int",
+         "v": 4
+        }
+       }
+      ]
+     }
+    },
+    {
+     "n": "w",
+     "base": false,
+     "v": {
+      "k": "float",
+      "v": 2.5
+     }
+    }
+   ]
+  },
+  "nodes": []
+ },
+ {
+  "label": "flag",
+  "root": {
+   "k": "bool",
+   "v": true
+  },
+  "nodes": []
+ }
+]

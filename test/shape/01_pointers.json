@@ -1,0 +1,289 @@
+[
+ {
+  "label": "ring",
+  "root": {
+   "k": "ptr",
+   "to": 0
+  },
+  "nodes": [
+   {
+    "id": 0,
+    "type": "Node",
+    "value": {
+     "k": "struct",
+     "n": "Node",
+     "f": [
+      {
+       "n": "value",
+       "base": false,
+       "v": {
+        "k": "int",
+        "v": 1
+       }
+      },
+      {
+       "n": "next",
+       "base": false,
+       "v": {
+        "k": "ptr",
+        "to": 1
+       }
+      }
+     ]
+    }
+   },
+   {
+    "id": 1,
+    "type": "Node",
+    "value": {
+     "k": "struct",
+     "n": "Node",
+     "f": [
+      {
+       "n": "value",
+       "base": false,
+       "v": {
+        "k": "int",
+        "v": 2
+       }
+      },
+      {
+       "n": "next",
+       "base": false,
+       "v": {
+        "k": "ptr",
+        "to": 0
+       }
+      }
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "label": "chain",
+  "root": {
+   "k": "ptr",
+   "to": 0
+  },
+  "nodes": [
+   {
+    "id": 0,
+    "type": "Node",
+    "value": {
+     "k": "struct",
+     "n": "Node",
+     "f": [
+      {
+       "n": "value",
+       "base": false,
+       "v": {
+        "k": "int",
+        "v": 1
+       }
+      },
+      {
+       "n": "next",
+       "base": false,
+       "v": {
+        "k": "ptr",
+        "to": 1
+       }
+      }
+     ]
+    }
+   },
+   {
+    "id": 1,
+    "type": "Node",
+    "value": {
+     "k": "struct",
+     "n": "Node",
+     "f": [
+      {
+       "n": "value",
+       "base": false,
+       "v": {
+        "k": "int",
+        "v": 2
+       }
+      },
+      {
+       "n": "next",
+       "base": false,
+       "v": {
+        "k": "ptr",
+        "to": 2
+       }
+      }
+     ]
+    }
+   },
+   {
+    "id": 2,
+    "type": "Node",
+    "value": {
+     "k": "struct",
+     "n": "Node",
+     "f": [
+      {
+       "n": "value",
+       "base": false,
+       "v": {
+        "k": "int",
+        "v": 3
+       }
+      },
+      {
+       "n": "next",
+       "base": false,
+       "v": {
+        "k": "null"
+       }
+      }
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "label": "tree",
+  "root": {
+   "k": "ptr",
+   "to": 0
+  },
+  "nodes": [
+   {
+    "id": 0,
+    "type": "Tree",
+    "value": {
+     "k": "struct",
+     "n": "Tree",
+     "f": [
+      {
+       "n": "key",
+       "base": false,
+       "v": {
+        "k": "int",
+        "v": 5
+       }
+      },
+      {
+       "n": "left",
+       "base": false,
+       "v": {
+        "k": "ptr",
+        "to": 1
+       }
+      },
+      {
+       "n": "right",
+       "base": false,
+       "v": {
+        "k": "ptr",
+        "to": 2
+       }
+      }
+     ]
+    }
+   },
+   {
+    "id": 1,
+    "type": "Tree",
+    "value": {
+     "k": "struct",
+     "n": "Tree",
+     "f": [
+      {
+       "n": "key",
+       "base": false,
+       "v": {
+        "k": "int",
+        "v": 3
+       }
+      },
+      {
+       "n": "left",
+       "base": false,
+       "v": {
+        "k": "ptr",
+        "to": 3
+       }
+      },
+      {
+       "n": "right",
+       "base": false,
+       "v": {
+        "k": "null"
+       }
+      }
+     ]
+    }
+   },
+   {
+    "id": 2,
+    "type": "Tree",
+    "value": {
+     "k": "struct",
+     "n": "Tree",
+     "f": [
+      {
+       "n": "key",
+       "base": false,
+       "v": {
+        "k": "int",
+        "v": 8
+       }
+      },
+      {
+       "n": "left",
+       "base": false,
+       "v": {
+        "k": "null"
+       }
+      },
+      {
+       "n": "right",
+       "base": false,
+       "v": {
+        "k": "null"
+       }
+      }
+     ]
+    }
+   },
+   {
+    "id": 3,
+    "type": "Tree",
+    "value": {
+     "k": "struct",
+     "n": "Tree",
+     "f": [
+      {
+       "n": "key",
+       "base": false,
+       "v": {
+        "k": "int",
+        "v": 1
+       }
+      },
+      {
+       "n": "left",
+       "base": false,
+       "v": {
+        "k": "null"
+       }
+      },
+      {
+       "n": "right",
+       "base": false,
+       "v": {
+        "k": "null"
+       }
+      }
+     ]
+    }
+   }
+  ]
+ }
+]

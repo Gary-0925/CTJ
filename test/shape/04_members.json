@@ -1,0 +1,67 @@
+[
+ {
+  "label": "self",
+  "root": {
+   "k": "struct",
+   "n": "Counter",
+   "f": [
+    {
+     "n": "hits",
+     "base": false,
+     "v": {
+      "k": "int",
+      "v": 1
+     }
+    },
+    {
+     "n": "big",
+     "base": false,
+     "v": {
+      "k": "int",
+      "v": "1234567890123"
+     }
+    },
+    {
+     "n": "c",
+     "base": false,
+     "v": {
+      "k": "int",
+      "v": 1
+     }
+    },
+    {
+     "n": "tag",
+     "base": false,
+     "v": {
+      "k": "char",
+      "v": 81
+     }
+    },
+    {
+     "n": "ratio",
+     "base": false,
+     "v": {
+      "k": "float",
+      "v": 0.5
+     }
+    }
+   ]
+  },
+  "nodes": []
+ },
+ {
+  "label": "none",
+  "root": {
+   "k": "null"
+  },
+  "nodes": []
+ },
+ {
+  "label": "tag",
+  "root": {
+   "k": "char",
+   "v": 81
+  },
+  "nodes": []
+ }
+]

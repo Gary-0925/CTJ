@@ -32,6 +32,7 @@
     "src/deduction.ts",
     "src/consteval.ts",
     "src/builtins.ts",
+    "src/shape.ts",
     "src/libc/registry.ts",
     "src/libc/helpers.ts",
     "src/libc/ctype.ts",

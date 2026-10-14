@@ -1,0 +1,90 @@
+[
+ {
+  "label": "str",
+  "root": {
+   "k": "str",
+   "v": "hi there"
+  },
+  "nodes": []
+ },
+ {
+  "label": "names",
+  "root": {
+   "k": "vec",
+   "items": [
+    {
+     "k": "str",
+     "v": "ann"
+    },
+    {
+     "k": "str",
+     "v": "bob"
+    }
+   ]
+  },
+  "nodes": []
+ },
+ {
+  "label": "empty",
+  "root": {
+   "k": "vec",
+   "items": []
+  },
+  "nodes": []
+ },
+ {
+  "label": "nums",
+  "root": {
+   "k": "vec",
+   "items": [
+    {
+     "k": "int",
+     "v": 0
+    },
+    {
+     "k": "int",
+     "v": 1
+    },
+    {
+     "k": "int",
+     "v": 4
+    },
+    {
+     "k": "int",
+     "v": 9
+    },
+    {
+     "k": "int",
+     "v": 16
+    }
+   ]
+  },
+  "nodes": []
+ },
+ {
+  "label": "item",
+  "root": {
+   "k": "struct",
+   "n": "Item",
+   "f": [
+    {
+     "n": "name",
+     "base": false,
+     "v": {
+      "k": "str",
+      "v": "pen"
+     }
+    },
+    {
+     "n": "qty",
+     "base": false,
+     "v": {
+      "k": "int",
+      "v": 3
+     }
+    }
+   ]
+  },
+  "nodes": []
+ }
+]
