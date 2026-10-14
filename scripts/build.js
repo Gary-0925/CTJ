@@ -46,5 +46,5 @@ if (!fs.existsSync(includeDir)) {
 }
 const files = collect(includeDir, "");
 const json = JSON.stringify(files);
-fs.writeFileSync(path.join(root, "include.json"), json);
-console.log(`include.json: ${Object.keys(files).length} headers, ${(json.length / 1024 / 1024).toFixed(1)} MB`);
+fs.writeFileSync(path.join(root, "dist/include.json"), json);
+console.log(`dist/include.json: ${Object.keys(files).length} headers, ${(json.length / 1024 / 1024).toFixed(1)} MB`);

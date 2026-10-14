@@ -113,7 +113,8 @@
         outline: 1px solid #2f6feb;
       }
       #warnings {
-        max-height: 26%;
+        min-height: 5%;
+        max-height: 10%;
         overflow: auto;
         padding: 6px 12px;
         font-size: 12px;
@@ -132,7 +133,7 @@
       }
       #output {
         flex: 1;
-        min-height: 0;
+        min-height: 10%;
         border-top: 1px solid #2c303a;
       }
       #output.err {
@@ -349,7 +350,7 @@ int main() {
       }
 
       // The header table is fetched once, when the page loads.
-      const headersReady = fetch("./include.json").then(r => {
+      const headersReady = fetch("./dist/include.json").then(r => {
         if (!r.ok) throw new Error("HTTP " + r.status);
         return r.json();
       });

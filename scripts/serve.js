@@ -11,7 +11,7 @@ const port = parseInt(process.argv[2] || "8000", 10);
 
 // The playground is useless without the built transpiler, and a stale one in
 // the browser cache is worse than none, so build first and forbid caching.
-for (const f of ["dist/ctj.js", "include.json"]) {
+for (const f of ["dist/ctj.js", "dist/include.json"]) {
   if (!fs.existsSync(path.join(root, f))) {
     console.log(`${f} is missing, building first`);
     execFileSync(process.execPath, [path.join(__dirname, "build.js")], { stdio: "inherit" });
