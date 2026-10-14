@@ -141,6 +141,11 @@ namespace CTJ {
     run(): string {
       const body: string[] = [];
       this.out = body;
+      // Integer division and remainder by zero: g++ programs die of SIGFPE there, which a
+      // C++ catch cannot take; the marker below is not a C++ exception for the same reason.
+      this.line("const $fpe = () => { throw {$fpe: true}; };");
+      this.line('const $div = (a, b) => { if (b == 0) $fpe(); return typeof a === "bigint" ? a / b : Math.trunc(a / b); };');
+      this.line("const $mod = (a, b) => { if (b == 0) $fpe(); return a % b; };");
       for (const c of this.sortClasses()) {
         if (!c.referenced || c.isLambda) continue;
         this.emitClass(c);
@@ -172,7 +177,7 @@ namespace CTJ {
         this.line(`$rc = main(${args.join(", ")}) | 0;`);
       }
       const head = ['"use strict";', "return {", '  run($input = "") {', "    const $io = {", '      inp: { s: $input == null ? "" : String($input), p: 0 },', '      out: "", err: "", log: "", vf: null, addr: 0,', "      write(fd, t) {", "        if (fd === 2) this.err += t;", "        else if (fd === 3) this.log += t;", "        else this.out += t;", "      },", "    };", "    const console = {", '      log: (...a) => $io.write(1, a.map(String).join(" ") + "\\n"),', '      error: (...a) => $io.write(2, a.map(String).join(" ") + "\\n"),', "    };", "    let $rc = 0;", "    try {"];
-      const tail = ["    } catch (e) {", '      if (typeof e === "object" && e !== null && "$exit" in e) $rc = e.$exit;', "      else {", '        $io.err += String(e && e.message !== undefined ? e.message : e) + "\\n";', "        $rc = 1;", "      }", "    }", "    return { stdout: $io.out, stderr: $io.err, stdlog: $io.log, exitCode: $rc };", "  },", "};"];
+      const tail = ["    } catch (e) {", '      if (typeof e === "object" && e !== null && "$exit" in e) $rc = e.$exit;', '      else if (typeof e === "object" && e !== null && "$fpe" in e) { $io.err += "Floating point exception\\n"; $rc = 136; }', "      else {", '        $io.err += String(e && e.message !== undefined ? e.message : e) + "\\n";', "        $rc = 1;", "      }", "    }", "    return { stdout: $io.out, stderr: $io.err, stdlog: $io.log, exitCode: $rc };", "  },", "};"];
       if (this.usesLibc) body.unshift(...libcPrelude());
       return [...head, ...body.map(l => "      " + l), ...tail].join("\n") + "\n";
     }
@@ -1145,6 +1150,7 @@ namespace CTJ {
           this.ind = this.ind.slice(0, -2);
           this.line(`} catch (${en}) {`);
           this.ind += "  ";
+          this.line(`if (${en} && ${en}.$fpe) throw ${en};`);
           s.handlers.forEach((h, i) => {
             const pre = i === 0 ? "if" : "else if";
             if (h.ellipsis) {
@@ -2148,7 +2154,8 @@ namespace CTJ {
         if (ilElem) return `[${(x as InitListExpr).items.map(y => this.initListItem(ilElem, y)).join(", ")}]`;
       }
       if (pB && !aB) {
-        if (!at || at.name === "__null" || this.isZeroLit(x)) {
+        // A literal 0 is a null pointer only for a pointer parameter; for a reference it is a value.
+        if (!at || at.name === "__null" || (this.isZeroLit(x) && !p.ref)) {
           // A reference still needs a box; a pointer parameter is null itself.
           return p.ref ? "{a: [null], i: 0}" : "null";
         }
@@ -2820,7 +2827,7 @@ namespace CTJ {
         return `(${l} ${e.op} ${r})`;
       }
       if (e.op === "/" && lt && rt && isIntegerName(coreName(lt)) && isIntegerName(coreName(rt))) {
-        const q = `Math.trunc(${l} / ${r})`;
+        const q = `$div(${l}, ${r})`;
         return uwrap ? `((${q}) >>> 0)` : `(${q})`;
       }
       if (uwrap) {
@@ -2861,9 +2868,9 @@ namespace CTJ {
         case "*":
           return wrapInt(A.big ? `(${lx}) * (${rx})` : `Math.imul(${lx}, ${rx})`, A);
         case "/":
-          return wrapInt(A.big ? `(${lx}) / (${rx})` : `Math.trunc((${lx}) / (${rx}))`, A);
+          return wrapInt(`$div(${lx}, ${rx})`, A);
         case "%":
-          return wrapInt(`(${lx}) % (${rx})`, A);
+          return wrapInt(`$mod(${lx}, ${rx})`, A);
         default:
           return null;
       }
