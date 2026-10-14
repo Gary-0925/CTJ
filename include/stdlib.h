@@ -104,8 +104,9 @@ void* realloc(void* ptr, size_t size);
 void free(void* ptr);
 void* aligned_alloc(size_t alignment, size_t size);
 
-void abort(void);
-void exit(int status);
+/* exit and abort end the run: they throw, and run() turns the throw into the exit code. */
+void abort(void) { __ctj_js("(function () { throw { $exit: 134 }; })()"); }
+void exit(int status) { __ctj_js("(function (c) { throw { $exit: c }; })($1)", status); }
 void _Exit(int status);
 int atexit(void (*func)(void));
 char* getenv(const char* name);

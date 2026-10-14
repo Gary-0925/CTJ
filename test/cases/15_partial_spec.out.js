@@ -1,44 +1,71 @@
 "use strict";
-class Twice {
-  constructor(...$a) {
-    this.__init_Twice(...$a);
-  }
-  __init_Twice(...$a) {
-  }
-  __dtor() {
-  }
-  op_call(x) {
-    return ((Math.imul(x, 2)) | 0);
-  }
-}
-class Box_char {
-  v$Box_char;
-  constructor(...$a) {
-    this.__init_Box_char(...$a);
-  }
-  __init_Box_char(...$a) {
-    this.v$Box_char = $a[0];
-  }
-  __dtor() {
-  }
-  get() {
-    return this.v$Box_char;
-  }
-}
-class Same_int_int {
-  __init_Same_int_int(...$a) { }
-  __dtor() {
-  }
-}
-class Same_int_char {
-  __init_Same_int_char(...$a) { }
-  __dtor() {
-  }
-}
-function main() {
-  let t = new Twice();
-  let c = new Box_char(65);
-  (console.log((1), (0), (t.op_call(21)), (((Box_char.prototype.get.call(c)) | 0))));
-  return 0;
-}
-main();
+return {
+  run($input = "") {
+    const $io = {
+      inp: { s: $input == null ? "" : String($input), p: 0 },
+      out: "", err: "", log: "", vf: null, addr: 0,
+      write(fd, t) {
+        if (fd === 2) this.err += t;
+        else if (fd === 3) this.log += t;
+        else this.out += t;
+      },
+    };
+    const console = {
+      log: (...a) => $io.write(1, a.map(String).join(" ") + "\n"),
+      error: (...a) => $io.write(2, a.map(String).join(" ") + "\n"),
+    };
+    let $rc = 0;
+    try {
+      class _Z5Twice {
+        constructor(...$a) {
+          this.__init__Z5Twice(...$a);
+        }
+        __init__Z5Twice(...$a) {
+        }
+        __dtor() {
+        }
+        _ZN5TwiceclEi(x) {
+          return ((Math.imul(x, 2)) | 0);
+        }
+      }
+      class _Z3BoxIcE {
+        v$_Z3BoxIcE;
+        constructor(...$a) {
+          this.__init__Z3BoxIcE(...$a);
+        }
+        __init__Z3BoxIcE(...$a) {
+          this.v$_Z3BoxIcE = $a[0];
+        }
+        __dtor() {
+        }
+        _ZN3BoxIcE3getEv() {
+          return this.v$_Z3BoxIcE;
+        }
+      }
+      class _Z4SameIiiE {
+        __init__Z4SameIiiE(...$a) { }
+        __dtor() {
+        }
+      }
+      class _Z4SameIicE {
+        __init__Z4SameIicE(...$a) { }
+        __dtor() {
+        }
+      }
+      function main() {
+        let t = new _Z5Twice();
+        let c = new _Z3BoxIcE(65);
+        (console.log((1), (0), (t._ZN5TwiceclEi(21)), (((_Z3BoxIcE.prototype._ZN3BoxIcE3getEv.call(c)) | 0))));
+        return 0;
+      }
+      $rc = main() | 0;
+    } catch (e) {
+      if (typeof e === "object" && e !== null && "$exit" in e) $rc = e.$exit;
+      else {
+        $io.err += String(e && e.message !== undefined ? e.message : e) + "\n";
+        $rc = 1;
+      }
+    }
+    return { stdout: $io.out, stderr: $io.err, stdlog: $io.log, exitCode: $rc };
+  },
+};

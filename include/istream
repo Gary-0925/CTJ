@@ -2,9 +2,8 @@
 // itself is written in the target language: the characters come from
 // __ctj_js, so the transpiler knows nothing about streams.
 //
-// The input text is taken from globalThis.__ctjin (the playground sets it, as
-// {s: text, p: 0}); on Node, from standard input.  The reader only ever moves
-// forward through that text.
+// The input text is $io.inp, {s: text, p: 0}, set from the argument of run().
+// The reader only ever moves forward through that text.
 #ifndef _CTJ_ISTREAM
 #define _CTJ_ISTREAM 1
 
@@ -13,14 +12,14 @@
 #include <string>
 
 // The character code at the read position, or -1 at the end of the input.
-#define _CTJ_JS_PEEK "(function(){var q=(globalThis.__ctjin||(globalThis.__ctjin={s:(typeof require==='function'?require('fs').readFileSync(0,'utf8'):''),p:0}));return q.p<q.s.length?q.s.charCodeAt(q.p):-1})()"
+#define _CTJ_JS_PEEK "(function(){var q=$io.inp;return q.p<q.s.length?q.s.charCodeAt(q.p):-1})()"
 
 // The same, consuming the character.
-#define _CTJ_JS_GET "(function(){var q=(globalThis.__ctjin||(globalThis.__ctjin={s:(typeof require==='function'?require('fs').readFileSync(0,'utf8'):''),p:0}));return q.p<q.s.length?q.s.charCodeAt(q.p++):-1})()"
+#define _CTJ_JS_GET "(function(){var q=$io.inp;return q.p<q.s.length?q.s.charCodeAt(q.p++):-1})()"
 
 // Skips white space, then reads a run of non-white-space characters as a
 // floating-point number.  NaN, and nothing consumed, if the run is not one.
-#define _CTJ_JS_TOK "(function(){var q=(globalThis.__ctjin||(globalThis.__ctjin={s:(typeof require==='function'?require('fs').readFileSync(0,'utf8'):''),p:0})),s=q.s,e,t;function w(c){return c===32||(c>=9&&c<=13)}while(q.p<s.length&&w(s.charCodeAt(q.p)))q.p++;e=q.p;while(e<s.length&&!w(s.charCodeAt(e)))e++;t=s.slice(q.p,e);if(!/^[+-]?([0-9]+[.]?[0-9]*|[.][0-9]+)([eE][+-]?[0-9]+)?$/.test(t))return NaN;q.p=e;return Number(t)})()"
+#define _CTJ_JS_TOK "(function(){var q=$io.inp,s=q.s,e,t;function w(c){return c===32||(c>=9&&c<=13)}while(q.p<s.length&&w(s.charCodeAt(q.p)))q.p++;e=q.p;while(e<s.length&&!w(s.charCodeAt(e)))e++;t=s.slice(q.p,e);if(!/^[+-]?([0-9]+[.]?[0-9]*|[.][0-9]+)([eE][+-]?[0-9]+)?$/.test(t))return NaN;q.p=e;return Number(t)})()"
 
 namespace std {
 

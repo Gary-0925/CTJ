@@ -1,6 +1,5 @@
 const fs = require("fs");
 const path = require("path");
-const { execFileSync } = require("child_process");
 require("../dist/ctj.js");
 const { loadHeaders } = require("./headers");
 const CTJ = globalThis.CTJ;
@@ -27,13 +26,19 @@ for (const f of files) {
   const expected = norm(fs.existsSync(expFile) ? fs.readFileSync(expFile, "utf8") : "");
   try {
     const r = CTJ.transpile(src, { headers: headers });
+    // The generated code is kept beside the case for inspection; it is not run from the file.
     const jsFile = path.join(dir, name + ".out.js");
     const prev = fs.existsSync(jsFile) ? fs.readFileSync(jsFile, "utf8") : "";
     if (norm(prev) !== norm(r.code)) fs.writeFileSync(jsFile, r.code);
     // A case may read standard input from name.in (cin); otherwise it is empty.
     const inFile = path.join(dir, name + ".in");
-    const input = fs.existsSync(inFile) ? fs.readFileSync(inFile) : "";
-    const out = execFileSync("node", [jsFile], { encoding: "utf8", input, timeout: 10000 });
+    const input = fs.existsSync(inFile) ? fs.readFileSync(inFile, "utf8") : "";
+    const res = r.run(input);
+    if (res.exitCode !== 0) throw new Error(`exit code ${res.exitCode}: ${res.stderr}`);
+    // Each run starts from fresh state, so a second run gives the same output.
+    const again = r.run(input);
+    if (again.stdout !== res.stdout) throw new Error("second run differs from the first");
+    const out = res.stdout;
     if (norm(out) === expected) {
       pass++;
       console.log(`ok   ${name}`);

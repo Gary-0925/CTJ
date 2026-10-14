@@ -218,6 +218,8 @@ namespace CTJ {
     // its JavaScript name carries the instance, as the template's arguments
     // (not the class) tell the instances of one name apart.
     ownTmpl?: boolean;
+    // The arguments of a function template's own parameters, which its symbol encodes.
+    tmplArgs?: CppType[];
     baseAssigns: string[];
   }
 
@@ -618,7 +620,7 @@ namespace CTJ {
       return {
         fq,
         short,
-        mangled: mangleType(fq),
+        mangled: mangleClassSym([...scopeComps(scope), { n: short.split("<")[0] }]),
         decl,
         scope: this.snapScope(scope),
         bases: [],
@@ -865,7 +867,7 @@ namespace CTJ {
         v = {
           fq,
           short,
-          mangled: mangleType(fq),
+          mangled: mangleVarSym([...scopeComps(scope), { n: short }]),
           decl: d,
           scope: this.snapScope(scope),
           typeCache: null,
@@ -2185,7 +2187,7 @@ namespace CTJ {
       cls.fromTmpl = tmpl.fq;
       cls.instArgs = args;
       cls.isUnion = decl.cls === "union";
-      cls.mangled = mangleType(key);
+      cls.mangled = mangleClassSym(clsComps(cls));
       this.classes.set(key, cls);
       const sub: Scope = { ns: tmpl.scope.ns.slice(), cls, locals: [], fn: null, returns: [] };
       for (const b of decl.bases) {
@@ -2392,13 +2394,10 @@ namespace CTJ {
       }
       const decl = substDecl(tmpl.decl, env) as FuncDecl;
       this.annDefaults(decl, this.snapScope(tmpl.scope));
-      let mangled = mangleType(key);
-      for (let k = 2; this.fnMangles.has(mangled); k++) mangled = mangleType(key) + "_" + k;
-      this.fnMangles.add(mangled);
       const fn: FuncInfo = {
         fq: key,
         short: last(tmpl.fq.split("::")),
-        mangled,
+        mangled: "",
         decl,
         scope: this.snapScope(tmpl.scope),
         paramCache: null,
@@ -2419,6 +2418,7 @@ namespace CTJ {
         referenced: false,
         fromTmpl: tmpl.fq,
         ownTmpl: tmpl.tparams.length > 0,
+        tmplArgs: this.tmplArgsOf(tmpl, env),
         baseAssigns: [],
       };
       this.funcInsts.set(key, fn);
@@ -2436,6 +2436,64 @@ namespace CTJ {
         this.funcs.set(tmpl.fq, list);
       }
       return fn;
+    }
+
+    // The JavaScript name of a free function, given on first use. A signature is read
+    // only when the function is emitted: reading one while types are being resolved
+    // would see the types as they are then, not as the program declares them.
+    symOf(f: FuncInfo): string {
+      if (!f.mangled) this.assignSym(f, funcSym(this, f));
+      return f.mangled;
+    }
+
+    // Records the name of a function, with a suffix when another has the same name.
+    assignSym(f: FuncInfo, sym: string): void {
+      let name = sym;
+      for (let k = 2; this.fnMangles.has(name); k++) name = this.funcInsts.has(f.fq) ? sym + "_" + k : sym + "_" + f.decl.line;
+      this.fnMangles.add(name);
+      f.mangled = name;
+    }
+
+    // The JavaScript name of a method. A method that overrides a virtual method of a
+    // base class takes that method's name, so that a call through the base reaches it.
+    methodSym(f: FuncInfo): string {
+      if (f.mangled) return f.mangled;
+      const cls = f.isStatic ? undefined : this.classes.get(f.cls);
+      const base = cls ? this.baseVirtual(cls, f, paramsSig(this.funcParams(f).map(p => p.type)), new Set()) : null;
+      if (base) f.mangled = this.methodSym(base);
+      else this.assignSym(f, funcSym(this, f));
+      return f.mangled;
+    }
+
+    private baseVirtual(cls: ClsInfo, f: FuncInfo, sig: string, seen: Set<string>): FuncInfo | null {
+      for (const b of cls.bases) {
+        if (seen.has(b.fq)) continue;
+        seen.add(b.fq);
+        const bc = this.classes.get(b.fq);
+        if (!bc) continue;
+        for (const g of bc.methods.get(f.short) || []) {
+          if (g.isVirtual && !g.isStatic && g.isConst === f.isConst && paramsSig(this.funcParams(g).map(p => p.type)) === sig) return g;
+        }
+        const up = this.baseVirtual(bc, f, sig, seen);
+        if (up) return up;
+      }
+      return null;
+    }
+
+    // The arguments of a function template's own parameters, in declaration order.
+    tmplArgsOf(tmpl: TmplInfo, env: SubstEnv): CppType[] {
+      const out: CppType[] = [];
+      for (const tp of tmpl.tparams) {
+        if (tp.kind === "nontype") {
+          if (tp.isPack) for (const v of env.valuePacks.get(tp.name) || []) out.push(CppType.basic("__value" + v));
+          else if (env.values.has(tp.name)) out.push(CppType.basic("__value" + env.values.get(tp.name)));
+        } else if (tp.isPack) {
+          for (const a of env.packs.get(tp.name) || []) out.push(a);
+        } else if (env.types.has(tp.name)) {
+          out.push(env.types.get(tp.name) as CppType);
+        }
+      }
+      return out;
     }
 
     fillDefaultArgs(tmpl: TmplInfo, args: CppType[], scope: Scope, t: At | null): CppType[] {
@@ -2752,18 +2810,5 @@ namespace CTJ {
   export function isBoxedVar(t: CppType): boolean {
     if (t.ref !== "" && t.ptr === 0 && t.dims.length > 0) return false;
     return t.isBox() && !t.isFunc;
-  }
-
-  // Pointers and references keep a token of their own: folding every
-  // punctuation into "_" made "T<int&>" and "T<int>" come out as one identifier,
-  // which the target language rejects as a duplicate declaration.
-  export function mangleType(fq: string): string {
-    return fq
-      .replace(/&&/g, "_RR_")
-      .replace(/&/g, "_R_")
-      .replace(/\*/g, "_P_")
-      .replace(/[^A-Za-z0-9]/g, "_")
-      .replace(/_+/g, "_")
-      .replace(/^_|_$/g, "");
   }
 }

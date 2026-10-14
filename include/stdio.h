@@ -38,10 +38,9 @@ extern "C" {
    every call. Mode 1 writes to stdout, mode 2 to stderr, mode 0 into the buffer
    dst of size n; the result is the number of characters. */
 #define _CTJ_VFMT_JS \
-  "(globalThis.__ctjvf || (globalThis.__ctjvf = " \
+  "($io.vf || ($io.vf = " \
   "function (mode, dst, n, fmt, ap) { " \
-  "var NL = String.fromCharCode(10); " \
-  "function toStr(q) { " \
+    "function toStr(q) { " \
   "if (q === null || q === undefined) return '(null)'; " \
   "var a = q.a, i = q.i | 0, r = '', x; " \
   "if (typeof a === 'string') return a.slice(i); " \
@@ -90,19 +89,7 @@ extern "C" {
   "} " \
   "return m + ex; " \
   "} " \
-  "function write(t, fd) { " \
-  "if (!t) return; " \
-  "if (typeof process !== 'undefined' && process && process.stdout) { " \
-  "(fd === 2 && process.stderr ? process.stderr : process.stdout).write(t); " \
-  "return; " \
-  "} " \
-  "var g = globalThis, j; " \
-  "g.__ctjpend = (g.__ctjpend || '') + t; " \
-  "while ((j = g.__ctjpend.indexOf(NL)) >= 0) { " \
-  "console.log(g.__ctjpend.slice(0, j)); " \
-  "g.__ctjpend = g.__ctjpend.slice(j + 1); " \
-  "} " \
-  "} " \
+  "function write(t, fd) { if (t) $io.write(fd, t); } " \
   "function next() { return ap.a[ap.i++]; } " \
   "var f = toStr(fmt), out = '', i = 0, c, fl, w, pr, L, conv; " \
   "while (i < f.length) { " \
@@ -168,8 +155,8 @@ extern "C" {
   "if (pv === null || pv === undefined) ps = '(nil)'; " \
   "else { " \
   "if (typeof pv === 'object' && pv.ctjAddr === undefined) { " \
-  "globalThis.__ctjaddr = (globalThis.__ctjaddr || 0) + 1; " \
-  "pv.ctjAddr = 4096 + 16 * globalThis.__ctjaddr; " \
+  "$io.addr = ($io.addr || 0) + 1; " \
+  "pv.ctjAddr = 4096 + 16 * $io.addr; " \
   "} " \
   "ps = '0x' + (typeof pv === 'object' ? pv.ctjAddr : 0).toString(16); " \
   "} " \

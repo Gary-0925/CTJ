@@ -27,7 +27,6 @@ namespace CTJ {
       if (fn.analyzed) continue;
       analyzeFunc(cx, fn);
     }
-    finalizeMangling(cx);
   }
 
   export function finalizeFields(cx: Cx): void {
@@ -563,7 +562,7 @@ namespace CTJ {
         g = {
           fq,
           short: name,
-          mangled: mangleType(fq),
+          mangled: mangleLocalSym(scope.fn.fq, name),
           decl: vd,
           scope: cx.snapScope(scope),
           typeCache: t,
@@ -804,37 +803,6 @@ namespace CTJ {
   export function safeName(n: string): string {
     if (!n) return "$v";
     return safeJsName(n);
-  }
-
-  export function finalizeMangling(cx: Cx): void {
-    for (const [fq, list] of cx.funcs) {
-      if (list.length <= 1 && !list[0].fromTmpl) {
-        if (!list[0].mangled) list[0].mangled = mangleType(fq);
-        continue;
-      }
-      for (const f of list) {
-        if (f.mangled) continue;
-        const ps = cx.funcParams(f);
-        f.mangled = mangleType(fq) + "__" + ps.map(p => mangleSig(p.type)).join("_");
-      }
-    }
-    const seen = cx.fnMangles;
-    for (const list of cx.funcs.values()) {
-      for (const f of list) {
-        if (seen.has(f.mangled) && !cx.funcInsts.has(f.fq)) f.mangled = f.mangled + "_" + f.decl.line;
-        seen.add(f.mangled);
-      }
-    }
-  }
-
-  export function mangleSig(t: CppType): string {
-    let s = t.key();
-    s = s.replace(/\*/g, "P").replace(/&/g, "R").replace(/\[/g, "A").replace(/\]/g, "");
-    s = s
-      .replace(/[^A-Za-z0-9]/g, "_")
-      .replace(/_+/g, "_")
-      .replace(/^_|_$/g, "");
-    return s || "v";
   }
 
   export let lambdaCount = 0;

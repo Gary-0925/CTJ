@@ -40,14 +40,20 @@ npm run build
 ## 接口
 
 ```js
-CTJ.transpile(source, {
+const result = CTJ.transpile(source, {
   headers: {},         // 路径 -> 头文件内容，通常就是 include.json 的内容
   defines: {},         // 额外的 -D 宏
 });
-// 返回 { code, warnings }，出错时抛出带 file / line 的异常
+// 出错时抛出带 file / line 的异常
+result.code;           // 生成的 JavaScript：求值后得到 { run(input) }
+result.warnings;       // 转译警告
+const r = result.run("3 4\n");  // 运行一次，input 即 cin 的输入
+// r = { stdout, stderr, stdlog, exitCode }
 ```
 
-转译结果是完全独立的代码：没有 `require`、没有 `import`、不依赖任何运行时库，最后一行调用 `main()`。因此程序自己的输出要显式写出来，转译器提供了内建函数 `__ctj_js` 把表达式原样嵌入生成的 JavaScript：
+`run(input)` 每次调用都在独立的作用域里重新声明全部类、全局变量与函数，然后执行 `main()`，因此多次运行互不影响。`cout` 写入 `stdout`，`cerr` 写入 `stderr`，`clog` 写入 `stdlog`，`printf` 族写入 `stdout`（`fprintf(stderr, …)` 写入 `stderr`）。`exit(n)` 与 `abort()` 结束运行，退出码分别为 `n` 与 `134`；未捕获的运行时错误把信息写入 `stderr`，退出码为 `1`；`main` 的返回值即退出码。
+
+转译结果是完全独立的代码：没有 `require`、没有 `import`、不依赖任何运行时库。程序自己的输出也可以显式写出来，转译器提供了内建函数 `__ctj_js` 把表达式原样嵌入生成的 JavaScript。在 `run` 内 `console.log` 与 `console.error` 分别写入 `stdout` 与 `stderr`：
 
 ```cpp
 __ctj_js("console.log($1)", x);
@@ -93,13 +99,12 @@ npm test                # 运行 test/cases 下的全部用例
 已知限制：
 
 - `include/` 还缺少 `bits/uniform_int_dist.h`，依赖它的 `<random>` 分布不可用。`<algorithm>` 的 `sort` 等可以接受函数、函数指针、模板函数实例与 lambda 作比较器；`std::greater<>` 这类 C++14 透明比较器不可用，因为 `include/bits/stl_function.h` 是较旧的版本。
-- `<iostream>` 的输出已改为 CTJ 手写的头文件实现（见 `include/ostream`），不再依赖 libstdc++ 原版；`cin` 已支持（见 `include/istream`，输入来自 `globalThis.__ctjin`，没有时才读标准输入）；`<sstream>`、`<fstream>` 仍不支持。
+- `<iostream>` 的输出已改为 CTJ 手写的头文件实现（见 `include/ostream`），不再依赖 libstdc++ 原版；`cin` 已支持（见 `include/istream`，输入来自 `run(input)` 的参数）；`<sstream>`、`<fstream>` 仍不支持。
 - `include/stdio.h` 实现了 `printf`、`fprintf`、`sprintf`、`snprintf`、`puts`、`putchar` 等输出函数及其 `v*` 版本，格式化由一段 JavaScript（`_CTJ_VFMT_JS`）完成；`scanf` 一族仍未实现，输入请用 `cin`。
-- `cerr` / `clog` 目前与 `cout` 一样写到标准输出；`ostringstream` 不可用。
+- `ostringstream` 不可用。
 - `std::bind` 尚不可用：`_Bind<R(A...)>` 的返回类型 `R` 为函数指针时，类型表示无法嵌套，实例化失败。
 - `const T` 偏特化对 `const` 实参的区分不完整：实例键（`CppType.key()`）忽略 `const`，`A<const int>` 与 `A<int>` 共用同一实例。直接在键中加入 `const` 会改变既有的名字修饰，暂未做。
 - `decltype(id)` 丢弃了声明的 `const`（`decltype(K)` 对 `const int K` 应为 `const int`）。
-- 未以换行结束的最后一行会留在 `globalThis.__ctjpend`，由宿主（如 `index.html` 的 `run()`）负责输出。
 - 整数模型按 ILP32：`int`、`unsigned`、`long`、`size_t` 与指针为 32 位，以 JavaScript 的 `number` 表示；`long long` 与 `unsigned long long` 以 `BigInt` 表示，溢出与截断按 64 位回绕。
 - 函数与宏的变参（`...`、`va_arg`、`va_copy`、`__VA_ARGS__`、`#__VA_ARGS__`、`##__VA_ARGS__`、GNU 的 `args...`、`__VA_OPT__`）已支持。C++11 变参模板已支持：参数包、`sizeof...`、包展开（函数实参、初始化列表、模板实参、表达式模式）、递归模板、变参类模板与偏特化、非类型参数包、基类初始化中的包展开。C++14/17 特性（折叠表达式、`index_sequence`、`std::greater<>` 等）不在范围内。`strtol` 一族不做溢出饱和。
 

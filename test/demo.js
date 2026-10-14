@@ -1,6 +1,5 @@
 const fs = require("fs");
 const path = require("path");
-const { execFileSync } = require("child_process");
 require("../dist/ctj.js");
 const { loadHeaders } = require("./headers");
 const CTJ = globalThis.CTJ;
@@ -37,12 +36,9 @@ if (result.warnings.length) {
   result.warnings.slice(0, 20).forEach(w => console.log("   " + w));
 }
 
-const tmp = path.join(require("os").tmpdir(), `ctj-demo-${process.pid}.js`);
-fs.writeFileSync(tmp, result.code);
-try {
-  const out = execFileSync("node", [tmp], { encoding: "utf8", timeout: 10000 });
-  console.log("-- 运行结果 --");
-  process.stdout.write(out);
-} finally {
-  fs.unlinkSync(tmp);
-}
+const res = result.run("");
+console.log("-- 运行结果 --");
+process.stdout.write(res.stdout);
+if (res.stderr) process.stdout.write(`-- stderr --\n${res.stderr}`);
+if (res.stdlog) process.stdout.write(`-- stdlog --\n${res.stdlog}`);
+console.log(`-- exitCode ${res.exitCode} --`);

@@ -22,8 +22,8 @@ stdio.h stdlib.h string.h time.h unistd.h wchar.h wctype.h x86intrin.h`
 
 其中：
 
-- `string.h`、`math.h`、`stdlib.h` 里的函数带有实现，会被一起转译，因此转译结果仍然没有外部依赖。
-- `stdio.h` 只给出声明：`printf` 一族需要可变参数与目标语言的 I/O，没有实现，调用会在运行时抛出 `unresolved external`。要输出请用 `__ctj_js`。
+- `string.h`、`math.h`、`stdlib.h` 里的函数带有实现（`exit` 与 `abort` 抛出 `{ $exit: 码 }` 结束运行），会被一起转译，因此转译结果仍然没有外部依赖。
+- `stdio.h` 实现了 `printf` 一族（格式化是一段 JavaScript，`_CTJ_VFMT_JS`，结果写入 `$io`）；`scanf` 一族没有实现，调用会在运行时抛出 `unresolved external`，输入请用 `cin`。
 - `stddef.h` 提供 `size_t` / `ptrdiff_t` / `NULL` / `offsetof`。
 - `x86intrin.h` 是空壳：`bits/opt_random.h` 无条件包含它，只需要让包含成功。
 
@@ -31,8 +31,8 @@ stdio.h stdlib.h string.h time.h unistd.h wchar.h wctype.h x86intrin.h`
 
 `<ostream>`、`<iostream>`、`<ios>`、`<iomanip>`、`<istream>` 为 CTJ 手写，不使用 libstdc++ 原版，
 输出直接在头文件中通过 `__ctj_js` 实现（`include/ostream` 中的 `_CTJ_OUT_JS`），
-转译器对 `ostream` 没有任何特判。`cout` / `cerr` / `clog` 目前都写到标准输出。
-`cin` 也是 CTJ 手写（`include/istream`）：整数、浮点、`char`、`bool`、`std::string` 的 `>>`，以及 `get` / `ignore` / `getline`（`char*` 与 `string` 两种）已实现，输入来自 `globalThis.__ctjin`，没有时才读标准输入。`<sstream>`、`<fstream>` 仍是存根。
+转译器对 `ostream` 没有任何特判。`cout` 写到 stdout，`cerr` 写到 stderr，`clog` 写到 stdlog（fd 1、2、3，见 `$io.write`）。
+`cin` 也是 CTJ 手写（`include/istream`）：整数、浮点、`char`、`bool`、`std::string` 的 `>>`，以及 `get` / `ignore` / `getline`（`char*` 与 `string` 两种）已实现，输入来自程序对象 `run(input)` 的参数（`$io.inp`），不读取 Node 的标准输入。`<sstream>`、`<fstream>` 仍是存根。
 
 ## 来源
 

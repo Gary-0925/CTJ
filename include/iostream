@@ -10,7 +10,7 @@ namespace std {
 
   ostream cout(1);
   ostream cerr(2);
-  ostream clog(2);
+  ostream clog(3);
   istream cin(0);
 
 }

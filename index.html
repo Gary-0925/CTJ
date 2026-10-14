@@ -253,6 +253,7 @@ const $ = id => document.getElementById(id);
 let headers = null;
 let headersPromise = null;
 let lastCode = "";
+let lastProgram = null; // the transpile result; its run(input) executes the program
 
 function loadHeaders() {
   if (!headersPromise) {
@@ -269,16 +270,6 @@ function loadHeaders() {
 }
 
 function setStatus(text) { $("status").textContent = text; }
-
-function fmtValue(v) {
-  if (typeof v === "string") return v;
-  if (v && typeof v === "object") {
-    if (Array.isArray(v)) return "[" + v.map(fmtValue).join(",") + "]";
-    if (Array.isArray(v.a)) return "[" + v.a.slice(v.i | 0).map(fmtValue).join(",") + "]";
-    return JSON.stringify(v);
-  }
-  return String(v);
-}
 
 // Two ways to get the transpiler, because a preview frame may allow one and
 // not the other: a <script src> needs script-src, a fetch needs connect-src.
@@ -319,9 +310,8 @@ function selfCheck() {
   let note;
   try {
     const res = CTJ.transpile(src, { headers });
-    let got = "(没有输出)";
-    new Function("console", res.code)({ log: (...a) => { got = a.map(fmtValue).join(" "); } });
-    note = got === "55" ? "自检通过" : "自检失败：vector 示例得到 " + got;
+    const got = res.run("").stdout.trim();
+    note = got === "55" ? "自检通过" : "自检失败：vector 示例得到 " + (got || "(没有输出)");
   } catch (err) {
     note = "自检失败：" + err.message;
   }
@@ -387,6 +377,7 @@ function transpile() {
       res = CTJ.transpile(source, { headers: hdrs });
     } catch (err) {
       lastCode = "";
+      lastProgram = null;
       $("code").textContent = "";
       $("out").className = "err";
       $("out").textContent = (err.file ? err.file + ":" + (err.line || 0) + ": " : "") + err.message;
@@ -394,6 +385,7 @@ function transpile() {
       return;
     }
     lastCode = res.code;
+    lastProgram = res;
     $("code").textContent = res.code;
     $("codeTitle").textContent = "转译结果 — JavaScript · " + res.code.length + " 字符";
     const warns = res.warnings || [];
@@ -417,30 +409,19 @@ function transpile() {
 }
 
 function run() {
-  if (!lastCode) { setStatus("请先转译"); return; }
-  const lines = [];
-  const shim = {
-    log: (...a) => lines.push(a.map(fmtValue).join(" ")),
-    error: (...a) => lines.push(a.map(fmtValue).join(" ")),
-  };
-  // The transpiled stream code keeps the text of an unfinished line in
-  // globalThis.__ctjpend; it is printed once the program has ended.
-  globalThis.__ctjpend = "";
-  const flushPending = () => { if (globalThis.__ctjpend) lines.push(globalThis.__ctjpend); globalThis.__ctjpend = ""; };
-  // cin reads the input box: the transpiled code takes its text from here.
-  globalThis.__ctjin = { s: $("stdin").value, p: 0 };
-  try {
-    new Function("console", lastCode)(shim);
-    flushPending();
-    $("out").className = "";
-    $("out").textContent = lines.join("\n");
-    setStatus("运行完成");
-  } catch (err) {
-    flushPending();
-    $("out").className = "err";
-    $("out").textContent = lines.join("\n") + (lines.length ? "\n" : "") + "运行时错误: " + err.message;
-    setStatus("运行出错");
+  if (!lastProgram) { setStatus("请先转译"); return; }
+  // The input box is the standard input (cin) of the program.
+  const res = lastProgram.run($("stdin").value);
+  const sections = [[res.stdout, ""], [res.stderr, "[stderr]"], [res.stdlog, "[log]"]];
+  let text = "";
+  for (const [body, label] of sections) {
+    if (!body) continue;
+    if (label) text += (text && !text.endsWith("\n") ? "\n" : "") + label + "\n";
+    text += body;
   }
+  $("out").className = res.exitCode === 0 ? "" : "err";
+  $("out").textContent = text + (res.exitCode === 0 ? "" : (text && !text.endsWith("\n") ? "\n" : "") + "退出码: " + res.exitCode);
+  setStatus(res.exitCode === 0 ? "运行完成" : "运行结束（退出码 " + res.exitCode + "）");
 }
 
 const exampleSelect = $("example");

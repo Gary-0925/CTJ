@@ -1,14 +1,28 @@
 // Public API: transpile(source, options) runs the whole pipeline and returns the
-// JavaScript.
+// JavaScript together with run(input), which executes the program.
 namespace CTJ {
   export interface TranspileOptions {
     headers?: Record<string, string>;
     defines?: Record<string, string>;
   }
 
+  export interface RunResult {
+    stdout: string;
+    stderr: string;
+    stdlog: string;
+    exitCode: number;
+  }
+
   export interface TranspileResult {
     code: string;
     warnings: string[];
+    // Runs the program once with input as its standard input (cin).  Every call
+    // starts from the beginning, with fresh globals.
+    run(input?: string): RunResult;
+  }
+
+  interface Program {
+    run(input?: string): RunResult;
   }
 
   export function transpile(source: string, options: TranspileOptions): TranspileResult {
@@ -27,7 +41,12 @@ namespace CTJ {
     const cx = new Cx();
     analyzeAll(cx, tu);
     const code = emitJs(cx);
-    return { code, warnings: [...pres.warnings, ...cx.warnings] };
+    const program = new Function(code)() as Program;
+    return {
+      code,
+      warnings: [...pres.warnings, ...cx.warnings],
+      run: (input?: string) => program.run(input),
+    };
   }
 }
 

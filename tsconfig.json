@@ -24,6 +24,7 @@
     "src/subst.ts",
     "src/analyze.ts",
     "src/types.ts",
+    "src/mangle.ts",
     "src/calls.ts",
     "src/ctors.ts",
     "src/conversions.ts",

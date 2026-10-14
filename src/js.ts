@@ -8,63 +8,13 @@ namespace CTJ {
     4101556399, 4294967291, 6442450933, 8589934583, 12884901857, 17179869143, 25769803693, 34359738337, 51539607367, 68719476731, 103079215087, 137438953447, 206158430123, 274877906899, 412316860387, 549755813881, 824633720731, 1099511627689, 1649267441579, 2199023255531, 3298534883309, 4398046511093, 6597069766607, 8796093022151, 13194139533241, 17592186044399, 26388279066581, 35184372088777, 52776558133177, 70368744177643, 105553116266399, 140737488355213, 211106232532861, 281474976710597, 562949953421231, 1125899906842597, 2251799813685119, 4503599627370449, 9007199254740881, 18014398509481951, 36028797018963913, 72057594037927931, 144115188075855859, 288230376151711717, 576460752303423433, 1152921504606846883, 2305843009213693951, 4611686018427387847, 9223372036854775783, 18446744073709551557,
   ];
 
-  const OP_METHOD: Record<string, string> = {
-    "+": "op_add",
-    "-": "op_sub",
-    "*": "op_mul",
-    "/": "op_div",
-    "%": "op_mod",
-    "^": "op_xor",
-    "&": "op_and",
-    "|": "op_or",
-    "~": "op_inv",
-    "!": "op_not",
-    "=": "op_assign",
-    "<": "op_lt",
-    ">": "op_gt",
-    "+=": "op_add_assign",
-    "-=": "op_sub_assign",
-    "*=": "op_mul_assign",
-    "/=": "op_div_assign",
-    "%=": "op_mod_assign",
-    "^=": "op_xor_assign",
-    "&=": "op_and_assign",
-    "|=": "op_or_assign",
-    "<<": "op_shl",
-    ">>": "op_shr",
-    "<<=": "op_shl_assign",
-    ">>=": "op_shr_assign",
-    "==": "op_eq",
-    "!=": "op_ne",
-    "<=": "op_le",
-    ">=": "op_ge",
-    "&&": "op_land",
-    "||": "op_lor",
-    "++": "op_inc",
-    "--": "op_dec",
-    ",": "op_comma",
-    "->*": "op_mem",
-    "->": "op_arrow",
-    "()": "op_call",
-    "[]": "op_index",
-  };
-
-  export function methodJsName(fn: FuncInfo): string {
+  // The JavaScript property a method is called by: its symbol, so that each overload
+  // has a name of its own. A constructor and a destructor keep the names JavaScript
+  // gives them.
+  export function methodJsName(cx: Cx, fn: FuncInfo): string {
     if (fn.short === "#ctor") return "constructor";
     if (fn.short === "#dtor") return "__dtor";
-    // "f(T&)" and "f(T&&)" take the same argument shape at run time, so a name
-    // of their own keeps the rvalue one from being taken for the other
-    // ("merge(list&)" delegates to "merge(list&&)", "set(int&)" to "set(int&&)").
-    const rv = fn.decl.params.some(p => p.type && p.type.ref === "&&") ? "__rv" : "";
-    const suf = (fn.isConst && !fn.isStatic ? "__c" : "") + rv;
-    if (fn.short.startsWith("#conv:")) return "op_conv_" + safeJsName(fn.short.slice(6)) + suf;
-    if (fn.short.startsWith("operator")) {
-      const op = fn.short.slice(8);
-      if (OP_METHOD[op]) return OP_METHOD[op] + suf;
-    }
-    if (fn.short === "operator()") return "op_call" + suf;
-    if (fn.ownTmpl && fn.mangled) return safeJsName(fn.short) + "__" + safeJsName(fn.mangled) + suf;
-    return safeJsName(fn.short) + suf;
+    return cx.methodSym(fn);
   }
 
   export function isBoxLike(t: CppType): boolean {
@@ -188,8 +138,15 @@ namespace CTJ {
       this.cx = cx;
     }
 
+    // The output is one object, { run($input) }.  Each call of run declares the
+    // classes, globals and functions afresh inside its own scope, so separate
+    // runs share no state, and it collects the three streams in $io: fd 1
+    // (cout, printf) is stdout, fd 2 (cerr) is stderr, fd 3 (clog) is stdlog.
+    // exit() throws { $exit: code }; an uncaught C++ error ends the run with
+    // exit code 1 and its message on stderr.
     run(): string {
-      this.line(`"use strict";`);
+      const body: string[] = [];
+      this.out = body;
       if (this.needsPrimeBuckets()) this.line(`const PRIME_BUCKETS = [${PRIME_BUCKETS.join(", ")}];`);
       if (this.needsRbTreeHelpers()) this.emitPtrHelpers();
       for (const c of this.sortClasses()) {
@@ -215,9 +172,11 @@ namespace CTJ {
       if (main) {
         const ps = this.cx.funcParams(main);
         const args = ps.length >= 3 ? ["0", `{a: [], i: 0}`, "null"] : ps.length === 2 ? ["0", `{a: [], i: 0}`] : ps.length === 1 ? ["0"] : [];
-        this.line(`main(${args.join(", ")});`);
+        this.line(`$rc = main(${args.join(", ")}) | 0;`);
       }
-      return this.out.join("\n") + "\n";
+      const head = ['"use strict";', "return {", '  run($input = "") {', "    const $io = {", '      inp: { s: $input == null ? "" : String($input), p: 0 },', '      out: "", err: "", log: "", vf: null, addr: 0,', "      write(fd, t) {", "        if (fd === 2) this.err += t;", "        else if (fd === 3) this.log += t;", "        else this.out += t;", "      },", "    };", "    const console = {", '      log: (...a) => $io.write(1, a.map(String).join(" ") + "\\n"),', '      error: (...a) => $io.write(2, a.map(String).join(" ") + "\\n"),', "    };", "    let $rc = 0;", "    try {"];
+      const tail = ["    } catch (e) {", '      if (typeof e === "object" && e !== null && "$exit" in e) $rc = e.$exit;', "      else {", '        $io.err += String(e && e.message !== undefined ? e.message : e) + "\\n";', "        $rc = 1;", "      }", "    }", "    return { stdout: $io.out, stderr: $io.err, stdlog: $io.log, exitCode: $rc };", "  },", "};"];
+      return [...head, ...body.map(l => "      " + l), ...tail].join("\n") + "\n";
     }
 
     sortClasses(): ClsInfo[] {
@@ -831,7 +790,7 @@ namespace CTJ {
       if (!use.length) return;
       const groups = new Map<string, FuncInfo[]>();
       for (const f of use) {
-        const k = methodJsName(f);
+        const k = methodJsName(this.cx, f);
         if (!groups.has(k)) groups.set(k, []);
         (groups.get(k) as FuncInfo[]).push(f);
       }
@@ -840,7 +799,7 @@ namespace CTJ {
 
     emitMethodGroup(c: ClsInfo, use: FuncInfo[]): void {
       void c;
-      const m = methodJsName(use[0]);
+      const m = methodJsName(this.cx, use[0]);
       const pre = use[0].isStatic ? "static " : "";
       const list = this.listNodeStub(use[0]);
       if (list !== null) {
@@ -1183,8 +1142,8 @@ namespace CTJ {
     emitFunc(f: FuncInfo): void {
       if (!(f.decl.body || []).length) {
         const stub = this.allocStub(f) ?? this.rbTreeStub(f) ?? this.hashBytesStub(f);
-        if (stub !== null) this.line(`function ${f.mangled}(...$a) { ${stub} }`);
-        else this.line(`function ${f.mangled}(...$a) { throw new Error("unresolved external: ${f.fq}"); }`);
+        if (stub !== null) this.line(`function ${this.cx.symOf(f)}(...$a) { ${stub} }`);
+        else this.line(`function ${this.cx.symOf(f)}(...$a) { throw new Error("unresolved external: ${f.fq}"); }`);
         return;
       }
       const ps = this.cx.funcParams(f);
@@ -1205,7 +1164,7 @@ namespace CTJ {
       this.fnStack.pop();
       this.ind = this.ind.slice(0, -2);
       this.out = save;
-      this.line(`function ${f.mangled}(${decl.join(", ")}) {`);
+      this.line(`function ${this.cx.symOf(f)}(${decl.join(", ")}) {`);
       this.ind += "  ";
       if (this.tmpN > base) this.line(this.tmpDecl(base, this.tmpN));
       // A parameter whose address is taken is read through a wrapper, so the
@@ -1636,8 +1595,8 @@ namespace CTJ {
       const obj = this.complex(this.ex(s.range), s.range);
       const b = `$b${ri}`;
       const e = `$e${ri}`;
-      const bm = methodJsName(info.beginFn);
-      const em = methodJsName(info.endFn);
+      const bm = methodJsName(this.cx, info.beginFn);
+      const em = methodJsName(this.cx, info.endFn);
       const itRet = this.cx.funcRet(info.beginFn);
       const itT = itRet.core();
       const cond = this.rangeOp(info.ne, itT, b, e);
@@ -1669,10 +1628,10 @@ namespace CTJ {
       const fn = op.fn as FuncInfo;
       const ps = this.cx.funcParams(fn);
       if (op.isMember) {
-        return `${a}.${methodJsName(fn)}(${b ? this.boxFor(ps[0].type, itT, b) : ""})`;
+        return `${a}.${methodJsName(this.cx, fn)}(${b ? this.boxFor(ps[0].type, itT, b) : ""})`;
       }
       const aa = (b ? [a, b] : [a]).map((x, i) => this.boxFor(ps[i] ? ps[i].type : null, itT, x));
-      return `${fn.mangled}(${aa.join(", ")})`;
+      return `${this.cx.symOf(fn)}(${aa.join(", ")})`;
     }
 
     // An argument a parameter reads through a box has to be put in one, the way
@@ -1890,7 +1849,7 @@ namespace CTJ {
     exId(e: IdExpr): string {
       const a = this.cx.getAnn(e);
       const s = a.sym;
-      if (!s) this.cx.fail("unresolved name", e);
+      if (!s) this.cx.fail("unresolved name " + e.parts.map(q => q.n).join("::"), e);
       if (s.k === "enumval") {
         const vals = this.cx.enumValues(s.e);
         return String(vals.get(s.item) ?? 0);
@@ -1900,9 +1859,9 @@ namespace CTJ {
         if (f.isMethod && !f.isStatic) this.cx.fail("member function value is not supported", e);
         if (f.isMethod) {
           const cls = this.cx.classes.get(f.cls as string) as ClsInfo;
-          return `${cls.mangled}.${methodJsName(f)}`;
+          return `${cls.mangled}.${methodJsName(this.cx, f)}`;
         }
-        return f.mangled;
+        return this.cx.symOf(f);
       }
       if (s.k !== "var") this.cx.fail("type used as value", e);
       const v = s.v;
@@ -2136,7 +2095,7 @@ namespace CTJ {
     // is what that pointer points at, not the pointer itself.
     arrowObj(fn: FuncInfo, o: string): string {
       const t = this.tmp();
-      return `(${t} = ${this.paren(o)}.${methodJsName(fn)}(), ${t}.a[${t}.i])`;
+      return `(${t} = ${this.paren(o)}.${methodJsName(this.cx, fn)}(), ${t}.a[${t}.i])`;
     }
 
     // A copy of a class value calls the class's copy constructor, and a
@@ -2402,7 +2361,7 @@ namespace CTJ {
         return p.ref !== "" && p.ptr === 0 && !p.dims.length ? `{a: [${obj}], i: 0}` : obj;
       }
       if (conv && conv.kind === "conv") {
-        return `${this.paren(this.objOf(x))}.${methodJsName(conv.fn)}()`;
+        return `${this.paren(this.objOf(x))}.${methodJsName(this.cx, conv.fn)}()`;
       }
       const at = this.cx.getAnn(x).t as CppType;
       const pB = isBoxLike(p);
@@ -2653,7 +2612,7 @@ namespace CTJ {
         const bt = this.cx.getAnn(e).t as CppType | null;
         // A reference (operator>> returns istream&) is a box: the object is inside it.
         const bo = bt && bt.ref ? this.deref(e) : this.ex(e);
-        return `${this.paren(bo)}.${methodJsName(bc)}()`;
+        return `${this.paren(bo)}.${methodJsName(this.cx, bc)}()`;
       }
       const t = this.cx.getAnn(e).t as CppType | null;
       if (!t || !t.ref || t.ptr > 0 || t.dims.length || t.isFunc) return this.ex(e);
@@ -2757,13 +2716,13 @@ namespace CTJ {
         const cls = this.cx.classes.get(fn.cls as string) as ClsInfo;
         s = `new ${cls.mangled}(${aa.join(", ")})`;
       } else if (!fn.isMethod) {
-        s = `${fn.mangled}(${aa.join(", ")})`;
+        s = `${this.cx.symOf(fn)}(${aa.join(", ")})`;
       } else if (fn.isStatic) {
         const cls = this.cx.classes.get(fn.cls as string) as ClsInfo;
-        s = `${cls.mangled}.${methodJsName(fn)}(${aa.join(", ")})`;
+        s = `${cls.mangled}.${methodJsName(this.cx, fn)}(${aa.join(", ")})`;
       } else if (e.fn.kind === "id" && (e.fn as IdExpr).parts.length > 1) {
         const cls = this.cx.classes.get(fn.cls as string) as ClsInfo;
-        s = `${cls.mangled}.prototype.${methodJsName(fn)}.call(this${aa.length ? ", " + aa.join(", ") : ""})`;
+        s = `${cls.mangled}.prototype.${methodJsName(this.cx, fn)}.call(this${aa.length ? ", " + aa.join(", ") : ""})`;
       } else if (e.fn.kind === "member") {
         let o = this.objOf((e.fn as MemberExpr).obj);
         const ma = this.cx.getAnn(e.fn);
@@ -2772,23 +2731,23 @@ namespace CTJ {
         if (ma.sym && ma.sym.k === "var" && ma.sym.v.isField) o = this.ex(e.fn);
         if ((e.fn as MemberExpr).qual.length && !(ma.sym && ma.sym.k === "var" && ma.sym.v.isField)) {
           const cls = this.cx.classes.get(fn.cls as string) as ClsInfo;
-          s = `${cls.mangled}.prototype.${methodJsName(fn)}.call(${o}${aa.length ? ", " + aa.join(", ") : ""})`;
+          s = `${cls.mangled}.prototype.${methodJsName(this.cx, fn)}.call(${o}${aa.length ? ", " + aa.join(", ") : ""})`;
         } else if (!fn.isVirtual && fn.cls) {
           // A non-virtual method is bound by the static type: a derived class that
           // declares the same name (head() in both TI<0,...> and TI<1,...>) must not
           // replace it on the JS prototype chain.
           const cls = this.cx.classes.get(fn.cls as string) as ClsInfo;
-          s = `${cls.mangled}.prototype.${methodJsName(fn)}.call(${o}${aa.length ? ", " + aa.join(", ") : ""})`;
+          s = `${cls.mangled}.prototype.${methodJsName(this.cx, fn)}.call(${o}${aa.length ? ", " + aa.join(", ") : ""})`;
         } else {
-          s = `${this.paren(o)}.${methodJsName(fn)}(${aa.join(", ")})`;
+          s = `${this.paren(o)}.${methodJsName(this.cx, fn)}(${aa.join(", ")})`;
         }
       } else if (e.fn.kind === "id") {
         // A name can denote an object whose operator() is called, not a member of
         // the enclosing class.
         const callee = this.cx.getAnn(e.fn).sym;
-        s = callee && callee.k === "var" ? `${this.paren(this.objOf(e.fn))}.${methodJsName(fn)}(${aa.join(", ")})` : `this.${methodJsName(fn)}(${aa.join(", ")})`;
+        s = callee && callee.k === "var" ? `${this.paren(this.objOf(e.fn))}.${methodJsName(this.cx, fn)}(${aa.join(", ")})` : `this.${methodJsName(this.cx, fn)}(${aa.join(", ")})`;
       } else {
-        s = `${this.paren(this.objOf(e.fn))}.${methodJsName(fn)}(${aa.join(", ")})`;
+        s = `${this.paren(this.objOf(e.fn))}.${methodJsName(this.cx, fn)}(${aa.join(", ")})`;
       }
       // The object a call returns is the call's own temporary: the callee hands
       // a value of its own back (a local, or a copy it made of what it does not
@@ -2927,7 +2886,7 @@ namespace CTJ {
         const ps = this.cx.funcParams(fn);
         const o = this.objOf(e.arr);
         const aa = this.argFor(ps[0].type, e.idx, a.convs[0] || null);
-        return `${this.paren(o)}.${methodJsName(fn)}(${aa})`;
+        return `${this.paren(o)}.${methodJsName(this.cx, fn)}(${aa})`;
       }
       const at = this.cx.getAnn(e.arr).t as CppType;
       if (at.ptr > 0) {
@@ -2965,9 +2924,9 @@ namespace CTJ {
         if (e.op === "++" || e.op === "--") {
           const ps = this.cx.funcParams(fn);
           const post = ps.length === 1 ? "(0)" : "()";
-          return `${this.paren(o)}.${methodJsName(fn)}${post}`;
+          return `${this.paren(o)}.${methodJsName(this.cx, fn)}${post}`;
         }
-        return `${this.paren(o)}.${methodJsName(fn)}()`;
+        return `${this.paren(o)}.${methodJsName(this.cx, fn)}()`;
       }
       if (e.op === "*") {
         const at = this.cx.getAnn(e.arg).t as CppType;
@@ -3032,10 +2991,10 @@ namespace CTJ {
         if (fn.isMethod) {
           const o = this.objOf(e.l);
           const aa = this.argFor(ps[0].type, e.r, a.convs[0] || null);
-          return `${this.paren(o)}.${methodJsName(fn)}(${aa})`;
+          return `${this.paren(o)}.${methodJsName(this.cx, fn)}(${aa})`;
         }
         const aa = [this.argFor(ps[0].type, e.l, a.convs[0] || null), this.argFor(ps[1].type, e.r, a.convs[1] || null)];
-        return `${fn.mangled}(${aa.join(", ")})`;
+        return `${this.cx.symOf(fn)}(${aa.join(", ")})`;
       }
       const lt = this.cx.getAnn(e.l).t as CppType;
       const rt = this.cx.getAnn(e.r).t as CppType;
@@ -3186,9 +3145,9 @@ namespace CTJ {
         }
         if (fn.isMethod) {
           const o = this.objOf(e.l);
-          return `${this.paren(o)}.${methodJsName(fn)}(${rhs})`;
+          return `${this.paren(o)}.${methodJsName(this.cx, fn)}(${rhs})`;
         }
-        return `${fn.mangled}(${this.ex(e.l)}, ${rhs})`;
+        return `${this.cx.symOf(fn)}(${this.ex(e.l)}, ${rhs})`;
       }
       const lt = this.cx.getAnn(e.l).t as CppType;
       if (this.splitLhs(e.l)) {
@@ -3383,7 +3342,7 @@ namespace CTJ {
       // "size_type()" value-initialises: there is no argument to convert.
       if (e.arg.kind === "initlist" && !(e.arg as InitListExpr).items.length) return this.zero(t);
       if (a.conv) {
-        return `${this.paren(this.objOf(e.arg))}.${methodJsName((a.conv as { kind: string; fn: FuncInfo }).fn)}()`;
+        return `${this.paren(this.objOf(e.arg))}.${methodJsName(this.cx, (a.conv as { kind: string; fn: FuncInfo }).fn)}()`;
       }
       if (e.ckind === "dynamic") {
         const fq = this.cx.stripAll(t);
@@ -3487,7 +3446,7 @@ namespace CTJ {
       const all = defs.concat(decl);
       // The name is the one the call sites look for: a lambda's "operator()" is
       // const, so the plain "op_call" would not be found on it.
-      const mname = lfn ? methodJsName(lfn) : "op_call";
+      const mname = lfn ? methodJsName(this.cx, lfn) : "op_call";
       return `{${mname}: (${all.join(", ")}) => {\n${lines.join("\n")}\n${this.ind}}}`;
     }
 
