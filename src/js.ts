@@ -1231,6 +1231,12 @@ namespace CTJ {
       }
       const wrap = (s: string) => (v.storage === "boxed" || v.storage === "bbox" ? `{v: ${s}}` : s);
       const init = v.decl.init;
+      // A global that a library header only declares (stdout) takes the value the library gives it.
+      const libVar = init || v.decl.directInit ? null : libcVarSource(v.fq);
+      if (libVar !== null) {
+        this.line(`let ${v.mangled} = ${wrap(libVar)};`);
+        return;
+      }
       if (init) {
         // A brace-enclosed initializer of a class is its constructor's arguments,
         // or its members for an aggregate: the same as for a local variable.
@@ -3379,6 +3385,9 @@ namespace CTJ {
       if (t.ref) return this.baseRefView(e, t) || this.exBox(e.arg);
       if (coreName(t) === "bool" && at.isBox() && !at.isFunc) return `(${this.ex(e.arg)} != null)`;
       const ak = intKindOf(at);
+      // A bool source is already a truth value (a comparison yields a JS boolean),
+      // and "false !== 0" is true in JS, so it must not go through the numeric test.
+      if (coreName(t) === "bool" && coreName(at) === "bool") return `!!(${this.ex(e.arg)})`;
       if (coreName(t) === "bool" && isNumericName(coreName(at))) return `(${this.ex(e.arg)} !== ${ak && ak.big ? "0n" : "0"})`;
       const tk = intKindOf(t);
       if (tk && (coreName(at) === "float" || coreName(at) === "double")) return castInt(this.ex(e.arg), null, tk);

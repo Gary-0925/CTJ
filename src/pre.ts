@@ -437,7 +437,8 @@ namespace CTJ {
             continue;
           }
           if (t.v === "__LINE__") {
-            out.push(tok("number", String(t.line), t.file, t.line, t.col));
+            // The line of the invocation, not of the macro body token (as a C compiler reports).
+            out.push(tok("number", String(line), t.file, t.line, t.col));
             continue;
           }
           if (t.v === "__DATE__") {
@@ -452,6 +453,8 @@ namespace CTJ {
             out.push(tok("number", "0", t.file, t.line, t.col));
             continue;
           }
+          // "__extension__" only silences GNU pedantic warnings: it has no meaning here.
+          if (t.v === "__extension__") continue;
           const macro = this.macros.get(t.v) || this.undefKept.get(t.v);
           if (!macro) {
             out.push(t);
@@ -491,7 +494,7 @@ namespace CTJ {
             continue;
           }
           i = j;
-          const subbed = this.substMacro(macro, args, seps);
+          const subbed = this.substMacro(macro, args, seps, a => this.expandTokens(a, disabled, file, line));
           const sub = this.expandTokens(subbed, new Set([...disabled, t.v]), file, line);
           for (const s of sub) out.push(s);
           continue;
@@ -502,10 +505,21 @@ namespace CTJ {
     }
 
     // Replaces the parameters of a macro body by their arguments. "#" stringizes
-    // an argument, "##" pastes its neighbours (with the GNU comma rule for an
-    // empty variadic list), and __VA_OPT__(...) is kept only when there are
-    // variadic arguments.
-    substMacro(macro: Macro, args: Token[][], seps: Token[] = []): Token[] {
+    // an argument and "##" pastes its neighbours, both from the argument as
+    // written; any other parameter takes the argument fully macro-expanded
+    // (the expand callback), so "CAT(P_, f)" sees the expansion of "f". The GNU comma rule
+    // applies to an empty variadic list, and __VA_OPT__(...) is kept only when
+    // there are variadic arguments.
+    substMacro(macro: Macro, args: Token[][], seps: Token[] = [], expand: (a: Token[]) => Token[] = a => a): Token[] {
+      const expandedOf = new Map<Token[], Token[]>();
+      const expanded = (raw: Token[]): Token[] => {
+        let e = expandedOf.get(raw);
+        if (!e) {
+          e = expand(raw);
+          expandedOf.set(raw, e);
+        }
+        return e;
+      };
       const params = macro.params || [];
       const vaName = macro.variadic ? macro.vaName || "__VA_ARGS__" : "";
       const vastart = macro.variadic ? args.slice(params.length) : [];
@@ -576,13 +590,13 @@ namespace CTJ {
             }
             inner.push(body[j]);
           }
-          if (!vaEmpty) out.push(...this.substMacro({ ...macro, body: inner }, args, seps));
+          if (!vaEmpty) out.push(...this.substMacro({ ...macro, body: inner }, args, seps, expand));
           i = j;
           continue;
         }
         const pt = t.t === "ident" ? paramTokens(t.v) : null;
         if (pt) {
-          out.push(...pt);
+          out.push(...expanded(pt));
           continue;
         }
         out.push(t);

@@ -37,6 +37,7 @@
     "src/libc/math.ts",
     "src/libc/string.ts",
     "src/libc/stdlib.ts",
+    "src/libc/stdio.ts",
     "src/js.ts",
     "src/api.ts"
   ]

@@ -220,32 +220,79 @@ return {
         }
       }
       class _Z8_IO_FILE {
-        __fd;
-        __dummy;
+        _flags;
+        _IO_read_ptr;
+        _IO_read_end;
+        _IO_read_base;
+        _IO_write_base;
+        _IO_write_ptr;
+        _IO_write_end;
+        _IO_buf_base;
+        _IO_buf_end;
+        _IO_save_base;
+        _IO_backup_base;
+        _IO_save_end;
+        _markers;
+        _chain;
+        _fileno;
+        _flags2;
+        _old_offset;
+        _cur_column;
+        _vtable_offset;
+        _shortbuf;
+        _lock;
+        _offset;
+        _codecvt;
+        _wide_data;
+        _freeres_list;
+        _freeres_buf;
+        __pad5;
+        _mode;
+        _unused2;
         constructor(...$a) {
           this.__init__Z8_IO_FILE(...$a);
         }
         __init__Z8_IO_FILE(...$a) {
-          if ($a.length >= 1 && $a.length <= 1 && ($a[0] !== null && typeof $a[0] === "object" && !Array.isArray($a[0]) && $a[0].a !== undefined && $a[0].i !== undefined && $a[0].a[$a[0].i] instanceof _Z8_IO_FILE)) {
-            this.__fd = (($a[0]).a[($a[0]).i]).__fd;
-            this.__dummy = (($a[0]).a[($a[0]).i]).__dummy;
-          }
-          else if ($a.length >= 2 && $a.length <= 2 && (typeof $a[0] === "number" || typeof $a[0] === "boolean") && (typeof $a[1] === "number" || typeof $a[1] === "boolean")) {
-            this.__fd = $a[0];
-            this.__dummy = $a[1];
-          }
-          else { throw new Error("no matching constructor"); }
+          this._flags = 0;
+          this._IO_read_ptr = null;
+          this._IO_read_end = null;
+          this._IO_read_base = null;
+          this._IO_write_base = null;
+          this._IO_write_ptr = null;
+          this._IO_write_end = null;
+          this._IO_buf_base = null;
+          this._IO_buf_end = null;
+          this._IO_save_base = null;
+          this._IO_backup_base = null;
+          this._IO_save_end = null;
+          this._markers = null;
+          this._chain = null;
+          this._fileno = 0;
+          this._flags2 = 0;
+          this._old_offset = 0n;
+          this._cur_column = 0;
+          this._vtable_offset = 0;
+          this._shortbuf = new Array(1).fill(0);
+          this._lock = null;
+          this._offset = 0n;
+          this._codecvt = null;
+          this._wide_data = null;
+          this._freeres_list = null;
+          this._freeres_buf = null;
+          this.__pad5 = 0;
+          this._mode = 0;
+          this._unused2 = new Array(40).fill(0);
         }
         __dtor() {
         }
       }
-      class _Z12$24class_152 {
+      class _Z12$24class_155 {
         __count;
         __value;
         constructor(...$a) {
-          this.__init__Z12$24class_152(...$a);
+          this.__init__Z12$24class_155(...$a);
         }
-        __init__Z12$24class_152(...$a) {
+        __init__Z12$24class_155(...$a) {
           this.__count = 0;
           this.__value = 0;
         }
@@ -11520,12 +11567,6 @@ return {
         return ($t181 = ($t179 = _ZSt13move_iteratorIPSt6vectorIiSt9allocatorIiEEE.prototype._ZNKSt13move_iteratorIPSt6vectorIiSt9allocatorIiEEE4baseEv.call(__x.a[__x.i]), $t179), $t182 = ($t180 = _ZSt13move_iteratorIPSt6vectorIiSt9allocatorIiEEE.prototype._ZNKSt13move_iteratorIPSt6vectorIiSt9allocatorIiEEE4baseEv.call(__y.a[__y.i]), $t180), ($t181 === $t182 || ($t181 && $t182 && $t181.a === $t182.a && $t181.i === $t182.i)));
       }
       let _ZSt19piecewise_construct = new _ZSt21piecewise_construct_t();
-      let _Z16__ctj_stdin_file = {v: new _Z8_IO_FILE(0, 0)};
-      let _Z17__ctj_stdout_file = {v: new _Z8_IO_FILE(1, 0)};
-      let _Z17__ctj_stderr_file = {v: new _Z8_IO_FILE(2, 0)};
-      let _Z5stdin = (({a: _Z16__ctj_stdin_file, i: "v"}) ? {a: ({a: _Z16__ctj_stdin_file, i: "v"}).a, i: ({a: _Z16__ctj_stdin_file, i: "v"}).i} : null);
-      let _Z6stdout = (({a: _Z17__ctj_stdout_file, i: "v"}) ? {a: ({a: _Z17__ctj_stdout_file, i: "v"}).a, i: ({a: _Z17__ctj_stdout_file, i: "v"}).i} : null);
-      let _Z6stderr = (({a: _Z17__ctj_stderr_file, i: "v"}) ? {a: ({a: _Z17__ctj_stderr_file, i: "v"}).a, i: ({a: _Z17__ctj_stderr_file, i: "v"}).i} : null);
       let _ZSt13allocator_arg = new _ZSt15allocator_arg_t();
       let _ZSt6ignore = new _ZSt15_Swallow_assign();
       let _ZN9__gnu_cxx21__default_lock_policyE = 0;

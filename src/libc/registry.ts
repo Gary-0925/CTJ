@@ -37,6 +37,18 @@ namespace CTJ {
   // The data of $L: JavaScript source of a value, such as a table.
   export const LIBC_DATA: Record<string, string> = {};
 
+  // The JavaScript value of a global variable that a header declares but does
+  // not define, such as stdout; the program starts it with this value.
+  const VARS = new Map<string, string>();
+
+  export function libcDefVar(name: string, src: string): void {
+    VARS.set(name, src);
+  }
+
+  export function libcVarSource(fq: string): string | null {
+    return VARS.get(fq) ?? null;
+  }
+
   // The lines that declare $L in a program that calls a library body.
   export function libcPrelude(): string[] {
     const lines = ["const $L = {"];

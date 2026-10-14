@@ -69,7 +69,9 @@ namespace CTJ {
 
   const SIGN_FLAGS = new Set(["signed", "unsigned", "short", "long"]);
 
-  const BASE_TYPES = new Set(["void", "bool", "char", "char16_t", "char32_t", "wchar_t", "int", "float", "double"]);
+  // The variadic-argument types are base types: "typedef __builtin_va_list va_list;"
+  // must parse, or the whole declaration (and any block around it) is dropped.
+  const BASE_TYPES = new Set(["void", "bool", "char", "char16_t", "char32_t", "wchar_t", "int", "float", "double", "__builtin_va_list", "__gnuc_va_list", "va_list"]);
 
   const CV_FLAGS = new Set(["const", "volatile"]);
 
@@ -90,6 +92,8 @@ namespace CTJ {
     nsValues: Set<string> = new Set();
     classTypes: Map<string, Set<string>> = new Map();
     pending: PendingBody[] = [];
+    // The name of the function whose body is being parsed: __func__ names it.
+    fnName = "";
     anon: { n: number } = { n: 0 };
 
     constructor(toks: Token[]) {
@@ -571,6 +575,7 @@ namespace CTJ {
           const owner = d.ownerScope || this.ownerTypeScope(d.name);
           if (owner) this.pushTypeScope(owner);
           try {
+            this.fnName = fn.name.length ? last(fn.name).n : "";
             fn.body = this.parseFuncBody();
           } finally {
             if (owner) this.popScope();
@@ -646,6 +651,7 @@ namespace CTJ {
         const sub = this.spawn(p.toks);
         sub.typeScopes = p.types;
         sub.nsPath = p.nsPath;
+        sub.fnName = p.func.name.length ? last(p.func.name).n : "";
         p.func.body = sub.parseFuncBody();
         if (!sub.atEnd()) sub.warn("trailing tokens in function body");
       }

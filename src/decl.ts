@@ -418,7 +418,15 @@ namespace CTJ {
       const decls: Decl[] = [];
       while (!p.eat("}")) {
         if (p.atEnd()) fail("unterminated extern block", t.file, t.line, t.col);
-        for (const d of p.parseDecls(false)) decls.push(d);
+        // A declaration that does not parse is skipped here: left to the top
+        // level, its block's closing brace would be read as a stray one.
+        try {
+          for (const d of p.parseDecls(false)) decls.push(d);
+        } catch (e) {
+          if (!(e instanceof CtxError)) throw e;
+          p.warn(`parse error in extern block: ${e.message}, skipping`, p.peek());
+          p.recover();
+        }
       }
       return [{ kind: "linkage", lang, decls, ...at(t) }];
     }

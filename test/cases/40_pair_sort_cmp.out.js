@@ -74,48 +74,68 @@ return {
         }
       }
       class _Z8_IO_FILE {
-        __fd;
-        __dummy;
+        _flags;
+        _IO_read_ptr;
+        _IO_read_end;
+        _IO_read_base;
+        _IO_write_base;
+        _IO_write_ptr;
+        _IO_write_end;
+        _IO_buf_base;
+        _IO_buf_end;
+        _IO_save_base;
+        _IO_backup_base;
+        _IO_save_end;
+        _markers;
+        _chain;
+        _fileno;
+        _flags2;
+        _old_offset;
+        _cur_column;
+        _vtable_offset;
+        _shortbuf;
+        _lock;
+        _offset;
+        _codecvt;
+        _wide_data;
+        _freeres_list;
+        _freeres_buf;
+        __pad5;
+        _mode;
+        _unused2;
         constructor(...$a) {
           this.__init__Z8_IO_FILE(...$a);
         }
         __init__Z8_IO_FILE(...$a) {
-          if ($a.length >= 1 && $a.length <= 1 && ($a[0] !== null && typeof $a[0] === "object" && !Array.isArray($a[0]) && $a[0].a !== undefined && $a[0].i !== undefined && $a[0].a[$a[0].i] instanceof _Z8_IO_FILE)) {
-            this.__fd = (($a[0]).a[($a[0]).i]).__fd;
-            this.__dummy = (($a[0]).a[($a[0]).i]).__dummy;
-          }
-          else if ($a.length >= 2 && $a.length <= 2 && (typeof $a[0] === "number" || typeof $a[0] === "boolean") && (typeof $a[1] === "number" || typeof $a[1] === "boolean")) {
-            this.__fd = $a[0];
-            this.__dummy = $a[1];
-          }
-          else { throw new Error("no matching constructor"); }
-        }
-        __dtor() {
-        }
-      }
-      class _Z2tm {
-        tm_sec;
-        tm_min;
-        tm_hour;
-        tm_mday;
-        tm_mon;
-        tm_year;
-        tm_wday;
-        tm_yday;
-        tm_isdst;
-        constructor(...$a) {
-          this.__init__Z2tm(...$a);
-        }
-        __init__Z2tm(...$a) {
-          this.tm_sec = 0;
-          this.tm_min = 0;
-          this.tm_hour = 0;
-          this.tm_mday = 0;
-          this.tm_mon = 0;
-          this.tm_year = 0;
-          this.tm_wday = 0;
-          this.tm_yday = 0;
-          this.tm_isdst = 0;
+          this._flags = 0;
+          this._IO_read_ptr = null;
+          this._IO_read_end = null;
+          this._IO_read_base = null;
+          this._IO_write_base = null;
+          this._IO_write_ptr = null;
+          this._IO_write_end = null;
+          this._IO_buf_base = null;
+          this._IO_buf_end = null;
+          this._IO_save_base = null;
+          this._IO_backup_base = null;
+          this._IO_save_end = null;
+          this._markers = null;
+          this._chain = null;
+          this._fileno = 0;
+          this._flags2 = 0;
+          this._old_offset = 0n;
+          this._cur_column = 0;
+          this._vtable_offset = 0;
+          this._shortbuf = new Array(1).fill(0);
+          this._lock = null;
+          this._offset = 0n;
+          this._codecvt = null;
+          this._wide_data = null;
+          this._freeres_list = null;
+          this._freeres_buf = null;
+          this.__pad5 = 0;
+          this._mode = 0;
+          this._unused2 = new Array(40).fill(0);
         }
         __dtor() {
         }
@@ -125,12 +145,12 @@ return {
         __dtor() {
         }
       }
-      class _ZNSt14__sfinae_types11$24class_50E {
+      class _ZNSt14__sfinae_types11$24class_55E {
         __arr;
         constructor(...$a) {
-          this.__init__ZNSt14__sfinae_types11$24class_50E(...$a);
+          this.__init__ZNSt14__sfinae_types11$24class_55E(...$a);
         }
-        __init__ZNSt14__sfinae_types11$24class_50E(...$a) {
+        __init__ZNSt14__sfinae_types11$24class_55E(...$a) {
           this.__arr = new Array(2).fill(0);
         }
         __dtor() {
@@ -188,13 +208,13 @@ return {
           _ZSt26bidirectional_iterator_tag.prototype.__dtor.call(this);
         }
       }
-      class _Z12$24class_152 {
+      class _Z12$24class_157 {
         __count;
         __value;
         constructor(...$a) {
-          this.__init__Z12$24class_152(...$a);
+          this.__init__Z12$24class_157(...$a);
         }
-        __init__Z12$24class_152(...$a) {
+        __init__Z12$24class_157(...$a) {
           this.__count = 0;
           this.__value = 0;
         }
@@ -300,13 +320,13 @@ return {
         static punct = 512;
         static alnum = 12;
       }
-      class _Z12$24class_159 {
+      class _Z12$24class_164 {
         done;
         started;
         constructor(...$a) {
-          this.__init__Z12$24class_159(...$a);
+          this.__init__Z12$24class_164(...$a);
         }
-        __init__Z12$24class_159(...$a) {
+        __init__Z12$24class_164(...$a) {
           this.done = 0;
           this.started = 0;
         }
@@ -966,14 +986,14 @@ return {
           return __c;
         }
         _ZNKSt5ctypeIcE8do_widenEPKcS1_Pc(__lo, __hi, __to) {
-          _Z6memcpyPvPKvm((__to ? {a: __to.a, i: __to.i} : null), (__lo ? {a: __lo.a, i: __lo.i} : null), ((((__hi ? __hi.i : 0) - (__lo ? __lo.i : 0))) >>> 0));
+          (($d, $s, $n) => { for (let $k = 0; $k < $n; $k++) $d.a[$d.i + $k] = $s.a[$s.i + $k]; return $d; })((($q) => ($q && $q.a !== undefined ? $q : { a: $q, i: 0 }))(__to), (($q) => ($q && $q.a !== undefined ? $q : { a: $q, i: 0 }))(__lo), ((__hi ? __hi.i : 0) - (__lo ? __lo.i : 0)));
           return (__hi ? {a: __hi.a, i: __hi.i} : null);
         }
         _ZNKSt5ctypeIcE9do_narrowEcc(__c, __dfault) {
           return __c;
         }
         _ZNKSt5ctypeIcE9do_narrowEPKcS1_cPc(__lo, __hi, __dfault, __to) {
-          _Z6memcpyPvPKvm((__to ? {a: __to.a, i: __to.i} : null), (__lo ? {a: __lo.a, i: __lo.i} : null), ((((__hi ? __hi.i : 0) - (__lo ? __lo.i : 0))) >>> 0));
+          (($d, $s, $n) => { for (let $k = 0; $k < $n; $k++) $d.a[$d.i + $k] = $s.a[$s.i + $k]; return $d; })((($q) => ($q && $q.a !== undefined ? $q : { a: $q, i: 0 }))(__to), (($q) => ($q && $q.a !== undefined ? $q : { a: $q, i: 0 }))(__lo), ((__hi ? __hi.i : 0) - (__lo ? __lo.i : 0)));
           return (__hi ? {a: __hi.a, i: __hi.i} : null);
         }
         static id = new _ZSt5ctypeIcE();
@@ -2377,15 +2397,6 @@ return {
       function _ZSt3absx(__x) {
         return ((v) => BigInt.asIntN(64, v < 0n ? -v : v))(__x);
       }
-      function _Z6memcpyPvPKvm(dst, src, n) {
-        let $t3;
-        let d = (dst ? {a: dst.a, i: dst.i} : null);
-        let s = (src ? {a: src.a, i: src.i} : null);
-        for (let i = ((0) >>> 0); (i < n); ($t3 = i, i = (($t3 + 1) >>> 0), $t3)) {
-          d.a[d.i + (i)] = s.a[s.i + (i)];
-        }
-        return dst;
-      }
       function _ZSt4__lgl(__n) {
         return ((((((((((Math.imul(4, ((8) >>> 0))) >>> 0)) - (((1) >>> 0))) >>> 0)) - (((Math.clz32(__n)) >>> 0))) >>> 0)) | 0);
       }
@@ -2406,10 +2417,10 @@ return {
         return __in;
       }
       function _ZSt4swapIxEvRxS_(__a, __b) {
-        let $t4, $t5, $t6;
-        let __tmp = {v: ($t4 = _ZSt4moveIxEOxS_(__a), $t4.a[$t4.i])};
-        __a.a[__a.i] = ($t5 = _ZSt4moveIxEOxS_(__b), $t5.a[$t5.i]);
-        __b.a[__b.i] = ($t6 = _ZSt4moveIxEOxS_({a: __tmp, i: "v"}), $t6.a[$t6.i]);
+        let $t3, $t4, $t5;
+        let __tmp = {v: ($t3 = _ZSt4moveIxEOxS_(__a), $t3.a[$t3.i])};
+        __a.a[__a.i] = ($t4 = _ZSt4moveIxEOxS_(__b), $t4.a[$t4.i]);
+        __b.a[__b.i] = ($t5 = _ZSt4moveIxEOxS_({a: __tmp, i: "v"}), $t5.a[$t5.i]);
       }
       function _ZSt4swapISt4pairIxxEEvRS0_S1_(__a, __b) {
         let __tmp = {v: new _ZSt4pairIxxE(_ZSt4moveISt4pairIxxEEOS0_S1_(__a))};
@@ -2420,10 +2431,10 @@ return {
         return (BigInt.asIntN(64, (x.first$_ZSt4pairIxxE) * (y.second$_ZSt4pairIxxE)) < BigInt.asIntN(64, (y.first$_ZSt4pairIxxE) * (x.second$_ZSt4pairIxxE)));
       }
       function _Z4calcv() {
-        let $t7, $t8, $t9, $t10, $t11, $t12, $t13, $t14;
+        let $t6, $t7, $t8, $t9, $t10, $t11, $t12, $t13;
         let hl = 0;
         let sm = 0n;
-        for (let i = 1; (i <= _Z1n.v); ($t7 = i, i = (($t7 + 1) | 0), $t7)) {
+        for (let i = 1; (i <= _Z1n.v); ($t6 = i, i = (($t6 + 1) | 0), $t6)) {
           if (_Z1b.v[i]) {
              {
               let x = _Z1a.v[i];
@@ -2431,15 +2442,15 @@ return {
               if ((y < 0n)) {
                 (x = BigInt.asIntN(64, -(x)), y = BigInt.asIntN(64, -(y)));
               }
-              ((($t8 = _Z1h[(hl = ((hl + 1) | 0))], $t8))._ZNSt4pairIxxEaSERKS0_({a: [new _ZSt4pairIxxE({a: [x], i: 0}, {a: [y], i: 0})], i: 0}), sm = BigInt.asIntN(64, (sm) + (y)));
+              ((($t7 = _Z1h[(hl = ((hl + 1) | 0))], $t7))._ZNSt4pairIxxEaSERKS0_({a: [new _ZSt4pairIxxE({a: [x], i: 0}, {a: [y], i: 0})], i: 0}), sm = BigInt.asIntN(64, (sm) + (y)));
             }
           }
         }
-        _ZSt4sortIPSt4pairIxxEPFbS1_S1_EEvS_S_S2_(($t9 = ({a: (({a: _Z1h, i: 0}) ? (({a: _Z1h, i: 0})).a : null), i: (({a: _Z1h, i: 0}) ? (({a: _Z1h, i: 0})).i : 0) + (1)}), $t9 ? {a: $t9.a, i: $t9.i} : null), ($t12 = ($t11 = ($t10 = ({a: (({a: _Z1h, i: 0}) ? (({a: _Z1h, i: 0})).a : null), i: (({a: _Z1h, i: 0}) ? (({a: _Z1h, i: 0})).i : 0) + (hl)}), $t10), ({a: ($t11 ? $t11.a : null), i: ($t11 ? $t11.i : 0) + (1)})), $t12 ? {a: $t12.a, i: $t12.i} : null), _Z3cmpSt4pairIxxES0_);
+        _ZSt4sortIPSt4pairIxxEPFbS1_S1_EEvS_S_S2_(($t8 = ({a: (({a: _Z1h, i: 0}) ? (({a: _Z1h, i: 0})).a : null), i: (({a: _Z1h, i: 0}) ? (({a: _Z1h, i: 0})).i : 0) + (1)}), $t8 ? {a: $t8.a, i: $t8.i} : null), ($t11 = ($t10 = ($t9 = ({a: (({a: _Z1h, i: 0}) ? (({a: _Z1h, i: 0})).a : null), i: (({a: _Z1h, i: 0}) ? (({a: _Z1h, i: 0})).i : 0) + (hl)}), $t9), ({a: ($t10 ? $t10.a : null), i: ($t10 ? $t10.i : 0) + (1)})), $t11 ? {a: $t11.a, i: $t11.i} : null), _Z3cmpSt4pairIxxES0_);
         let x = 0n;
         let y = 1n;
         let s = 0n;
-        for (let i = 1; (i <= hl); ($t13 = i, i = (($t13 + 1) | 0), $t13)) {
+        for (let i = 1; (i <= hl); ($t12 = i, i = (($t12 + 1) | 0), $t12)) {
            {
             s = BigInt.asIntN(64, (s) + ((_Z1h[i]).second$_ZSt4pairIxxE));
             if ((BigInt.asIntN(64, (s) * (2n)) >= sm)) {
@@ -2457,24 +2468,24 @@ return {
           (x = 1n, y = 1n);
         }
         let ans = 0n;
-        for (let i = 1; (i <= _Z1n.v); ($t14 = i, i = (($t14 + 1) | 0), $t14)) {
+        for (let i = 1; (i <= _Z1n.v); ($t13 = i, i = (($t13 + 1) | 0), $t13)) {
           ans = BigInt.asIntN(64, (ans) + (_ZSt3absx(BigInt.asIntN(64, (BigInt.asIntN(64, (_Z1a.v[i]) * (y))) - (BigInt.asIntN(64, (_Z1b.v[i]) * (x)))))));
         }
         let g = _ZSt5__gcdIxExxx(ans, y);
         return new _ZSt4pairIxxE({a: [BigInt.asIntN(64, (ans) / (g))], i: 0}, {a: [BigInt.asIntN(64, (y) / (g))], i: 0});
       }
       function main() {
-        let $t15, $t16, $t17;
+        let $t14, $t15, $t16;
         ((_ZSt8ios_base._ZNSt8ios_base15sync_with_stdioEb(0), _ZSt13basic_istreamIcSt11char_traitsIcEE.prototype._ZNSt13basic_istreamIcSt11char_traitsIcEE3tieEPSt13basic_ostreamIcS1_E.call(_ZSt3cin.v, null)), _ZSt13basic_ostreamIcSt11char_traitsIcEE.prototype._ZNSt13basic_ostreamIcSt11char_traitsIcEE3tieEPS2_.call(_ZSt4cout.v, null));
         _ZStrsRSt13basic_istreamIcSt11char_traitsIcEERi({a: _ZSt3cin, i: "v"}, {a: _Z1n, i: "v"});
-        for (let i = 1; (i <= _Z1n.v); ($t15 = i, i = (($t15 + 1) | 0), $t15)) {
+        for (let i = 1; (i <= _Z1n.v); ($t14 = i, i = (($t14 + 1) | 0), $t14)) {
           _ZStrsRSt13basic_istreamIcSt11char_traitsIcEERx({a: _ZSt3cin, i: "v"}, {a: _Z1a.v, i: (i)});
         }
-        for (let i = 1; (i <= _Z1n.v); ($t16 = i, i = (($t16 + 1) | 0), $t16)) {
+        for (let i = 1; (i <= _Z1n.v); ($t15 = i, i = (($t15 + 1) | 0), $t15)) {
           _ZStrsRSt13basic_istreamIcSt11char_traitsIcEERx({a: _ZSt3cin, i: "v"}, {a: _Z1b.v, i: (i)});
         }
         let x = _Z4calcv();
-        for (let i = 1; (i <= _Z1n.v); ($t17 = i, i = (($t17 + 1) | 0), $t17)) {
+        for (let i = 1; (i <= _Z1n.v); ($t16 = i, i = (($t16 + 1) | 0), $t16)) {
           _ZSt4swapIxEvRxS_({a: _Z1a.v, i: (i)}, {a: _Z1b.v, i: (i)});
         }
         let y = _Z4calcv();
@@ -2517,7 +2528,7 @@ return {
         return __t;
       }
       function _ZSt16__introsort_loopIPSt4pairIxxElPFbS1_S1_EEvS_S_lS2_(__first, __last, __depth_limit, __comp) {
-        let $t18;
+        let $t17;
         while ((((__last ? __last.i : 0) - (__first ? __first.i : 0)) > ((16) | 0))) {
            {
             if ((__depth_limit === 0)) {
@@ -2527,18 +2538,18 @@ return {
               }
             }
             (__depth_limit = ((__depth_limit - 1) | 0));
-            let __cut = ($t18 = _ZSt27__unguarded_partition_pivotIPSt4pairIxxEPFbS1_S1_EES_S_S_S2_((__first ? {a: __first.a, i: __first.i} : null), (__last ? {a: __last.a, i: __last.i} : null), __comp), $t18 ? {a: $t18.a, i: $t18.i} : null);
+            let __cut = ($t17 = _ZSt27__unguarded_partition_pivotIPSt4pairIxxEPFbS1_S1_EES_S_S_S2_((__first ? {a: __first.a, i: __first.i} : null), (__last ? {a: __last.a, i: __last.i} : null), __comp), $t17 ? {a: $t17.a, i: $t17.i} : null);
             _ZSt16__introsort_loopIPSt4pairIxxElPFbS1_S1_EEvS_S_lS2_((__cut ? {a: __cut.a, i: __cut.i} : null), (__last ? {a: __last.a, i: __last.i} : null), __depth_limit, __comp);
             __last = (__cut ? {a: __cut.a, i: __cut.i} : null);
           }
         }
       }
       function _ZSt22__final_insertion_sortIPSt4pairIxxEPFbS1_S1_EEvS_S_S2_(__first, __last, __comp) {
-        let $t19, $t20;
+        let $t18, $t19;
         if ((((__last ? __last.i : 0) - (__first ? __first.i : 0)) > ((16) | 0))) {
            {
-            _ZSt16__insertion_sortIPSt4pairIxxEPFbS1_S1_EEvS_S_S2_((__first ? {a: __first.a, i: __first.i} : null), ($t19 = ({a: (__first ? __first.a : null), i: (__first ? __first.i : 0) + (((16) | 0))}), $t19 ? {a: $t19.a, i: $t19.i} : null), __comp);
-            _ZSt26__unguarded_insertion_sortIPSt4pairIxxEPFbS1_S1_EEvS_S_S2_(($t20 = ({a: (__first ? __first.a : null), i: (__first ? __first.i : 0) + (((16) | 0))}), $t20 ? {a: $t20.a, i: $t20.i} : null), (__last ? {a: __last.a, i: __last.i} : null), __comp);
+            _ZSt16__insertion_sortIPSt4pairIxxEPFbS1_S1_EEvS_S_S2_((__first ? {a: __first.a, i: __first.i} : null), ($t18 = ({a: (__first ? __first.a : null), i: (__first ? __first.i : 0) + (((16) | 0))}), $t18 ? {a: $t18.a, i: $t18.i} : null), __comp);
+            _ZSt26__unguarded_insertion_sortIPSt4pairIxxEPFbS1_S1_EEvS_S_S2_(($t19 = ({a: (__first ? __first.a : null), i: (__first ? __first.i : 0) + (((16) | 0))}), $t19 ? {a: $t19.a, i: $t19.i} : null), (__last ? {a: __last.a, i: __last.i} : null), __comp);
           }
         }
         else {
@@ -2550,22 +2561,22 @@ return {
         _ZSt9sort_heapIPSt4pairIxxEPFbS1_S1_EEvS_S_S2_((__first ? {a: __first.a, i: __first.i} : null), (__middle ? {a: __middle.a, i: __middle.i} : null), __comp);
       }
       function _ZSt27__unguarded_partition_pivotIPSt4pairIxxEPFbS1_S1_EES_S_S_S2_(__first, __last, __comp) {
-        let $t21, $t22, $t23, $t24;
-        let __mid = ($t21 = ({a: (__first ? __first.a : null), i: (__first ? __first.i : 0) + (((Math.trunc((((__last ? __last.i : 0) - (__first ? __first.i : 0))) / (2))) | 0))}), $t21 ? {a: $t21.a, i: $t21.i} : null);
-        _ZSt19__move_median_firstIPSt4pairIxxEPFbS1_S1_EEvS_S_S_S2_((__first ? {a: __first.a, i: __first.i} : null), (__mid ? {a: __mid.a, i: __mid.i} : null), ($t22 = ({a: (__last ? __last.a : null), i: (__last ? __last.i : 0) - (1)}), $t22 ? {a: $t22.a, i: $t22.i} : null), __comp);
-        return ($t24 = _ZSt21__unguarded_partitionIPSt4pairIxxES1_PFbS1_S1_EES_S_S_RKS1_S2_(($t23 = ({a: (__first ? __first.a : null), i: (__first ? __first.i : 0) + (1)}), $t23 ? {a: $t23.a, i: $t23.i} : null), (__last ? {a: __last.a, i: __last.i} : null), __first, __comp), $t24 ? {a: $t24.a, i: $t24.i} : null);
+        let $t20, $t21, $t22, $t23;
+        let __mid = ($t20 = ({a: (__first ? __first.a : null), i: (__first ? __first.i : 0) + (((Math.trunc((((__last ? __last.i : 0) - (__first ? __first.i : 0))) / (2))) | 0))}), $t20 ? {a: $t20.a, i: $t20.i} : null);
+        _ZSt19__move_median_firstIPSt4pairIxxEPFbS1_S1_EEvS_S_S_S2_((__first ? {a: __first.a, i: __first.i} : null), (__mid ? {a: __mid.a, i: __mid.i} : null), ($t21 = ({a: (__last ? __last.a : null), i: (__last ? __last.i : 0) - (1)}), $t21 ? {a: $t21.a, i: $t21.i} : null), __comp);
+        return ($t23 = _ZSt21__unguarded_partitionIPSt4pairIxxES1_PFbS1_S1_EES_S_S_RKS1_S2_(($t22 = ({a: (__first ? __first.a : null), i: (__first ? __first.i : 0) + (1)}), $t22 ? {a: $t22.a, i: $t22.i} : null), (__last ? {a: __last.a, i: __last.i} : null), __first, __comp), $t23 ? {a: $t23.a, i: $t23.i} : null);
       }
       function _ZSt16__insertion_sortIPSt4pairIxxEPFbS1_S1_EEvS_S_S2_(__first, __last, __comp) {
-        let $t25, $t26;
+        let $t24, $t25;
         if ((__first === __last || (__first && __last && __first.a === __last.a && __first.i === __last.i))) {
           return;
         }
-        for (let __i = ($t25 = ({a: (__first ? __first.a : null), i: (__first ? __first.i : 0) + (1)}), $t25 ? {a: $t25.a, i: $t25.i} : null); (!(__i === __last || (__i && __last && __i.a === __last.a && __i.i === __last.i))); ++__i.i) {
+        for (let __i = ($t24 = ({a: (__first ? __first.a : null), i: (__first ? __first.i : 0) + (1)}), $t24 ? {a: $t24.a, i: $t24.i} : null); (!(__i === __last || (__i && __last && __i.a === __last.a && __i.i === __last.i))); ++__i.i) {
            {
             if (__comp(new _ZSt4pairIxxE(__i), new _ZSt4pairIxxE(__first))) {
                {
                 let __val = {v: new _ZSt4pairIxxE(_ZSt4moveISt4pairIxxEEOS0_S1_(__i))};
-                _ZSt13move_backwardIPSt4pairIxxES_ES_S_S_S_((__first ? {a: __first.a, i: __first.i} : null), (__i ? {a: __i.a, i: __i.i} : null), ($t26 = ({a: (__i ? __i.a : null), i: (__i ? __i.i : 0) + (1)}), $t26 ? {a: $t26.a, i: $t26.i} : null));
+                _ZSt13move_backwardIPSt4pairIxxES_ES_S_S_S_((__first ? {a: __first.a, i: __first.i} : null), (__i ? {a: __i.a, i: __i.i} : null), ($t25 = ({a: (__i ? __i.a : null), i: (__i ? __i.i : 0) + (1)}), $t25 ? {a: $t25.a, i: $t25.i} : null));
                 (__first.a[__first.i])._ZNSt4pairIxxEaSEOS0_(_ZSt4moveISt4pairIxxEEOS0_S1_({a: __val, i: "v"}));
               }
             }
@@ -2642,8 +2653,8 @@ return {
         }
       }
       function _ZSt13move_backwardIPSt4pairIxxES_ES_S_S_S_(__first, __last, __result) {
-        let $t27, $t28, $t29;
-        return ($t29 = _ZSt23__copy_move_backward_a2ILi1EPSt4pairIxxES_ES_S_S_S_(($t27 = _ZSt12__miter_baseIPSt4pairIxxEES_S_((__first ? {a: __first.a, i: __first.i} : null)), $t27 ? {a: $t27.a, i: $t27.i} : null), ($t28 = _ZSt12__miter_baseIPSt4pairIxxEES_S_((__last ? {a: __last.a, i: __last.i} : null)), $t28 ? {a: $t28.a, i: $t28.i} : null), (__result ? {a: __result.a, i: __result.i} : null)), $t29 ? {a: $t29.a, i: $t29.i} : null);
+        let $t26, $t27, $t28;
+        return ($t28 = _ZSt23__copy_move_backward_a2ILi1EPSt4pairIxxES_ES_S_S_S_(($t26 = _ZSt12__miter_baseIPSt4pairIxxEES_S_((__first ? {a: __first.a, i: __first.i} : null)), $t26 ? {a: $t26.a, i: $t26.i} : null), ($t27 = _ZSt12__miter_baseIPSt4pairIxxEES_S_((__last ? {a: __last.a, i: __last.i} : null)), $t27 ? {a: $t27.a, i: $t27.i} : null), (__result ? {a: __result.a, i: __result.i} : null)), $t28 ? {a: $t28.a, i: $t28.i} : null);
       }
       function _ZSt25__unguarded_linear_insertIPSt4pairIxxEPFbS1_S1_EEvS_S2_(__last, __comp) {
         let __val = {v: new _ZSt4pairIxxE(_ZSt4moveISt4pairIxxEEOS0_S1_(__last))};
@@ -2659,7 +2670,7 @@ return {
         (__last.a[__last.i])._ZNSt4pairIxxEaSEOS0_(_ZSt4moveISt4pairIxxEEOS0_S1_({a: __val, i: "v"}));
       }
       function _ZSt9make_heapIPSt4pairIxxEPFbS1_S1_EEvS_S_S2_(__first, __last, __comp) {
-        let $t30, $t31;
+        let $t29, $t30;
         if ((((__last ? __last.i : 0) - (__first ? __first.i : 0)) < 2)) {
           return;
         }
@@ -2668,36 +2679,36 @@ return {
         while (true) {
            {
             let __value = {v: new _ZSt4pairIxxE(_ZSt4moveISt4pairIxxEEOS0_S1_(({a: (__first ? __first.a : null), i: (__first ? __first.i : 0) + (__parent)})))};
-            _ZSt13__adjust_heapIPSt4pairIxxElS1_PFbS1_S1_EEvS_llS1_S2_((__first ? {a: __first.a, i: __first.i} : null), __parent, __len, ($t30 = _ZSt4moveISt4pairIxxEEOS0_S1_({a: __value, i: "v"}), $t30.a[$t30.i]), __comp);
+            _ZSt13__adjust_heapIPSt4pairIxxElS1_PFbS1_S1_EEvS_llS1_S2_((__first ? {a: __first.a, i: __first.i} : null), __parent, __len, ($t29 = _ZSt4moveISt4pairIxxEEOS0_S1_({a: __value, i: "v"}), $t29.a[$t29.i]), __comp);
             if ((__parent === 0)) {
               return;
             }
-            ($t31 = __parent, __parent = (($t31 - 1) | 0), $t31);
+            ($t30 = __parent, __parent = (($t30 - 1) | 0), $t30);
           }
         }
       }
       function _ZSt10__pop_heapIPSt4pairIxxEPFbS1_S1_EEvS_S_S_S2_(__first, __last, __result, __comp) {
-        let $t32;
+        let $t31;
         let __value = {v: new _ZSt4pairIxxE(_ZSt4moveISt4pairIxxEEOS0_S1_(__result))};
         (__result.a[__result.i])._ZNSt4pairIxxEaSEOS0_(_ZSt4moveISt4pairIxxEEOS0_S1_(__first));
-        _ZSt13__adjust_heapIPSt4pairIxxElS1_PFbS1_S1_EEvS_llS1_S2_((__first ? {a: __first.a, i: __first.i} : null), 0, ((__last ? __last.i : 0) - (__first ? __first.i : 0)), ($t32 = _ZSt4moveISt4pairIxxEEOS0_S1_({a: __value, i: "v"}), $t32.a[$t32.i]), __comp);
+        _ZSt13__adjust_heapIPSt4pairIxxElS1_PFbS1_S1_EEvS_llS1_S2_((__first ? {a: __first.a, i: __first.i} : null), 0, ((__last ? __last.i : 0) - (__first ? __first.i : 0)), ($t31 = _ZSt4moveISt4pairIxxEEOS0_S1_({a: __value, i: "v"}), $t31.a[$t31.i]), __comp);
       }
       function _ZSt9iter_swapIPSt4pairIxxES_EvS_S_(__a, __b) {
         _ZSt4swapISt4pairIxxEEvRS0_S1_(__a, __b);
       }
       function _ZSt12__miter_baseIPSt4pairIxxEES_S_(__it) {
-        let $t33;
-        return ($t33 = _ZSt10_Iter_baseIPSt4pairIxxELi0EE._ZNSt10_Iter_baseIPSt4pairIxxELi0EE7_S_baseES0_((__it ? {a: __it.a, i: __it.i} : null)), $t33 ? {a: $t33.a, i: $t33.i} : null);
+        let $t32;
+        return ($t32 = _ZSt10_Iter_baseIPSt4pairIxxELi0EE._ZNSt10_Iter_baseIPSt4pairIxxELi0EE7_S_baseES0_((__it ? {a: __it.a, i: __it.i} : null)), $t32 ? {a: $t32.a, i: $t32.i} : null);
       }
       function _ZSt23__copy_move_backward_a2ILi1EPSt4pairIxxES_ES_S_S_S_(__first, __last, __result) {
-        let $t34, $t35, $t36, $t37;
-        return ($t37 = _ZSt22__copy_move_backward_aILi1EPSt4pairIxxES_ES_S_S_S_(($t34 = _ZSt12__niter_baseIPSt4pairIxxEES_S_((__first ? {a: __first.a, i: __first.i} : null)), $t34 ? {a: $t34.a, i: $t34.i} : null), ($t35 = _ZSt12__niter_baseIPSt4pairIxxEES_S_((__last ? {a: __last.a, i: __last.i} : null)), $t35 ? {a: $t35.a, i: $t35.i} : null), ($t36 = _ZSt12__niter_baseIPSt4pairIxxEES_S_((__result ? {a: __result.a, i: __result.i} : null)), $t36 ? {a: $t36.a, i: $t36.i} : null)), $t37 ? {a: $t37.a, i: $t37.i} : null);
+        let $t33, $t34, $t35, $t36;
+        return ($t36 = _ZSt22__copy_move_backward_aILi1EPSt4pairIxxES_ES_S_S_S_(($t33 = _ZSt12__niter_baseIPSt4pairIxxEES_S_((__first ? {a: __first.a, i: __first.i} : null)), $t33 ? {a: $t33.a, i: $t33.i} : null), ($t34 = _ZSt12__niter_baseIPSt4pairIxxEES_S_((__last ? {a: __last.a, i: __last.i} : null)), $t34 ? {a: $t34.a, i: $t34.i} : null), ($t35 = _ZSt12__niter_baseIPSt4pairIxxEES_S_((__result ? {a: __result.a, i: __result.i} : null)), $t35 ? {a: $t35.a, i: $t35.i} : null)), $t36 ? {a: $t36.a, i: $t36.i} : null);
       }
       function _ZSt7forwardIxEOxRx(__t) {
         return __t;
       }
       function _ZSt13__adjust_heapIPSt4pairIxxElS1_PFbS1_S1_EEvS_llS1_S2_(__first, __holeIndex, __len, __value, __comp) {
-        let $t38, $t39, $t40, $t41, $t42, $t43;
+        let $t37, $t38, $t39, $t40, $t41, $t42;
         __value = {v: __value};
         let __topIndex = __holeIndex;
         let __secondChild = __holeIndex;
@@ -2705,49 +2716,43 @@ return {
            {
             __secondChild = ((Math.imul(2, (((__secondChild) + (1)) | 0))) | 0);
             if (__comp(new _ZSt4pairIxxE(({a: (__first ? __first.a : null), i: (__first ? __first.i : 0) + (__secondChild)})), new _ZSt4pairIxxE(({a: (__first ? __first.a : null), i: (__first ? __first.i : 0) + ((((__secondChild) - (1)) | 0))})))) {
-              ($t38 = __secondChild, __secondChild = (($t38 - 1) | 0), $t38);
+              ($t37 = __secondChild, __secondChild = (($t37 - 1) | 0), $t37);
             }
-            (($t40 = ($t39 = ({a: (__first ? __first.a : null), i: (__first ? __first.i : 0) + (__holeIndex)}), $t39.a[$t39.i]), $t40))._ZNSt4pairIxxEaSEOS0_(_ZSt4moveISt4pairIxxEEOS0_S1_(({a: (__first ? __first.a : null), i: (__first ? __first.i : 0) + (__secondChild)})));
+            (($t39 = ($t38 = ({a: (__first ? __first.a : null), i: (__first ? __first.i : 0) + (__holeIndex)}), $t38.a[$t38.i]), $t39))._ZNSt4pairIxxEaSEOS0_(_ZSt4moveISt4pairIxxEEOS0_S1_(({a: (__first ? __first.a : null), i: (__first ? __first.i : 0) + (__secondChild)})));
             __holeIndex = __secondChild;
           }
         }
         if ((((((__len) & (1)) | 0) === 0) && (__secondChild === ((Math.trunc(((((__len) - (2)) | 0)) / (2))) | 0)))) {
            {
             __secondChild = ((Math.imul(2, (((__secondChild) + (1)) | 0))) | 0);
-            (($t42 = ($t41 = ({a: (__first ? __first.a : null), i: (__first ? __first.i : 0) + (__holeIndex)}), $t41.a[$t41.i]), $t42))._ZNSt4pairIxxEaSEOS0_(_ZSt4moveISt4pairIxxEEOS0_S1_(({a: (__first ? __first.a : null), i: (__first ? __first.i : 0) + ((((__secondChild) - (1)) | 0))})));
+            (($t41 = ($t40 = ({a: (__first ? __first.a : null), i: (__first ? __first.i : 0) + (__holeIndex)}), $t40.a[$t40.i]), $t41))._ZNSt4pairIxxEaSEOS0_(_ZSt4moveISt4pairIxxEEOS0_S1_(({a: (__first ? __first.a : null), i: (__first ? __first.i : 0) + ((((__secondChild) - (1)) | 0))})));
             __holeIndex = (((__secondChild) - (1)) | 0);
           }
         }
-        _ZSt11__push_heapIPSt4pairIxxElS1_PFbS1_S1_EEvS_llS1_S2_((__first ? {a: __first.a, i: __first.i} : null), __holeIndex, __topIndex, ($t43 = _ZSt4moveISt4pairIxxEEOS0_S1_({a: __value, i: "v"}), $t43.a[$t43.i]), __comp);
+        _ZSt11__push_heapIPSt4pairIxxElS1_PFbS1_S1_EEvS_llS1_S2_((__first ? {a: __first.a, i: __first.i} : null), __holeIndex, __topIndex, ($t42 = _ZSt4moveISt4pairIxxEEOS0_S1_({a: __value, i: "v"}), $t42.a[$t42.i]), __comp);
       }
       function _ZSt12__niter_baseIPSt4pairIxxEES_S_(__it) {
-        let $t44;
-        return ($t44 = _ZSt10_Iter_baseIPSt4pairIxxELi0EE._ZNSt10_Iter_baseIPSt4pairIxxELi0EE7_S_baseES0_((__it ? {a: __it.a, i: __it.i} : null)), $t44 ? {a: $t44.a, i: $t44.i} : null);
+        let $t43;
+        return ($t43 = _ZSt10_Iter_baseIPSt4pairIxxELi0EE._ZNSt10_Iter_baseIPSt4pairIxxELi0EE7_S_baseES0_((__it ? {a: __it.a, i: __it.i} : null)), $t43 ? {a: $t43.a, i: $t43.i} : null);
       }
       function _ZSt22__copy_move_backward_aILi1EPSt4pairIxxES_ES_S_S_S_(__first, __last, __result) {
-        let $t45;
+        let $t44;
         let __simple = (((0 && 1) && 1) && 1);
-        return ($t45 = _ZSt20__copy_move_backwardILi1ELi0ESt26random_access_iterator_tagE._ZNSt20__copy_move_backwardILi1ELi0ESt26random_access_iterator_tagE13__copy_move_bIPSt4pairIxxES2_EES2_S2_S2_S2_((__first ? {a: __first.a, i: __first.i} : null), (__last ? {a: __last.a, i: __last.i} : null), (__result ? {a: __result.a, i: __result.i} : null)), $t45 ? {a: $t45.a, i: $t45.i} : null);
+        return ($t44 = _ZSt20__copy_move_backwardILi1ELi0ESt26random_access_iterator_tagE._ZNSt20__copy_move_backwardILi1ELi0ESt26random_access_iterator_tagE13__copy_move_bIPSt4pairIxxES2_EES2_S2_S2_S2_((__first ? {a: __first.a, i: __first.i} : null), (__last ? {a: __last.a, i: __last.i} : null), (__result ? {a: __result.a, i: __result.i} : null)), $t44 ? {a: $t44.a, i: $t44.i} : null);
       }
       function _ZSt11__push_heapIPSt4pairIxxElS1_PFbS1_S1_EEvS_llS1_S2_(__first, __holeIndex, __topIndex, __value, __comp) {
-        let $t46, $t47, $t48, $t49;
+        let $t45, $t46, $t47, $t48;
         __value = {v: __value};
         let __parent = ((Math.trunc(((((__holeIndex) - (1)) | 0)) / (2))) | 0);
         while (((__holeIndex > __topIndex) && __comp(new _ZSt4pairIxxE(({a: (__first ? __first.a : null), i: (__first ? __first.i : 0) + (__parent)})), new _ZSt4pairIxxE({a: __value, i: "v"})))) {
            {
-            (($t47 = ($t46 = ({a: (__first ? __first.a : null), i: (__first ? __first.i : 0) + (__holeIndex)}), $t46.a[$t46.i]), $t47))._ZNSt4pairIxxEaSEOS0_(_ZSt4moveISt4pairIxxEEOS0_S1_(({a: (__first ? __first.a : null), i: (__first ? __first.i : 0) + (__parent)})));
+            (($t46 = ($t45 = ({a: (__first ? __first.a : null), i: (__first ? __first.i : 0) + (__holeIndex)}), $t45.a[$t45.i]), $t46))._ZNSt4pairIxxEaSEOS0_(_ZSt4moveISt4pairIxxEEOS0_S1_(({a: (__first ? __first.a : null), i: (__first ? __first.i : 0) + (__parent)})));
             __holeIndex = __parent;
             __parent = ((Math.trunc(((((__holeIndex) - (1)) | 0)) / (2))) | 0);
           }
         }
-        (($t49 = ($t48 = ({a: (__first ? __first.a : null), i: (__first ? __first.i : 0) + (__holeIndex)}), $t48.a[$t48.i]), $t49))._ZNSt4pairIxxEaSEOS0_(_ZSt4moveISt4pairIxxEEOS0_S1_({a: __value, i: "v"}));
+        (($t48 = ($t47 = ({a: (__first ? __first.a : null), i: (__first ? __first.i : 0) + (__holeIndex)}), $t47.a[$t47.i]), $t48))._ZNSt4pairIxxEaSEOS0_(_ZSt4moveISt4pairIxxEEOS0_S1_({a: __value, i: "v"}));
       }
-      let _Z16__ctj_stdin_file = {v: new _Z8_IO_FILE(0, 0)};
-      let _Z17__ctj_stdout_file = {v: new _Z8_IO_FILE(1, 0)};
-      let _Z17__ctj_stderr_file = {v: new _Z8_IO_FILE(2, 0)};
-      let _Z5stdin = (({a: _Z16__ctj_stdin_file, i: "v"}) ? {a: ({a: _Z16__ctj_stdin_file, i: "v"}).a, i: ({a: _Z16__ctj_stdin_file, i: "v"}).i} : null);
-      let _Z6stdout = (({a: _Z17__ctj_stdout_file, i: "v"}) ? {a: ({a: _Z17__ctj_stdout_file, i: "v"}).a, i: ({a: _Z17__ctj_stdout_file, i: "v"}).i} : null);
-      let _Z6stderr = (({a: _Z17__ctj_stderr_file, i: "v"}) ? {a: ({a: _Z17__ctj_stderr_file, i: "v"}).a, i: ({a: _Z17__ctj_stderr_file, i: "v"}).i} : null);
       let _ZSt19piecewise_construct = new _ZSt21piecewise_construct_t();
       let _ZSt9boolalpha = new _ZSt8_Ios_fmt(1, 1);
       let _ZSt11noboolalpha = new _ZSt8_Ios_fmt(1, 0);

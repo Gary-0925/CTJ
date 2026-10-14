@@ -1,46 +1,55 @@
-/* Portable <errno.h> for CTJ. */
-#ifndef _CTJ_ERRNO_H
-#define _CTJ_ERRNO_H
+/* Copyright (C) 1991-2022 Free Software Foundation, Inc.
+   This file is part of the GNU C Library.
 
-extern int errno;
+   The GNU C Library is free software; you can redistribute it and/or
+   modify it under the terms of the GNU Lesser General Public
+   License as published by the Free Software Foundation; either
+   version 2.1 of the License, or (at your option) any later version.
 
-#define EPERM 1
-#define ENOENT 2
-#define ESRCH 3
-#define EINTR 4
-#define EIO 5
-#define ENXIO 6
-#define E2BIG 7
-#define ENOEXEC 8
-#define EBADF 9
-#define ECHILD 10
-#define EAGAIN 11
-#define ENOMEM 12
-#define EACCES 13
-#define EFAULT 14
-#define EBUSY 16
-#define EEXIST 17
-#define EXDEV 18
-#define ENODEV 19
-#define ENOTDIR 20
-#define EISDIR 21
-#define EINVAL 22
-#define ENFILE 23
-#define EMFILE 24
-#define ENOTTY 25
-#define EFBIG 27
-#define ENOSPC 28
-#define ESPIPE 29
-#define EROFS 30
-#define EMLINK 31
-#define EPIPE 32
-#define EDOM 33
-#define ERANGE 34
-#define EDEADLK 35
-#define ENAMETOOLONG 36
-#define ENOSYS 38
-#define ENOTEMPTY 39
-#define ELOOP 40
-#define EOVERFLOW 75
+   The GNU C Library is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+   Lesser General Public License for more details.
 
-#endif
+   You should have received a copy of the GNU Lesser General Public
+   License along with the GNU C Library; if not, see
+   <https://www.gnu.org/licenses/>.  */
+
+/*
+ *	ISO C99 Standard: 7.5 Errors	<errno.h>
+ */
+
+#ifndef	_ERRNO_H
+#define	_ERRNO_H 1
+
+#include <features.h>
+
+/* The system-specific definitions of the E* constants, as macros.  */
+#include <bits/errno.h>
+
+/* When included from assembly language, this header only provides the
+   E* constants.  */
+#ifndef __ASSEMBLER__
+
+__BEGIN_DECLS
+
+/* The error code set by various library functions.  */
+extern int *__errno_location (void) __THROW __attribute_const__;
+# define errno (*__errno_location ())
+
+# ifdef __USE_GNU
+
+/* The full and simple forms of the name with which the program was
+   invoked.  These variables are set up automatically at startup based on
+   the value of argv[0].  */
+extern char *program_invocation_name;
+extern char *program_invocation_short_name;
+
+#include <bits/types/error_t.h>
+
+# endif /* __USE_GNU */
+
+__END_DECLS
+
+#endif /* !__ASSEMBLER__ */
+#endif /* errno.h */

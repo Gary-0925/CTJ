@@ -116,7 +116,7 @@ namespace CTJ {
     "__GNUC_MINOR__",
   ]);
 
-  export const BASIC_TYPES = new Set(["void", "bool", "char", "char16_t", "char32_t", "wchar_t", "short", "int", "long", "float", "double", "signed", "unsigned"]);
+  export const BASIC_TYPES = new Set(["void", "bool", "char", "char16_t", "char32_t", "wchar_t", "short", "int", "long", "float", "double", "signed", "unsigned", "__builtin_va_list", "__gnuc_va_list", "va_list"]);
 
   export const ACCESS = new Set(["public", "private", "protected"]);
 }

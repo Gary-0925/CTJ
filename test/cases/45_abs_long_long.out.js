@@ -74,48 +74,68 @@ return {
         }
       }
       class _Z8_IO_FILE {
-        __fd;
-        __dummy;
+        _flags;
+        _IO_read_ptr;
+        _IO_read_end;
+        _IO_read_base;
+        _IO_write_base;
+        _IO_write_ptr;
+        _IO_write_end;
+        _IO_buf_base;
+        _IO_buf_end;
+        _IO_save_base;
+        _IO_backup_base;
+        _IO_save_end;
+        _markers;
+        _chain;
+        _fileno;
+        _flags2;
+        _old_offset;
+        _cur_column;
+        _vtable_offset;
+        _shortbuf;
+        _lock;
+        _offset;
+        _codecvt;
+        _wide_data;
+        _freeres_list;
+        _freeres_buf;
+        __pad5;
+        _mode;
+        _unused2;
         constructor(...$a) {
           this.__init__Z8_IO_FILE(...$a);
         }
         __init__Z8_IO_FILE(...$a) {
-          if ($a.length >= 1 && $a.length <= 1 && ($a[0] !== null && typeof $a[0] === "object" && !Array.isArray($a[0]) && $a[0].a !== undefined && $a[0].i !== undefined && $a[0].a[$a[0].i] instanceof _Z8_IO_FILE)) {
-            this.__fd = (($a[0]).a[($a[0]).i]).__fd;
-            this.__dummy = (($a[0]).a[($a[0]).i]).__dummy;
-          }
-          else if ($a.length >= 2 && $a.length <= 2 && (typeof $a[0] === "number" || typeof $a[0] === "boolean") && (typeof $a[1] === "number" || typeof $a[1] === "boolean")) {
-            this.__fd = $a[0];
-            this.__dummy = $a[1];
-          }
-          else { throw new Error("no matching constructor"); }
-        }
-        __dtor() {
-        }
-      }
-      class _Z2tm {
-        tm_sec;
-        tm_min;
-        tm_hour;
-        tm_mday;
-        tm_mon;
-        tm_year;
-        tm_wday;
-        tm_yday;
-        tm_isdst;
-        constructor(...$a) {
-          this.__init__Z2tm(...$a);
-        }
-        __init__Z2tm(...$a) {
-          this.tm_sec = 0;
-          this.tm_min = 0;
-          this.tm_hour = 0;
-          this.tm_mday = 0;
-          this.tm_mon = 0;
-          this.tm_year = 0;
-          this.tm_wday = 0;
-          this.tm_yday = 0;
-          this.tm_isdst = 0;
+          this._flags = 0;
+          this._IO_read_ptr = null;
+          this._IO_read_end = null;
+          this._IO_read_base = null;
+          this._IO_write_base = null;
+          this._IO_write_ptr = null;
+          this._IO_write_end = null;
+          this._IO_buf_base = null;
+          this._IO_buf_end = null;
+          this._IO_save_base = null;
+          this._IO_backup_base = null;
+          this._IO_save_end = null;
+          this._markers = null;
+          this._chain = null;
+          this._fileno = 0;
+          this._flags2 = 0;
+          this._old_offset = 0n;
+          this._cur_column = 0;
+          this._vtable_offset = 0;
+          this._shortbuf = new Array(1).fill(0);
+          this._lock = null;
+          this._offset = 0n;
+          this._codecvt = null;
+          this._wide_data = null;
+          this._freeres_list = null;
+          this._freeres_buf = null;
+          this.__pad5 = 0;
+          this._mode = 0;
+          this._unused2 = new Array(40).fill(0);
         }
         __dtor() {
         }
@@ -172,13 +192,13 @@ return {
           _ZSt26bidirectional_iterator_tag.prototype.__dtor.call(this);
         }
       }
-      class _Z12$24class_152 {
+      class _Z12$24class_157 {
         __count;
         __value;
         constructor(...$a) {
-          this.__init__Z12$24class_152(...$a);
+          this.__init__Z12$24class_157(...$a);
         }
-        __init__Z12$24class_152(...$a) {
+        __init__Z12$24class_157(...$a) {
           this.__count = 0;
           this.__value = 0;
         }
@@ -281,13 +301,13 @@ return {
         static punct = 512;
         static alnum = 12;
       }
-      class _Z12$24class_159 {
+      class _Z12$24class_164 {
         done;
         started;
         constructor(...$a) {
-          this.__init__Z12$24class_159(...$a);
+          this.__init__Z12$24class_164(...$a);
         }
-        __init__Z12$24class_159(...$a) {
+        __init__Z12$24class_164(...$a) {
           this.done = 0;
           this.started = 0;
         }
@@ -897,14 +917,14 @@ return {
           return __c;
         }
         _ZNKSt5ctypeIcE8do_widenEPKcS1_Pc(__lo, __hi, __to) {
-          _Z6memcpyPvPKvm((__to ? {a: __to.a, i: __to.i} : null), (__lo ? {a: __lo.a, i: __lo.i} : null), ((((__hi ? __hi.i : 0) - (__lo ? __lo.i : 0))) >>> 0));
+          (($d, $s, $n) => { for (let $k = 0; $k < $n; $k++) $d.a[$d.i + $k] = $s.a[$s.i + $k]; return $d; })((($q) => ($q && $q.a !== undefined ? $q : { a: $q, i: 0 }))(__to), (($q) => ($q && $q.a !== undefined ? $q : { a: $q, i: 0 }))(__lo), ((__hi ? __hi.i : 0) - (__lo ? __lo.i : 0)));
           return (__hi ? {a: __hi.a, i: __hi.i} : null);
         }
         _ZNKSt5ctypeIcE9do_narrowEcc(__c, __dfault) {
           return __c;
         }
         _ZNKSt5ctypeIcE9do_narrowEPKcS1_cPc(__lo, __hi, __dfault, __to) {
-          _Z6memcpyPvPKvm((__to ? {a: __to.a, i: __to.i} : null), (__lo ? {a: __lo.a, i: __lo.i} : null), ((((__hi ? __hi.i : 0) - (__lo ? __lo.i : 0))) >>> 0));
+          (($d, $s, $n) => { for (let $k = 0; $k < $n; $k++) $d.a[$d.i + $k] = $s.a[$s.i + $k]; return $d; })((($q) => ($q && $q.a !== undefined ? $q : { a: $q, i: 0 }))(__to), (($q) => ($q && $q.a !== undefined ? $q : { a: $q, i: 0 }))(__lo), ((__hi ? __hi.i : 0) - (__lo ? __lo.i : 0)));
           return (__hi ? {a: __hi.a, i: __hi.i} : null);
         }
         static id = new _ZSt5ctypeIcE();
@@ -1594,15 +1614,6 @@ return {
       function _ZSt3absx(__x) {
         return ((v) => BigInt.asIntN(64, v < 0n ? -v : v))(__x);
       }
-      function _Z6memcpyPvPKvm(dst, src, n) {
-        let $t0;
-        let d = (dst ? {a: dst.a, i: dst.i} : null);
-        let s = (src ? {a: src.a, i: src.i} : null);
-        for (let i = ((0) >>> 0); (i < n); ($t0 = i, i = (($t0 + 1) >>> 0), $t0)) {
-          d.a[d.i + (i)] = s.a[s.i + (i)];
-        }
-        return dst;
-      }
       function _ZStlsRSt13basic_ostreamIcSt11char_traitsIcEEx(__os, __n) {
         _ZSt13basic_ostreamIcSt11char_traitsIcEE.prototype._ZNSt13basic_ostreamIcSt11char_traitsIcEE8_M_putllEix.call(__os.a[__os.i], 3, __n);
         return __os;
@@ -1633,12 +1644,6 @@ return {
         _ZStlsRSt13basic_ostreamIcSt11char_traitsIcEERKSt7_Ios_op(_ZStlsRSt13basic_ostreamIcSt11char_traitsIcEEx(_ZStlsRSt13basic_ostreamIcSt11char_traitsIcEEPKc(_ZStlsRSt13basic_ostreamIcSt11char_traitsIcEEx({a: _ZSt4cout, i: "v"}, _ZSt3absx(a)), {a: [32, 0], i: 0}), _ZSt3absx(a)), {a: [_ZSt4endl], i: 0});
         return 0;
       }
-      let _Z16__ctj_stdin_file = {v: new _Z8_IO_FILE(0, 0)};
-      let _Z17__ctj_stdout_file = {v: new _Z8_IO_FILE(1, 0)};
-      let _Z17__ctj_stderr_file = {v: new _Z8_IO_FILE(2, 0)};
-      let _Z5stdin = (({a: _Z16__ctj_stdin_file, i: "v"}) ? {a: ({a: _Z16__ctj_stdin_file, i: "v"}).a, i: ({a: _Z16__ctj_stdin_file, i: "v"}).i} : null);
-      let _Z6stdout = (({a: _Z17__ctj_stdout_file, i: "v"}) ? {a: ({a: _Z17__ctj_stdout_file, i: "v"}).a, i: ({a: _Z17__ctj_stdout_file, i: "v"}).i} : null);
-      let _Z6stderr = (({a: _Z17__ctj_stderr_file, i: "v"}) ? {a: ({a: _Z17__ctj_stderr_file, i: "v"}).a, i: ({a: _Z17__ctj_stderr_file, i: "v"}).i} : null);
       let _ZSt19piecewise_construct = new _ZSt21piecewise_construct_t();
       let _ZSt9boolalpha = new _ZSt8_Ios_fmt(1, 1);
       let _ZSt11noboolalpha = new _ZSt8_Ios_fmt(1, 0);

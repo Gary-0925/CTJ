@@ -42,9 +42,16 @@ namespace CTJ {
     analyzeAll(cx, tu);
     const code = emitJs(cx);
     const program = new Function(code)() as Program;
+    // Parse errors inside the bundled glibc headers (e.g. the _Float128 / _Complex
+    // declarations in bits/floatn.h) are skipped on purpose: CTJ has no such types and
+    // the user cannot act on them, so they are not reported.
+    const fromHeader = (w: string) => {
+      const m = /^(.*):\d+: /.exec(w);
+      return m !== null && m[1] in headers;
+    };
     return {
       code,
-      warnings: [...pres.warnings, ...cx.warnings],
+      warnings: [...pres.warnings, ...parser.warnings.filter(w => !fromHeader(w)), ...cx.warnings],
       run: (input?: string) => program.run(input),
     };
   }

@@ -250,6 +250,12 @@ namespace CTJ {
       return { kind: "lit", lkind, value: t.v, ...at(t) };
     }
     if (t.t === "ident") {
+      // The name of the enclosing function, as a string: __PRETTY_FUNCTION__ gives
+      // the name alone, not the signature.
+      if (t.v === "__func__" || t.v === "__FUNCTION__" || t.v === "__PRETTY_FUNCTION__") {
+        p.pos++;
+        return { kind: "lit", lkind: "string", value: '"' + p.fnName + '"', ...at(t) };
+      }
       if (t.v === "true" || t.v === "false") {
         p.pos++;
         return { kind: "lit", lkind: "bool", value: t.v, ...at(t) };

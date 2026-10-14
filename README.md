@@ -19,7 +19,7 @@ npm run build
 构建做两件事：
 
 1. 用 `tsc` 把 `src` 编译成单文件 `dist/ctj.js`（约 600 KB，浏览器与 Node 都能直接加载，加载后全局对象上会有 `CTJ`）。
-2. 遍历 `include`，把每个头文件按 `#include` 中书写的路径为键打包成仓库根目录的 `include.json`（当前 239 个头文件，约 3.7 MB）。
+2. 遍历 `include`，把每个头文件按 `#include` 中书写的路径为键打包成仓库根目录的 `include.json`（当前 325 个头文件，约 4.1 MB）。
 
 `dist/` 与 `include.json` 都是构建产物，已在 `.gitignore` 中排除。
 
