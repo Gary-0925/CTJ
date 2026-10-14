@@ -1,5 +1,6 @@
 node_modules/
 dist/
-test/
 include.json
 *.log
+test/cases/*.out.js
+test/cases/*.txt
