@@ -85,15 +85,17 @@
       }
 
       // One row per field: nested structs are flattened, base class fields join their owner.
-      function shapeRows(label, v, rows) {
+      // link: the element a field's index points at (set by the runtime), drawn as an inferred edge.
+      function shapeRows(label, v, rows, link) {
         if (v.k === "struct") {
           for (const f of v.f) {
             const sub = f.base ? label : (label ? label + "." : "") + f.n;
-            shapeRows(sub, f.v, rows);
+            shapeRows(sub, f.v, rows, f.to);
           }
           return rows;
         }
-        rows.push({ label, text: shapeText(v), targets: shapeTargets(v, []) });
+        const inf = link === undefined ? [] : [link];
+        rows.push({ label, text: shapeText(v), targets: shapeTargets(v, []).concat(inf), inf });
         return rows;
       }
 
@@ -150,7 +152,7 @@
           b.rows.forEach((r, i) => {
             for (const t of r.targets) {
               const to = boxes.get("n" + t);
-              if (to) edges.push({ from: b, row: i, to });
+              if (to) edges.push({ from: b, row: i, to, inf: (r.inf || []).includes(t) });
             }
           });
         }
@@ -180,7 +182,7 @@
           const x2 = e.to.x;
           const y2 = e.to.y + 14;
           const dx = Math.max(40, Math.abs(x2 - x1) / 2);
-          svg.appendChild(el("path", { d: `M${x1},${y1} C${x1 + dx},${y1} ${x2 - dx},${y2} ${x2},${y2}`, fill: "none", stroke: "#8ab4f8", "stroke-width": 1.5, "marker-end": `url(#${marker})` }));
+          svg.appendChild(el("path", { d: `M${x1},${y1} C${x1 + dx},${y1} ${x2 - dx},${y2} ${x2},${y2}`, fill: "none", stroke: "#8ab4f8", "stroke-width": 1.5, "marker-end": `url(#${marker})`, "stroke-dasharray": e.inf ? "5 4" : "none" }));
         }
         for (const b of g.boxes) {
           const grp = el("g", {});
@@ -206,6 +208,9 @@
           body.appendChild(hint);
           return;
         }
+        const legend = document.createElement("div");
+        legend.textContent = "实线：指针。虚线：按字段名（l、r、left、right、next）推断的下标连线，0 表示空。";
+        body.appendChild(legend);
         for (const snap of snaps) {
           const box = document.createElement("div");
           box.className = "snap";

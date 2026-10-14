@@ -1,0 +1,363 @@
+[
+ {
+  "label": "tree",
+  "root": {
+   "k": "struct",
+   "n": "Tree",
+   "f": [
+    {
+     "n": "root",
+     "base": false,
+     "v": {
+      "k": "int",
+      "v": 1
+     }
+    },
+    {
+     "n": "p",
+     "base": false,
+     "v": {
+      "k": "arr",
+      "items": [
+       {
+        "k": "ptr",
+        "to": 0
+       },
+       {
+        "k": "ptr",
+        "to": 1
+       },
+       {
+        "k": "ptr",
+        "to": 2
+       },
+       {
+        "k": "ptr",
+        "to": 3
+       },
+       {
+        "k": "ptr",
+        "to": 4
+       },
+       {
+        "k": "ptr",
+        "to": 5
+       },
+       {
+        "k": "ptr",
+        "to": 6
+       },
+       {
+        "k": "ptr",
+        "to": 7
+       }
+      ]
+     }
+    }
+   ]
+  },
+  "nodes": [
+   {
+    "id": 0,
+    "type": "Tree::Node",
+    "value": {
+     "k": "struct",
+     "n": "Tree::Node",
+     "f": [
+      {
+       "n": "key",
+       "base": false,
+       "v": {
+        "k": "int",
+        "v": 0
+       }
+      },
+      {
+       "n": "l",
+       "base": false,
+       "v": {
+        "k": "int",
+        "v": 0
+       }
+      },
+      {
+       "n": "r",
+       "base": false,
+       "v": {
+        "k": "int",
+        "v": 0
+       }
+      }
+     ]
+    }
+   },
+   {
+    "id": 1,
+    "type": "Tree::Node",
+    "value": {
+     "k": "struct",
+     "n": "Tree::Node",
+     "f": [
+      {
+       "n": "key",
+       "base": false,
+       "v": {
+        "k": "int",
+        "v": 10
+       }
+      },
+      {
+       "n": "l",
+       "base": false,
+       "v": {
+        "k": "int",
+        "v": 2
+       },
+       "to": 2
+      },
+      {
+       "n": "r",
+       "base": false,
+       "v": {
+        "k": "int",
+        "v": 3
+       },
+       "to": 3
+      }
+     ]
+    }
+   },
+   {
+    "id": 2,
+    "type": "Tree::Node",
+    "value": {
+     "k": "struct",
+     "n": "Tree::Node",
+     "f": [
+      {
+       "n": "key",
+       "base": false,
+       "v": {
+        "k": "int",
+        "v": 20
+       }
+      },
+      {
+       "n": "l",
+       "base": false,
+       "v": {
+        "k": "int",
+        "v": 4
+       },
+       "to": 4
+      },
+      {
+       "n": "r",
+       "base": false,
+       "v": {
+        "k": "int",
+        "v": 0
+       }
+      }
+     ]
+    }
+   },
+   {
+    "id": 3,
+    "type": "Tree::Node",
+    "value": {
+     "k": "struct",
+     "n": "Tree::Node",
+     "f": [
+      {
+       "n": "key",
+       "base": false,
+       "v": {
+        "k": "int",
+        "v": 30
+       }
+      },
+      {
+       "n": "l",
+       "base": false,
+       "v": {
+        "k": "int",
+        "v": 0
+       }
+      },
+      {
+       "n": "r",
+       "base": false,
+       "v": {
+        "k": "int",
+        "v": 0
+       }
+      }
+     ]
+    }
+   },
+   {
+    "id": 4,
+    "type": "Tree::Node",
+    "value": {
+     "k": "struct",
+     "n": "Tree::Node",
+     "f": [
+      {
+       "n": "key",
+       "base": false,
+       "v": {
+        "k": "int",
+        "v": 40
+       }
+      },
+      {
+       "n": "l",
+       "base": false,
+       "v": {
+        "k": "int",
+        "v": 0
+       }
+      },
+      {
+       "n": "r",
+       "base": false,
+       "v": {
+        "k": "int",
+        "v": 0
+       }
+      }
+     ]
+    }
+   },
+   {
+    "id": 5,
+    "type": "Tree::Node",
+    "value": {
+     "k": "struct",
+     "n": "Tree::Node",
+     "f": [
+      {
+       "n": "key",
+       "base": false,
+       "v": {
+        "k": "int",
+        "v": 50
+       }
+      },
+      {
+       "n": "l",
+       "base": false,
+       "v": {
+        "k": "int",
+        "v": 0
+       }
+      },
+      {
+       "n": "r",
+       "base": false,
+       "v": {
+        "k": "int",
+        "v": 9
+       }
+      }
+     ]
+    }
+   },
+   {
+    "id": 6,
+    "type": "Tree::Node",
+    "value": {
+     "k": "struct",
+     "n": "Tree::Node",
+     "f": [
+      {
+       "n": "key",
+       "base": false,
+       "v": {
+        "k": "int",
+        "v": 60
+       }
+      },
+      {
+       "n": "l",
+       "base": false,
+       "v": {
+        "k": "int",
+        "v": 0
+       }
+      },
+      {
+       "n": "r",
+       "base": false,
+       "v": {
+        "k": "int",
+        "v": 0
+       }
+      }
+     ]
+    }
+   },
+   {
+    "id": 7,
+    "type": "Tree::Node",
+    "value": {
+     "k": "struct",
+     "n": "Tree::Node",
+     "f": [
+      {
+       "n": "key",
+       "base": false,
+       "v": {
+        "k": "int",
+        "v": 70
+       }
+      },
+      {
+       "n": "l",
+       "base": false,
+       "v": {
+        "k": "int",
+        "v": 0
+       }
+      },
+      {
+       "n": "r",
+       "base": false,
+       "v": {
+        "k": "int",
+        "v": 0
+       }
+      }
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "label": "pair",
+  "root": {
+   "k": "struct",
+   "n": "Pair",
+   "f": [
+    {
+     "n": "l",
+     "base": false,
+     "v": {
+      "k": "int",
+      "v": 1
+     }
+    },
+    {
+     "n": "r",
+     "base": false,
+     "v": {
+      "k": "int",
+      "v": 2
+     }
+    }
+   ]
+  },
+  "nodes": []
+ }
+]

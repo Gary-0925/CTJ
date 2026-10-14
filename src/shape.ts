@@ -15,6 +15,11 @@
 // A snapshot is cut to keep it small, and says so: at most 300 nodes, 32 items of an array
 // or vector (the rest is {k:"more",n} with n left out), and 20000 values.  A cut snapshot
 // carries "truncated": true.
+// A field whose name reads as a link (l, r, left, right, next, ...) and that is an int
+// inside an array element is taken as an index into that array.  The field then carries
+// "to", the id of the element it points at, and the panel draws it as a dashed edge.  An
+// index of 0 means no link.  This is a guess from the name: a field that holds a plain
+// number with one of these names gets a wrong edge.  Elements of such arrays become nodes.
 namespace CTJ {
   export interface ShapeField {
     n: string;
@@ -31,6 +36,7 @@ namespace CTJ {
     len?: number;
     f?: ShapeField[];
     sp?: string | null;
+    lf?: string[];
   }
 
   export interface ShapeTable {
@@ -62,6 +68,8 @@ namespace CTJ {
 
   const CHAR_NAMES = new Set(["char", "signed char", "unsigned char", "wchar_t", "char16_t", "char32_t"]);
   const FLOAT_NAMES = new Set(["float", "double", "long double"]);
+  // Field names that read as a link to another element of the same array.
+  const LINK_FIELDS = new Set(["l", "lc", "lch", "left", "lchild", "r", "rc", "rch", "right", "rchild", "next"]);
 
   class ShapeBuilder {
     tab: ShapeDesc[] = [];
@@ -135,6 +143,8 @@ namespace CTJ {
         fields.push({ n: name, j: this.cx.fieldJsName(cls, name), t: this.ofType(ft) });
       }
       this.tab[id].f = fields;
+      const lf = fields.filter(f => !f.base && LINK_FIELDS.has(f.n) && this.tab[f.t].k === "int").map(f => f.n);
+      if (lf.length) this.tab[id].lf = lf;
       return id;
     }
   }
@@ -186,7 +196,7 @@ namespace CTJ {
     "      if (nodes.length >= MAX_NODES) { truncated = true; return -1; }",
     "      var oid = nodes.length;",
     "      objIds.set(target, oid);",
-    "      nodes.push({ id: oid, type: tab[tid].n, tid: tid, target: target, value: null });",
+    "      nodes.push({ id: oid, type: tab[tid].n, tid: tid, target: target, owner: arr, value: null });",
     "      return oid;",
     "    }",
     "    var m = cellIds.get(arr);",
@@ -195,7 +205,7 @@ namespace CTJ {
     "    if (nodes.length >= MAX_NODES) { truncated = true; return -1; }",
     "    var cid = nodes.length;",
     "    m.set(idx, cid);",
-    "    nodes.push({ id: cid, type: tname(tid), tid: tid, target: target, value: null });",
+    "    nodes.push({ id: cid, type: tname(tid), tid: tid, target: target, owner: arr, value: null });",
     "    return cid;",
     "  }",
     "  function text(tid, obj) {",
@@ -213,7 +223,7 @@ namespace CTJ {
     "    for (var k = 0; p.a[p.i + k] && k < 4096; k++) s += String.fromCharCode(p.a[p.i + k]);",
     "    return s;",
     "  }",
-    "  function enc(tid, v) {",
+    "  function enc(tid, v, owner) {",
     "    if (++values > MAX_VALUES) { truncated = true; return { k: 'more' }; }",
     "    var d = tab[tid];",
     "    switch (d.k) {",
@@ -229,7 +239,12 @@ namespace CTJ {
     "      case 'arr': {",
     "        var items = [];",
     "        var lim = Math.min(d.len, MAX_ITEMS);",
-    "        for (var j = 0; j < lim; j++) items.push(enc(d.of, v[j]));",
+    "        var linked = tab[d.of].k === 'struct' && !!tab[d.of].lf;",
+    "        for (var j = 0; j < lim; j++) {",
+    "          if (!linked) { items.push(enc(d.of, v[j], v)); continue; }",
+    "          var r = nodeFor(d.of, v, j);",
+    "          items.push(r < 0 ? { k: 'more' } : { k: 'ptr', to: r });",
+    "        }",
     "        if (d.len > lim) { items.push({ k: 'more', n: d.len - lim }); truncated = true; }",
     "        return { k: 'arr', items: items };",
     "      }",
@@ -249,7 +264,13 @@ namespace CTJ {
     "        var fields = [];",
     "        for (var i = 0; i < d.f.length; i++) {",
     "          var fd = d.f[i];",
-    "          fields.push({ n: fd.n, base: !!fd.base, v: enc(fd.t, fd.base ? v : v[fd.j]) });",
+    "          var fo = { n: fd.n, base: !!fd.base, v: enc(fd.t, fd.base ? v : v[fd.j]) };",
+    "          var ix = fd.base ? 0 : v[fd.j];",
+    "          if (owner && d.lf && d.lf.indexOf(fd.n) >= 0 && typeof ix === 'number' && ix > 0 && owner[ix] && typeof owner[ix] === 'object') {",
+    "            var lk = nodeFor(tid, owner, ix);",
+    "            if (lk >= 0) fo.to = lk;",
+    "          }",
+    "          fields.push(fo);",
     "        }",
     "        return { k: 'struct', n: d.n, f: fields };",
     "      }",
@@ -257,7 +278,7 @@ namespace CTJ {
     "    }",
     "  }",
     "  var rootV = enc(root, val);",
-    "  for (var n = 0; n < nodes.length; n++) nodes[n].value = enc(nodes[n].tid, nodes[n].target);",
+    "  for (var n = 0; n < nodes.length; n++) nodes[n].value = enc(nodes[n].tid, nodes[n].target, nodes[n].owner);",
     "  var out = nodes.map(function (x) { return { id: x.id, type: x.type, value: x.value }; });",
     "  var snap = { label: label, root: rootV, nodes: out };",
     "  if (truncated) snap.truncated = true;",
