@@ -93,11 +93,12 @@
         if (v.k === "struct") {
           for (const f of v.f) {
             const sub = f.base ? label : (label ? label + "." : "") + f.n;
-            shapeRows(sub, f.v, rows, f.to !== undefined ? [f.to] : f.roots);
+            shapeRows(sub, f.v, rows, f.to !== undefined ? [f.to] : undefined);
           }
           return rows;
         }
-        const inf = link || [];
+        // An array's roots: the elements its links start from (set by the runtime).
+        const inf = (link || []).concat(v.k === "arr" && v.roots ? v.roots : []);
         rows.push({ label, text: shapeText(v), targets: shapeTargets(v, []).concat(inf), inf });
         return rows;
       }
@@ -114,7 +115,16 @@
         const rootRows = snap.root.k === "ptr" ? [{ label: "", text: "→", targets: [snap.root.to] }] : shapeRows("", snap.root, []);
         boxes.set("root", { id: "root", title: snap.label, rows: rootRows });
         for (const n of snap.nodes) {
-          boxes.set("n" + n.id, { id: "n" + n.id, title: n.type + " #" + n.id, rows: shapeRows("", n.value, []) });
+          const rows = shapeRows("", n.value, []);
+          // The node's children by subscript arithmetic (2*p, i+(i&-i)): dashed edges from its last row.
+          if (n.kids && n.kids.length) {
+            if (!rows.length) rows.push({ label: "", text: "", targets: [], inf: [] });
+            const last = rows[rows.length - 1];
+            last.targets = last.targets.concat(n.kids);
+            last.inf = last.inf.concat(n.kids);
+          }
+          const idx = n.idx !== undefined ? "[" + n.idx + "] " : "";
+          boxes.set("n" + n.id, { id: "n" + n.id, title: idx + n.type + " #" + n.id, rows });
         }
         for (const b of boxes.values()) for (const r of b.rows) r.back = [];
         const depth = new Map([["root", 0]]);

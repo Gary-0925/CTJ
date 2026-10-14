@@ -1895,6 +1895,15 @@ namespace CTJ {
             return `${pp}.a[${pp}.i + (${toNumber(this.ex(e.idx), intKindOf(this.cx.getAnn(e.idx).t as CppType | null))})]`;
           }
           const arr = this.complex(this.ex(e.arr), e.arr);
+          // A written subscript is recorded as a read would be (the array name is repeated here,
+          // so only a plain name is traced).
+          if (this.cx.traceLinks && this.isSimple(e.arr)) {
+            const key = this.linkKey(e.idx);
+            if (key !== null) return `${this.paren(arr)}[$lk(${this.ex(e.idx)}, "${key}", ${this.paren(arr)})]`;
+            const sv = this.structuralVar(e.idx);
+            if (sv !== null) return `${this.paren(arr)}[$ax(${this.ex(e.idx)}, ${this.ex(sv)}, ${this.paren(arr)})]`;
+            return `${this.paren(arr)}[$use(${this.ex(e.idx)}, ${this.paren(arr)}, ${this.useKey(e.idx)})]`;
+          }
           return `${this.paren(arr)}[${this.ex(e.idx)}]`;
         }
         case "unary": {
@@ -2757,7 +2766,56 @@ namespace CTJ {
         const t = this.tmp();
         return `(${t} = ${this.paren(arr)}, ${t}[$lk(${this.ex(e.idx)}, "${key}", ${t})])`;
       }
+      const sv = this.cx.traceLinks ? this.structuralVar(e.idx) : null;
+      if (sv !== null) {
+        // A subscript built from one variable by arithmetic (2*p, i+(i&-i)): record which index
+        // the variable's value led to.
+        const t = this.tmp();
+        return `(${t} = ${this.paren(arr)}, ${t}[$ax(${this.ex(e.idx)}, ${this.ex(sv)}, ${t})])`;
+      }
+      if (this.cx.traceLinks) {
+        // Every subscript is noted as used: a step of the index (below) is drawn only between
+        // indices the array was really subscripted with.
+        const t = this.tmp();
+        return `(${t} = ${this.paren(arr)}, ${t}[$use(${this.ex(e.idx)}, ${t}, ${this.useKey(e.idx)})])`;
+      }
       return `${this.paren(arr)}[${this.ex(e.idx)}]`;
+    }
+
+    // The one variable a subscript is a structural function of, or null.  Structural means
+    // the operators build an index from its value (2*p, p<<1|1, i+(i&-i), i/2), not just move
+    // it by a constant (i+1 is left alone: it would draw every array as a chain).
+    structuralVar(idx: Expr): IdExpr | null {
+      let vinfo: unknown = null;
+      let vid: IdExpr | null = null;
+      let structural = false;
+      const STRUCT = new Set(["*", "/", "%", "<<", ">>", "&", "|", "^"]);
+      const walk = (x: Expr): boolean => {
+        if (x.kind === "lit") return true;
+        if (x.kind === "id") {
+          const s = this.cx.getAnn(x).sym;
+          if (!s || s.k !== "var") return false;
+          if (vid === null) {
+            vinfo = s.v;
+            vid = x;
+            return true;
+          }
+          return vinfo === s.v;
+        }
+        if (x.kind === "binary") {
+          if (!walk(x.l) || !walk(x.r)) return false;
+          if (STRUCT.has(x.op)) structural = true;
+          return true;
+        }
+        if (x.kind === "unary") {
+          if (x.op !== "-" && x.op !== "~") return false;
+          structural = true;
+          return walk(x.arg);
+        }
+        return false;
+      };
+      if (!walk(idx) || !structural || vid === null) return null;
+      return vid;
     }
 
     // The key a subscript records when it is a plain field read: "Class.field".
@@ -2990,7 +3048,39 @@ namespace CTJ {
       }
     }
 
+    // "i += i & -i" steps an index by its own low bit (the Fenwick walk).  The run records the
+    // step from the old value to the new one, so the tree can be drawn from it.
+    transitionKey(e: AssignExpr): string | null {
+      if (e.op !== "+=" || e.l.kind !== "id") return null;
+      const sv = this.structuralVar(e.r);
+      if (sv === null) return null;
+      const a = this.cx.getAnn(e.l).sym;
+      const b = this.cx.getAnn(sv).sym;
+      if (!a || !b || a.k !== "var" || b.k !== "var" || a.v !== b.v) return null;
+      return JSON.stringify(this.varName(a.v, this.cx.getAnn(e.l).needsThis));
+    }
+
+    // The variable a subscript is, by the name the steps on it are recorded under ("" if the
+    // subscript is not a plain variable).
+    useKey(idx: Expr): string {
+      if (idx.kind !== "id") return '""';
+      const s = this.cx.getAnn(idx).sym;
+      if (!s || s.k !== "var") return '""';
+      return JSON.stringify(this.varName(s.v, this.cx.getAnn(idx).needsThis));
+    }
+
     exAssign(e: AssignExpr): string {
+      const key = this.cx.traceLinks ? this.transitionKey(e) : null;
+      if (key !== null) {
+        const o = this.tmp();
+        const r = this.tmp();
+        const v = this.ex(e.l);
+        return `(${o} = ${v}, ${r} = ${this.exAssignBody(e)}, $tr(${o}, ${v}, ${key}), ${r})`;
+      }
+      return this.exAssignBody(e);
+    }
+
+    exAssignBody(e: AssignExpr): string {
       const a = this.cx.getAnn(e);
       if (a.call) {
         const fn = a.call as FuncInfo;
