@@ -2,8 +2,11 @@
 namespace CTJ {
   export const MATH_BUILTINS = new Set(["__builtin_sqrt", "__builtin_sqrtf", "__builtin_sqrtl", "__builtin_cbrt", "__builtin_sin", "__builtin_cos", "__builtin_tan", "__builtin_asin", "__builtin_acos", "__builtin_atan", "__builtin_atan2", "__builtin_exp", "__builtin_exp2", "__builtin_log", "__builtin_log10", "__builtin_log2", "__builtin_pow", "__builtin_floor", "__builtin_floorf", "__builtin_ceil", "__builtin_ceilf", "__builtin_round", "__builtin_trunc", "__builtin_fabs", "__builtin_fabsf", "__builtin_fabsl", "__builtin_fmod", "__builtin_copysign", "__builtin_fmin", "__builtin_fmax", "__builtin_hypot", "__builtin_sinh", "__builtin_cosh", "__builtin_tanh", "__builtin_nan", "__builtin_nanf", "__builtin_nans", "__builtin_inf", "__builtin_inff", "__builtin_huge_val"]);
 
+  // The long double variant of a math builtin ("__builtin_logl", as <cmath>
+  // calls it) is the same function, since long double is double here.
   export function isMathBuiltin(name: string): boolean {
-    return MATH_BUILTINS.has(name);
+    if (MATH_BUILTINS.has(name)) return true;
+    return name.endsWith("l") && MATH_BUILTINS.has(name.slice(0, -1));
   }
 
   // The "unsigned long"/"unsigned long long" variants of the bit builtins
@@ -79,7 +82,7 @@ namespace CTJ {
       cx.warn(`${name} approximated as false`, e);
       return CppType.basic("bool");
     }
-    if (MATH_BUILTINS.has(name)) return CppType.basic("double");
+    if (isMathBuiltin(name)) return CppType.basic("double");
     if (name === "__builtin_FILE") {
       const t = CppType.basic("char");
       t.ptr = 1;

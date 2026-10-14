@@ -1384,6 +1384,26 @@ namespace CTJ {
       return null;
     }
 
+    // Every member template of that name in the first class that has one, as the
+    // overloads of one name: "f(x)" on a functor with two operator() templates
+    // must see both, not just the first.
+    lookupTmplMembers(clsFq: string, name: string, seen: Set<string>): TmplInfo[] {
+      if (seen.has(clsFq)) return [];
+      seen.add(clsFq);
+      const out = this.tmplsOf(clsFq + "::" + name).slice();
+      const cls = this.classes.get(clsFq);
+      if (!cls) return out;
+      if (cls.fromTmpl) {
+        for (const t of this.tmplsOf(cls.fromTmpl + "::" + name)) if (!out.includes(t)) out.push(t);
+      }
+      if (out.length) return out;
+      for (const b of cls.bases) {
+        const r = this.lookupTmplMembers(b.fq, name, seen);
+        if (r.length) return r;
+      }
+      return out;
+    }
+
     lookupMember(clsFq: string, name: string, seen: Set<string>): { field: boolean; methods: FuncInfo[] | null; nested: string | null; typedef: string | null; constItem: { e: EnumInfo; item: string } | null; owner: string } {
       const r = { field: false, methods: null as FuncInfo[] | null, nested: null as string | null, typedef: null as string | null, constItem: null as { e: EnumInfo; item: string } | null, owner: clsFq };
       const cls = this.classes.get(clsFq);
@@ -2535,7 +2555,7 @@ namespace CTJ {
     }
 
     buildEnv(tparams: TParam[], args: CppType[]): SubstEnv {
-      const env: SubstEnv = { types: new Map(), packs: new Map(), values: new Map(), valuePacks: new Map(), packNames: new Map(), packOf: new Map() };
+      const env: SubstEnv = { types: new Map(), packs: new Map(), values: new Map(), valuePacks: new Map(), packNames: new Map(), packOf: new Map(), valueTypes: new Map() };
       let ai = 0;
       for (const tp of tparams) {
         if (tp.isPack) {
@@ -2549,8 +2569,10 @@ namespace CTJ {
         } else {
           const a = args[ai++];
           if (!a) continue;
-          if (tp.kind === "nontype") env.values.set(tp.name, parseInt(a.name.replace("__value", "") || "0", 10));
-          else env.types.set(tp.name, a);
+          if (tp.kind === "nontype") {
+            env.values.set(tp.name, parseInt(a.name.replace("__value", "") || "0", 10));
+            if (tp.type && env.valueTypes) env.valueTypes.set(tp.name, tp.type);
+          } else env.types.set(tp.name, a);
         }
       }
       return env;

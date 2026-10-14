@@ -121,6 +121,14 @@ namespace CTJ {
           qual.push(qseg(f.v));
           f = p.expect("ident");
         }
+        // "this->operator()(a, b)" names the member operator; the "()" belongs to
+        // the operator, not to the call that follows it.
+        let fieldName = f.v;
+        if (f.v === "operator") {
+          const r = p.parseOperator();
+          if (r.convType) fail("member conversion operator calls are not supported", f.file, f.line, f.col);
+          fieldName = "operator" + r.op;
+        }
         let targs: TypeNode[] = [];
         if (p.peek().t === "<") {
           const m = p.mark();
@@ -132,7 +140,7 @@ namespace CTJ {
             targs = [];
           }
         }
-        e = { kind: "member", obj: e, field: f.v, arrow: t.t === "->", targs, qual, ...at(t) };
+        e = { kind: "member", obj: e, field: fieldName, arrow: t.t === "->", targs, qual, ...at(t) };
         continue;
       }
       if (t.t === "++" || t.t === "--") {

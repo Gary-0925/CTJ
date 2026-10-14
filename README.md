@@ -89,7 +89,7 @@ npm test                              # 运行 test/cases 下的全部用例
 
 已知限制：
 
-- `include/` 还缺少 `bits/uniform_int_dist.h`，依赖它的 `<random>` 分布不可用。
+- `<random>` 的引擎与分布（`mt19937`、`uniform_int_distribution`、`uniform_real_distribution`、`normal_distribution`、`bernoulli_distribution` 等）可用，结果与 g++ 一致。但 `std::shuffle` 等在内部使用 `unsigned long` 的算法因为整数模型为 ILP32（`unsigned long` 为 32 位，g++ 为 64 位），输出与 g++ 不同。
 - `<sstream>`、`<fstream>` 仍不支持。
 - 标准输入输出由 `src/libc/stdio.ts` 中的 TypeScript 实现。`printf` 族（`printf`、`fprintf`、`sprintf`、`snprintf`、`puts`、`putchar` 及其 `v*` 版本）的格式化在 `vfmt` 中完成；`scanf` 族（`scanf`、`fscanf`、`sscanf` 及其 `v*` 版本）在 `vscan` 中完成，与 `cin`、`getchar` 共用同一个输入位置。`scanf` 支持 `*`、宽度、`hh h l ll L q j z t` 修饰符，转换符 `d i u o x X f e g a c s [ n p %`，返回值与 C 一致（输入结束且尚无赋值时为 `EOF`）。`%p` 读入的地址若不为 0，得到的指针只用于再次打印，不能解引用；十六进制浮点与 `inf` / `nan` 按 C 标准解析。CTJ 目前没有文件流，`fscanf` 只能读取标准输入。
 - `ostringstream` 不可用。

@@ -9,6 +9,9 @@ namespace CTJ {
     packNames: Map<string, string[]>;
     // Which template parameter each expanded pack parameter came from.
     packOf: Map<string, string>;
+    // The declared type of each bound nontype parameter, so that its value used
+    // in an expression keeps that type ("size_t N" is not an int).
+    valueTypes?: Map<string, TypeNode>;
   }
 
   export function blankSubstEnv(): SubstEnv {
@@ -23,6 +26,7 @@ namespace CTJ {
       valuePacks: new Map(e.valuePacks),
       packNames: new Map(e.packNames),
       packOf: new Map(e.packOf),
+      valueTypes: new Map(e.valueTypes || []),
     };
   }
 
@@ -362,7 +366,14 @@ namespace CTJ {
     switch (ex.kind) {
       case "id": {
         if (ex.parts.length && env.values.has(ex.parts[0].n) && ex.parts.length === 1) {
-          return litNum(env.values.get(ex.parts[0].n) as number, a);
+          const lit = litNum(env.values.get(ex.parts[0].n) as number, a);
+          const vt0 = env.valueTypes && env.valueTypes.get(ex.parts[0].n);
+          if (!vt0) return lit;
+          // The declared type may name another template parameter ("_UIntType __a").
+          const vt = substTypeNode(vt0, env);
+          const isInt = vt.parts.length === 1 && vt.parts[0].n === "int" && !vt.ptr && !vt.ref && !vt.dims.length;
+          if (isInt) return lit;
+          return { kind: "cast", ckind: "cstyle", type: vt, fn: null, arg: lit, file: f, line: l };
         }
         if (ex.parts.length && env.types.has(ex.parts[0].n) && !ex.parts[0].a.length) {
           const rep = env.types.get(ex.parts[0].n) as CppType;

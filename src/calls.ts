@@ -106,9 +106,9 @@ namespace CTJ {
     const m = cx.lookupMember(clsFq, "operator()", new Set());
     // "f(x)" where the functor's operator() is a member template: the funnel of
     // std::__detail::_Select1st and _Identity alike.
-    const tm = cx.lookupTmplMember(clsFq, "operator()", new Set());
-    if (!m.methods && !tm) cx.fail(`'${clsFq}' is not callable`, e);
-    const r = resolveOverload(cx, m.methods || [], tm ? [tm] : [], argTs, scope, e);
+    const tms = cx.lookupTmplMembers(clsFq, "operator()", new Set());
+    if (!m.methods && !tms.length) cx.fail(`'${clsFq}' is not callable`, e);
+    const r = resolveOverload(cx, m.methods || [], tms, argTs, scope, e);
     cx.getAnn(e).call = r.fn;
     cx.getAnn(e).convs = r.convs;
     applyArgBoxing(cx, e, r.fn, argTs, scope);

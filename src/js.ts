@@ -1653,6 +1653,15 @@ namespace CTJ {
           return null;
       }
     }
+    // A non-static reference field holds an {a, i} box, as a reference variable
+    // does, so reading it means looking through the box and taking its address
+    // means taking the box itself.
+    refFieldType(v: VarInfo): CppType | null {
+      if (!v.isField || v.isStatic || !v.scope.cls) return null;
+      const t = this.cx.fieldType(v.scope.cls, v.short);
+      return t.ref !== "" && !t.isFunc && !t.dims.length ? t : null;
+    }
+
     exId(e: IdExpr): string {
       const a = this.cx.getAnn(e);
       const s = a.sym;
@@ -1674,6 +1683,13 @@ namespace CTJ {
       const v = s.v;
       const nm = this.varName(v, a.needsThis);
       const t = v.typeCache as CppType;
+      // A class object held by a reference field is read through its box, as a
+      // reference variable of class type is (a scalar field already is, below).
+      const ft = v.isField && !v.isStatic && v.scope.cls ? this.refFieldType(v) : null;
+      if (ft && !ft.ptr && this.cx.classes.has(this.cx.stripAll(ft))) {
+        const tmp = this.tmp();
+        return `(${tmp} = ${nm}, ${tmp}.a[${tmp}.i])`;
+      }
       if (v.storage === "box") {
         if (t.isFunc) return nm;
         if (t.ref) return `${this.paren(nm)}.a[${this.paren(nm)}.i]`;
@@ -1746,6 +1762,7 @@ namespace CTJ {
           if (!t || t.isFunc) return this.ex(e);
           if (v.isField) {
             const fname = v.mangled;
+            if (this.refFieldType(v)) return this.varName(v, this.cx.getAnn(e).needsThis);
             return v.isStatic ? `{a: ${v.scope.cls!.mangled}, i: "${fname}"}` : `{a: this, i: "${fname}"}`;
           }
           const nm = this.varName(v, this.cx.getAnn(e).needsThis);
@@ -1839,7 +1856,8 @@ namespace CTJ {
           const v = s.v;
           const t = v.typeCache as CppType;
           const nm = this.varName(v, this.cx.getAnn(e).needsThis);
-          if (v.storage === "box" && t.ref) return `${this.paren(nm)}.a[${this.paren(nm)}.i]`;
+          // Writing a reference field writes through its box, not over the box.
+          if (this.refFieldType(v) || (v.storage === "box" && t.ref)) return `${this.paren(nm)}.a[${this.paren(nm)}.i]`;
           if (v.storage === "bbox") return `${this.paren(nm)}.v`;
           if (v.storage === "boxed") return `${this.paren(nm)}.v`;
           return nm;
@@ -2074,6 +2092,7 @@ namespace CTJ {
         }
         // A field written without an object ("x" inside a method) is a field of
         // "this", and its storage is the property it lives in.
+        if (this.refFieldType(v)) return nm;
         if (v.isField) return ann.needsThis ? `{a: this, i: "${v.mangled}"}` : null;
         const t = v.typeCache as CppType | null;
         if (t && t.ref !== "") return t.dims.length && !t.ptr ? `{a: ${nm}, i: 0}` : nm;
@@ -2610,6 +2629,8 @@ namespace CTJ {
       }
       if (isMathBuiltin(name)) {
         let m = name.slice("__builtin_".length);
+        // The long double variant is the double function (see isMathBuiltin).
+        if (m.endsWith("l") && MATH_BUILTINS.has("__builtin_" + m.slice(0, -1))) m = m.slice(0, -1);
         if (m === "nan" || m === "nanf" || m === "nans") return "NaN";
         if (m === "inf" || m === "inff" || m === "huge_val") return "Infinity";
         // JavaScript spells the absolute-value functions "abs".
