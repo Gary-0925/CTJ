@@ -4,7 +4,7 @@
 按 `#include` 中书写的相对路径为键生成外层目录的 `include.json`，
 `CTJ.transpile` 的 `headers` 参数就是它的内容。
 
-共 326 个文件（其中 `include.json` 含 325 个头文件，`gnu/stubs-x32.h` 为空桩）：
+共 325 个文件（其中 `include.json` 含 324 个头文件，`gnu/stubs-x32.h` 为空桩）：
 
 | 位置 | 数量 | 说明 |
 | --- | --- | --- |
@@ -26,7 +26,6 @@
 - `string.h`、`math.h`、`stdlib.h` 的函数由 `src/libc` 实现（`exit` 与 `abort` 抛出 `{ $exit: 码 }` 结束运行），会被一起转译，因此转译结果仍然没有外部依赖。
 - `stdio.h` 的 `printf` 一族由 `src/libc/stdio.ts` 实现，结果写入 `$io`；`scanf` 一族没有实现，调用会在运行时抛出 `unresolved external`，输入请用 `cin`。
 - `gnu/stubs-x32.h` 是空桩：glibc 的 `sys/cdefs.h` 等头文件会无条件包含它，内容只有注释，只需要让包含成功。
-- `ctj_libc.h` 是替换前的 CTJ 手写 C 库声明，目前没有头文件引用它，可以删除。
 - `stddef.h` 提供 `size_t` / `ptrdiff_t` / `NULL` / `offsetof`。
 - `x86intrin.h` 是空壳：`bits/opt_random.h` 无条件包含它，只需要让包含成功。
 
