@@ -6,20 +6,22 @@
 // that table, so every node comes out with the C++ type it has, and the graph
 // is exactly the one the program built (aliases share a node, cycles close).
 //
+// Links through indices: when the program subscripts an array with a plain field read
+// (p[u].l), the generated code records that field as a subscript into that array.  The
+// snapshot then reads the field as an index into the array: the element it names is a
+// node, and the field carries "to".  The root of a tree in such an array is an element
+// no other element's link points at, which does link on.  Nothing here is guessed from
+// names: only what the run did.
+//
 // A snapshot is written to the log channel as one line:
 //   @@ctj-show {"label": ..., "root": V, "nodes": [{"id": n, "type": ..., "value": V}]}
 // V is a value: {k:"int",v} {k:"char",v} {k:"bool",v} {k:"float",v} {k:"null"}
-// {k:"ptr",to:id} {k:"elem",to:id} {k:"cstr",v} {k:"struct",n,f:[{n,base,v}]} {k:"arr",items} {k:"str",v}
-// {k:"vec",items} {k:"opaque",n} {k:"more",n?}.
+// {k:"ptr",to:id} {k:"elem",to:id} {k:"cstr",v} {k:"struct",n,f:[{n,base,v,to?,roots?}]}
+// {k:"arr",items,unused?} {k:"str",v} {k:"vec",items} {k:"opaque",n} {k:"more",n?}.
 //
 // A snapshot is cut to keep it small, and says so: at most 300 nodes, 32 items of an array
 // or vector (the rest is {k:"more",n} with n left out), and 20000 values.  A cut snapshot
 // carries "truncated": true.
-// A field whose name reads as a link (l, r, left, right, next, ...) and that is an int
-// inside an array element is taken as an index into that array.  The field then carries
-// "to", the id of the element it points at, and the panel draws it as a dashed edge.  An
-// index of 0 means no link.  This is a guess from the name: a field that holds a plain
-// number with one of these names gets a wrong edge.  Elements of such arrays become nodes.
 namespace CTJ {
   export interface ShapeField {
     n: string;
@@ -31,13 +33,12 @@ namespace CTJ {
   export interface ShapeDesc {
     k: string;
     n?: string;
+    m?: string;
     to?: number;
     of?: number;
     len?: number;
     f?: ShapeField[];
     sp?: string | null;
-    lf?: string[];
-    rt?: { a: string; r: string | null };
     dyn?: { m: string; t: number }[];
     hide?: string[];
   }
@@ -72,10 +73,6 @@ namespace CTJ {
 
   const CHAR_NAMES = new Set(["char", "signed char", "unsigned char", "wchar_t", "char16_t", "char32_t"]);
   const FLOAT_NAMES = new Set(["float", "double", "long double"]);
-  // Field names that read as a link to another element of the same array.
-  // Integer fields that name the root of a tree stored in an array of link elements.
-  const ROOT_FIELDS = new Set(["root", "rt", "rot"]);
-  const LINK_FIELDS = new Set(["l", "lc", "lch", "left", "lchild", "r", "rc", "rch", "right", "rchild", "next"]);
 
   class ShapeBuilder {
     tab: ShapeDesc[] = [];
@@ -170,6 +167,9 @@ namespace CTJ {
       const id = this.add({ k: "struct", n: displayName(fq), f: [], sp: viewOf(fq) });
       this.memo.set(key, id);
       const cls = this.cx.classes.get(fq) as ClsInfo;
+      // m is the class's name in the generated code: the runtime matches a subscript's
+      // recorded "m.field" key against it.
+      this.tab[id].m = cls.mangled as string;
       const fields: ShapeField[] = [];
       for (const b of cls.bases) {
         fields.push({ n: displayName(b.fq), j: null, t: this.ofClass(b.fq), base: true });
@@ -180,16 +180,8 @@ namespace CTJ {
         fields.push({ n: name, j: this.cx.fieldJsName(cls, name), t: this.ofType(ft) });
       }
       this.tab[id].f = fields;
+      // libstdc++ tree nodes: colour and parent are bookkeeping, not part of the shape.
       if (/^std::_Rb_tree_node(_base)?(<|$)/.test(fq)) this.tab[id].hide = ["_M_color", "_M_parent"];
-      const lf = fields.filter(f => !f.base && LINK_FIELDS.has(f.n) && this.tab[f.t].k === "int").map(f => f.n);
-      if (lf.length) this.tab[id].lf = lf;
-      // A struct holding an array of link elements: the tree is rooted at the element a root
-      // field names, or at element 1 when there is no such field.
-      const arrF = fields.find(f => !f.base && this.tab[f.t].k === "arr" && this.tab[this.tab[f.t].of ?? 0].lf !== undefined);
-      if (arrF) {
-        const rf = fields.find(f => !f.base && ROOT_FIELDS.has(f.n) && this.tab[f.t].k === "int");
-        this.tab[id].rt = { a: arrF.n, r: rf ? rf.n : null };
-      }
       return id;
     }
   }
@@ -201,10 +193,17 @@ namespace CTJ {
     return { tab: b.tab, root };
   }
 
-  // The run-time half: a function $shape(label, value, table) that walks the
-  // value and writes the snapshot to the log channel.  Plain JavaScript, so it
-  // is emitted into the program as text.
+  // The run-time half: the subscript recorder ($lk, which the generated code calls for
+  // every subscript read from a field) and $shape(label, value, table), which walks the
+  // value and writes the snapshot to the log channel.  Plain JavaScript, emitted as text.
   export const SHAPE_RUNTIME = [
+    "var $links = new WeakMap();",
+    "function $lk(i, key, arr) {",
+    "  var s = $links.get(arr);",
+    "  if (!s) { s = new Set(); $links.set(arr, s); }",
+    "  s.add(key);",
+    "  return i;",
+    "}",
     "function $shape(label, val, tab, root) {",
     "  var objIds = new Map(), cellIds = new Map(), nodes = [], queue = [];",
     "  var MAX_NODES = 300, MAX_ITEMS = 32, MAX_VALUES = 20000;",
@@ -241,9 +240,32 @@ namespace CTJ {
     "    for (var i = 0; i < d.dyn.length; i++) if (d.dyn[i].m === nm) return d.dyn[i].t;",
     "    return d.to;",
     "  }",
-    "  function fieldJs(d, name) {",
-    "    for (var i = 0; i < d.f.length; i++) if (d.f[i].n === name) return d.f[i].j;",
-    "    return null;",
+    "  // The fields of class m that the run used as subscripts into owner.",
+    "  function linkFields(owner, m) {",
+    "    var out = [], s = owner ? $links.get(owner) : undefined;",
+    "    if (!s) return out;",
+    "    s.forEach(function (key) { if (key.indexOf(m + '.') === 0) out.push(key.slice(m.length + 1)); });",
+    "    return out;",
+    "  }",
+    "  // Elements of A that no link points at but that link on: the roots of the trees in A.",
+    "  // For the elements of A: which ones a link leaves (out), and which ones a link points at (hit).",
+    "  function linkInfo(A, keys) {",
+    "    var n = A.length, hit = new Uint8Array(n), out = new Uint8Array(n);",
+    "    for (var i = 1; i < n; i++) {",
+    "      var e = A[i];",
+    "      if (!e || typeof e !== 'object') continue;",
+    "      for (var q = 0; q < keys.length; q++) {",
+    "        var k = e[keys[q]];",
+    "        if (typeof k === 'number' && k > 0 && k < n && A[k] && typeof A[k] === 'object') { hit[k] = 1; out[i] = 1; }",
+    "      }",
+    "    }",
+    "    return { out: out, hit: hit };",
+    "  }",
+    "  // Elements of A that no link points at but that link on: the roots of the trees in A.",
+    "  function rootsOf(A, keys) {",
+    "    var li = linkInfo(A, keys), out = [];",
+    "    for (var j = 1; j < A.length; j++) if (li.out[j] && !li.hit[j]) out.push(j);",
+    "    return out;",
     "  }",
     "  function nodeFor(tid, arr, idx) {",
     "    var target = arr[idx];",
@@ -294,13 +316,22 @@ namespace CTJ {
     "        return to < 0 ? { k: 'more' } : { k: 'ptr', to: to };",
     "      case 'arr': {",
     "        var items = [];",
-    "        var lim = Math.min(d.len, MAX_ITEMS);",
-    "        var linked = tab[d.of].k === 'struct' && !!tab[d.of].lf;",
-    "        for (var j = 0; j < lim; j++) {",
-    "          if (!linked) { items.push(enc(d.of, v[j], v)); continue; }",
-    "          var r = nodeFor(d.of, v, j);",
-    "          items.push(r < 0 ? { k: 'more' } : { k: 'elem', to: r });",
+    "        var keysA = d.of !== undefined && tab[d.of].k === 'struct' ? linkFields(v, tab[d.of].m) : [];",
+    "        if (keysA.length) {",
+    "          // Only the elements a link touches are drawn; the others are counted and left out.",
+    "          var li = linkInfo(v, keysA), shownN = 0, over = 0, unused = 0;",
+    "          for (var j = 1; j < d.len; j++) {",
+    "            if (!li.out[j] && !li.hit[j]) { unused++; continue; }",
+    "            if (shownN >= MAX_ITEMS) { over++; continue; }",
+    "            shownN++;",
+    "            var r = nodeFor(d.of, v, j);",
+    "            items.push(r < 0 ? { k: 'more' } : { k: 'elem', to: r });",
+    "          }",
+    "          if (over) { items.push({ k: 'more', n: over }); truncated = true; }",
+    "          return unused ? { k: 'arr', items: items, unused: unused } : { k: 'arr', items: items };",
     "        }",
+    "        var lim = Math.min(d.len, MAX_ITEMS);",
+    "        for (var j2 = 0; j2 < lim; j2++) items.push(enc(d.of, v[j2], v));",
     "        if (d.len > lim) { items.push({ k: 'more', n: d.len - lim }); truncated = true; }",
     "        return { k: 'arr', items: items };",
     "      }",
@@ -326,26 +357,23 @@ namespace CTJ {
     "          return { k: 'vec', items: vitems };",
     "        }",
     "        var fields = [];",
-    "        var rootArr = null, rootIdx = 1, rootT = -1, rootOn = null;",
-    "        if (d.rt) {",
-    "          var raj = fieldJs(d, d.rt.a);",
-    "          for (var q = 0; q < d.f.length; q++) if (d.f[q].n === d.rt.a) rootT = tab[d.f[q].t].of;",
-    "          rootArr = raj === null ? null : v[raj];",
-    "          rootOn = d.rt.r || d.rt.a;",
-    "          if (d.rt.r) { var rfj = fieldJs(d, d.rt.r); rootIdx = rfj === null ? 0 : v[rfj]; }",
-    "        }",
+    "        var lfs = owner ? linkFields(owner, d.m) : [];",
     "        for (var i = 0; i < d.f.length; i++) {",
     "          var fd = d.f[i];",
     "          if (d.hide && d.hide.indexOf(fd.n) >= 0) continue;",
     "          var fo = { n: fd.n, base: !!fd.base, v: enc(fd.t, fd.base ? v : v[fd.j]) };",
     "          var ix = fd.base ? 0 : v[fd.j];",
-    "          if (owner && d.lf && d.lf.indexOf(fd.n) >= 0 && typeof ix === 'number' && ix > 0 && owner[ix] && typeof owner[ix] === 'object') {",
+    "          if (owner && lfs.indexOf(fd.j) >= 0 && typeof ix === 'number' && ix > 0 && owner[ix] && typeof owner[ix] === 'object') {",
     "            var lk = nodeFor(tid, owner, ix);",
     "            if (lk >= 0) fo.to = lk;",
     "          }",
-    "          if (rootOn !== null && fd.n === rootOn && rootArr && typeof rootIdx === 'number' && rootIdx > 0 && rootArr[rootIdx] && typeof rootArr[rootIdx] === 'object') {",
-    "            var rr = nodeFor(rootT, rootArr, rootIdx);",
-    "            if (rr >= 0) fo.to = rr;",
+    "          if (!fd.base && tab[fd.t].k === 'arr' && tab[tab[fd.t].of].k === 'struct') {",
+    "            var A = v[fd.j], ek = linkFields(A, tab[tab[fd.t].of].m);",
+    "            if (ek.length) {",
+    "              var rs = rootsOf(A, ek), et2 = tab[fd.t].of;",
+    "              fo.roots = [];",
+    "              for (var ri = 0; ri < rs.length; ri++) { var rn = nodeFor(et2, A, rs[ri]); if (rn >= 0) fo.roots.push(rn); }",
+    "            }",
     "          }",
     "          fields.push(fo);",
     "        }",
@@ -367,8 +395,11 @@ namespace CTJ {
   // the module, __ctj_show is an unknown name.
   EXT_BUILTINS.set("__ctj_show", {
     check(cx: Cx, e: CallExpr, argTs: { t: CppType; e: Expr }[]): CppType {
-      // __ctj_show("label", expr): the descriptor table is built for the type of expr.
+      // __ctj_show("label", expr): the descriptor table is built for the type of expr, and
+      // the subscripts of the program are recorded from here on (they are generated after
+      // the whole program is checked).
       if (argTs.length !== 2) cx.fail("__ctj_show takes a label and one expression", e);
+      cx.traceLinks = true;
       cx.getAnn(e).call = { builtin: "__ctj_show", ext: shapeTableFor(cx, argTs[1].t) };
       return CppType.basic("void");
     },

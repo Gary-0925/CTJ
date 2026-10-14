@@ -2751,7 +2751,23 @@ namespace CTJ {
         return `${pp}.a[${pp}.i + (${toNumber(this.ex(e.idx), intKindOf(this.cx.getAnn(e.idx).t as CppType | null))})]`;
       }
       const arr = this.complex(this.ex(e.arr), e.arr);
+      const key = this.cx.traceLinks ? this.linkKey(e.idx) : null;
+      if (key !== null) {
+        // An index read from a field: record that this field is used as a subscript into arr.
+        const t = this.tmp();
+        return `(${t} = ${this.paren(arr)}, ${t}[$lk(${this.ex(e.idx)}, "${key}", ${t})])`;
+      }
       return `${this.paren(arr)}[${this.ex(e.idx)}]`;
+    }
+
+    // The key a subscript records when it is a plain field read: "Class.field".
+    linkKey(idx: Expr): string | null {
+      if (idx.kind !== "member") return null;
+      const f = this.cx.getAnn(idx).sym;
+      if (!f || f.k !== "var" || !f.v.isField || f.v.isStatic) return null;
+      const cls = this.cx.classes.get(f.v.fq.split("::").slice(0, -1).join("::")) as ClsInfo | undefined;
+      if (!cls) return null;
+      return `${cls.mangled}.${this.cx.fieldJsName(cls, f.v.short)}`;
     }
 
     exMember(e: MemberExpr): string {

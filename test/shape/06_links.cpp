@@ -22,6 +22,11 @@ int main() {
   t.p[1].r = 3;
   t.p[2].l = 4;
   t.p[5].r = 9;
+  // Walking the tree by subscripts is what makes l and r links: the run uses them as indices.
+  int sum = t.p[t.p[t.root].l].key;
+  sum += t.p[t.p[1].r].key;
+  sum += t.p[t.p[2].l].key;
+  std::cout << sum << std::endl;
   __ctj_show("tree", t);
   // Plain fields named l and r, outside any array: not links.
   Pair pr;

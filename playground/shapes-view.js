@@ -68,7 +68,7 @@
           case "arr":
           case "vec": {
             // A long row would make its box too wide to read; the snapshot keeps every item.
-            const text = "[" + v.items.map(shapeText).join(", ") + "]";
+            const text = "[" + v.items.map(shapeText).join(", ") + "]" + (v.unused ? "  +" + v.unused + " 个未用" : "");
             return text.length > 160 ? text.slice(0, 157) + "…" : text;
           }
           case "more":
@@ -87,16 +87,17 @@
       }
 
       // One row per field: nested structs are flattened, base class fields join their owner.
-      // link: the element a field's index points at (set by the runtime), drawn as an inferred edge.
+      // link: the elements a field points at (set by the runtime, from the subscripts the run
+      // made), drawn as dashed edges.
       function shapeRows(label, v, rows, link) {
         if (v.k === "struct") {
           for (const f of v.f) {
             const sub = f.base ? label : (label ? label + "." : "") + f.n;
-            shapeRows(sub, f.v, rows, f.to);
+            shapeRows(sub, f.v, rows, f.to !== undefined ? [f.to] : f.roots);
           }
           return rows;
         }
-        const inf = link === undefined ? [] : [link];
+        const inf = link || [];
         rows.push({ label, text: shapeText(v), targets: shapeTargets(v, []).concat(inf), inf });
         return rows;
       }
@@ -246,7 +247,7 @@
           return;
         }
         const legend = document.createElement("div");
-        legend.textContent = "实线：指针。虚线：按字段名（l、r、left、right、next）推断的下标连线，0 表示空。";
+        legend.textContent = "实线：指针。虚线：程序里用字段值做下标时形成的链接，以及指向树根的链接。";
         body.appendChild(legend);
         for (const snap of snaps) {
           const box = document.createElement("div");

@@ -321,6 +321,8 @@ namespace CTJ {
 
   export class Cx {
     classes = new Map<string, ClsInfo>();
+    // Set by a builtin that wants to see which fields are used as subscripts (the shapes view).
+    traceLinks = false;
     funcs = new Map<string, FuncInfo[]>();
     vars = new Map<string, VarInfo>();
     enums = new Map<string, EnumInfo>();

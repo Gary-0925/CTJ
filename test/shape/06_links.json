@@ -11,8 +11,7 @@
      "v": {
       "k": "int",
       "v": 1
-     },
-     "to": 0
+     }
     },
     {
      "n": "p",
@@ -22,11 +21,11 @@
       "items": [
        {
         "k": "elem",
-        "to": 1
+        "to": 0
        },
        {
         "k": "elem",
-        "to": 0
+        "to": 1
        },
        {
         "k": "elem",
@@ -35,25 +34,13 @@
        {
         "k": "elem",
         "to": 3
-       },
-       {
-        "k": "elem",
-        "to": 4
-       },
-       {
-        "k": "elem",
-        "to": 5
-       },
-       {
-        "k": "elem",
-        "to": 6
-       },
-       {
-        "k": "elem",
-        "to": 7
        }
-      ]
-     }
+      ],
+      "unused": 3
+     },
+     "roots": [
+      0
+     ]
     }
    ]
   },
@@ -80,7 +67,7 @@
         "k": "int",
         "v": 2
        },
-       "to": 2
+       "to": 1
       },
       {
        "n": "r",
@@ -89,47 +76,13 @@
         "k": "int",
         "v": 3
        },
-       "to": 3
+       "to": 2
       }
      ]
     }
    },
    {
     "id": 1,
-    "type": "Tree::Node",
-    "value": {
-     "k": "struct",
-     "n": "Tree::Node",
-     "f": [
-      {
-       "n": "key",
-       "base": false,
-       "v": {
-        "k": "int",
-        "v": 0
-       }
-      },
-      {
-       "n": "l",
-       "base": false,
-       "v": {
-        "k": "int",
-        "v": 0
-       }
-      },
-      {
-       "n": "r",
-       "base": false,
-       "v": {
-        "k": "int",
-        "v": 0
-       }
-      }
-     ]
-    }
-   },
-   {
-    "id": 2,
     "type": "Tree::Node",
     "value": {
      "k": "struct",
@@ -150,7 +103,7 @@
         "k": "int",
         "v": 4
        },
-       "to": 4
+       "to": 3
       },
       {
        "n": "r",
@@ -164,7 +117,7 @@
     }
    },
    {
-    "id": 3,
+    "id": 2,
     "type": "Tree::Node",
     "value": {
      "k": "struct",
@@ -198,7 +151,7 @@
     }
    },
    {
-    "id": 4,
+    "id": 3,
     "type": "Tree::Node",
     "value": {
      "k": "struct",
@@ -210,108 +163,6 @@
        "v": {
         "k": "int",
         "v": 40
-       }
-      },
-      {
-       "n": "l",
-       "base": false,
-       "v": {
-        "k": "int",
-        "v": 0
-       }
-      },
-      {
-       "n": "r",
-       "base": false,
-       "v": {
-        "k": "int",
-        "v": 0
-       }
-      }
-     ]
-    }
-   },
-   {
-    "id": 5,
-    "type": "Tree::Node",
-    "value": {
-     "k": "struct",
-     "n": "Tree::Node",
-     "f": [
-      {
-       "n": "key",
-       "base": false,
-       "v": {
-        "k": "int",
-        "v": 50
-       }
-      },
-      {
-       "n": "l",
-       "base": false,
-       "v": {
-        "k": "int",
-        "v": 0
-       }
-      },
-      {
-       "n": "r",
-       "base": false,
-       "v": {
-        "k": "int",
-        "v": 9
-       }
-      }
-     ]
-    }
-   },
-   {
-    "id": 6,
-    "type": "Tree::Node",
-    "value": {
-     "k": "struct",
-     "n": "Tree::Node",
-     "f": [
-      {
-       "n": "key",
-       "base": false,
-       "v": {
-        "k": "int",
-        "v": 60
-       }
-      },
-      {
-       "n": "l",
-       "base": false,
-       "v": {
-        "k": "int",
-        "v": 0
-       }
-      },
-      {
-       "n": "r",
-       "base": false,
-       "v": {
-        "k": "int",
-        "v": 0
-       }
-      }
-     ]
-    }
-   },
-   {
-    "id": 7,
-    "type": "Tree::Node",
-    "value": {
-     "k": "struct",
-     "n": "Tree::Node",
-     "f": [
-      {
-       "n": "key",
-       "base": false,
-       "v": {
-        "k": "int",
-        "v": 70
        }
       },
       {
