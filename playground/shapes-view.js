@@ -99,27 +99,41 @@
         return rows;
       }
 
-      // Boxes for the root and every node, edges for every pointer, and a layout that puts
-      // each box in the column of its distance from the root (BFS).
+      // Boxes for the root and every node, and an edge for every pointer.  The layout walks the
+      // graph depth first from the root.  A pointer back to a box on the current path (a parent
+      // pointer, a cycle) is not drawn: its row shows "↑#n" instead.  A pointer to a box already
+      // placed is drawn as a plain edge.  Boxes sit in a column by their depth in the walk.
       function shapeLayout(snap) {
         const boxes = new Map();
         const rootRows = snap.root.k === "ptr" ? [{ label: "", text: "→", targets: [snap.root.to] }] : shapeRows("", snap.root, []);
         boxes.set("root", { id: "root", title: snap.label, rows: rootRows });
         for (const n of snap.nodes) {
-          boxes.set("n" + n.id, { id: "n" + n.id, title: n.type, rows: shapeRows("", n.value, []) });
+          boxes.set("n" + n.id, { id: "n" + n.id, title: n.type + " #" + n.id, rows: shapeRows("", n.value, []) });
         }
+        for (const b of boxes.values()) for (const r of b.rows) r.back = [];
         const depth = new Map([["root", 0]]);
         const order = ["root"];
-        for (let qi = 0; qi < order.length; qi++) {
-          const b = boxes.get(order[qi]);
-          for (const r of b.rows) {
+        const onPath = new Set();
+        const walk = id => {
+          onPath.add(id);
+          for (const r of boxes.get(id).rows) {
             for (const t of r.targets) {
-              const id = "n" + t;
-              if (boxes.has(id) && !depth.has(id)) {
-                depth.set(id, depth.get(order[qi]) + 1);
-                order.push(id);
+              const to = "n" + t;
+              if (!boxes.has(to)) continue;
+              if (onPath.has(to)) r.back.push(to);
+              else if (!depth.has(to)) {
+                depth.set(to, depth.get(id) + 1);
+                order.push(to);
+                walk(to);
               }
             }
+          }
+          onPath.delete(id);
+        };
+        walk("root");
+        for (const b of boxes.values()) {
+          for (const r of b.rows) {
+            if (r.back.length) r.text += "  ↑ " + r.back.map(x => "#" + x.slice(1)).join(" ");
           }
         }
         const cols = [];
@@ -129,7 +143,6 @@
         }
         let x = 16;
         let maxY = 0;
-        const edges = [];
         cols.forEach(col => {
           let colW = 0;
           for (const b of col) {
@@ -148,15 +161,18 @@
           maxY = Math.max(maxY, y);
           x += colW + 64;
         });
+        const edges = [];
         for (const b of boxes.values()) {
+          if (!depth.has(b.id)) continue;
           b.rows.forEach((r, i) => {
             for (const t of r.targets) {
-              const to = boxes.get("n" + t);
-              if (to) edges.push({ from: b, row: i, to, inf: (r.inf || []).includes(t) });
+              const id = "n" + t;
+              if (r.back.includes(id) || !depth.has(id)) continue;
+              edges.push({ from: b, row: i, to: boxes.get(id), inf: (r.inf || []).includes(t) });
             }
           });
         }
-        return { boxes: [...boxes.values()], edges, width: Math.max(x, 120), height: Math.max(maxY, 60) };
+        return { boxes: order.map(id => boxes.get(id)), edges, width: Math.max(x, 120), height: Math.max(maxY, 60) };
       }
 
       function el(name, attrs, text) {

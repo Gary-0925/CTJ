@@ -37,6 +37,8 @@ namespace CTJ {
     f?: ShapeField[];
     sp?: string | null;
     lf?: string[];
+    dyn?: { m: string; t: number }[];
+    hide?: string[];
   }
 
   export interface ShapeTable {
@@ -63,6 +65,7 @@ namespace CTJ {
     if (!fq.endsWith(">")) return null;
     if (fq.startsWith("std::basic_string<")) return "str";
     if (fq.startsWith("std::vector<")) return "vec";
+    if (/^std::(multi)?(map|set)</.test(fq)) return "map";
     return null;
   }
 
@@ -107,6 +110,10 @@ namespace CTJ {
         id = this.add({ k: "ptr", to: 0 });
         this.memo.set(key, id);
         this.tab[id].to = this.ofType(pointee);
+        // A pointer to a base class may point at any derived object the program built.
+        const pfq = pointee.ptr === 0 ? this.cx.stripAll(pointee) : null;
+        const dyn = pfq ? this.derivedOf(pfq) : [];
+        if (dyn.length) this.tab[id].dyn = dyn;
         return id;
       }
       const fq = this.cx.stripAll(t);
@@ -126,6 +133,33 @@ namespace CTJ {
       return id;
     }
 
+    // The instantiated classes that derive from fq, with their descriptors.  The runtime
+    // matches the class name of the object to tell which one it really is.
+    derivedOf(fq: string): { m: string; t: number }[] {
+      const out: { m: string; t: number }[] = [];
+      for (const [dfq, cls] of [...this.cx.classes]) {
+        if (dfq !== fq && this.derives(dfq, fq)) out.push({ m: cls.mangled as string, t: this.ofClass(dfq) });
+      }
+      return out;
+    }
+
+    derives(dfq: string, fq: string): boolean {
+      const todo = [dfq];
+      const seen = new Set<string>();
+      while (todo.length) {
+        const c = todo.pop() as string;
+        if (seen.has(c)) continue;
+        seen.add(c);
+        const cls = this.cx.classes.get(c);
+        if (!cls) continue;
+        for (const b of cls.bases) {
+          if (b.fq === fq) return true;
+          todo.push(b.fq);
+        }
+      }
+      return false;
+    }
+
     ofClass(fq: string): number {
       const key = "class " + fq;
       const hit = this.memo.get(key);
@@ -143,6 +177,7 @@ namespace CTJ {
         fields.push({ n: name, j: this.cx.fieldJsName(cls, name), t: this.ofType(ft) });
       }
       this.tab[id].f = fields;
+      if (/^std::_Rb_tree_node(_base)?(<|$)/.test(fq)) this.tab[id].hide = ["_M_color", "_M_parent"];
       const lf = fields.filter(f => !f.base && LINK_FIELDS.has(f.n) && this.tab[f.t].k === "int").map(f => f.n);
       if (lf.length) this.tab[id].lf = lf;
       return id;
@@ -189,6 +224,13 @@ namespace CTJ {
     "    if (d.k === 'bool') return 'bool';",
     "    return d.n || d.k;",
     "  }",
+    "  function dynTid(d, v) {",
+    "    if (!d.dyn || !v || !v.a) return d.to;",
+    "    var o = v.a[v.i];",
+    "    var nm = o && o.constructor && o.constructor.name;",
+    "    for (var i = 0; i < d.dyn.length; i++) if (d.dyn[i].m === nm) return d.dyn[i].t;",
+    "    return d.to;",
+    "  }",
     "  function nodeFor(tid, arr, idx) {",
     "    var target = arr[idx];",
     "    if (tab[tid].k === 'struct') {",
@@ -234,7 +276,7 @@ namespace CTJ {
     "      case 'ptr':",
     "        if (v === null || v === undefined) return { k: 'null' };",
     "        if (tab[d.to].k === 'char') return { k: 'cstr', v: cstr(v) };",
-    "        var to = nodeFor(d.to, v.a, v.i);",
+    "        var to = nodeFor(dynTid(d, v), v.a, v.i);",
     "        return to < 0 ? { k: 'more' } : { k: 'ptr', to: to };",
     "      case 'arr': {",
     "        var items = [];",
@@ -250,6 +292,14 @@ namespace CTJ {
     "      }",
     "      case 'struct': {",
     "        if (d.sp === 'str') return { k: 'str', v: text(tid, v) };",
+    "        if (d.sp === 'map') {",
+    "          var cnt = path(tid, v, ['_M_t', '_M_impl', '_M_node_count']);",
+    "          var rt = path(tid, v, ['_M_t', '_M_impl', '_M_header', '_M_parent']);",
+    "          return { k: 'struct', n: d.n, f: [",
+    "            { n: 'size', base: false, v: cnt ? enc(cnt.t, cnt.v) : { k: 'null' } },",
+    "            { n: 'root', base: false, v: rt ? enc(rt.t, rt.v) : { k: 'null' } }",
+    "          ] };",
+    "        }",
     "        if (d.sp === 'vec') {",
     "          var s = path(tid, v, ['_M_impl', '_M_start']), f = path(tid, v, ['_M_impl', '_M_finish']);",
     "          var vitems = [];",
@@ -264,6 +314,7 @@ namespace CTJ {
     "        var fields = [];",
     "        for (var i = 0; i < d.f.length; i++) {",
     "          var fd = d.f[i];",
+    "          if (d.hide && d.hide.indexOf(fd.n) >= 0) continue;",
     "          var fo = { n: fd.n, base: !!fd.base, v: enc(fd.t, fd.base ? v : v[fd.j]) };",
     "          var ix = fd.base ? 0 : v[fd.j];",
     "          if (owner && d.lf && d.lf.indexOf(fd.n) >= 0 && typeof ix === 'number' && ix > 0 && owner[ix] && typeof owner[ix] === 'object') {",

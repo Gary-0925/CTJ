@@ -1,0 +1,470 @@
+[
+ {
+  "label": "map",
+  "root": {
+   "k": "struct",
+   "n": "std::map",
+   "f": [
+    {
+     "n": "size",
+     "base": false,
+     "v": {
+      "k": "int",
+      "v": 5
+     }
+    },
+    {
+     "n": "root",
+     "base": false,
+     "v": {
+      "k": "ptr",
+      "to": 0
+     }
+    }
+   ]
+  },
+  "nodes": [
+   {
+    "id": 0,
+    "type": "std::_Rb_tree_node",
+    "value": {
+     "k": "struct",
+     "n": "std::_Rb_tree_node",
+     "f": [
+      {
+       "n": "std::_Rb_tree_node_base",
+       "base": true,
+       "v": {
+        "k": "struct",
+        "n": "std::_Rb_tree_node_base",
+        "f": [
+         {
+          "n": "_M_left",
+          "base": false,
+          "v": {
+           "k": "ptr",
+           "to": 1
+          }
+         },
+         {
+          "n": "_M_right",
+          "base": false,
+          "v": {
+           "k": "ptr",
+           "to": 2
+          }
+         }
+        ]
+       }
+      },
+      {
+       "n": "_M_value_field",
+       "base": false,
+       "v": {
+        "k": "struct",
+        "n": "std::pair",
+        "f": [
+         {
+          "n": "first",
+          "base": false,
+          "v": {
+           "k": "int",
+           "v": 50
+          }
+         },
+         {
+          "n": "second",
+          "base": false,
+          "v": {
+           "k": "int",
+           "v": 0
+          }
+         }
+        ]
+       }
+      }
+     ]
+    }
+   },
+   {
+    "id": 1,
+    "type": "std::_Rb_tree_node",
+    "value": {
+     "k": "struct",
+     "n": "std::_Rb_tree_node",
+     "f": [
+      {
+       "n": "std::_Rb_tree_node_base",
+       "base": true,
+       "v": {
+        "k": "struct",
+        "n": "std::_Rb_tree_node_base",
+        "f": [
+         {
+          "n": "_M_left",
+          "base": false,
+          "v": {
+           "k": "ptr",
+           "to": 3
+          }
+         },
+         {
+          "n": "_M_right",
+          "base": false,
+          "v": {
+           "k": "ptr",
+           "to": 4
+          }
+         }
+        ]
+       }
+      },
+      {
+       "n": "_M_value_field",
+       "base": false,
+       "v": {
+        "k": "struct",
+        "n": "std::pair",
+        "f": [
+         {
+          "n": "first",
+          "base": false,
+          "v": {
+           "k": "int",
+           "v": 30
+          }
+         },
+         {
+          "n": "second",
+          "base": false,
+          "v": {
+           "k": "int",
+           "v": 1
+          }
+         }
+        ]
+       }
+      }
+     ]
+    }
+   },
+   {
+    "id": 2,
+    "type": "std::_Rb_tree_node",
+    "value": {
+     "k": "struct",
+     "n": "std::_Rb_tree_node",
+     "f": [
+      {
+       "n": "std::_Rb_tree_node_base",
+       "base": true,
+       "v": {
+        "k": "struct",
+        "n": "std::_Rb_tree_node_base",
+        "f": [
+         {
+          "n": "_M_left",
+          "base": false,
+          "v": {
+           "k": "null"
+          }
+         },
+         {
+          "n": "_M_right",
+          "base": false,
+          "v": {
+           "k": "null"
+          }
+         }
+        ]
+       }
+      },
+      {
+       "n": "_M_value_field",
+       "base": false,
+       "v": {
+        "k": "struct",
+        "n": "std::pair",
+        "f": [
+         {
+          "n": "first",
+          "base": false,
+          "v": {
+           "k": "int",
+           "v": 70
+          }
+         },
+         {
+          "n": "second",
+          "base": false,
+          "v": {
+           "k": "int",
+           "v": 2
+          }
+         }
+        ]
+       }
+      }
+     ]
+    }
+   },
+   {
+    "id": 3,
+    "type": "std::_Rb_tree_node",
+    "value": {
+     "k": "struct",
+     "n": "std::_Rb_tree_node",
+     "f": [
+      {
+       "n": "std::_Rb_tree_node_base",
+       "base": true,
+       "v": {
+        "k": "struct",
+        "n": "std::_Rb_tree_node_base",
+        "f": [
+         {
+          "n": "_M_left",
+          "base": false,
+          "v": {
+           "k": "null"
+          }
+         },
+         {
+          "n": "_M_right",
+          "base": false,
+          "v": {
+           "k": "null"
+          }
+         }
+        ]
+       }
+      },
+      {
+       "n": "_M_value_field",
+       "base": false,
+       "v": {
+        "k": "struct",
+        "n": "std::pair",
+        "f": [
+         {
+          "n": "first",
+          "base": false,
+          "v": {
+           "k": "int",
+           "v": 20
+          }
+         },
+         {
+          "n": "second",
+          "base": false,
+          "v": {
+           "k": "int",
+           "v": 3
+          }
+         }
+        ]
+       }
+      }
+     ]
+    }
+   },
+   {
+    "id": 4,
+    "type": "std::_Rb_tree_node",
+    "value": {
+     "k": "struct",
+     "n": "std::_Rb_tree_node",
+     "f": [
+      {
+       "n": "std::_Rb_tree_node_base",
+       "base": true,
+       "v": {
+        "k": "struct",
+        "n": "std::_Rb_tree_node_base",
+        "f": [
+         {
+          "n": "_M_left",
+          "base": false,
+          "v": {
+           "k": "null"
+          }
+         },
+         {
+          "n": "_M_right",
+          "base": false,
+          "v": {
+           "k": "null"
+          }
+         }
+        ]
+       }
+      },
+      {
+       "n": "_M_value_field",
+       "base": false,
+       "v": {
+        "k": "struct",
+        "n": "std::pair",
+        "f": [
+         {
+          "n": "first",
+          "base": false,
+          "v": {
+           "k": "int",
+           "v": 40
+          }
+         },
+         {
+          "n": "second",
+          "base": false,
+          "v": {
+           "k": "int",
+           "v": 4
+          }
+         }
+        ]
+       }
+      }
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "label": "set",
+  "root": {
+   "k": "struct",
+   "n": "std::set",
+   "f": [
+    {
+     "n": "size",
+     "base": false,
+     "v": {
+      "k": "int",
+      "v": 2
+     }
+    },
+    {
+     "n": "root",
+     "base": false,
+     "v": {
+      "k": "ptr",
+      "to": 0
+     }
+    }
+   ]
+  },
+  "nodes": [
+   {
+    "id": 0,
+    "type": "std::_Rb_tree_node",
+    "value": {
+     "k": "struct",
+     "n": "std::_Rb_tree_node",
+     "f": [
+      {
+       "n": "std::_Rb_tree_node_base",
+       "base": true,
+       "v": {
+        "k": "struct",
+        "n": "std::_Rb_tree_node_base",
+        "f": [
+         {
+          "n": "_M_left",
+          "base": false,
+          "v": {
+           "k": "ptr",
+           "to": 1
+          }
+         },
+         {
+          "n": "_M_right",
+          "base": false,
+          "v": {
+           "k": "null"
+          }
+         }
+        ]
+       }
+      },
+      {
+       "n": "_M_value_field",
+       "base": false,
+       "v": {
+        "k": "int",
+        "v": 3
+       }
+      }
+     ]
+    }
+   },
+   {
+    "id": 1,
+    "type": "std::_Rb_tree_node",
+    "value": {
+     "k": "struct",
+     "n": "std::_Rb_tree_node",
+     "f": [
+      {
+       "n": "std::_Rb_tree_node_base",
+       "base": true,
+       "v": {
+        "k": "struct",
+        "n": "std::_Rb_tree_node_base",
+        "f": [
+         {
+          "n": "_M_left",
+          "base": false,
+          "v": {
+           "k": "null"
+          }
+         },
+         {
+          "n": "_M_right",
+          "base": false,
+          "v": {
+           "k": "null"
+          }
+         }
+        ]
+       }
+      },
+      {
+       "n": "_M_value_field",
+       "base": false,
+       "v": {
+        "k": "int",
+        "v": 1
+       }
+      }
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "label": "empty",
+  "root": {
+   "k": "struct",
+   "n": "std::map",
+   "f": [
+    {
+     "n": "size",
+     "base": false,
+     "v": {
+      "k": "int",
+      "v": 0
+     }
+    },
+    {
+     "n": "root",
+     "base": false,
+     "v": {
+      "k": "null"
+     }
+    }
+   ]
+  },
+  "nodes": []
+ }
+]
