@@ -118,6 +118,7 @@ namespace CTJ {
     __SIZEOF_LONG__: "4",
     __SIZEOF_POINTER__: "4",
     __SIZEOF_SHORT__: "2",
+    __SIZEOF_SIZE_T__: "4",
     __SIZEOF_FLOAT__: "4",
     __SIZEOF_DOUBLE__: "8",
     __SIZEOF_LONG_LONG__: "8",
@@ -141,6 +142,18 @@ namespace CTJ {
     memory: ["bits/alloc_traits.h"],
   };
 
+  // libstdc++ defines some of the functions its headers declare in src/*.cc files,
+  // which are not headers.  Here the file is attached to the end of the translation
+  // unit once the header that declares its functions has been included, as the
+  // library would be linked in.  A function the program never refers to is not
+  // emitted, so the attachment costs only parsing.
+  const LIBRARY_SOURCES: Record<string, string[]> = {
+    "bits/stl_tree.h": ["ctj_lib/tree.cc"],
+    "bits/stl_list.h": ["ctj_lib/list.cc"],
+    "bits/hash_bytes.h": ["ctj_lib/hash_bytes.cc"],
+    "bits/hashtable_policy.h": ["ctj_lib/hashtable_c++0x.cc"],
+  };
+
   export class Preprocessor {
     loadFile: (path: string) => string | null;
     includeDirs: string[];
@@ -151,6 +164,8 @@ namespace CTJ {
     // later header still uses: kept for the expansion, not for "#ifdef".
     undefKept = new Map<string, Macro>();
     onceFiles = new Set<string>();
+    // Library sources to attach after the main file, in the order they were needed.
+    attached: string[] = [];
     // A built-in stub is reported once however often its header is included.
     stubWarned = new Set<string>();
     fileStack: string[] = [];
@@ -172,6 +187,12 @@ namespace CTJ {
     run(mainSrc: string, mainFile: string): PreResult {
       this.fileDirIndex.set(mainFile, -1);
       const out = this.processFile(mainSrc, mainFile);
+      // A library file may need another one (or be attached twice), so walk the list as it grows.
+      for (let i = 0; i < this.attached.length; i++) {
+        const lib = this.attached[i];
+        const src = this.loadFile(lib);
+        if (src !== null) for (const t of this.processFile(src, lib)) out.push(t);
+      }
       out.push(tok("eof", "", mainFile, 0, 0));
       return { tokens: out, warnings: this.warnings, missing: this.missing };
     }
@@ -386,6 +407,7 @@ namespace CTJ {
       if (content === null) return;
       const sub = this.processFile(content, full);
       for (const t of sub) out.push(t);
+      for (const lib of LIBRARY_SOURCES[full] || []) if (!this.attached.includes(lib)) this.attached.push(lib);
       for (const extra of IMPLIED_INCLUDES[name] || []) {
         this.doInclude(`<${extra}>`, full, line, col, false, out);
       }

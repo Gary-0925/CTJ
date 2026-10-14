@@ -63,6 +63,21 @@ namespace CTJ {
 
   // "lineStart" tells whether the text begins a line, where "#" starts a directive;
   // macro bodies and expression text never do.
+  // The alternative spellings of the operators (C++ [lex.digraph]).
+  const ALT_TOKENS: Record<string, Tok> = {
+    and: "&&",
+    and_eq: "&=",
+    bitand: "&",
+    bitor: "|",
+    compl: "~",
+    not: "!",
+    not_eq: "!=",
+    or: "||",
+    or_eq: "|=",
+    xor: "^",
+    xor_eq: "^=",
+  };
+
   export function lexFile(src: string, file: string, lineStart = true): Token[] {
     const out: Token[] = [];
     const n = src.length;
@@ -270,6 +285,11 @@ namespace CTJ {
         while (i < n && isIdentChar(src[i])) {
           v += src[i];
           adv(1);
+        }
+        // The alternative tokens of C++ are keywords, not names, with or without <iso646.h>.
+        if (ALT_TOKENS[v] !== undefined) {
+          emit(tok(ALT_TOKENS[v], ALT_TOKENS[v], file, sl, so));
+          continue;
         }
         emit(tok("ident", v, file, sl, so));
         continue;

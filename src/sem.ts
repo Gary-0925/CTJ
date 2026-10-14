@@ -457,6 +457,9 @@ namespace CTJ {
             return;
           }
           this.ensureNs(fq);
+          // An unnamed namespace is reached from its enclosing one by an implicit
+          // using-directive, so its names are found by unqualified lookup there.
+          if (d.name.startsWith("$ns_")) this.ensureNs(scope.ns.join("::")).usingNs.push(fq);
           if (d.isInline && scope.ns.length) {
             this.ensureNs(scope.ns.join("::")).inlineNs.push(fq);
           } else if (d.isInline) {

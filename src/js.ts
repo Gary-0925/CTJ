@@ -1,13 +1,5 @@
 // JavaScript code generator: emits the collected program as JavaScript (class JsGen).
 namespace CTJ {
-  // The bucket counts libstdc++'s unordered containers grow through, from
-  // libstdc++-v3/src/shared/hashtable-aux.cc (the 64-bit table).
-  const PRIME_BUCKETS: number[] = [
-    2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97, 103, 109, 113, 127, 137, 139, 149, 157, 167, 179, 193, 199, 211, 227, 241, 257, 277, 293, 313, 337, 359, 383, 409, 439, 467, 503, 541, 577, 619, 661, 709, 761, 823, 887, 953, 1031, 1109, 1193, 1289, 1381, 1493, 1613, 1741, 1879, 2029, 2179, 2357, 2549, 2753, 2971, 3209, 3469, 3739, 4027, 4349, 4703, 5087, 5503, 5953, 6427, 6949, 7517, 8123, 8783, 9497, 10273, 11113, 12011, 12983, 14033, 15173, 16411, 17749, 19183, 20753, 22447, 24281, 26267, 28411, 30727, 33223, 35933, 38873, 42043, 45481, 49201, 53201, 57557, 62233, 67307, 72817, 78779, 85229, 92203, 99733, 107897, 116731, 126271, 136607, 147793, 159871, 172933, 187091, 202409, 218971, 236897, 256279, 277261, 299951, 324503, 351061, 379787, 410857, 444487, 480881, 520241, 562841, 608903, 658753, 712697, 771049, 834181, 902483, 976369, 1056323, 1142821, 1236397, 1337629, 1447153, 1565659, 1693859, 1832561, 1982627, 2144977, 2320627,
-    2510653, 2716249, 2938679, 3179303, 3439651, 3721303, 4026031, 4355707, 4712381, 5098259, 5515729, 5967347, 6456007, 6984629, 7556579, 8175383, 8844859, 9569143, 10352717, 11200489, 12117689, 13109983, 14183539, 15345007, 16601593, 17961079, 19431899, 21023161, 22744717, 24607243, 26622317, 28802401, 31160981, 33712729, 36473443, 39460231, 42691603, 46187573, 49969847, 54061849, 58488943, 63278561, 68460391, 74066549, 80131819, 86693767, 93793069, 101473717, 109783337, 118773397, 128499677, 139022417, 150406843, 162723577, 176048909, 190465427, 206062531, 222936881, 241193053, 260944219, 282312799, 305431229, 330442829, 357502601, 386778277, 418451333, 452718089, 489790921, 529899637, 573292817, 620239453, 671030513, 725980837, 785430967, 849749479, 919334987, 994618837, 1076067617, 1164186217, 1259520799, 1362662261, 1474249943, 1594975441, 1725587117, 1866894511, 2019773507, 2185171673, 2364114217, 2557710269, 2767159799, 2993761039, 3238918481, 3504151727, 3791104843,
-    4101556399, 4294967291, 6442450933, 8589934583, 12884901857, 17179869143, 25769803693, 34359738337, 51539607367, 68719476731, 103079215087, 137438953447, 206158430123, 274877906899, 412316860387, 549755813881, 824633720731, 1099511627689, 1649267441579, 2199023255531, 3298534883309, 4398046511093, 6597069766607, 8796093022151, 13194139533241, 17592186044399, 26388279066581, 35184372088777, 52776558133177, 70368744177643, 105553116266399, 140737488355213, 211106232532861, 281474976710597, 562949953421231, 1125899906842597, 2251799813685119, 4503599627370449, 9007199254740881, 18014398509481951, 36028797018963913, 72057594037927931, 144115188075855859, 288230376151711717, 576460752303423433, 1152921504606846883, 2305843009213693951, 4611686018427387847, 9223372036854775783, 18446744073709551557,
-  ];
-
   // The JavaScript property a method is called by: its symbol, so that each overload
   // has a name of its own. A constructor and a destructor keep the names JavaScript
   // gives them.
@@ -149,8 +141,6 @@ namespace CTJ {
     run(): string {
       const body: string[] = [];
       this.out = body;
-      if (this.needsPrimeBuckets()) this.line(`const PRIME_BUCKETS = [${PRIME_BUCKETS.join(", ")}];`);
-      if (this.needsRbTreeHelpers()) this.emitPtrHelpers();
       for (const c of this.sortClasses()) {
         if (!c.referenced || c.isLambda) continue;
         this.emitClass(c);
@@ -789,7 +779,7 @@ namespace CTJ {
     }
 
     emitMethod(c: ClsInfo, fns: FuncInfo[]): void {
-      const use = fns.filter(f => f.referenced && ((f.decl.body || []).length || f.decl.flags.includes("pure") || !!this.listNodeStub(f) || !!this.hashPolicyStub(f) || !!this.hashBytesStub(f)));
+      const use = fns.filter(f => f.referenced && ((f.decl.body || []).length || f.decl.flags.includes("pure")));
       if (!use.length) return;
       const groups = new Map<string, FuncInfo[]>();
       for (const f of use) {
@@ -804,21 +794,6 @@ namespace CTJ {
       void c;
       const m = methodJsName(this.cx, use[0]);
       const pre = use[0].isStatic ? "static " : "";
-      const list = this.listNodeStub(use[0]);
-      if (list !== null) {
-        this.line(`${pre}${m}(...$a) { ${list} }`);
-        return;
-      }
-      const hp = this.hashPolicyStub(use[0]);
-      if (hp !== null) {
-        this.line(`${pre}${m}(...$a) { ${hp} }`);
-        return;
-      }
-      const hb = this.hashBytesStub(use[0]);
-      if (hb !== null) {
-        this.line(`${pre}${m}(...$a) { ${hb} }`);
-        return;
-      }
       if (use.length === 1) {
         const fn = use[0];
         const ps = this.cx.funcParams(fn);
@@ -880,125 +855,6 @@ namespace CTJ {
 
     // The rehash policy's stub reads the prime list at run time; it is written
     // into the program instead of being carried over from the generator.
-    needsPrimeBuckets(): boolean {
-      for (const c of this.cx.classes.values()) {
-        if (!c.referenced) continue;
-        for (const fns of c.methods.values()) {
-          for (const f of fns) if (f.referenced && this.hashPolicyStub(f)) return true;
-        }
-      }
-      return false;
-    }
-
-    needsRbTreeHelpers(): boolean {
-      for (const list of this.cx.funcs.values()) {
-        for (const f of list) {
-          if (f.referenced && !f.isMethod && this.rbTreeStub(f)) return true;
-        }
-      }
-      return false;
-    }
-
-    emitPtrHelpers(): void {
-      this.line(`function _ctj_peq(a, b) { return a === b || (!!a && !!b && a.a === b.a && a.i === b.i); }`);
-      this.line(`// _Rb_tree_rebalance_for_erase from libstdc++'s tree.cc: it takes the node`);
-      this.line(`// out of the tree and rebalances, and hands back the node to destroy.`);
-      this.line(`function _ctj_rb_erase(z, hb) {`);
-      this.line(`  var hn = hb.a[hb.i], root = hn._M_parent;`);
-      this.line(`  var D = function (p) { return p ? p.a[p.i] : null; };`);
-      this.line(`  var rotL = function (x) {`);
-      this.line(`    var nx = D(x), y = nx._M_right, ny = D(y);`);
-      this.line(`    nx._M_right = ny._M_left;`);
-      this.line(`    if (ny._M_left) D(ny._M_left)._M_parent = x;`);
-      this.line(`    ny._M_parent = nx._M_parent;`);
-      this.line(`    if (_ctj_peq(x, root)) { root = y; hn._M_parent = root; }`);
-      this.line(`    else if (_ctj_peq(D(nx._M_parent)._M_left, x)) D(nx._M_parent)._M_left = y;`);
-      this.line(`    else D(nx._M_parent)._M_right = y;`);
-      this.line(`    ny._M_left = x; nx._M_parent = y;`);
-      this.line(`  };`);
-      this.line(`  var rotR = function (x) {`);
-      this.line(`    var nx = D(x), y = nx._M_left, ny = D(y);`);
-      this.line(`    nx._M_left = ny._M_right;`);
-      this.line(`    if (ny._M_right) D(ny._M_right)._M_parent = x;`);
-      this.line(`    ny._M_parent = nx._M_parent;`);
-      this.line(`    if (_ctj_peq(x, root)) { root = y; hn._M_parent = root; }`);
-      this.line(`    else if (_ctj_peq(D(nx._M_parent)._M_right, x)) D(nx._M_parent)._M_right = y;`);
-      this.line(`    else D(nx._M_parent)._M_left = y;`);
-      this.line(`    ny._M_right = x; nx._M_parent = y;`);
-      this.line(`  };`);
-      this.line(`  var pz = z, nz = D(pz), py = pz, px = null, pxp = null;`);
-      this.line(`  if (!nz._M_left) px = nz._M_right;`);
-      this.line(`  else if (!nz._M_right) px = nz._M_left;`);
-      this.line(`  else { py = nz._M_right; while (D(py)._M_left) py = D(py)._M_left; px = D(py)._M_right; }`);
-      this.line(`  if (!_ctj_peq(py, pz)) {`);
-      this.line(`    var ny = D(py);`);
-      this.line(`    D(nz._M_left)._M_parent = py;`);
-      this.line(`    ny._M_left = nz._M_left;`);
-      this.line(`    if (!_ctj_peq(py, nz._M_right)) {`);
-      this.line(`      pxp = ny._M_parent;`);
-      this.line(`      if (px) D(px)._M_parent = ny._M_parent;`);
-      this.line(`      D(ny._M_parent)._M_left = px;`);
-      this.line(`      ny._M_right = nz._M_right;`);
-      this.line(`      D(nz._M_right)._M_parent = py;`);
-      this.line(`    } else pxp = py;`);
-      this.line(`    if (_ctj_peq(root, pz)) { root = py; hn._M_parent = root; }`);
-      this.line(`    else if (_ctj_peq(D(nz._M_parent)._M_left, pz)) D(nz._M_parent)._M_left = py;`);
-      this.line(`    else D(nz._M_parent)._M_right = py;`);
-      this.line(`    ny._M_parent = nz._M_parent;`);
-      this.line(`    var cl = ny._M_color; ny._M_color = nz._M_color; nz._M_color = cl;`);
-      this.line(`    py = pz;`);
-      this.line(`  } else {`);
-      this.line(`    pxp = nz._M_parent;`);
-      this.line(`    if (px) D(px)._M_parent = nz._M_parent;`);
-      this.line(`    if (_ctj_peq(root, pz)) { root = px; hn._M_parent = root; }`);
-      this.line(`    else if (_ctj_peq(D(nz._M_parent)._M_left, pz)) D(nz._M_parent)._M_left = px;`);
-      this.line(`    else D(nz._M_parent)._M_right = px;`);
-      this.line(`    if (_ctj_peq(hn._M_left, pz)) {`);
-      this.line(`      if (!nz._M_right) hn._M_left = nz._M_parent;`);
-      this.line(`      else { var a = px; while (D(a)._M_left) a = D(a)._M_left; hn._M_left = a; }`);
-      this.line(`    }`);
-      this.line(`    if (_ctj_peq(hn._M_right, pz)) {`);
-      this.line(`      if (!nz._M_left) hn._M_right = nz._M_parent;`);
-      this.line(`      else { var b = px; while (D(b)._M_right) b = D(b)._M_right; hn._M_right = b; }`);
-      this.line(`    }`);
-      this.line(`  }`);
-      this.line(`  if (D(py)._M_color !== 0) {`);
-      this.line(`    while (!_ctj_peq(px, root) && (!px || D(px)._M_color !== 0)) {`);
-      this.line(`      var nxp = D(pxp);`);
-      this.line(`      if (_ctj_peq(px, nxp._M_left)) {`);
-      this.line(`        var w = nxp._M_right, nw = D(w);`);
-      this.line(`        if (nw._M_color === 0) { nw._M_color = 1; nxp._M_color = 0; rotL(pxp); w = nxp._M_right; nw = D(w); }`);
-      this.line(`        if ((!nw._M_left || D(nw._M_left)._M_color !== 0) && (!nw._M_right || D(nw._M_right)._M_color !== 0)) {`);
-      this.line(`          nw._M_color = 0; px = pxp; pxp = nxp._M_parent;`);
-      this.line(`        } else {`);
-      this.line(`          if (!nw._M_right || D(nw._M_right)._M_color !== 0) {`);
-      this.line(`            D(nw._M_left)._M_color = 1; nw._M_color = 0; rotR(w); w = nxp._M_right; nw = D(w);`);
-      this.line(`          }`);
-      this.line(`          nw._M_color = nxp._M_color; nxp._M_color = 1;`);
-      this.line(`          if (nw._M_right) D(nw._M_right)._M_color = 1;`);
-      this.line(`          rotL(pxp); break;`);
-      this.line(`        }`);
-      this.line(`      } else {`);
-      this.line(`        var w2 = nxp._M_left, nw2 = D(w2);`);
-      this.line(`        if (nw2._M_color === 0) { nw2._M_color = 1; nxp._M_color = 0; rotR(pxp); w2 = nxp._M_left; nw2 = D(w2); }`);
-      this.line(`        if ((!nw2._M_right || D(nw2._M_right)._M_color !== 0) && (!nw2._M_left || D(nw2._M_left)._M_color !== 0)) {`);
-      this.line(`          nw2._M_color = 0; px = pxp; pxp = nxp._M_parent;`);
-      this.line(`        } else {`);
-      this.line(`          if (!nw2._M_left || D(nw2._M_left)._M_color !== 0) {`);
-      this.line(`            D(nw2._M_right)._M_color = 1; nw2._M_color = 0; rotL(w2); w2 = nxp._M_left; nw2 = D(w2);`);
-      this.line(`          }`);
-      this.line(`          nw2._M_color = nxp._M_color; nxp._M_color = 1;`);
-      this.line(`          if (nw2._M_left) D(nw2._M_left)._M_color = 1;`);
-      this.line(`          rotR(pxp); break;`);
-      this.line(`        }`);
-      this.line(`      }`);
-      this.line(`    }`);
-      this.line(`    if (px) D(px)._M_color = 1;`);
-      this.line(`  }`);
-      this.line(`  return py;`);
-      this.line(`}`);
-    }
-
     // The allocation operators are declared by <new> with no body; storage comes
     // from the target language, and freeing is its business too. A placement
     // version hands back the pointer it was given.
@@ -1010,141 +866,9 @@ namespace CTJ {
       return null;
     }
 
-    // libstdc++ defines the node operations of an intrusive list in
-    // src/c++98/list.cc, which is not a header: without them a list cannot
-    // insert, erase, splice or reverse anything. The bodies are the ones from
-    // that file, written against the fat pointers the generator uses.
-    listNodeStub(f: FuncInfo): string | null {
-      if (!f.isMethod || !f.fq.endsWith("_List_node_base::" + f.short)) return null;
-      const ad = `const $ad = (o) => (o.ctj_a ? {a: o.ctj_a, i: o.ctj_i} : {a: (o.ctj_a = []), i: (o.ctj_i = 0)});`;
-      switch (f.short) {
-        case "_M_hook":
-          // __position->_M_prev->_M_next = this; __position->_M_prev = this;
-          return [ad + `const $me = $ad(this), $pos = $a[0].a[$a[0].i], $prev = $pos._M_prev;`, `this._M_next = $a[0];`, `this._M_prev = $prev;`, `$prev.a[$prev.i]._M_next = $me;`, `$pos._M_prev = $me;`].join("");
-        case "_M_unhook":
-          // __prev_node->_M_next = __next_node; __next_node->_M_prev = __prev_node;
-          return [`const $next = this._M_next, $prev = this._M_prev;`, `$prev.a[$prev.i]._M_next = $next;`, `$next.a[$next.i]._M_prev = $prev;`].join("");
-        case "_M_transfer":
-          // The members of "this" are moved in front of __last from the range
-          // that starts at __first, by rewiring the four nodes around them.
-          return [ad, `if ($a[1].a[$a[1].i] === this) return;`, `const $me = $ad(this), $fp = $a[0], $lp = $a[1];`, `$lp.a[$lp.i]._M_prev.a[$lp.a[$lp.i]._M_prev.i]._M_next = $me;`, `$fp.a[$fp.i]._M_prev.a[$fp.a[$fp.i]._M_prev.i]._M_next = $lp;`, `this._M_prev.a[this._M_prev.i]._M_next = $fp;`, `const $tmp = this._M_prev;`, `this._M_prev = $lp.a[$lp.i]._M_prev;`, `$lp.a[$lp.i]._M_prev = $fp.a[$fp.i]._M_prev;`, `$fp.a[$fp.i]._M_prev = $tmp;`].join("");
-        case "_M_reverse":
-          // Every node swaps its two links; the walk follows _M_prev, which is
-          // the next node of the reversed list.
-          return [ad + `let $p = $ad(this);`, `do {`, `const $t = $p.a[$p.i]._M_next;`, `$p.a[$p.i]._M_next = $p.a[$p.i]._M_prev;`, `$p.a[$p.i]._M_prev = $t;`, `$p = $p.a[$p.i]._M_prev;`, `} while ($p.a[$p.i] !== this);`].join("");
-        case "swap":
-          // The nodes that end up next to a sentinel have to be pointed back at
-          // it: after the links are exchanged, the first and last node of each
-          // list still name the other sentinel (LWG 953).
-          return [
-            ad,
-            `const $x = $a[0].a[$a[0].i], $y = $a[1].a[$a[1].i];`,
-            `if ($x === $y) return;`,
-            `const $xa = $ad($x), $ya = $ad($y);`,
-            `const $xe = $x._M_next && $x._M_next.a === $xa.a && $x._M_next.i === $xa.i;`,
-            `const $ye = $y._M_next && $y._M_next.a === $ya.a && $y._M_next.i === $ya.i;`,
-            `if (!$xe && !$ye) {`,
-            `let $t = $x._M_next; $x._M_next = $y._M_next; $y._M_next = $t;`,
-            `$t = $x._M_prev; $x._M_prev = $y._M_prev; $y._M_prev = $t;`,
-            `$x._M_next.a[$x._M_next.i]._M_prev = $xa; $x._M_prev.a[$x._M_prev.i]._M_next = $xa;`,
-            `$y._M_next.a[$y._M_next.i]._M_prev = $ya; $y._M_prev.a[$y._M_prev.i]._M_next = $ya;`,
-            `} else if (!$xe) {`,
-            `$y._M_next = $x._M_next; $y._M_prev = $x._M_prev;`,
-            `$y._M_next.a[$y._M_next.i]._M_prev = $ya; $y._M_prev.a[$y._M_prev.i]._M_next = $ya;`,
-            `$x._M_next = $xa; $x._M_prev = $xa;`,
-            `} else if (!$ye) {`,
-            `$x._M_next = $y._M_next; $x._M_prev = $y._M_prev;`,
-            `$x._M_next.a[$x._M_next.i]._M_prev = $xa; $x._M_prev.a[$x._M_prev.i]._M_next = $xa;`,
-            `$y._M_next = $ya; $y._M_prev = $ya;`,
-            `}`,
-          ].join("");
-        default:
-          return null;
-      }
-    }
-
-    // libstdc++ defines these in src/c++98/tree.cc, which is not a header.
-    rbTreeStub(f: FuncInfo): string | null {
-      if (f.fq === "std::_Rb_tree_insert_and_rebalance") {
-        return ["var left=$a[0],x=$a[1],p=$a[2],h=$a[3];", "var xn=x.a[x.i],pn=p.a[p.i],hn=h.a[h.i];", "xn._M_parent={a:p.a,i:p.i};xn._M_left=null;xn._M_right=null;xn._M_color=0;", "if(left){pn._M_left={a:x.a,i:x.i};", "if(_ctj_peq(p,h)){hn._M_parent={a:x.a,i:x.i};hn._M_right={a:x.a,i:x.i};}", "else if(_ctj_peq(p,hn._M_left)) hn._M_left={a:x.a,i:x.i};}", "else{pn._M_right={a:x.a,i:x.i};", "if(_ctj_peq(p,hn._M_right)) hn._M_right={a:x.a,i:x.i};}", "if(hn._M_parent){var r=hn._M_parent.a[hn._M_parent.i];if(r) r._M_color=1;}"].join("");
-      }
-      if (f.fq === "std::_Rb_tree_increment") {
-        return ["var x=$a[0]; if(!x) return null; var n=x.a[x.i];", "if(n._M_right){ x=n._M_right; n=x.a[x.i]; while(n._M_left){ x=n._M_left; n=x.a[x.i]; } return {a:x.a,i:x.i}; }", "var y=n._M_parent;", "while(y){ var p=y.a[y.i]; if(!_ctj_peq(x,p._M_right)) break; x=y; n=p; y=n._M_parent; }", "n=x.a[x.i]; if(!n._M_right||!_ctj_peq(n._M_right,y)) x=y;", "return x?{a:x.a,i:x.i}:null;"].join(" ");
-      }
-      if (f.fq === "std::_Rb_tree_decrement") {
-        return ["var x=$a[0]; if(!x) return null; var n=x.a[x.i];", "var yp=n._M_parent&&n._M_parent.a[n._M_parent.i];", "if(n._M_color===0&&yp&&yp._M_parent&&_ctj_peq(yp._M_parent,x)){ x=n._M_right; return x?{a:x.a,i:x.i}:null; }", "if(n._M_left){ x=n._M_left; n=x.a[x.i]; while(n._M_right){ x=n._M_right; n=x.a[x.i]; } return {a:x.a,i:x.i}; }", "var y=n._M_parent;", "while(y){ var p=y.a[y.i]; if(!_ctj_peq(x,p._M_left)) break; x=y; n=p; y=n._M_parent; }", "return y?{a:y.a,i:y.i}:null;"].join(" ");
-      }
-      if (f.fq === "std::_Rb_tree_rebalance_for_erase") {
-        return "return _ctj_rb_erase($a[0], $a[1]);";
-      }
-      return null;
-    }
-
-    // libstdc++ defines these in src/c++11/hashtable_c++0x.cc, which is not a
-    // header: the bucket-count policy the unordered containers rehash through.
-    hashPolicyStub(f: FuncInfo): string | null {
-      if (!f.isMethod || !f.fq.endsWith("_Prime_rehash_policy::" + f.short)) return null;
-      if (f.short === "_M_next_bkt") {
-        // Prime no smaller than n, with the next resize threshold cached on the
-        // policy: the first entries are the fast-path table of the original.
-        return ["const $fast = [2,2,2,3,5,5,7,7,11,11,11,11,13,13];", "const $n = $a[0];", "if ($n < $fast.length) { if ($n === 0) return 1;", "  this._M_next_resize = Math.floor($fast[$n] * this._M_max_load_factor); return $fast[$n]; }", "const $P = PRIME_BUCKETS, $last = $P.length - 1;", "let $i = 6; while ($i < $last && $P[$i] < $n) $i++;", "if ($i === $last) { this._M_next_resize = 18446744073709551615; return $P[$i]; }", "this._M_next_resize = Math.floor($P[$i] * this._M_max_load_factor); return $P[$i];"].join(" ");
-      }
-      if (f.short === "_M_need_rehash") {
-        // "pair<bool, size_type>" comes back boxed, as any class value does.
-        const cls = this.cx.classes.get(this.cx.stripAll(this.cx.funcRet(f)));
-        const pn = cls ? (cls.mangled as string) : "";
-        // A class value comes back as the object itself, as any other function
-        // returning one by value does: the caller copies it into a pair of its
-        // own, and that copy reads "first" and "second" off the object.
-        const mk = pn ? `const $mk = (b, s) => { const o = Object.create(${pn}.prototype); o.first = b; o.second = s; return o; };` : "const $mk = (b, s) => ({first: b, second: s});";
-        return ["const $nbkt = $a[0], $nelt = $a[1], $nins = $a[2];", mk, "if ($nelt + $nins > this._M_next_resize) {", "  const $mb = Math.max($nelt + $nins, this._M_next_resize ? 0 : 11) / this._M_max_load_factor;", "  if ($mb >= $nbkt) return $mk(true, this._M_next_bkt__c(Math.max(Math.floor($mb) + 1, $nbkt * 2)));", "  this._M_next_resize = Math.floor($nbkt * this._M_max_load_factor);", "}", "return $mk(false, 0);"].join(" ");
-      }
-      return null;
-    }
-
-    // libstdc++ defines these in libsupc++/hash_bytes.cc, which is not a header:
-    // they are the byte hashes the string and pointer specializations of
-    // "std::hash" mix their data with.  The mixing is done in BigInt with the
-    // 64-bit constants of the original; "size_t" is 32 bits on this target, so
-    // the result is reduced to 32 bits.
-    hashBytesStub(f: FuncInfo): string | null {
-      if (f.isMethod) return null;
-      if (f.fq === "std::_Hash_bytes") {
-        return [
-          "const $M = (1n << 64n) - 1n;",
-          "const $mul = (0xc6a4a793n << 32n) + 0x5bd1e995n;",
-          "const $mix = (v) => (v ^ (v >> 47n)) & $M;",
-          "const $ptr = $a[0];",
-          "if ($ptr === null || $ptr === undefined) return 0;",
-          "const $arr = Array.isArray($ptr) ? $ptr : $ptr.a, $base = Array.isArray($ptr) ? 0 : $ptr.i;",
-          "const $byte = (k) => BigInt($arr[$base + k] & 255);",
-          "const $len = $a[1] === undefined ? 0 : $a[1];",
-          "const $seed = $a[2] === undefined ? 0xc70f6907 : $a[2];",
-          "const $aligned = $len & ~7;",
-          "let $h = (BigInt($seed) ^ (BigInt($len) * $mul)) & $M;",
-          "for (let $p = 0; $p < $aligned; $p += 8) {",
-          "  let $w = 0n; for (let $k = 0; $k < 8; $k++) $w |= $byte($p + $k) << BigInt(8 * $k);",
-          "  $w = ($mix(($w * $mul) & $M) * $mul) & $M;",
-          "  $h = (($h ^ $w) * $mul) & $M;",
-          "}",
-          "const $rem = $len & 7;",
-          "if ($rem) {",
-          "  let $w = 0n; for (let $k = $rem - 1; $k >= 0; $k--) $w = (($w << 8n) + $byte($aligned + $k)) & $M;",
-          "  $h = (($h ^ $w) * $mul) & $M;",
-          "}",
-          "$h = ($mix($h) * $mul) & $M;",
-          "return Number($mix($h) & 0xffffffffn);",
-        ].join(" ");
-      }
-      if (f.fq === "std::_Fnv_hash_bytes") {
-        return ["const $M = (1n << 64n) - 1n;", "const $ptr = $a[0];", "if ($ptr === null || $ptr === undefined) return 0;", "const $arr = Array.isArray($ptr) ? $ptr : $ptr.a, $base = Array.isArray($ptr) ? 0 : $ptr.i;", "const $len = $a[1] === undefined ? 0 : $a[1];", "let $h = BigInt($a[2] === undefined ? 0 : $a[2]) & $M;", "for (let $k = 0; $k < $len; $k++) {", "  const $c = $arr[$base + $k] & 255;", "  $h = ((($h ^ BigInt($c < 128 ? $c : $c - 256)) & $M) * 1099511628211n) & $M;", "}", "return Number($h & 0xffffffffn);"].join(" ");
-      }
-      return null;
-    }
-
     emitFunc(f: FuncInfo): void {
       if (!(f.decl.body || []).length) {
-        const stub = this.allocStub(f) ?? this.rbTreeStub(f) ?? this.hashBytesStub(f);
+        const stub = this.allocStub(f);
         const lib = stub === null ? libcBodySource(f.fq) : null;
         if (stub !== null) this.line(`function ${this.cx.symOf(f)}(...$a) { ${stub} }`);
         else if (lib !== null) {

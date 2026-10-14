@@ -124,10 +124,42 @@ return {
         }
         __dtor() {
         }
-        _ZNSt8__detail15_List_node_base11_M_transferEPS0_S1_(...$a) { const $ad = (o) => (o.ctj_a ? {a: o.ctj_a, i: o.ctj_i} : {a: (o.ctj_a = []), i: (o.ctj_i = 0)});if ($a[1].a[$a[1].i] === this) return;const $me = $ad(this), $fp = $a[0], $lp = $a[1];$lp.a[$lp.i]._M_prev.a[$lp.a[$lp.i]._M_prev.i]._M_next = $me;$fp.a[$fp.i]._M_prev.a[$fp.a[$fp.i]._M_prev.i]._M_next = $lp;this._M_prev.a[this._M_prev.i]._M_next = $fp;const $tmp = this._M_prev;this._M_prev = $lp.a[$lp.i]._M_prev;$lp.a[$lp.i]._M_prev = $fp.a[$fp.i]._M_prev;$fp.a[$fp.i]._M_prev = $tmp; }
-        _ZNSt8__detail15_List_node_base10_M_reverseEv(...$a) { const $ad = (o) => (o.ctj_a ? {a: o.ctj_a, i: o.ctj_i} : {a: (o.ctj_a = []), i: (o.ctj_i = 0)});let $p = $ad(this);do {const $t = $p.a[$p.i]._M_next;$p.a[$p.i]._M_next = $p.a[$p.i]._M_prev;$p.a[$p.i]._M_prev = $t;$p = $p.a[$p.i]._M_prev;} while ($p.a[$p.i] !== this); }
-        _ZNSt8__detail15_List_node_base7_M_hookEPS0_(...$a) { const $ad = (o) => (o.ctj_a ? {a: o.ctj_a, i: o.ctj_i} : {a: (o.ctj_a = []), i: (o.ctj_i = 0)});const $me = $ad(this), $pos = $a[0].a[$a[0].i], $prev = $pos._M_prev;this._M_next = $a[0];this._M_prev = $prev;$prev.a[$prev.i]._M_next = $me;$pos._M_prev = $me; }
-        _ZNSt8__detail15_List_node_base9_M_unhookEv(...$a) { const $next = this._M_next, $prev = this._M_prev;$prev.a[$prev.i]._M_next = $next;$next.a[$next.i]._M_prev = $prev; }
+        _ZNSt8__detail15_List_node_base11_M_transferEPS0_S1_(__first, __last) {
+          let $t0;
+          if (($t0 = {a: (this.ctj_a || (this.ctj_a = [])), i: (this.ctj_i || 0)}, (!($t0 === __last || ($t0 && __last && $t0.a === __last.a && $t0.i === __last.i))))) {
+             {
+              (((__last.a[__last.i])._M_prev).a[((__last.a[__last.i])._M_prev).i])._M_next = {a: (this.ctj_a || (this.ctj_a = [])), i: (this.ctj_i || 0)};
+              (((__first.a[__first.i])._M_prev).a[((__first.a[__first.i])._M_prev).i])._M_next = (__last ? {a: __last.a, i: __last.i} : null);
+              (this._M_prev.a[this._M_prev.i])._M_next = (__first ? {a: __first.a, i: __first.i} : null);
+              let __tmp = (this._M_prev ? {a: this._M_prev.a, i: this._M_prev.i} : null);
+              this._M_prev = (((__last.a[__last.i])._M_prev) ? {a: ((__last.a[__last.i])._M_prev).a, i: ((__last.a[__last.i])._M_prev).i} : null);
+              (__last.a[__last.i])._M_prev = (((__first.a[__first.i])._M_prev) ? {a: ((__first.a[__first.i])._M_prev).a, i: ((__first.a[__first.i])._M_prev).i} : null);
+              (__first.a[__first.i])._M_prev = (__tmp ? {a: __tmp.a, i: __tmp.i} : null);
+            }
+          }
+        }
+        _ZNSt8__detail15_List_node_base10_M_reverseEv() {
+          let $t1;
+          let __tmp = {a: (this.ctj_a || (this.ctj_a = [])), i: (this.ctj_i || 0)};
+          do {
+             {
+              _ZSt4swapIPNSt8__detail15_List_node_baseEEvRS_S2_({a: __tmp.a[__tmp.i], i: "_M_next"}, {a: __tmp.a[__tmp.i], i: "_M_prev"});
+              __tmp = (((__tmp.a[__tmp.i])._M_prev) ? {a: ((__tmp.a[__tmp.i])._M_prev).a, i: ((__tmp.a[__tmp.i])._M_prev).i} : null);
+            }
+          } while (($t1 = {a: (this.ctj_a || (this.ctj_a = [])), i: (this.ctj_i || 0)}, (!(__tmp === $t1 || (__tmp && $t1 && __tmp.a === $t1.a && __tmp.i === $t1.i)))));
+        }
+        _ZNSt8__detail15_List_node_base7_M_hookEPS0_(__position) {
+          this._M_next = (__position ? {a: __position.a, i: __position.i} : null);
+          this._M_prev = (((__position.a[__position.i])._M_prev) ? {a: ((__position.a[__position.i])._M_prev).a, i: ((__position.a[__position.i])._M_prev).i} : null);
+          (((__position.a[__position.i])._M_prev).a[((__position.a[__position.i])._M_prev).i])._M_next = {a: (this.ctj_a || (this.ctj_a = [])), i: (this.ctj_i || 0)};
+          (__position.a[__position.i])._M_prev = {a: (this.ctj_a || (this.ctj_a = [])), i: (this.ctj_i || 0)};
+        }
+        _ZNSt8__detail15_List_node_base9_M_unhookEv() {
+          let __next_node = (this._M_next ? {a: this._M_next.a, i: this._M_next.i} : null);
+          let __prev_node = (this._M_prev ? {a: this._M_prev.a, i: this._M_prev.i} : null);
+          (__prev_node.a[__prev_node.i])._M_next = (__next_node ? {a: __next_node.a, i: __next_node.i} : null);
+          (__next_node.a[__next_node.i])._M_prev = (__prev_node ? {a: __prev_node.a, i: __prev_node.i} : null);
+        }
       }
       class _ZN9__gnu_cxx13new_allocatorIiEE {
         __init__ZN9__gnu_cxx13new_allocatorIiEE(...$a) { }
@@ -152,8 +184,8 @@ return {
           this.__init__ZSt10_List_nodeIiE(...$a);
         }
         __init__ZSt10_List_nodeIiE(...$a) {
-          let $t0;
-          this._M_data$_ZSt10_List_nodeIiE = ($t0 = _ZSt7forwardIiEOiS_($a[0]), $t0.a[$t0.i]);
+          let $t2;
+          this._M_data$_ZSt10_List_nodeIiE = ($t2 = _ZSt7forwardIiEOiS_($a[0]), $t2.a[$t2.i]);
         }
         __dtor() {
           _ZNSt8__detail15_List_node_baseE.prototype.__dtor.call(this);
@@ -169,11 +201,11 @@ return {
         __dtor() {
         }
         _ZN9__gnu_cxx13new_allocatorISt10_List_nodeIiEE8allocateEmPKv(__n, $p1 = {a: [0], i: 0}) {
-          let $t1;
+          let $t3;
           if ((__n > _ZN9__gnu_cxx13new_allocatorISt10_List_nodeIiEEE.prototype._ZNK9__gnu_cxx13new_allocatorISt10_List_nodeIiEE8max_sizeEv.call(this))) {
             _ZSt17__throw_bad_allocv();
           }
-          return ($t1 = _Znwm(((Math.imul(__n, 12)) >>> 0)), $t1 ? {a: $t1.a, i: $t1.i} : null);
+          return ($t3 = _Znwm(((Math.imul(__n, 12)) >>> 0)), $t3 ? {a: $t3.a, i: $t3.i} : null);
         }
         _ZN9__gnu_cxx13new_allocatorISt10_List_nodeIiEE10deallocateEPS2_m(__p, $p1) {
           _ZdlPv((__p ? {a: __p.a, i: __p.i} : null));
@@ -226,8 +258,8 @@ return {
         __dtor() {
         }
         _ZNSt10_List_baseIiSt9allocatorIiEE11_M_get_nodeEv() {
-          let $t2;
-          return ($t2 = _ZN9__gnu_cxx13new_allocatorISt10_List_nodeIiEEE.prototype._ZN9__gnu_cxx13new_allocatorISt10_List_nodeIiEE8allocateEmPKv.call(this._M_impl$_ZSt10_List_baseIiSt9allocatorIiEE, ((1) >>> 0), {a: [0], i: 0}), $t2 ? {a: $t2.a, i: $t2.i} : null);
+          let $t4;
+          return ($t4 = _ZN9__gnu_cxx13new_allocatorISt10_List_nodeIiEEE.prototype._ZN9__gnu_cxx13new_allocatorISt10_List_nodeIiEE8allocateEmPKv.call(this._M_impl$_ZSt10_List_baseIiSt9allocatorIiEE, ((1) >>> 0), {a: [0], i: 0}), $t4 ? {a: $t4.a, i: $t4.i} : null);
         }
         _ZNSt10_List_baseIiSt9allocatorIiEE11_M_put_nodeEPSt10_List_nodeIiE(__p) {
           _ZN9__gnu_cxx13new_allocatorISt10_List_nodeIiEEE.prototype._ZN9__gnu_cxx13new_allocatorISt10_List_nodeIiEE10deallocateEPS2_m.call(this._M_impl$_ZSt10_List_baseIiSt9allocatorIiEE, (__p ? {a: __p.a, i: __p.i} : null), ((1) >>> 0));
@@ -236,13 +268,13 @@ return {
           return {a: this, i: "_M_impl$_ZSt10_List_baseIiSt9allocatorIiEE"};
         }
         _ZNSt10_List_baseIiSt9allocatorIiEE8_M_clearEv() {
-          let $t3;
+          let $t5;
           let __cur = (this._M_impl$_ZSt10_List_baseIiSt9allocatorIiEE._M_node._M_next ? {a: this._M_impl$_ZSt10_List_baseIiSt9allocatorIiEE._M_node._M_next.a, i: this._M_impl$_ZSt10_List_baseIiSt9allocatorIiEE._M_node._M_next.i} : null);
           while ((!(__cur === ({a: this._M_impl$_ZSt10_List_baseIiSt9allocatorIiEE, i: "_M_node"}) || (__cur && ({a: this._M_impl$_ZSt10_List_baseIiSt9allocatorIiEE, i: "_M_node"}) && __cur.a === ({a: this._M_impl$_ZSt10_List_baseIiSt9allocatorIiEE, i: "_M_node"}).a && __cur.i === ({a: this._M_impl$_ZSt10_List_baseIiSt9allocatorIiEE, i: "_M_node"}).i)))) {
              {
               let __tmp = (__cur ? {a: __cur.a, i: __cur.i} : null);
               __cur = (((__cur.a[__cur.i])._M_next) ? {a: ((__cur.a[__cur.i])._M_next).a, i: ((__cur.a[__cur.i])._M_next).i} : null);
-              _ZN9__gnu_cxx13new_allocatorISt10_List_nodeIiEEE.prototype._ZN9__gnu_cxx13new_allocatorISt10_List_nodeIiEE7destroyIS2_EEvPS2_.call(($t3 = this._ZNSt10_List_baseIiSt9allocatorIiEE21_M_get_Node_allocatorEv(), $t3.a[$t3.i]), (__tmp ? {a: __tmp.a, i: __tmp.i} : null));
+              _ZN9__gnu_cxx13new_allocatorISt10_List_nodeIiEEE.prototype._ZN9__gnu_cxx13new_allocatorISt10_List_nodeIiEE7destroyIS2_EEvPS2_.call(($t5 = this._ZNSt10_List_baseIiSt9allocatorIiEE21_M_get_Node_allocatorEv(), $t5.a[$t5.i]), (__tmp ? {a: __tmp.a, i: __tmp.i} : null));
               this._ZNSt10_List_baseIiSt9allocatorIiEE11_M_put_nodeEPSt10_List_nodeIiE((__tmp ? {a: __tmp.a, i: __tmp.i} : null));
             }
           }
@@ -275,8 +307,8 @@ return {
           return ((_ZSt8distanceISt14_List_iteratorIiEElS0_S0_(this._ZNSt4listIiSt9allocatorIiEE5beginEv(), this._ZNSt4listIiSt9allocatorIiEE3endEv())) >>> 0);
         }
         _ZNSt4listIiSt9allocatorIiEE5frontEv() {
-          let $t4;
-          return (($t4 = this._ZNSt4listIiSt9allocatorIiEE5beginEv(), $t4))._ZNKSt14_List_iteratorIiEdeEv();
+          let $t6;
+          return (($t6 = this._ZNSt4listIiSt9allocatorIiEE5beginEv(), $t6))._ZNKSt14_List_iteratorIiEdeEv();
         }
         _ZNSt4listIiSt9allocatorIiEE4backEv() {
           let __tmp = this._ZNSt4listIiSt9allocatorIiEE3endEv();
@@ -308,7 +340,7 @@ return {
           this._ZNSt4listIiSt9allocatorIiEE6spliceESt14_List_iteratorIiEOS2_(new _ZSt14_List_iteratorIiE({a: [__position], i: 0}), _ZSt4moveISt4listIiSt9allocatorIiEEEOS2_S3_(__x));
         }
         _ZNSt4listIiSt9allocatorIiEE6removeERKi(__value) {
-          let $t5, $t6, $t7, $t8;
+          let $t7, $t8, $t9, $t10;
           let __first = this._ZNSt4listIiSt9allocatorIiEE5beginEv();
           let __last = this._ZNSt4listIiSt9allocatorIiEE3endEv();
           let __extra = new _ZSt14_List_iteratorIiE({a: [__last], i: 0});
@@ -318,7 +350,7 @@ return {
               __next._ZNSt14_List_iteratorIiEppEv();
               if (((__first._ZNKSt14_List_iteratorIiEdeEv()).a[(__first._ZNKSt14_List_iteratorIiEdeEv()).i] === __value.a[__value.i])) {
                  {
-                  if (($t7 = ($t5 = _ZSt11__addressofIiEPiRi(__first._ZNKSt14_List_iteratorIiEdeEv()), $t5), $t8 = ($t6 = _ZSt11__addressofIiEPiRi(__value), $t6), (!($t7 === $t8 || ($t7 && $t8 && $t7.a === $t8.a && $t7.i === $t8.i))))) {
+                  if (($t9 = ($t7 = _ZSt11__addressofIiEPiRi(__first._ZNKSt14_List_iteratorIiEdeEv()), $t7), $t10 = ($t8 = _ZSt11__addressofIiEPiRi(__value), $t8), (!($t9 === $t10 || ($t9 && $t10 && $t9.a === $t10.a && $t9.i === $t10.i))))) {
                     this._ZNSt4listIiSt9allocatorIiEE8_M_eraseESt14_List_iteratorIiE(new _ZSt14_List_iteratorIiE({a: [__first], i: 0}));
                   }
                   else {
@@ -340,10 +372,10 @@ return {
           _ZNSt8__detail15_List_node_baseE.prototype._ZNSt8__detail15_List_node_base11_M_transferEPS0_S1_.call(__position._M_node$_ZSt14_List_iteratorIiE.a[__position._M_node$_ZSt14_List_iteratorIiE.i], (__first._M_node$_ZSt14_List_iteratorIiE ? {a: __first._M_node$_ZSt14_List_iteratorIiE.a, i: __first._M_node$_ZSt14_List_iteratorIiE.i} : null), (__last._M_node$_ZSt14_List_iteratorIiE ? {a: __last._M_node$_ZSt14_List_iteratorIiE.a, i: __last._M_node$_ZSt14_List_iteratorIiE.i} : null));
         }
         _ZNSt4listIiSt9allocatorIiEE8_M_eraseESt14_List_iteratorIiE(__position) {
-          let $t9;
+          let $t11;
           _ZNSt8__detail15_List_node_baseE.prototype._ZNSt8__detail15_List_node_base9_M_unhookEv.call(__position._M_node$_ZSt14_List_iteratorIiE.a[__position._M_node$_ZSt14_List_iteratorIiE.i]);
           let __n = (__position._M_node$_ZSt14_List_iteratorIiE ? {a: __position._M_node$_ZSt14_List_iteratorIiE.a, i: __position._M_node$_ZSt14_List_iteratorIiE.i} : null);
-          _ZN9__gnu_cxx13new_allocatorISt10_List_nodeIiEEE.prototype._ZN9__gnu_cxx13new_allocatorISt10_List_nodeIiEE7destroyIS2_EEvPS2_.call(($t9 = this._ZNSt10_List_baseIiSt9allocatorIiEE21_M_get_Node_allocatorEv(), $t9.a[$t9.i]), (__n ? {a: __n.a, i: __n.i} : null));
+          _ZN9__gnu_cxx13new_allocatorISt10_List_nodeIiEEE.prototype._ZN9__gnu_cxx13new_allocatorISt10_List_nodeIiEE7destroyIS2_EEvPS2_.call(($t11 = this._ZNSt10_List_baseIiSt9allocatorIiEE21_M_get_Node_allocatorEv(), $t11.a[$t11.i]), (__n ? {a: __n.a, i: __n.i} : null));
           this._ZNSt10_List_baseIiSt9allocatorIiEE11_M_put_nodeEPSt10_List_nodeIiE((__n ? {a: __n.a, i: __n.i} : null));
         }
         _ZNSt4listIiSt9allocatorIiEE25_M_check_equal_allocatorsERS2_(__x) {
@@ -352,16 +384,16 @@ return {
           }
         }
         _ZNSt4listIiSt9allocatorIiEE9_M_insertIiEEvSt14_List_iteratorIiEOi(__position, __args_0) {
-          let $t10;
-          let __tmp = ($t10 = this._ZNSt4listIiSt9allocatorIiEE14_M_create_nodeIiEEPSt10_List_nodeIiEOi(_ZSt7forwardIiEOiS_(__args_0)), $t10 ? {a: $t10.a, i: $t10.i} : null);
+          let $t12;
+          let __tmp = ($t12 = this._ZNSt4listIiSt9allocatorIiEE14_M_create_nodeIiEEPSt10_List_nodeIiEOi(_ZSt7forwardIiEOiS_(__args_0)), $t12 ? {a: $t12.a, i: $t12.i} : null);
           _ZNSt8__detail15_List_node_baseE.prototype._ZNSt8__detail15_List_node_base7_M_hookEPS0_.call(__tmp.a[__tmp.i], (__position._M_node$_ZSt14_List_iteratorIiE ? {a: __position._M_node$_ZSt14_List_iteratorIiE.a, i: __position._M_node$_ZSt14_List_iteratorIiE.i} : null));
         }
         _ZNSt4listIiSt9allocatorIiEE14_M_create_nodeIiEEPSt10_List_nodeIiEOi(__args_0) {
-          let $t11, $t12;
-          let __p = ($t11 = _ZSt10_List_baseIiSt9allocatorIiEE.prototype._ZNSt10_List_baseIiSt9allocatorIiEE11_M_get_nodeEv.call(this), $t11 ? {a: $t11.a, i: $t11.i} : null);
+          let $t13, $t14;
+          let __p = ($t13 = _ZSt10_List_baseIiSt9allocatorIiEE.prototype._ZNSt10_List_baseIiSt9allocatorIiEE11_M_get_nodeEv.call(this), $t13 ? {a: $t13.a, i: $t13.i} : null);
           if (true) {
              {
-              _ZN9__gnu_cxx13new_allocatorISt10_List_nodeIiEEE.prototype._ZN9__gnu_cxx13new_allocatorISt10_List_nodeIiEE9constructIS2_iEEvPS2_Oi.call(($t12 = this._ZNSt10_List_baseIiSt9allocatorIiEE21_M_get_Node_allocatorEv(), $t12.a[$t12.i]), (__p ? {a: __p.a, i: __p.i} : null), _ZSt7forwardIiEOiS_(__args_0));
+              _ZN9__gnu_cxx13new_allocatorISt10_List_nodeIiEEE.prototype._ZN9__gnu_cxx13new_allocatorISt10_List_nodeIiEE9constructIS2_iEEvPS2_Oi.call(($t14 = this._ZNSt10_List_baseIiSt9allocatorIiEE21_M_get_Node_allocatorEv(), $t14.a[$t14.i]), (__p ? {a: __p.a, i: __p.i} : null), _ZSt7forwardIiEOiS_(__args_0));
             }
           }
           if (false) {
@@ -504,6 +536,11 @@ return {
         __dtor() {
         }
       }
+      class _ZSt16remove_referenceIPNSt8__detail15_List_node_baseEE {
+        __init__ZSt16remove_referenceIPNSt8__detail15_List_node_baseEE(...$a) { }
+        __dtor() {
+        }
+      }
       class _ZSt11__alloc_neqISt9allocatorISt10_List_nodeIiEELi1EE {
         __init__ZSt11__alloc_neqISt9allocatorISt10_List_nodeIiEELi1EE(...$a) { }
         __dtor() {
@@ -517,7 +554,7 @@ return {
       function _Znwm(...$a) { return {a: new Array($a[0]).fill(0), i: 0}; }
       function _ZdlPv(...$a) {  }
       function main() {
-        let $t13, $t14;
+        let $t15, $t16;
         let a = {v: new _ZSt4listIiSt9allocatorIiEE()};
         _ZSt4listIiSt9allocatorIiEE.prototype._ZNSt4listIiSt9allocatorIiEE9push_backERKi.call(a.v, {a: [3], i: 0});
         _ZSt4listIiSt9allocatorIiEE.prototype._ZNSt4listIiSt9allocatorIiEE9push_backERKi.call(a.v, {a: [1], i: 0});
@@ -546,7 +583,7 @@ return {
         (console.log((s)));
         _ZSt4listIiSt9allocatorIiEE.prototype._ZNSt4listIiSt9allocatorIiEE6removeERKi.call(a.v, {a: [10], i: 0});
         _ZSt4listIiSt9allocatorIiEE.prototype._ZNSt4listIiSt9allocatorIiEE9pop_frontEv.call(a.v);
-        (console.log((($t13 = _ZSt4listIiSt9allocatorIiEE.prototype._ZNSt4listIiSt9allocatorIiEE5frontEv.call(a.v), $t13.a[$t13.i])), (($t14 = _ZSt4listIiSt9allocatorIiEE.prototype._ZNSt4listIiSt9allocatorIiEE4backEv.call(a.v), $t14.a[$t14.i])), (((_ZSt4listIiSt9allocatorIiEE.prototype._ZNKSt4listIiSt9allocatorIiEE4sizeEv.call(a.v)) | 0))));
+        (console.log((($t15 = _ZSt4listIiSt9allocatorIiEE.prototype._ZNSt4listIiSt9allocatorIiEE5frontEv.call(a.v), $t15.a[$t15.i])), (($t16 = _ZSt4listIiSt9allocatorIiEE.prototype._ZNSt4listIiSt9allocatorIiEE4backEv.call(a.v), $t16.a[$t16.i])), (((_ZSt4listIiSt9allocatorIiEE.prototype._ZNKSt4listIiSt9allocatorIiEE4sizeEv.call(a.v)) | 0))));
         let b = new _ZSt4listIiSt9allocatorIiEE();
         _ZSt4listIiSt9allocatorIiEE.prototype._ZNSt4listIiSt9allocatorIiEE9push_backERKi.call(b, {a: [7], i: 0});
         _ZSt4listIiSt9allocatorIiEE.prototype._ZNSt4listIiSt9allocatorIiEE6spliceESt14_List_iteratorIiERS2_.call(b, _ZSt4listIiSt9allocatorIiEE.prototype._ZNSt4listIiSt9allocatorIiEE3endEv.call(b), {a: a, i: "v"});
@@ -570,6 +607,9 @@ return {
       function _ZSt4moveISt4listIiSt9allocatorIiEEEOS2_S3_(__t) {
         return __t;
       }
+      function _ZSt4moveIPNSt8__detail15_List_node_baseEEOS_S2_(__t) {
+        return __t;
+      }
       function _ZSt7forwardIiEOiS_(__t) {
         return __t;
       }
@@ -585,6 +625,12 @@ return {
           }
         }
         return __n;
+      }
+      function _ZSt4swapIPNSt8__detail15_List_node_baseEEvRS_S2_(__a, __b) {
+        let $t17, $t18, $t19, $t20, $t21, $t22;
+        let __tmp = {v: ($t17 = _ZSt4moveIPNSt8__detail15_List_node_baseEEOS_S2_(__a), $t18 = ($t17 ? $t17.a[$t17.i] : null), $t18 && $t18.a !== undefined ? {a: $t18.a, i: $t18.i} : $t18)};
+        __a.a[__a.i] = ($t19 = _ZSt4moveIPNSt8__detail15_List_node_baseEEOS_S2_(__b), $t20 = ($t19 ? $t19.a[$t19.i] : null), $t20 && $t20.a !== undefined ? {a: $t20.a, i: $t20.i} : $t20);
+        __b.a[__b.i] = ($t21 = _ZSt4moveIPNSt8__detail15_List_node_baseEEOS_S2_({a: __tmp, i: "v"}), $t22 = ($t21 ? $t21.a[$t21.i] : null), $t22 && $t22.a !== undefined ? {a: $t22.a, i: $t22.i} : $t22);
       }
       let _ZSt19piecewise_construct = new _ZSt21piecewise_construct_t();
       $rc = main() | 0;

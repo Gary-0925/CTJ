@@ -16,103 +16,6 @@ return {
     };
     let $rc = 0;
     try {
-      function _ctj_peq(a, b) { return a === b || (!!a && !!b && a.a === b.a && a.i === b.i); }
-      // _Rb_tree_rebalance_for_erase from libstdc++'s tree.cc: it takes the node
-      // out of the tree and rebalances, and hands back the node to destroy.
-      function _ctj_rb_erase(z, hb) {
-        var hn = hb.a[hb.i], root = hn._M_parent;
-        var D = function (p) { return p ? p.a[p.i] : null; };
-        var rotL = function (x) {
-          var nx = D(x), y = nx._M_right, ny = D(y);
-          nx._M_right = ny._M_left;
-          if (ny._M_left) D(ny._M_left)._M_parent = x;
-          ny._M_parent = nx._M_parent;
-          if (_ctj_peq(x, root)) { root = y; hn._M_parent = root; }
-          else if (_ctj_peq(D(nx._M_parent)._M_left, x)) D(nx._M_parent)._M_left = y;
-          else D(nx._M_parent)._M_right = y;
-          ny._M_left = x; nx._M_parent = y;
-        };
-        var rotR = function (x) {
-          var nx = D(x), y = nx._M_left, ny = D(y);
-          nx._M_left = ny._M_right;
-          if (ny._M_right) D(ny._M_right)._M_parent = x;
-          ny._M_parent = nx._M_parent;
-          if (_ctj_peq(x, root)) { root = y; hn._M_parent = root; }
-          else if (_ctj_peq(D(nx._M_parent)._M_right, x)) D(nx._M_parent)._M_right = y;
-          else D(nx._M_parent)._M_left = y;
-          ny._M_right = x; nx._M_parent = y;
-        };
-        var pz = z, nz = D(pz), py = pz, px = null, pxp = null;
-        if (!nz._M_left) px = nz._M_right;
-        else if (!nz._M_right) px = nz._M_left;
-        else { py = nz._M_right; while (D(py)._M_left) py = D(py)._M_left; px = D(py)._M_right; }
-        if (!_ctj_peq(py, pz)) {
-          var ny = D(py);
-          D(nz._M_left)._M_parent = py;
-          ny._M_left = nz._M_left;
-          if (!_ctj_peq(py, nz._M_right)) {
-            pxp = ny._M_parent;
-            if (px) D(px)._M_parent = ny._M_parent;
-            D(ny._M_parent)._M_left = px;
-            ny._M_right = nz._M_right;
-            D(nz._M_right)._M_parent = py;
-          } else pxp = py;
-          if (_ctj_peq(root, pz)) { root = py; hn._M_parent = root; }
-          else if (_ctj_peq(D(nz._M_parent)._M_left, pz)) D(nz._M_parent)._M_left = py;
-          else D(nz._M_parent)._M_right = py;
-          ny._M_parent = nz._M_parent;
-          var cl = ny._M_color; ny._M_color = nz._M_color; nz._M_color = cl;
-          py = pz;
-        } else {
-          pxp = nz._M_parent;
-          if (px) D(px)._M_parent = nz._M_parent;
-          if (_ctj_peq(root, pz)) { root = px; hn._M_parent = root; }
-          else if (_ctj_peq(D(nz._M_parent)._M_left, pz)) D(nz._M_parent)._M_left = px;
-          else D(nz._M_parent)._M_right = px;
-          if (_ctj_peq(hn._M_left, pz)) {
-            if (!nz._M_right) hn._M_left = nz._M_parent;
-            else { var a = px; while (D(a)._M_left) a = D(a)._M_left; hn._M_left = a; }
-          }
-          if (_ctj_peq(hn._M_right, pz)) {
-            if (!nz._M_left) hn._M_right = nz._M_parent;
-            else { var b = px; while (D(b)._M_right) b = D(b)._M_right; hn._M_right = b; }
-          }
-        }
-        if (D(py)._M_color !== 0) {
-          while (!_ctj_peq(px, root) && (!px || D(px)._M_color !== 0)) {
-            var nxp = D(pxp);
-            if (_ctj_peq(px, nxp._M_left)) {
-              var w = nxp._M_right, nw = D(w);
-              if (nw._M_color === 0) { nw._M_color = 1; nxp._M_color = 0; rotL(pxp); w = nxp._M_right; nw = D(w); }
-              if ((!nw._M_left || D(nw._M_left)._M_color !== 0) && (!nw._M_right || D(nw._M_right)._M_color !== 0)) {
-                nw._M_color = 0; px = pxp; pxp = nxp._M_parent;
-              } else {
-                if (!nw._M_right || D(nw._M_right)._M_color !== 0) {
-                  D(nw._M_left)._M_color = 1; nw._M_color = 0; rotR(w); w = nxp._M_right; nw = D(w);
-                }
-                nw._M_color = nxp._M_color; nxp._M_color = 1;
-                if (nw._M_right) D(nw._M_right)._M_color = 1;
-                rotL(pxp); break;
-              }
-            } else {
-              var w2 = nxp._M_left, nw2 = D(w2);
-              if (nw2._M_color === 0) { nw2._M_color = 1; nxp._M_color = 0; rotR(pxp); w2 = nxp._M_left; nw2 = D(w2); }
-              if ((!nw2._M_right || D(nw2._M_right)._M_color !== 0) && (!nw2._M_left || D(nw2._M_left)._M_color !== 0)) {
-                nw2._M_color = 0; px = pxp; pxp = nxp._M_parent;
-              } else {
-                if (!nw2._M_left || D(nw2._M_left)._M_color !== 0) {
-                  D(nw2._M_right)._M_color = 1; nw2._M_color = 0; rotL(w2); w2 = nxp._M_left; nw2 = D(w2);
-                }
-                nw2._M_color = nxp._M_color; nxp._M_color = 1;
-                if (nw2._M_left) D(nw2._M_left)._M_color = 1;
-                rotR(pxp); break;
-              }
-            }
-          }
-          if (px) D(px)._M_color = 1;
-        }
-        return py;
-      }
       class _ZSt14__sfinae_types {
         __init__ZSt14__sfinae_types(...$a) { }
         __dtor() {
@@ -7228,9 +7131,103 @@ return {
       function _ZSt17__throw_bad_allocv(...$a) { throw new Error("unresolved external: std::__throw_bad_alloc"); }
       function _Znwm(...$a) { return {a: new Array($a[0]).fill(0), i: 0}; }
       function _ZdlPv(...$a) {  }
-      function _ZSt18_Rb_tree_incrementPSt18_Rb_tree_node_base(...$a) { var x=$a[0]; if(!x) return null; var n=x.a[x.i]; if(n._M_right){ x=n._M_right; n=x.a[x.i]; while(n._M_left){ x=n._M_left; n=x.a[x.i]; } return {a:x.a,i:x.i}; } var y=n._M_parent; while(y){ var p=y.a[y.i]; if(!_ctj_peq(x,p._M_right)) break; x=y; n=p; y=n._M_parent; } n=x.a[x.i]; if(!n._M_right||!_ctj_peq(n._M_right,y)) x=y; return x?{a:x.a,i:x.i}:null; }
-      function _ZSt18_Rb_tree_decrementPSt18_Rb_tree_node_base(...$a) { var x=$a[0]; if(!x) return null; var n=x.a[x.i]; var yp=n._M_parent&&n._M_parent.a[n._M_parent.i]; if(n._M_color===0&&yp&&yp._M_parent&&_ctj_peq(yp._M_parent,x)){ x=n._M_right; return x?{a:x.a,i:x.i}:null; } if(n._M_left){ x=n._M_left; n=x.a[x.i]; while(n._M_right){ x=n._M_right; n=x.a[x.i]; } return {a:x.a,i:x.i}; } var y=n._M_parent; while(y){ var p=y.a[y.i]; if(!_ctj_peq(x,p._M_left)) break; x=y; n=p; y=n._M_parent; } return y?{a:y.a,i:y.i}:null; }
-      function _ZSt29_Rb_tree_insert_and_rebalanceKbPSt18_Rb_tree_node_baseS0_RS1_(...$a) { var left=$a[0],x=$a[1],p=$a[2],h=$a[3];var xn=x.a[x.i],pn=p.a[p.i],hn=h.a[h.i];xn._M_parent={a:p.a,i:p.i};xn._M_left=null;xn._M_right=null;xn._M_color=0;if(left){pn._M_left={a:x.a,i:x.i};if(_ctj_peq(p,h)){hn._M_parent={a:x.a,i:x.i};hn._M_right={a:x.a,i:x.i};}else if(_ctj_peq(p,hn._M_left)) hn._M_left={a:x.a,i:x.i};}else{pn._M_right={a:x.a,i:x.i};if(_ctj_peq(p,hn._M_right)) hn._M_right={a:x.a,i:x.i};}if(hn._M_parent){var r=hn._M_parent.a[hn._M_parent.i];if(r) r._M_color=1;} }
+      function _ZSt18_Rb_tree_incrementPSt18_Rb_tree_node_base(__x) {
+        let $t47;
+        return ($t47 = _ZSt23local_Rb_tree_incrementPSt18_Rb_tree_node_base((__x ? {a: __x.a, i: __x.i} : null)), $t47 ? {a: $t47.a, i: $t47.i} : null);
+      }
+      function _ZSt18_Rb_tree_decrementPSt18_Rb_tree_node_base(__x) {
+        let $t48;
+        return ($t48 = _ZSt23local_Rb_tree_decrementPSt18_Rb_tree_node_base((__x ? {a: __x.a, i: __x.i} : null)), $t48 ? {a: $t48.a, i: $t48.i} : null);
+      }
+      function _ZSt29_Rb_tree_insert_and_rebalanceKbPSt18_Rb_tree_node_baseS0_RS1_(__insert_left, __x, __p, __header) {
+        let __root = {a: __header.a[__header.i], i: "_M_parent"};
+        (__x.a[__x.i])._M_parent = (__p ? {a: __p.a, i: __p.i} : null);
+        (__x.a[__x.i])._M_left = null;
+        (__x.a[__x.i])._M_right = null;
+        (__x.a[__x.i])._M_color = 0;
+        if (__insert_left) {
+           {
+            (__p.a[__p.i])._M_left = (__x ? {a: __x.a, i: __x.i} : null);
+            if ((__p === __header || (__p && __header && __p.a === __header.a && __p.i === __header.i))) {
+               {
+                (__header.a[__header.i])._M_parent = (__x ? {a: __x.a, i: __x.i} : null);
+                (__header.a[__header.i])._M_right = (__x ? {a: __x.a, i: __x.i} : null);
+              }
+            }
+            else {
+              if ((__p === ((__header.a[__header.i])._M_left) || (__p && ((__header.a[__header.i])._M_left) && __p.a === ((__header.a[__header.i])._M_left).a && __p.i === ((__header.a[__header.i])._M_left).i))) {
+                (__header.a[__header.i])._M_left = (__x ? {a: __x.a, i: __x.i} : null);
+              }
+            }
+          }
+        }
+        else {
+           {
+            (__p.a[__p.i])._M_right = (__x ? {a: __x.a, i: __x.i} : null);
+            if ((__p === ((__header.a[__header.i])._M_right) || (__p && ((__header.a[__header.i])._M_right) && __p.a === ((__header.a[__header.i])._M_right).a && __p.i === ((__header.a[__header.i])._M_right).i))) {
+              (__header.a[__header.i])._M_right = (__x ? {a: __x.a, i: __x.i} : null);
+            }
+          }
+        }
+        while (((!(__x === (__root.a[__root.i]) || (__x && (__root.a[__root.i]) && __x.a === (__root.a[__root.i]).a && __x.i === (__root.a[__root.i]).i))) && ((((__x.a[__x.i])._M_parent).a[((__x.a[__x.i])._M_parent).i])._M_color === 0))) {
+           {
+            let __xpp = (((((__x.a[__x.i])._M_parent).a[((__x.a[__x.i])._M_parent).i])._M_parent) ? {a: ((((__x.a[__x.i])._M_parent).a[((__x.a[__x.i])._M_parent).i])._M_parent).a, i: ((((__x.a[__x.i])._M_parent).a[((__x.a[__x.i])._M_parent).i])._M_parent).i} : null);
+            if ((((__x.a[__x.i])._M_parent) === ((__xpp.a[__xpp.i])._M_left) || (((__x.a[__x.i])._M_parent) && ((__xpp.a[__xpp.i])._M_left) && ((__x.a[__x.i])._M_parent).a === ((__xpp.a[__xpp.i])._M_left).a && ((__x.a[__x.i])._M_parent).i === ((__xpp.a[__xpp.i])._M_left).i))) {
+               {
+                let __y = (((__xpp.a[__xpp.i])._M_right) ? {a: ((__xpp.a[__xpp.i])._M_right).a, i: ((__xpp.a[__xpp.i])._M_right).i} : null);
+                if ((__y && ((__y.a[__y.i])._M_color === 0))) {
+                   {
+                    (((__x.a[__x.i])._M_parent).a[((__x.a[__x.i])._M_parent).i])._M_color = 1;
+                    (__y.a[__y.i])._M_color = 1;
+                    (__xpp.a[__xpp.i])._M_color = 0;
+                    __x = (__xpp ? {a: __xpp.a, i: __xpp.i} : null);
+                  }
+                }
+                else {
+                   {
+                    if ((__x === ((((__x.a[__x.i])._M_parent).a[((__x.a[__x.i])._M_parent).i])._M_right) || (__x && ((((__x.a[__x.i])._M_parent).a[((__x.a[__x.i])._M_parent).i])._M_right) && __x.a === ((((__x.a[__x.i])._M_parent).a[((__x.a[__x.i])._M_parent).i])._M_right).a && __x.i === ((((__x.a[__x.i])._M_parent).a[((__x.a[__x.i])._M_parent).i])._M_right).i))) {
+                       {
+                        __x = (((__x.a[__x.i])._M_parent) ? {a: ((__x.a[__x.i])._M_parent).a, i: ((__x.a[__x.i])._M_parent).i} : null);
+                        _ZSt25local_Rb_tree_rotate_leftPSt18_Rb_tree_node_baseRS_((__x ? {a: __x.a, i: __x.i} : null), __root);
+                      }
+                    }
+                    (((__x.a[__x.i])._M_parent).a[((__x.a[__x.i])._M_parent).i])._M_color = 1;
+                    (__xpp.a[__xpp.i])._M_color = 0;
+                    _ZSt26local_Rb_tree_rotate_rightPSt18_Rb_tree_node_baseRS_((__xpp ? {a: __xpp.a, i: __xpp.i} : null), __root);
+                  }
+                }
+              }
+            }
+            else {
+               {
+                let __y = (((__xpp.a[__xpp.i])._M_left) ? {a: ((__xpp.a[__xpp.i])._M_left).a, i: ((__xpp.a[__xpp.i])._M_left).i} : null);
+                if ((__y && ((__y.a[__y.i])._M_color === 0))) {
+                   {
+                    (((__x.a[__x.i])._M_parent).a[((__x.a[__x.i])._M_parent).i])._M_color = 1;
+                    (__y.a[__y.i])._M_color = 1;
+                    (__xpp.a[__xpp.i])._M_color = 0;
+                    __x = (__xpp ? {a: __xpp.a, i: __xpp.i} : null);
+                  }
+                }
+                else {
+                   {
+                    if ((__x === ((((__x.a[__x.i])._M_parent).a[((__x.a[__x.i])._M_parent).i])._M_left) || (__x && ((((__x.a[__x.i])._M_parent).a[((__x.a[__x.i])._M_parent).i])._M_left) && __x.a === ((((__x.a[__x.i])._M_parent).a[((__x.a[__x.i])._M_parent).i])._M_left).a && __x.i === ((((__x.a[__x.i])._M_parent).a[((__x.a[__x.i])._M_parent).i])._M_left).i))) {
+                       {
+                        __x = (((__x.a[__x.i])._M_parent) ? {a: ((__x.a[__x.i])._M_parent).a, i: ((__x.a[__x.i])._M_parent).i} : null);
+                        _ZSt26local_Rb_tree_rotate_rightPSt18_Rb_tree_node_baseRS_((__x ? {a: __x.a, i: __x.i} : null), __root);
+                      }
+                    }
+                    (((__x.a[__x.i])._M_parent).a[((__x.a[__x.i])._M_parent).i])._M_color = 1;
+                    (__xpp.a[__xpp.i])._M_color = 0;
+                    _ZSt25local_Rb_tree_rotate_leftPSt18_Rb_tree_node_baseRS_((__xpp ? {a: __xpp.a, i: __xpp.i} : null), __root);
+                  }
+                }
+              }
+            }
+          }
+        }
+        ((__root.a[__root.i]).a[(__root.a[__root.i]).i])._M_color = 1;
+      }
       function _ZStlsRSt13basic_ostreamIcSt11char_traitsIcEEi(__os, __n) {
         _ZSt13basic_ostreamIcSt11char_traitsIcEE.prototype._ZNSt13basic_ostreamIcSt11char_traitsIcEE6_M_putEidPKcl.call(__os.a[__os.i], 0, __n, null, 0);
         return __os;
@@ -7254,21 +7251,117 @@ return {
         return __os;
       }
       function main() {
-        let $t47, $t48, $t49, $t50, $t51, $t52, $t53, $t54, $t55;
+        let $t49, $t50, $t51, $t52, $t53, $t54, $t55, $t56, $t57;
         let m = new _ZSt3mapIiiSt4lessIiESt9allocatorISt4pairIKiiEEE();
         _ZSt3mapIiiSt4lessIiESt9allocatorISt4pairIKiiEEE.prototype._ZNSt3mapIiiSt4lessIiESt9allocatorISt4pairIKiiEEE6insertERKS5_.call(m, {a: [_ZSt9make_pairIiiESt4pairIKiiEOiS2_({a: [1], i: 0}, {a: [2], i: 0})], i: 0});
         _ZSt3mapIiiSt4lessIiESt9allocatorISt4pairIKiiEEE.prototype._ZNSt3mapIiiSt4lessIiESt9allocatorISt4pairIKiiEEE6insertERKS5_.call(m, {a: [_ZSt9make_pairIiiESt4pairIKiiEOiS2_({a: [3], i: 0}, {a: [4], i: 0})], i: 0});
         _ZSt3mapIiiSt4lessIiESt9allocatorISt4pairIKiiEEE.prototype._ZNSt3mapIiiSt4lessIiESt9allocatorISt4pairIKiiEEE6insertERKS5_.call(m, {a: [_ZSt9make_pairIiiESt4pairIKiiEOiS2_({a: [1], i: 0}, {a: [9], i: 0})], i: 0});
         (console.log((((_ZSt3mapIiiSt4lessIiESt9allocatorISt4pairIKiiEEE.prototype._ZNKSt3mapIiiSt4lessIiESt9allocatorISt4pairIKiiEEE4sizeEv.call(m)) | 0))));
         let n = new _ZSt3mapIiiSt4lessIiESt9allocatorISt4pairIKiiEEE();
-        ($t47 = n._ZNSt3mapIiiSt4lessIiESt9allocatorISt4pairIKiiEEEixERS4_({a: [1], i: 0}), $t47.a[$t47.i] = 2);
-        ($t48 = n._ZNSt3mapIiiSt4lessIiESt9allocatorISt4pairIKiiEEEixERS4_({a: [2], i: 0}), $t48.a[$t48.i] = 3);
-        ($t49 = n._ZNSt3mapIiiSt4lessIiESt9allocatorISt4pairIKiiEEEixERS4_({a: [5], i: 0}), $t49.a[$t49.i] = 50);
-        ($t50 = n._ZNSt3mapIiiSt4lessIiESt9allocatorISt4pairIKiiEEEixERS4_({a: [3], i: 0}), $t50.a[$t50.i] = 30);
-        ($t51 = n._ZNSt3mapIiiSt4lessIiESt9allocatorISt4pairIKiiEEEixERS4_({a: [1], i: 0}), $t51.a[$t51.i] = 11);
-        _ZStlsRSt13basic_ostreamIcSt11char_traitsIcEERKSt7_Ios_op(_ZStlsRSt13basic_ostreamIcSt11char_traitsIcEEi(_ZStlsRSt13basic_ostreamIcSt11char_traitsIcEEPKc(_ZStlsRSt13basic_ostreamIcSt11char_traitsIcEEi(_ZStlsRSt13basic_ostreamIcSt11char_traitsIcEEPKc(_ZStlsRSt13basic_ostreamIcSt11char_traitsIcEEi(_ZStlsRSt13basic_ostreamIcSt11char_traitsIcEEPKc(_ZStlsRSt13basic_ostreamIcSt11char_traitsIcEEi({a: _ZSt4cout, i: "v"}, ($t52 = n._ZNSt3mapIiiSt4lessIiESt9allocatorISt4pairIKiiEEEixERS4_({a: [1], i: 0}), $t52.a[$t52.i])), {a: [32, 0], i: 0}), ($t53 = n._ZNSt3mapIiiSt4lessIiESt9allocatorISt4pairIKiiEEEixERS4_({a: [2], i: 0}), $t53.a[$t53.i])), {a: [32, 0], i: 0}), ($t54 = n._ZNSt3mapIiiSt4lessIiESt9allocatorISt4pairIKiiEEEixERS4_({a: [3], i: 0}), $t54.a[$t54.i])), {a: [32, 0], i: 0}), ($t55 = n._ZNSt3mapIiiSt4lessIiESt9allocatorISt4pairIKiiEEEixERS4_({a: [5], i: 0}), $t55.a[$t55.i])), {a: [_ZSt4endl], i: 0});
+        ($t49 = n._ZNSt3mapIiiSt4lessIiESt9allocatorISt4pairIKiiEEEixERS4_({a: [1], i: 0}), $t49.a[$t49.i] = 2);
+        ($t50 = n._ZNSt3mapIiiSt4lessIiESt9allocatorISt4pairIKiiEEEixERS4_({a: [2], i: 0}), $t50.a[$t50.i] = 3);
+        ($t51 = n._ZNSt3mapIiiSt4lessIiESt9allocatorISt4pairIKiiEEEixERS4_({a: [5], i: 0}), $t51.a[$t51.i] = 50);
+        ($t52 = n._ZNSt3mapIiiSt4lessIiESt9allocatorISt4pairIKiiEEEixERS4_({a: [3], i: 0}), $t52.a[$t52.i] = 30);
+        ($t53 = n._ZNSt3mapIiiSt4lessIiESt9allocatorISt4pairIKiiEEEixERS4_({a: [1], i: 0}), $t53.a[$t53.i] = 11);
+        _ZStlsRSt13basic_ostreamIcSt11char_traitsIcEERKSt7_Ios_op(_ZStlsRSt13basic_ostreamIcSt11char_traitsIcEEi(_ZStlsRSt13basic_ostreamIcSt11char_traitsIcEEPKc(_ZStlsRSt13basic_ostreamIcSt11char_traitsIcEEi(_ZStlsRSt13basic_ostreamIcSt11char_traitsIcEEPKc(_ZStlsRSt13basic_ostreamIcSt11char_traitsIcEEi(_ZStlsRSt13basic_ostreamIcSt11char_traitsIcEEPKc(_ZStlsRSt13basic_ostreamIcSt11char_traitsIcEEi({a: _ZSt4cout, i: "v"}, ($t54 = n._ZNSt3mapIiiSt4lessIiESt9allocatorISt4pairIKiiEEEixERS4_({a: [1], i: 0}), $t54.a[$t54.i])), {a: [32, 0], i: 0}), ($t55 = n._ZNSt3mapIiiSt4lessIiESt9allocatorISt4pairIKiiEEEixERS4_({a: [2], i: 0}), $t55.a[$t55.i])), {a: [32, 0], i: 0}), ($t56 = n._ZNSt3mapIiiSt4lessIiESt9allocatorISt4pairIKiiEEEixERS4_({a: [3], i: 0}), $t56.a[$t56.i])), {a: [32, 0], i: 0}), ($t57 = n._ZNSt3mapIiiSt4lessIiESt9allocatorISt4pairIKiiEEEixERS4_({a: [5], i: 0}), $t57.a[$t57.i])), {a: [_ZSt4endl], i: 0});
         _ZStlsRSt13basic_ostreamIcSt11char_traitsIcEERKSt7_Ios_op(_ZStlsRSt13basic_ostreamIcSt11char_traitsIcEEi({a: _ZSt4cout, i: "v"}, ((_ZSt3mapIiiSt4lessIiESt9allocatorISt4pairIKiiEEE.prototype._ZNKSt3mapIiiSt4lessIiESt9allocatorISt4pairIKiiEEE4sizeEv.call(n)) | 0)), {a: [_ZSt4endl], i: 0});
         return 0;
+      }
+      function _ZSt23local_Rb_tree_incrementPSt18_Rb_tree_node_base(__x) {
+        if (((__x.a[__x.i])._M_right !== null)) {
+           {
+            __x = (((__x.a[__x.i])._M_right) ? {a: ((__x.a[__x.i])._M_right).a, i: ((__x.a[__x.i])._M_right).i} : null);
+            while (((__x.a[__x.i])._M_left !== null)) {
+              __x = (((__x.a[__x.i])._M_left) ? {a: ((__x.a[__x.i])._M_left).a, i: ((__x.a[__x.i])._M_left).i} : null);
+            }
+          }
+        }
+        else {
+           {
+            let __y = (((__x.a[__x.i])._M_parent) ? {a: ((__x.a[__x.i])._M_parent).a, i: ((__x.a[__x.i])._M_parent).i} : null);
+            while ((__x === ((__y.a[__y.i])._M_right) || (__x && ((__y.a[__y.i])._M_right) && __x.a === ((__y.a[__y.i])._M_right).a && __x.i === ((__y.a[__y.i])._M_right).i))) {
+               {
+                __x = (__y ? {a: __y.a, i: __y.i} : null);
+                __y = (((__y.a[__y.i])._M_parent) ? {a: ((__y.a[__y.i])._M_parent).a, i: ((__y.a[__y.i])._M_parent).i} : null);
+              }
+            }
+            if ((!(((__x.a[__x.i])._M_right) === __y || (((__x.a[__x.i])._M_right) && __y && ((__x.a[__x.i])._M_right).a === __y.a && ((__x.a[__x.i])._M_right).i === __y.i)))) {
+              __x = (__y ? {a: __y.a, i: __y.i} : null);
+            }
+          }
+        }
+        return (__x ? {a: __x.a, i: __x.i} : null);
+      }
+      function _ZSt23local_Rb_tree_decrementPSt18_Rb_tree_node_base(__x) {
+        if ((((__x.a[__x.i])._M_color === 0) && (((((__x.a[__x.i])._M_parent).a[((__x.a[__x.i])._M_parent).i])._M_parent) === __x || (((((__x.a[__x.i])._M_parent).a[((__x.a[__x.i])._M_parent).i])._M_parent) && __x && ((((__x.a[__x.i])._M_parent).a[((__x.a[__x.i])._M_parent).i])._M_parent).a === __x.a && ((((__x.a[__x.i])._M_parent).a[((__x.a[__x.i])._M_parent).i])._M_parent).i === __x.i)))) {
+          __x = (((__x.a[__x.i])._M_right) ? {a: ((__x.a[__x.i])._M_right).a, i: ((__x.a[__x.i])._M_right).i} : null);
+        }
+        else {
+          if (((__x.a[__x.i])._M_left !== null)) {
+             {
+              let __y = (((__x.a[__x.i])._M_left) ? {a: ((__x.a[__x.i])._M_left).a, i: ((__x.a[__x.i])._M_left).i} : null);
+              while (((__y.a[__y.i])._M_right !== null)) {
+                __y = (((__y.a[__y.i])._M_right) ? {a: ((__y.a[__y.i])._M_right).a, i: ((__y.a[__y.i])._M_right).i} : null);
+              }
+              __x = (__y ? {a: __y.a, i: __y.i} : null);
+            }
+          }
+          else {
+             {
+              let __y = (((__x.a[__x.i])._M_parent) ? {a: ((__x.a[__x.i])._M_parent).a, i: ((__x.a[__x.i])._M_parent).i} : null);
+              while ((__x === ((__y.a[__y.i])._M_left) || (__x && ((__y.a[__y.i])._M_left) && __x.a === ((__y.a[__y.i])._M_left).a && __x.i === ((__y.a[__y.i])._M_left).i))) {
+                 {
+                  __x = (__y ? {a: __y.a, i: __y.i} : null);
+                  __y = (((__y.a[__y.i])._M_parent) ? {a: ((__y.a[__y.i])._M_parent).a, i: ((__y.a[__y.i])._M_parent).i} : null);
+                }
+              }
+              __x = (__y ? {a: __y.a, i: __y.i} : null);
+            }
+          }
+        }
+        return (__x ? {a: __x.a, i: __x.i} : null);
+      }
+      function _ZSt25local_Rb_tree_rotate_leftPSt18_Rb_tree_node_baseRS_(__x, __root) {
+        let __y = (((__x.a[__x.i])._M_right) ? {a: ((__x.a[__x.i])._M_right).a, i: ((__x.a[__x.i])._M_right).i} : null);
+        (__x.a[__x.i])._M_right = (((__y.a[__y.i])._M_left) ? {a: ((__y.a[__y.i])._M_left).a, i: ((__y.a[__y.i])._M_left).i} : null);
+        if (((__y.a[__y.i])._M_left !== null)) {
+          (((__y.a[__y.i])._M_left).a[((__y.a[__y.i])._M_left).i])._M_parent = (__x ? {a: __x.a, i: __x.i} : null);
+        }
+        (__y.a[__y.i])._M_parent = (((__x.a[__x.i])._M_parent) ? {a: ((__x.a[__x.i])._M_parent).a, i: ((__x.a[__x.i])._M_parent).i} : null);
+        if ((__x === (__root.a[__root.i]) || (__x && (__root.a[__root.i]) && __x.a === (__root.a[__root.i]).a && __x.i === (__root.a[__root.i]).i))) {
+          __root.a[__root.i] = (__y ? {a: __y.a, i: __y.i} : null);
+        }
+        else {
+          if ((__x === ((((__x.a[__x.i])._M_parent).a[((__x.a[__x.i])._M_parent).i])._M_left) || (__x && ((((__x.a[__x.i])._M_parent).a[((__x.a[__x.i])._M_parent).i])._M_left) && __x.a === ((((__x.a[__x.i])._M_parent).a[((__x.a[__x.i])._M_parent).i])._M_left).a && __x.i === ((((__x.a[__x.i])._M_parent).a[((__x.a[__x.i])._M_parent).i])._M_left).i))) {
+            (((__x.a[__x.i])._M_parent).a[((__x.a[__x.i])._M_parent).i])._M_left = (__y ? {a: __y.a, i: __y.i} : null);
+          }
+          else {
+            (((__x.a[__x.i])._M_parent).a[((__x.a[__x.i])._M_parent).i])._M_right = (__y ? {a: __y.a, i: __y.i} : null);
+          }
+        }
+        (__y.a[__y.i])._M_left = (__x ? {a: __x.a, i: __x.i} : null);
+        (__x.a[__x.i])._M_parent = (__y ? {a: __y.a, i: __y.i} : null);
+      }
+      function _ZSt26local_Rb_tree_rotate_rightPSt18_Rb_tree_node_baseRS_(__x, __root) {
+        let __y = (((__x.a[__x.i])._M_left) ? {a: ((__x.a[__x.i])._M_left).a, i: ((__x.a[__x.i])._M_left).i} : null);
+        (__x.a[__x.i])._M_left = (((__y.a[__y.i])._M_right) ? {a: ((__y.a[__y.i])._M_right).a, i: ((__y.a[__y.i])._M_right).i} : null);
+        if (((__y.a[__y.i])._M_right !== null)) {
+          (((__y.a[__y.i])._M_right).a[((__y.a[__y.i])._M_right).i])._M_parent = (__x ? {a: __x.a, i: __x.i} : null);
+        }
+        (__y.a[__y.i])._M_parent = (((__x.a[__x.i])._M_parent) ? {a: ((__x.a[__x.i])._M_parent).a, i: ((__x.a[__x.i])._M_parent).i} : null);
+        if ((__x === (__root.a[__root.i]) || (__x && (__root.a[__root.i]) && __x.a === (__root.a[__root.i]).a && __x.i === (__root.a[__root.i]).i))) {
+          __root.a[__root.i] = (__y ? {a: __y.a, i: __y.i} : null);
+        }
+        else {
+          if ((__x === ((((__x.a[__x.i])._M_parent).a[((__x.a[__x.i])._M_parent).i])._M_right) || (__x && ((((__x.a[__x.i])._M_parent).a[((__x.a[__x.i])._M_parent).i])._M_right) && __x.a === ((((__x.a[__x.i])._M_parent).a[((__x.a[__x.i])._M_parent).i])._M_right).a && __x.i === ((((__x.a[__x.i])._M_parent).a[((__x.a[__x.i])._M_parent).i])._M_right).i))) {
+            (((__x.a[__x.i])._M_parent).a[((__x.a[__x.i])._M_parent).i])._M_right = (__y ? {a: __y.a, i: __y.i} : null);
+          }
+          else {
+            (((__x.a[__x.i])._M_parent).a[((__x.a[__x.i])._M_parent).i])._M_left = (__y ? {a: __y.a, i: __y.i} : null);
+          }
+        }
+        (__y.a[__y.i])._M_right = (__x ? {a: __x.a, i: __x.i} : null);
+        (__x.a[__x.i])._M_parent = (__y ? {a: __y.a, i: __y.i} : null);
       }
       function _ZSt9make_pairIiiESt4pairIKiiEOiS2_(__x, __y) {
         return new _ZSt4pairIKiiE(_ZSt7forwardIiEOiS_(__x), _ZSt7forwardIiEOiS_(__y));

@@ -92,6 +92,31 @@ namespace CTJ {
   libcDef(["strtof"], (a: any[]) => Math.fround($L.scanFloat(a[0], a[1])));
   libcDef(["strtold"], (a: any[]) => $L.scanFloat(a[0], a[1]));
 
+  // The C11 conversions of <uchar.h>, in the C locale: only ASCII is valid, and a byte
+  // from 0x80 up is EILSEQ (84).  (size_t)-1 is the error result and (size_t)-2 the
+  // incomplete one.  The bodies are serialized, so they carry their constants inline.
+  libcDef(["mbrtoc16", "mbrtoc32"], (a: any[]) => {
+    if (a[1] === null) return 0;
+    if (a[2] === 0) return 4294967294;
+    const b = $L.get(a[1], 0) & 255;
+    if (b >= 0x80) {
+      $L.errbox.a[$L.errbox.i] = 84;
+      return 4294967295;
+    }
+    if (a[0] !== null) $L.put(a[0], 0, b);
+    return b === 0 ? 0 : 1;
+  });
+  libcDef(["c16rtomb", "c32rtomb"], (a: any[]) => {
+    if (a[0] === null) return 1;
+    const c = a[1];
+    if (c < 0 || c >= 0x80) {
+      $L.errbox.a[$L.errbox.i] = 84;
+      return 4294967295;
+    }
+    $L.put(a[0], 0, c);
+    return 1;
+  });
+
   libcDef(["abs"], (a: any[]) => (a[0] < 0 ? -a[0] : a[0]) | 0);
   libcDef(["labs"], (a: any[]) => (a[0] < 0 ? -a[0] : a[0]) | 0);
   libcDef(["llabs"], (a: any[]) => BigInt.asIntN(64, a[0] < 0 ? -a[0] : a[0]));

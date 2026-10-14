@@ -848,6 +848,19 @@ return {
         static _M_max_size = 4;
         static _M_max_align = 4;
       }
+      class _ZSt14_Bit_reference {
+        _M_p;
+        _M_mask;
+        constructor(...$a) {
+          this.__init__ZSt14_Bit_reference(...$a);
+        }
+        __init__ZSt14_Bit_reference(...$a) {
+          this._M_p = null;
+          this._M_mask = 0;
+        }
+        __dtor() {
+        }
+      }
       class _ZSt8iteratorISt26random_access_iterator_tagblPbRbE {
         __init__ZSt8iteratorISt26random_access_iterator_tagblPbRbE(...$a) { }
         __dtor() {
@@ -919,11 +932,75 @@ return {
         }
         __dtor() {
         }
-        static _ZNSt8__detail15_List_node_base4swapERS0_S1_(...$a) { const $ad = (o) => (o.ctj_a ? {a: o.ctj_a, i: o.ctj_i} : {a: (o.ctj_a = []), i: (o.ctj_i = 0)});const $x = $a[0].a[$a[0].i], $y = $a[1].a[$a[1].i];if ($x === $y) return;const $xa = $ad($x), $ya = $ad($y);const $xe = $x._M_next && $x._M_next.a === $xa.a && $x._M_next.i === $xa.i;const $ye = $y._M_next && $y._M_next.a === $ya.a && $y._M_next.i === $ya.i;if (!$xe && !$ye) {let $t = $x._M_next; $x._M_next = $y._M_next; $y._M_next = $t;$t = $x._M_prev; $x._M_prev = $y._M_prev; $y._M_prev = $t;$x._M_next.a[$x._M_next.i]._M_prev = $xa; $x._M_prev.a[$x._M_prev.i]._M_next = $xa;$y._M_next.a[$y._M_next.i]._M_prev = $ya; $y._M_prev.a[$y._M_prev.i]._M_next = $ya;} else if (!$xe) {$y._M_next = $x._M_next; $y._M_prev = $x._M_prev;$y._M_next.a[$y._M_next.i]._M_prev = $ya; $y._M_prev.a[$y._M_prev.i]._M_next = $ya;$x._M_next = $xa; $x._M_prev = $xa;} else if (!$ye) {$x._M_next = $y._M_next; $x._M_prev = $y._M_prev;$x._M_next.a[$x._M_next.i]._M_prev = $xa; $x._M_prev.a[$x._M_prev.i]._M_next = $xa;$y._M_next = $ya; $y._M_prev = $ya;} }
-        _ZNSt8__detail15_List_node_base11_M_transferEPS0_S1_(...$a) { const $ad = (o) => (o.ctj_a ? {a: o.ctj_a, i: o.ctj_i} : {a: (o.ctj_a = []), i: (o.ctj_i = 0)});if ($a[1].a[$a[1].i] === this) return;const $me = $ad(this), $fp = $a[0], $lp = $a[1];$lp.a[$lp.i]._M_prev.a[$lp.a[$lp.i]._M_prev.i]._M_next = $me;$fp.a[$fp.i]._M_prev.a[$fp.a[$fp.i]._M_prev.i]._M_next = $lp;this._M_prev.a[this._M_prev.i]._M_next = $fp;const $tmp = this._M_prev;this._M_prev = $lp.a[$lp.i]._M_prev;$lp.a[$lp.i]._M_prev = $fp.a[$fp.i]._M_prev;$fp.a[$fp.i]._M_prev = $tmp; }
-        _ZNSt8__detail15_List_node_base10_M_reverseEv(...$a) { const $ad = (o) => (o.ctj_a ? {a: o.ctj_a, i: o.ctj_i} : {a: (o.ctj_a = []), i: (o.ctj_i = 0)});let $p = $ad(this);do {const $t = $p.a[$p.i]._M_next;$p.a[$p.i]._M_next = $p.a[$p.i]._M_prev;$p.a[$p.i]._M_prev = $t;$p = $p.a[$p.i]._M_prev;} while ($p.a[$p.i] !== this); }
-        _ZNSt8__detail15_List_node_base7_M_hookEPS0_(...$a) { const $ad = (o) => (o.ctj_a ? {a: o.ctj_a, i: o.ctj_i} : {a: (o.ctj_a = []), i: (o.ctj_i = 0)});const $me = $ad(this), $pos = $a[0].a[$a[0].i], $prev = $pos._M_prev;this._M_next = $a[0];this._M_prev = $prev;$prev.a[$prev.i]._M_next = $me;$pos._M_prev = $me; }
-        _ZNSt8__detail15_List_node_base9_M_unhookEv(...$a) { const $next = this._M_next, $prev = this._M_prev;$prev.a[$prev.i]._M_next = $next;$next.a[$next.i]._M_prev = $prev; }
+        static _ZNSt8__detail15_List_node_base4swapERS0_S1_(__x, __y) {
+          let $t0, $t1, $t2, $t3, $t4, $t5;
+          if ((!(((__x.a[__x.i])._M_next) === __x || (((__x.a[__x.i])._M_next) && __x && ((__x.a[__x.i])._M_next).a === __x.a && ((__x.a[__x.i])._M_next).i === __x.i)))) {
+             {
+              if ((!(((__y.a[__y.i])._M_next) === __y || (((__y.a[__y.i])._M_next) && __y && ((__y.a[__y.i])._M_next).a === __y.a && ((__y.a[__y.i])._M_next).i === __y.i)))) {
+                 {
+                  _ZSt4swapIPNSt8__detail15_List_node_baseEEvRS_S2_({a: __x.a[__x.i], i: "_M_next"}, {a: __y.a[__y.i], i: "_M_next"});
+                  _ZSt4swapIPNSt8__detail15_List_node_baseEEvRS_S2_({a: __x.a[__x.i], i: "_M_prev"}, {a: __y.a[__y.i], i: "_M_prev"});
+                  (((__x.a[__x.i])._M_next).a[((__x.a[__x.i])._M_next).i])._M_prev = ($t0 = (((__x.a[__x.i])._M_prev).a[((__x.a[__x.i])._M_prev).i])._M_next = (__x ? {a: __x.a, i: __x.i} : null), $t0 ? {a: $t0.a, i: $t0.i} : null);
+                  (((__y.a[__y.i])._M_next).a[((__y.a[__y.i])._M_next).i])._M_prev = ($t1 = (((__y.a[__y.i])._M_prev).a[((__y.a[__y.i])._M_prev).i])._M_next = (__y ? {a: __y.a, i: __y.i} : null), $t1 ? {a: $t1.a, i: $t1.i} : null);
+                }
+              }
+              else {
+                 {
+                  (__y.a[__y.i])._M_next = (((__x.a[__x.i])._M_next) ? {a: ((__x.a[__x.i])._M_next).a, i: ((__x.a[__x.i])._M_next).i} : null);
+                  (__y.a[__y.i])._M_prev = (((__x.a[__x.i])._M_prev) ? {a: ((__x.a[__x.i])._M_prev).a, i: ((__x.a[__x.i])._M_prev).i} : null);
+                  (((__y.a[__y.i])._M_next).a[((__y.a[__y.i])._M_next).i])._M_prev = ($t2 = (((__y.a[__y.i])._M_prev).a[((__y.a[__y.i])._M_prev).i])._M_next = (__y ? {a: __y.a, i: __y.i} : null), $t2 ? {a: $t2.a, i: $t2.i} : null);
+                  (__x.a[__x.i])._M_next = ($t3 = (__x.a[__x.i])._M_prev = (__x ? {a: __x.a, i: __x.i} : null), $t3 ? {a: $t3.a, i: $t3.i} : null);
+                }
+              }
+            }
+          }
+          else {
+            if ((!(((__y.a[__y.i])._M_next) === __y || (((__y.a[__y.i])._M_next) && __y && ((__y.a[__y.i])._M_next).a === __y.a && ((__y.a[__y.i])._M_next).i === __y.i)))) {
+               {
+                (__x.a[__x.i])._M_next = (((__y.a[__y.i])._M_next) ? {a: ((__y.a[__y.i])._M_next).a, i: ((__y.a[__y.i])._M_next).i} : null);
+                (__x.a[__x.i])._M_prev = (((__y.a[__y.i])._M_prev) ? {a: ((__y.a[__y.i])._M_prev).a, i: ((__y.a[__y.i])._M_prev).i} : null);
+                (((__x.a[__x.i])._M_next).a[((__x.a[__x.i])._M_next).i])._M_prev = ($t4 = (((__x.a[__x.i])._M_prev).a[((__x.a[__x.i])._M_prev).i])._M_next = (__x ? {a: __x.a, i: __x.i} : null), $t4 ? {a: $t4.a, i: $t4.i} : null);
+                (__y.a[__y.i])._M_next = ($t5 = (__y.a[__y.i])._M_prev = (__y ? {a: __y.a, i: __y.i} : null), $t5 ? {a: $t5.a, i: $t5.i} : null);
+              }
+            }
+          }
+        }
+        _ZNSt8__detail15_List_node_base11_M_transferEPS0_S1_(__first, __last) {
+          let $t6;
+          if (($t6 = {a: (this.ctj_a || (this.ctj_a = [])), i: (this.ctj_i || 0)}, (!($t6 === __last || ($t6 && __last && $t6.a === __last.a && $t6.i === __last.i))))) {
+             {
+              (((__last.a[__last.i])._M_prev).a[((__last.a[__last.i])._M_prev).i])._M_next = {a: (this.ctj_a || (this.ctj_a = [])), i: (this.ctj_i || 0)};
+              (((__first.a[__first.i])._M_prev).a[((__first.a[__first.i])._M_prev).i])._M_next = (__last ? {a: __last.a, i: __last.i} : null);
+              (this._M_prev.a[this._M_prev.i])._M_next = (__first ? {a: __first.a, i: __first.i} : null);
+              let __tmp = (this._M_prev ? {a: this._M_prev.a, i: this._M_prev.i} : null);
+              this._M_prev = (((__last.a[__last.i])._M_prev) ? {a: ((__last.a[__last.i])._M_prev).a, i: ((__last.a[__last.i])._M_prev).i} : null);
+              (__last.a[__last.i])._M_prev = (((__first.a[__first.i])._M_prev) ? {a: ((__first.a[__first.i])._M_prev).a, i: ((__first.a[__first.i])._M_prev).i} : null);
+              (__first.a[__first.i])._M_prev = (__tmp ? {a: __tmp.a, i: __tmp.i} : null);
+            }
+          }
+        }
+        _ZNSt8__detail15_List_node_base10_M_reverseEv() {
+          let $t7;
+          let __tmp = {a: (this.ctj_a || (this.ctj_a = [])), i: (this.ctj_i || 0)};
+          do {
+             {
+              _ZSt4swapIPNSt8__detail15_List_node_baseEEvRS_S2_({a: __tmp.a[__tmp.i], i: "_M_next"}, {a: __tmp.a[__tmp.i], i: "_M_prev"});
+              __tmp = (((__tmp.a[__tmp.i])._M_prev) ? {a: ((__tmp.a[__tmp.i])._M_prev).a, i: ((__tmp.a[__tmp.i])._M_prev).i} : null);
+            }
+          } while (($t7 = {a: (this.ctj_a || (this.ctj_a = [])), i: (this.ctj_i || 0)}, (!(__tmp === $t7 || (__tmp && $t7 && __tmp.a === $t7.a && __tmp.i === $t7.i)))));
+        }
+        _ZNSt8__detail15_List_node_base7_M_hookEPS0_(__position) {
+          this._M_next = (__position ? {a: __position.a, i: __position.i} : null);
+          this._M_prev = (((__position.a[__position.i])._M_prev) ? {a: ((__position.a[__position.i])._M_prev).a, i: ((__position.a[__position.i])._M_prev).i} : null);
+          (((__position.a[__position.i])._M_prev).a[((__position.a[__position.i])._M_prev).i])._M_next = {a: (this.ctj_a || (this.ctj_a = [])), i: (this.ctj_i || 0)};
+          (__position.a[__position.i])._M_prev = {a: (this.ctj_a || (this.ctj_a = [])), i: (this.ctj_i || 0)};
+        }
+        _ZNSt8__detail15_List_node_base9_M_unhookEv() {
+          let __next_node = (this._M_next ? {a: this._M_next.a, i: this._M_next.i} : null);
+          let __prev_node = (this._M_prev ? {a: this._M_prev.a, i: this._M_prev.i} : null);
+          (__prev_node.a[__prev_node.i])._M_next = (__next_node ? {a: __next_node.a, i: __next_node.i} : null);
+          (__next_node.a[__next_node.i])._M_prev = (__prev_node ? {a: __prev_node.a, i: __prev_node.i} : null);
+        }
       }
       class _ZNSt6locale5facetE {
         _M_refcount;
@@ -1685,8 +1762,8 @@ return {
           this.__init__ZSt10_List_nodeIiE(...$a);
         }
         __init__ZSt10_List_nodeIiE(...$a) {
-          let $t0;
-          this._M_data$_ZSt10_List_nodeIiE = ($t0 = _ZSt7forwardIiEOiS_($a[0]), $t0.a[$t0.i]);
+          let $t8;
+          this._M_data$_ZSt10_List_nodeIiE = ($t8 = _ZSt7forwardIiEOiS_($a[0]), $t8.a[$t8.i]);
         }
         __dtor() {
           _ZNSt8__detail15_List_node_baseE.prototype.__dtor.call(this);
@@ -1702,11 +1779,11 @@ return {
         __dtor() {
         }
         _ZN9__gnu_cxx13new_allocatorISt10_List_nodeIiEE8allocateEmPKv(__n, $p1 = {a: [0], i: 0}) {
-          let $t1;
+          let $t9;
           if ((__n > _ZN9__gnu_cxx13new_allocatorISt10_List_nodeIiEEE.prototype._ZNK9__gnu_cxx13new_allocatorISt10_List_nodeIiEE8max_sizeEv.call(this))) {
             _ZSt17__throw_bad_allocv();
           }
-          return ($t1 = _Znwm(((Math.imul(__n, 12)) >>> 0)), $t1 ? {a: $t1.a, i: $t1.i} : null);
+          return ($t9 = _Znwm(((Math.imul(__n, 12)) >>> 0)), $t9 ? {a: $t9.a, i: $t9.i} : null);
         }
         _ZN9__gnu_cxx13new_allocatorISt10_List_nodeIiEE10deallocateEPS2_m(__p, $p1) {
           _ZdlPv((__p ? {a: __p.a, i: __p.i} : null));
@@ -1759,8 +1836,8 @@ return {
         __dtor() {
         }
         _ZNSt10_List_baseIiSt9allocatorIiEE11_M_get_nodeEv() {
-          let $t2;
-          return ($t2 = _ZN9__gnu_cxx13new_allocatorISt10_List_nodeIiEEE.prototype._ZN9__gnu_cxx13new_allocatorISt10_List_nodeIiEE8allocateEmPKv.call(this._M_impl$_ZSt10_List_baseIiSt9allocatorIiEE, ((1) >>> 0), {a: [0], i: 0}), $t2 ? {a: $t2.a, i: $t2.i} : null);
+          let $t10;
+          return ($t10 = _ZN9__gnu_cxx13new_allocatorISt10_List_nodeIiEEE.prototype._ZN9__gnu_cxx13new_allocatorISt10_List_nodeIiEE8allocateEmPKv.call(this._M_impl$_ZSt10_List_baseIiSt9allocatorIiEE, ((1) >>> 0), {a: [0], i: 0}), $t10 ? {a: $t10.a, i: $t10.i} : null);
         }
         _ZNSt10_List_baseIiSt9allocatorIiEE11_M_put_nodeEPSt10_List_nodeIiE(__p) {
           _ZN9__gnu_cxx13new_allocatorISt10_List_nodeIiEEE.prototype._ZN9__gnu_cxx13new_allocatorISt10_List_nodeIiEE10deallocateEPS2_m.call(this._M_impl$_ZSt10_List_baseIiSt9allocatorIiEE, (__p ? {a: __p.a, i: __p.i} : null), ((1) >>> 0));
@@ -1769,13 +1846,13 @@ return {
           return {a: this, i: "_M_impl$_ZSt10_List_baseIiSt9allocatorIiEE"};
         }
         _ZNSt10_List_baseIiSt9allocatorIiEE8_M_clearEv() {
-          let $t3;
+          let $t11;
           let __cur = (this._M_impl$_ZSt10_List_baseIiSt9allocatorIiEE._M_node._M_next ? {a: this._M_impl$_ZSt10_List_baseIiSt9allocatorIiEE._M_node._M_next.a, i: this._M_impl$_ZSt10_List_baseIiSt9allocatorIiEE._M_node._M_next.i} : null);
           while ((!(__cur === ({a: this._M_impl$_ZSt10_List_baseIiSt9allocatorIiEE, i: "_M_node"}) || (__cur && ({a: this._M_impl$_ZSt10_List_baseIiSt9allocatorIiEE, i: "_M_node"}) && __cur.a === ({a: this._M_impl$_ZSt10_List_baseIiSt9allocatorIiEE, i: "_M_node"}).a && __cur.i === ({a: this._M_impl$_ZSt10_List_baseIiSt9allocatorIiEE, i: "_M_node"}).i)))) {
              {
               let __tmp = (__cur ? {a: __cur.a, i: __cur.i} : null);
               __cur = (((__cur.a[__cur.i])._M_next) ? {a: ((__cur.a[__cur.i])._M_next).a, i: ((__cur.a[__cur.i])._M_next).i} : null);
-              _ZN9__gnu_cxx13new_allocatorISt10_List_nodeIiEEE.prototype._ZN9__gnu_cxx13new_allocatorISt10_List_nodeIiEE7destroyIS2_EEvPS2_.call(($t3 = this._ZNSt10_List_baseIiSt9allocatorIiEE21_M_get_Node_allocatorEv(), $t3.a[$t3.i]), (__tmp ? {a: __tmp.a, i: __tmp.i} : null));
+              _ZN9__gnu_cxx13new_allocatorISt10_List_nodeIiEEE.prototype._ZN9__gnu_cxx13new_allocatorISt10_List_nodeIiEE7destroyIS2_EEvPS2_.call(($t11 = this._ZNSt10_List_baseIiSt9allocatorIiEE21_M_get_Node_allocatorEv(), $t11.a[$t11.i]), (__tmp ? {a: __tmp.a, i: __tmp.i} : null));
               this._ZNSt10_List_baseIiSt9allocatorIiEE11_M_put_nodeEPSt10_List_nodeIiE((__tmp ? {a: __tmp.a, i: __tmp.i} : null));
             }
           }
@@ -1808,8 +1885,8 @@ return {
           return ((_ZSt8distanceISt14_List_iteratorIiEElS0_S0_(this._ZNSt4listIiSt9allocatorIiEE5beginEv(), this._ZNSt4listIiSt9allocatorIiEE3endEv())) >>> 0);
         }
         _ZNSt4listIiSt9allocatorIiEE5frontEv() {
-          let $t4;
-          return (($t4 = this._ZNSt4listIiSt9allocatorIiEE5beginEv(), $t4))._ZNKSt14_List_iteratorIiEdeEv();
+          let $t12;
+          return (($t12 = this._ZNSt4listIiSt9allocatorIiEE5beginEv(), $t12))._ZNKSt14_List_iteratorIiEdeEv();
         }
         _ZNSt4listIiSt9allocatorIiEE4backEv() {
           let __tmp = this._ZNSt4listIiSt9allocatorIiEE3endEv();
@@ -1845,13 +1922,13 @@ return {
           this._ZNSt4listIiSt9allocatorIiEE6spliceESt14_List_iteratorIiEOS2_(new _ZSt14_List_iteratorIiE({a: [__position], i: 0}), _ZSt4moveISt4listIiSt9allocatorIiEEEOS2_S3_(__x));
         }
         _ZNSt4listIiSt9allocatorIiEE6spliceESt14_List_iteratorIiEOS2_S4_(__position, __x, __i) {
-          let $t5;
+          let $t13;
           let __j = new _ZSt14_List_iteratorIiE({a: [__i], i: 0});
           __j._ZNSt14_List_iteratorIiEppEv();
           if ((__position._ZNKSt14_List_iteratorIiEeqERKS0_({a: [__i], i: 0}) || __position._ZNKSt14_List_iteratorIiEeqERKS0_({a: [__j], i: 0}))) {
             return;
           }
-          if (($t5 = {a: (this.ctj_a || (this.ctj_a = [])), i: (this.ctj_i || 0)}, (!($t5 === __x || ($t5 && __x && $t5.a === __x.a && $t5.i === __x.i))))) {
+          if (($t13 = {a: (this.ctj_a || (this.ctj_a = [])), i: (this.ctj_i || 0)}, (!($t13 === __x || ($t13 && __x && $t13.a === __x.a && $t13.i === __x.i))))) {
             this._ZNSt4listIiSt9allocatorIiEE25_M_check_equal_allocatorsERS2_(__x);
           }
           _ZSt4listIiSt9allocatorIiEE.prototype._ZNSt4listIiSt9allocatorIiEE11_M_transferESt14_List_iteratorIiES4_S4_.call(this, new _ZSt14_List_iteratorIiE({a: [__position], i: 0}), new _ZSt14_List_iteratorIiE({a: [__i], i: 0}), new _ZSt14_List_iteratorIiE({a: [__j], i: 0}));
@@ -1860,7 +1937,7 @@ return {
           this._ZNSt4listIiSt9allocatorIiEE6spliceESt14_List_iteratorIiEOS2_S4_(new _ZSt14_List_iteratorIiE({a: [__position], i: 0}), _ZSt4moveISt4listIiSt9allocatorIiEEEOS2_S3_(__x), new _ZSt14_List_iteratorIiE({a: [__i], i: 0}));
         }
         _ZNSt4listIiSt9allocatorIiEE6removeERKi(__value) {
-          let $t6, $t7, $t8, $t9;
+          let $t14, $t15, $t16, $t17;
           let __first = this._ZNSt4listIiSt9allocatorIiEE5beginEv();
           let __last = this._ZNSt4listIiSt9allocatorIiEE3endEv();
           let __extra = new _ZSt14_List_iteratorIiE({a: [__last], i: 0});
@@ -1870,7 +1947,7 @@ return {
               __next._ZNSt14_List_iteratorIiEppEv();
               if (((__first._ZNKSt14_List_iteratorIiEdeEv()).a[(__first._ZNKSt14_List_iteratorIiEdeEv()).i] === __value.a[__value.i])) {
                  {
-                  if (($t8 = ($t6 = _ZSt11__addressofIiEPiRi(__first._ZNKSt14_List_iteratorIiEdeEv()), $t6), $t9 = ($t7 = _ZSt11__addressofIiEPiRi(__value), $t7), (!($t8 === $t9 || ($t8 && $t9 && $t8.a === $t9.a && $t8.i === $t9.i))))) {
+                  if (($t16 = ($t14 = _ZSt11__addressofIiEPiRi(__first._ZNKSt14_List_iteratorIiEdeEv()), $t14), $t17 = ($t15 = _ZSt11__addressofIiEPiRi(__value), $t15), (!($t16 === $t17 || ($t16 && $t17 && $t16.a === $t17.a && $t16.i === $t17.i))))) {
                     this._ZNSt4listIiSt9allocatorIiEE8_M_eraseESt14_List_iteratorIiE(new _ZSt14_List_iteratorIiE({a: [__first], i: 0}));
                   }
                   else {
@@ -1886,8 +1963,8 @@ return {
           }
         }
         _ZNSt4listIiSt9allocatorIiEE5mergeEOS2_(__x) {
-          let $t10, $t11;
-          if (($t10 = {a: (this.ctj_a || (this.ctj_a = [])), i: (this.ctj_i || 0)}, (!($t10 === __x || ($t10 && __x && $t10.a === __x.a && $t10.i === __x.i))))) {
+          let $t18, $t19;
+          if (($t18 = {a: (this.ctj_a || (this.ctj_a = [])), i: (this.ctj_i || 0)}, (!($t18 === __x || ($t18 && __x && $t18.a === __x.a && $t18.i === __x.i))))) {
              {
               this._ZNSt4listIiSt9allocatorIiEE25_M_check_equal_allocatorsERS2_(__x);
               let __first1 = this._ZNSt4listIiSt9allocatorIiEE5beginEv();
@@ -1898,7 +1975,7 @@ return {
                 if (((__first2._ZNKSt14_List_iteratorIiEdeEv()).a[(__first2._ZNKSt14_List_iteratorIiEdeEv()).i] < (__first1._ZNKSt14_List_iteratorIiEdeEv()).a[(__first1._ZNKSt14_List_iteratorIiEdeEv()).i])) {
                    {
                     let __next = new _ZSt14_List_iteratorIiE({a: [__first2], i: 0});
-                    this._ZNSt4listIiSt9allocatorIiEE11_M_transferESt14_List_iteratorIiES4_S4_(new _ZSt14_List_iteratorIiE({a: [__first1], i: 0}), new _ZSt14_List_iteratorIiE({a: [__first2], i: 0}), ($t11 = __next._ZNSt14_List_iteratorIiEppEv(), $t11.a[$t11.i]));
+                    this._ZNSt4listIiSt9allocatorIiEE11_M_transferESt14_List_iteratorIiES4_S4_(new _ZSt14_List_iteratorIiE({a: [__first1], i: 0}), new _ZSt14_List_iteratorIiE({a: [__first2], i: 0}), ($t19 = __next._ZNSt14_List_iteratorIiEppEv(), $t19.a[$t19.i]));
                     __first2._ZNSt14_List_iteratorIiEaSERS0_({a: [__next], i: 0});
                   }
                 }
@@ -1953,10 +2030,10 @@ return {
           _ZNSt8__detail15_List_node_baseE.prototype._ZNSt8__detail15_List_node_base11_M_transferEPS0_S1_.call(__position._M_node$_ZSt14_List_iteratorIiE.a[__position._M_node$_ZSt14_List_iteratorIiE.i], (__first._M_node$_ZSt14_List_iteratorIiE ? {a: __first._M_node$_ZSt14_List_iteratorIiE.a, i: __first._M_node$_ZSt14_List_iteratorIiE.i} : null), (__last._M_node$_ZSt14_List_iteratorIiE ? {a: __last._M_node$_ZSt14_List_iteratorIiE.a, i: __last._M_node$_ZSt14_List_iteratorIiE.i} : null));
         }
         _ZNSt4listIiSt9allocatorIiEE8_M_eraseESt14_List_iteratorIiE(__position) {
-          let $t12;
+          let $t20;
           _ZNSt8__detail15_List_node_baseE.prototype._ZNSt8__detail15_List_node_base9_M_unhookEv.call(__position._M_node$_ZSt14_List_iteratorIiE.a[__position._M_node$_ZSt14_List_iteratorIiE.i]);
           let __n = (__position._M_node$_ZSt14_List_iteratorIiE ? {a: __position._M_node$_ZSt14_List_iteratorIiE.a, i: __position._M_node$_ZSt14_List_iteratorIiE.i} : null);
-          _ZN9__gnu_cxx13new_allocatorISt10_List_nodeIiEEE.prototype._ZN9__gnu_cxx13new_allocatorISt10_List_nodeIiEE7destroyIS2_EEvPS2_.call(($t12 = this._ZNSt10_List_baseIiSt9allocatorIiEE21_M_get_Node_allocatorEv(), $t12.a[$t12.i]), (__n ? {a: __n.a, i: __n.i} : null));
+          _ZN9__gnu_cxx13new_allocatorISt10_List_nodeIiEEE.prototype._ZN9__gnu_cxx13new_allocatorISt10_List_nodeIiEE7destroyIS2_EEvPS2_.call(($t20 = this._ZNSt10_List_baseIiSt9allocatorIiEE21_M_get_Node_allocatorEv(), $t20.a[$t20.i]), (__n ? {a: __n.a, i: __n.i} : null));
           this._ZNSt10_List_baseIiSt9allocatorIiEE11_M_put_nodeEPSt10_List_nodeIiE((__n ? {a: __n.a, i: __n.i} : null));
         }
         _ZNSt4listIiSt9allocatorIiEE25_M_check_equal_allocatorsERS2_(__x) {
@@ -1965,16 +2042,16 @@ return {
           }
         }
         _ZNSt4listIiSt9allocatorIiEE9_M_insertIiEEvSt14_List_iteratorIiEOi(__position, __args_0) {
-          let $t13;
-          let __tmp = ($t13 = this._ZNSt4listIiSt9allocatorIiEE14_M_create_nodeIiEEPSt10_List_nodeIiEOi(_ZSt7forwardIiEOiS_(__args_0)), $t13 ? {a: $t13.a, i: $t13.i} : null);
+          let $t21;
+          let __tmp = ($t21 = this._ZNSt4listIiSt9allocatorIiEE14_M_create_nodeIiEEPSt10_List_nodeIiEOi(_ZSt7forwardIiEOiS_(__args_0)), $t21 ? {a: $t21.a, i: $t21.i} : null);
           _ZNSt8__detail15_List_node_baseE.prototype._ZNSt8__detail15_List_node_base7_M_hookEPS0_.call(__tmp.a[__tmp.i], (__position._M_node$_ZSt14_List_iteratorIiE ? {a: __position._M_node$_ZSt14_List_iteratorIiE.a, i: __position._M_node$_ZSt14_List_iteratorIiE.i} : null));
         }
         _ZNSt4listIiSt9allocatorIiEE14_M_create_nodeIiEEPSt10_List_nodeIiEOi(__args_0) {
-          let $t14, $t15;
-          let __p = ($t14 = _ZSt10_List_baseIiSt9allocatorIiEE.prototype._ZNSt10_List_baseIiSt9allocatorIiEE11_M_get_nodeEv.call(this), $t14 ? {a: $t14.a, i: $t14.i} : null);
+          let $t22, $t23;
+          let __p = ($t22 = _ZSt10_List_baseIiSt9allocatorIiEE.prototype._ZNSt10_List_baseIiSt9allocatorIiEE11_M_get_nodeEv.call(this), $t22 ? {a: $t22.a, i: $t22.i} : null);
           if (true) {
              {
-              _ZN9__gnu_cxx13new_allocatorISt10_List_nodeIiEEE.prototype._ZN9__gnu_cxx13new_allocatorISt10_List_nodeIiEE9constructIS2_iEEvPS2_Oi.call(($t15 = this._ZNSt10_List_baseIiSt9allocatorIiEE21_M_get_Node_allocatorEv(), $t15.a[$t15.i]), (__p ? {a: __p.a, i: __p.i} : null), _ZSt7forwardIiEOiS_(__args_0));
+              _ZN9__gnu_cxx13new_allocatorISt10_List_nodeIiEEE.prototype._ZN9__gnu_cxx13new_allocatorISt10_List_nodeIiEE9constructIS2_iEEvPS2_Oi.call(($t23 = this._ZNSt10_List_baseIiSt9allocatorIiEE21_M_get_Node_allocatorEv(), $t23.a[$t23.i]), (__p ? {a: __p.a, i: __p.i} : null), _ZSt7forwardIiEOiS_(__args_0));
             }
           }
           if (false) {
@@ -2135,6 +2212,11 @@ return {
         static _ZNSt12__alloc_swapISt9allocatorISt10_List_nodeIiEELi1EE8_S_do_itERS3_S5_($p0, $p1) {
         }
       }
+      class _ZSt16remove_referenceIPNSt8__detail15_List_node_baseEE {
+        __init__ZSt16remove_referenceIPNSt8__detail15_List_node_baseEE(...$a) { }
+        __dtor() {
+        }
+      }
       class _ZSt11__alloc_neqISt9allocatorISt10_List_nodeIiEELi1EE {
         __init__ZSt11__alloc_neqISt9allocatorISt10_List_nodeIiEELi1EE(...$a) { }
         __dtor() {
@@ -2177,8 +2259,14 @@ return {
       }
       function _Znwm(...$a) { return {a: new Array($a[0]).fill(0), i: 0}; }
       function _ZdlPv(...$a) {  }
+      function _ZSt4swapIPNSt8__detail15_List_node_baseEEvRS_S2_(__a, __b) {
+        let $t24, $t25, $t26, $t27, $t28, $t29;
+        let __tmp = {v: ($t24 = _ZSt4moveIPNSt8__detail15_List_node_baseEEOS_S2_(__a), $t25 = ($t24 ? $t24.a[$t24.i] : null), $t25 && $t25.a !== undefined ? {a: $t25.a, i: $t25.i} : $t25)};
+        __a.a[__a.i] = ($t26 = _ZSt4moveIPNSt8__detail15_List_node_baseEEOS_S2_(__b), $t27 = ($t26 ? $t26.a[$t26.i] : null), $t27 && $t27.a !== undefined ? {a: $t27.a, i: $t27.i} : $t27);
+        __b.a[__b.i] = ($t28 = _ZSt4moveIPNSt8__detail15_List_node_baseEEOS_S2_({a: __tmp, i: "v"}), $t29 = ($t28 ? $t28.a[$t28.i] : null), $t29 && $t29.a !== undefined ? {a: $t29.a, i: $t29.i} : $t29);
+      }
       function main() {
-        let $t16, $t17;
+        let $t30, $t31;
         let a = {v: new _ZSt4listIiSt9allocatorIiEE()};
         _ZSt4listIiSt9allocatorIiEE.prototype._ZNSt4listIiSt9allocatorIiEE9push_backERKi.call(a.v, {a: [3], i: 0});
         _ZSt4listIiSt9allocatorIiEE.prototype._ZNSt4listIiSt9allocatorIiEE9push_backERKi.call(a.v, {a: [1], i: 0});
@@ -2206,7 +2294,7 @@ return {
         _ZStlsRSt13basic_ostreamIcSt11char_traitsIcEERKSt7_Ios_op(_ZStlsRSt13basic_ostreamIcSt11char_traitsIcEEi({a: _ZSt4cout, i: "v"}, s), {a: [_ZSt4endl], i: 0});
         _ZSt4listIiSt9allocatorIiEE.prototype._ZNSt4listIiSt9allocatorIiEE6removeERKi.call(a.v, {a: [4], i: 0});
         _ZSt4listIiSt9allocatorIiEE.prototype._ZNSt4listIiSt9allocatorIiEE9pop_frontEv.call(a.v);
-        _ZStlsRSt13basic_ostreamIcSt11char_traitsIcEERKSt7_Ios_op(_ZStlsRSt13basic_ostreamIcSt11char_traitsIcEEm(_ZStlsRSt13basic_ostreamIcSt11char_traitsIcEEPKc(_ZStlsRSt13basic_ostreamIcSt11char_traitsIcEEi(_ZStlsRSt13basic_ostreamIcSt11char_traitsIcEEPKc(_ZStlsRSt13basic_ostreamIcSt11char_traitsIcEEi({a: _ZSt4cout, i: "v"}, ($t16 = _ZSt4listIiSt9allocatorIiEE.prototype._ZNSt4listIiSt9allocatorIiEE5frontEv.call(a.v), $t16.a[$t16.i])), {a: [32, 0], i: 0}), ($t17 = _ZSt4listIiSt9allocatorIiEE.prototype._ZNSt4listIiSt9allocatorIiEE4backEv.call(a.v), $t17.a[$t17.i])), {a: [32, 0], i: 0}), _ZSt4listIiSt9allocatorIiEE.prototype._ZNKSt4listIiSt9allocatorIiEE4sizeEv.call(a.v)), {a: [_ZSt4endl], i: 0});
+        _ZStlsRSt13basic_ostreamIcSt11char_traitsIcEERKSt7_Ios_op(_ZStlsRSt13basic_ostreamIcSt11char_traitsIcEEm(_ZStlsRSt13basic_ostreamIcSt11char_traitsIcEEPKc(_ZStlsRSt13basic_ostreamIcSt11char_traitsIcEEi(_ZStlsRSt13basic_ostreamIcSt11char_traitsIcEEPKc(_ZStlsRSt13basic_ostreamIcSt11char_traitsIcEEi({a: _ZSt4cout, i: "v"}, ($t30 = _ZSt4listIiSt9allocatorIiEE.prototype._ZNSt4listIiSt9allocatorIiEE5frontEv.call(a.v), $t30.a[$t30.i])), {a: [32, 0], i: 0}), ($t31 = _ZSt4listIiSt9allocatorIiEE.prototype._ZNSt4listIiSt9allocatorIiEE4backEv.call(a.v), $t31.a[$t31.i])), {a: [32, 0], i: 0}), _ZSt4listIiSt9allocatorIiEE.prototype._ZNKSt4listIiSt9allocatorIiEE4sizeEv.call(a.v)), {a: [_ZSt4endl], i: 0});
         let b = new _ZSt4listIiSt9allocatorIiEE();
         _ZSt4listIiSt9allocatorIiEE.prototype._ZNSt4listIiSt9allocatorIiEE9push_backERKi.call(b, {a: [7], i: 0});
         _ZSt4listIiSt9allocatorIiEE.prototype._ZNSt4listIiSt9allocatorIiEE9push_backERKi.call(b, {a: [8], i: 0});
@@ -2239,6 +2327,9 @@ return {
         return (__r ? {a: __r.a, i: __r.i} : null);
       }
       function _ZSt4moveISt4listIiSt9allocatorIiEEEOS2_S3_(__t) {
+        return __t;
+      }
+      function _ZSt4moveIPNSt8__detail15_List_node_baseEEOS_S2_(__t) {
         return __t;
       }
       function _ZSt7forwardIiEOiS_(__t) {
@@ -2315,6 +2406,7 @@ return {
       let _ZNSt15regex_constants16error_complexityE = 11;
       let _ZNSt15regex_constants11error_stackE = 12;
       let _ZNSt8__detail19_S_invalid_state_idE = ((-(1)) | 0);
+      let _ZNSt8__detail12__prime_listE = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97, 103, 109, 113, 127, 137, 139, 149, 157, 167, 179, 193, 199, 211, 227, 241, 257, 277, 293, 313, 337, 359, 383, 409, 439, 467, 503, 541, 577, 619, 661, 709, 761, 823, 887, 953, 1031, 1109, 1193, 1289, 1381, 1493, 1613, 1741, 1879, 2029, 2179, 2357, 2549, 2753, 2971, 3209, 3469, 3739, 4027, 4349, 4703, 5087, 5503, 5953, 6427, 6949, 7517, 8123, 8783, 9497, 10273, 11113, 12011, 12983, 14033, 15173, 16411, 17749, 19183, 20753, 22447, 24281, 26267, 28411, 30727, 33223, 35933, 38873, 42043, 45481, 49201, 53201, 57557, 62233, 67307, 72817, 78779, 85229, 92203, 99733, 107897, 116731, 126271, 136607, 147793, 159871, 172933, 187091, 202409, 218971, 236897, 256279, 277261, 299951, 324503, 351061, 379787, 410857, 444487, 480881, 520241, 562841, 608903, 658753, 712697, 771049, 834181, 902483, 976369, 1056323, 1142821, 1236397, 1337629, 1447153, 1565659, 1693859, 1832561, 1982627, 2144977, 2320627, 2510653, 2716249, 2938679, 3179303, 3439651, 3721303, 4026031, 4355707, 4712381, 5098259, 5515729, 5967347, 6456007, 6984629, 7556579, 8175383, 8844859, 9569143, 10352717, 11200489, 12117689, 13109983, 14183539, 15345007, 16601593, 17961079, 19431899, 21023161, 22744717, 24607243, 26622317, 28802401, 31160981, 33712729, 36473443, 39460231, 42691603, 46187573, 49969847, 54061849, 58488943, 63278561, 68460391, 74066549, 80131819, 86693767, 93793069, 101473717, 109783337, 118773397, 128499677, 139022417, 150406843, 162723577, 176048909, 190465427, 206062531, 222936881, 241193053, 260944219, 282312799, 305431229, 330442829, 357502601, 386778277, 418451333, 452718089, 489790921, 529899637, 573292817, 620239453, 671030513, 725980837, 785430967, 849749479, 919334987, 994618837, 1076067617, 1164186217, 1259520799, 1362662261, 1474249943, 1594975441, 1725587117, 1866894511, 2019773507, 2185171673, 2364114217, 2557710269, 2767159799, 2993761039, 3238918481, 3504151727, 3791104843, 4101556399, 4294967291, 4294967291];
       $rc = main() | 0;
     } catch (e) {
       if (typeof e === "object" && e !== null && "$exit" in e) $rc = e.$exit;
