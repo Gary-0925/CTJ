@@ -1,5 +1,5 @@
 node_modules/
 dist/
+test/
 include.json
 *.log
-test/
