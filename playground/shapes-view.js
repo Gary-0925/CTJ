@@ -64,8 +64,13 @@
           case "struct":
             return "{" + v.f.map(f => shapeText(f.v)).join(", ") + "}";
           case "arr":
-          case "vec":
-            return "[" + v.items.map(shapeText).join(", ") + "]";
+          case "vec": {
+            // A long row would make its box too wide to read; the snapshot keeps every item.
+            const text = "[" + v.items.map(shapeText).join(", ") + "]";
+            return text.length > 160 ? text.slice(0, 157) + "…" : text;
+          }
+          case "more":
+            return v.n !== undefined ? "… " + v.n + " more" : "…";
           default:
             return v.n || v.k;
         }
@@ -205,7 +210,7 @@
           const box = document.createElement("div");
           box.className = "snap";
           const h = document.createElement("h3");
-          h.textContent = snap.label;
+          h.textContent = snap.truncated ? snap.label + "（已截断）" : snap.label;
           box.appendChild(h);
           box.appendChild(renderShape(snap));
           body.appendChild(box);

@@ -10,7 +10,11 @@
 //   @@ctj-show {"label": ..., "root": V, "nodes": [{"id": n, "type": ..., "value": V}]}
 // V is a value: {k:"int",v} {k:"char",v} {k:"bool",v} {k:"float",v} {k:"null"}
 // {k:"ptr",to:id} {k:"cstr",v} {k:"struct",n,f:[{n,base,v}]} {k:"arr",items} {k:"str",v}
-// {k:"vec",items} {k:"opaque",n}.
+// {k:"vec",items} {k:"opaque",n} {k:"more",n?}.
+//
+// A snapshot is cut to keep it small, and says so: at most 300 nodes, 32 items of an array
+// or vector (the rest is {k:"more",n} with n left out), and 20000 values.  A cut snapshot
+// carries "truncated": true.
 namespace CTJ {
   export interface ShapeField {
     n: string;
@@ -148,6 +152,8 @@ namespace CTJ {
   export const SHAPE_RUNTIME = [
     "function $shape(label, val, tab, root) {",
     "  var objIds = new Map(), cellIds = new Map(), nodes = [], queue = [];",
+    "  var MAX_NODES = 300, MAX_ITEMS = 32, MAX_VALUES = 20000;",
+    "  var values = 0, truncated = false;",
     "  function fieldOf(tid, obj, name) {",
     "    var d = tab[tid];",
     "    if (d.k !== 'struct' || obj === null || obj === undefined) return null;",
@@ -177,6 +183,7 @@ namespace CTJ {
     "    var target = arr[idx];",
     "    if (tab[tid].k === 'struct') {",
     "      if (objIds.has(target)) return objIds.get(target);",
+    "      if (nodes.length >= MAX_NODES) { truncated = true; return -1; }",
     "      var oid = nodes.length;",
     "      objIds.set(target, oid);",
     "      nodes.push({ id: oid, type: tab[tid].n, tid: tid, target: target, value: null });",
@@ -185,6 +192,7 @@ namespace CTJ {
     "    var m = cellIds.get(arr);",
     "    if (!m) { m = new Map(); cellIds.set(arr, m); }",
     "    if (m.has(idx)) return m.get(idx);",
+    "    if (nodes.length >= MAX_NODES) { truncated = true; return -1; }",
     "    var cid = nodes.length;",
     "    m.set(idx, cid);",
     "    nodes.push({ id: cid, type: tname(tid), tid: tid, target: target, value: null });",
@@ -206,6 +214,7 @@ namespace CTJ {
     "    return s;",
     "  }",
     "  function enc(tid, v) {",
+    "    if (++values > MAX_VALUES) { truncated = true; return { k: 'more' }; }",
     "    var d = tab[tid];",
     "    switch (d.k) {",
     "      case 'int': return { k: 'int', v: typeof v === 'bigint' ? String(v) : (v === undefined ? 0 : v) };",
@@ -215,10 +224,13 @@ namespace CTJ {
     "      case 'ptr':",
     "        if (v === null || v === undefined) return { k: 'null' };",
     "        if (tab[d.to].k === 'char') return { k: 'cstr', v: cstr(v) };",
-    "        return { k: 'ptr', to: nodeFor(d.to, v.a, v.i) };",
+    "        var to = nodeFor(d.to, v.a, v.i);",
+    "        return to < 0 ? { k: 'more' } : { k: 'ptr', to: to };",
     "      case 'arr': {",
     "        var items = [];",
-    "        for (var j = 0; j < d.len; j++) items.push(enc(d.of, v[j]));",
+    "        var lim = Math.min(d.len, MAX_ITEMS);",
+    "        for (var j = 0; j < lim; j++) items.push(enc(d.of, v[j]));",
+    "        if (d.len > lim) { items.push({ k: 'more', n: d.len - lim }); truncated = true; }",
     "        return { k: 'arr', items: items };",
     "      }",
     "      case 'struct': {",
@@ -228,7 +240,9 @@ namespace CTJ {
     "          var vitems = [];",
     "          if (s && f && s.v && f.v && s.v.a === f.v.a) {",
     "            var et = tab[s.t].to;",
-    "            for (var q = s.v.i; q < f.v.i; q++) vitems.push(enc(et, s.v.a[q]));",
+    "            var qe = Math.min(f.v.i, s.v.i + MAX_ITEMS);",
+    "            for (var q = s.v.i; q < qe; q++) vitems.push(enc(et, s.v.a[q]));",
+    "            if (f.v.i > qe) { vitems.push({ k: 'more', n: f.v.i - qe }); truncated = true; }",
     "          }",
     "          return { k: 'vec', items: vitems };",
     "        }",
@@ -245,7 +259,9 @@ namespace CTJ {
     "  var rootV = enc(root, val);",
     "  for (var n = 0; n < nodes.length; n++) nodes[n].value = enc(nodes[n].tid, nodes[n].target);",
     "  var out = nodes.map(function (x) { return { id: x.id, type: x.type, value: x.value }; });",
-    "  $io.write(3, '@@ctj-show ' + JSON.stringify({ label: label, root: rootV, nodes: out }) + '\\n');",
+    "  var snap = { label: label, root: rootV, nodes: out };",
+    "  if (truncated) snap.truncated = true;",
+    "  $io.write(3, '@@ctj-show ' + JSON.stringify(snap) + '\\n');",
     "}",
   ].join("\n");
 
