@@ -3,4 +3,3 @@ dist/
 include.json
 *.log
 test/cases/*.out.js
-test/cases/*.txt
