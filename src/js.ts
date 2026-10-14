@@ -133,6 +133,8 @@ namespace CTJ {
     exStack: string[] = [];
     rangeN = 0;
     fnStack: FuncInfo[] = [];
+    // Set when a library body is emitted: the program then declares the $L helpers.
+    usesLibc = false;
 
     constructor(cx: Cx) {
       this.cx = cx;
@@ -176,6 +178,7 @@ namespace CTJ {
       }
       const head = ['"use strict";', "return {", '  run($input = "") {', "    const $io = {", '      inp: { s: $input == null ? "" : String($input), p: 0 },', '      out: "", err: "", log: "", vf: null, addr: 0,', "      write(fd, t) {", "        if (fd === 2) this.err += t;", "        else if (fd === 3) this.log += t;", "        else this.out += t;", "      },", "    };", "    const console = {", '      log: (...a) => $io.write(1, a.map(String).join(" ") + "\\n"),', '      error: (...a) => $io.write(2, a.map(String).join(" ") + "\\n"),', "    };", "    let $rc = 0;", "    try {"];
       const tail = ["    } catch (e) {", '      if (typeof e === "object" && e !== null && "$exit" in e) $rc = e.$exit;', "      else {", '        $io.err += String(e && e.message !== undefined ? e.message : e) + "\\n";', "        $rc = 1;", "      }", "    }", "    return { stdout: $io.out, stderr: $io.err, stdlog: $io.log, exitCode: $rc };", "  },", "};"];
+      if (this.usesLibc) body.unshift(...libcPrelude());
       return [...head, ...body.map(l => "      " + l), ...tail].join("\n") + "\n";
     }
 
@@ -1142,8 +1145,12 @@ namespace CTJ {
     emitFunc(f: FuncInfo): void {
       if (!(f.decl.body || []).length) {
         const stub = this.allocStub(f) ?? this.rbTreeStub(f) ?? this.hashBytesStub(f);
+        const lib = stub === null ? libcBodySource(f.fq) : null;
         if (stub !== null) this.line(`function ${this.cx.symOf(f)}(...$a) { ${stub} }`);
-        else this.line(`function ${this.cx.symOf(f)}(...$a) { throw new Error("unresolved external: ${f.fq}"); }`);
+        else if (lib !== null) {
+          this.usesLibc = true;
+          this.line(`function ${this.cx.symOf(f)}(...$a) { return (${lib})($a); }`);
+        } else this.line(`function ${this.cx.symOf(f)}(...$a) { throw new Error("unresolved external: ${f.fq}"); }`);
         return;
       }
       const ps = this.cx.funcParams(f);
@@ -2623,17 +2630,22 @@ namespace CTJ {
 
     // The C library's memory functions take a byte count, but an array holds
     // elements: the count is divided by the size of one element, exactly as the
-    // "__builtin_mem*" forms of the same functions do. Only the bundled C headers
-    // are treated this way, so a program may still define its own "memcpy".
+    // "__builtin_mem*" forms of the same functions do. Only the C headers and the
+    // library bodies are treated this way, so a program may still define its own "memcpy".
     memFuncCount(fn: FuncInfo, e: CallExpr, aa: string[]): void {
       if (fn.isMethod || e.args.length < 3) return;
       const file = (fn.decl.file || "").replace(/^.*[\/\\]/, "");
-      if (["string.h", "cstring", "wchar.h", "cwchar", "strings.h"].indexOf(file) < 0) return;
+      const header = ["string.h", "cstring", "wchar.h", "cwchar", "strings.h"].indexOf(file) >= 0;
+      // A library body counts bytes only for the memory functions: qsort and bsearch count elements.
+      const libBody = !(fn.decl.body || []).length && libcBodySource(fn.fq) !== null && ["memcpy", "memmove", "memset", "memcmp", "bcmp", "memchr", "memrchr", "mempcpy", "bcopy"].indexOf(fn.fq) >= 0;
+      if (!header && !libBody) return;
       const pt = this.cx.getAnn(e.args[0]).t as CppType | null;
-      if (!pt || pt.ptr === 0) return;
+      if (!pt || (pt.ptr === 0 && !pt.dims.length)) return;
+      // The element of an array is what its first dimension holds; a pointer's is what it points to.
       const el = new CppType(pt.name);
       el.segs = pt.segs;
-      el.ptr = pt.ptr - 1;
+      if (pt.ptr === 0) el.dims = pt.dims.slice(1);
+      else el.ptr = pt.ptr - 1;
       let sz = 0;
       try {
         sz = constSizeof(this.cx, el, new Set());
