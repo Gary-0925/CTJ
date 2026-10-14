@@ -67,6 +67,7 @@
         flex: 1;
         display: grid;
         grid-template-columns: 1fr 1fr;
+        grid-template-rows: minmax(0, 1fr) minmax(0, 40%);
         gap: 1px;
         background: #2c303a;
         min-height: 0;
@@ -139,6 +140,30 @@
       #output.err {
         color: #f0717a;
       }
+      #shapes {
+        grid-column: 1 / -1;
+        min-height: 0;
+      }
+      #shapes-body {
+        flex: 1;
+        overflow: auto;
+        padding: 8px 12px;
+        min-height: 0;
+        color: #9aa1b1;
+        font-size: 13px;
+      }
+      #shapes-body .snap + .snap {
+        margin-top: 14px;
+      }
+      #shapes-body h3 {
+        margin: 0 0 4px;
+        font: 600 13px/1.4 ui-monospace, Consolas, monospace;
+        color: #e6e6e6;
+      }
+      #shapes-body svg {
+        display: block;
+        max-width: 100%;
+      }
       footer {
         padding: 4px 12px;
         font-size: 12px;
@@ -169,6 +194,10 @@
         <textarea id="stdin" spellcheck="false"></textarea>
         <h2>输出</h2>
         <pre id="output"></pre>
+      </section>
+      <section id="shapes">
+        <h2>数据形态</h2>
+        <div id="shapes-body"></div>
       </section>
     </main>
     <footer><span id="status"></span></footer>
@@ -339,6 +368,52 @@ int main() {
 `,
           input: "the cat and the dog and the bird\n",
         },
+        {
+          name: "数据形态",
+          code: `#include <iostream>
+#include <string>
+#include <vector>
+using namespace std;
+struct Node {
+  int value;
+  Node* next;
+  Node(int v) : value(v), next(0) {}
+};
+struct Tree {
+  int key;
+  Tree* left;
+  Tree* right;
+  Tree(int k) : key(k), left(0), right(0) {}
+};
+Tree* insert(Tree* t, int k) {
+  if (!t) return new Tree(k);
+  if (k < t->key) t->left = insert(t->left, k);
+  else t->right = insert(t->right, k);
+  return t;
+}
+int main() {
+  int n;
+  cin >> n;
+  Node* head = 0;
+  Tree* root = 0;
+  vector<string> names;
+  for (int i = 0; i < n; i++) {
+    int k;
+    cin >> k;
+    Node* node = new Node(k);
+    node->next = head;
+    head = node;
+    root = insert(root, k);
+    names.push_back("item" + to_string(k));
+  }
+  __ctj_show("list", head);
+  __ctj_show("tree", root);
+  __ctj_show("names", names);
+  return 0;
+}
+`,
+          input: "4\n5 3 8 1\n",
+        },
       ];
 
       const $ = id => document.getElementById(id);
@@ -405,15 +480,196 @@ int main() {
         return program;
       }
 
+      // __ctj_show lines travel on the log channel; they are drawn in the shapes panel,
+      // not printed with the rest of the log.
+      const SHOW_TAG = "@@ctj-show ";
+      const SVG_NS = "http://www.w3.org/2000/svg";
+      const CHAR_W = 7.8;
+
+      function shapeText(v) {
+        switch (v.k) {
+          case "int":
+          case "float":
+            return String(v.v);
+          case "char":
+            return v.v + " '" + String.fromCharCode(v.v) + "'";
+          case "bool":
+            return v.v ? "true" : "false";
+          case "null":
+            return "null";
+          case "ptr":
+            return "→";
+          case "cstr":
+          case "str":
+            return JSON.stringify(v.v);
+          case "struct":
+            return "{" + v.f.map(f => shapeText(f.v)).join(", ") + "}";
+          case "arr":
+          case "vec":
+            return "[" + v.items.map(shapeText).join(", ") + "]";
+          default:
+            return v.n || v.k;
+        }
+      }
+
+      // The node ids a value points at, in order.
+      function shapeTargets(v, out) {
+        if (v.k === "ptr") out.push(v.to);
+        else if (v.k === "struct") v.f.forEach(f => shapeTargets(f.v, out));
+        else if (v.k === "arr" || v.k === "vec") v.items.forEach(x => shapeTargets(x, out));
+        return out;
+      }
+
+      // One row per field: nested structs are flattened, base class fields join their owner.
+      function shapeRows(label, v, rows) {
+        if (v.k === "struct") {
+          for (const f of v.f) {
+            const sub = f.base ? label : (label ? label + "." : "") + f.n;
+            shapeRows(sub, f.v, rows);
+          }
+          return rows;
+        }
+        rows.push({ label, text: shapeText(v), targets: shapeTargets(v, []) });
+        return rows;
+      }
+
+      // Boxes for the root and every node, edges for every pointer, and a layout that puts
+      // each box in the column of its distance from the root (BFS).
+      function shapeLayout(snap) {
+        const boxes = new Map();
+        const rootRows = snap.root.k === "ptr" ? [{ label: "", text: "→", targets: [snap.root.to] }] : shapeRows("", snap.root, []);
+        boxes.set("root", { id: "root", title: snap.label, rows: rootRows });
+        for (const n of snap.nodes) {
+          boxes.set("n" + n.id, { id: "n" + n.id, title: n.type, rows: shapeRows("", n.value, []) });
+        }
+        const depth = new Map([["root", 0]]);
+        const order = ["root"];
+        for (let qi = 0; qi < order.length; qi++) {
+          const b = boxes.get(order[qi]);
+          for (const r of b.rows) {
+            for (const t of r.targets) {
+              const id = "n" + t;
+              if (boxes.has(id) && !depth.has(id)) {
+                depth.set(id, depth.get(order[qi]) + 1);
+                order.push(id);
+              }
+            }
+          }
+        }
+        const cols = [];
+        for (const id of order) {
+          const c = depth.get(id);
+          (cols[c] = cols[c] || []).push(boxes.get(id));
+        }
+        let x = 16;
+        let maxY = 0;
+        const edges = [];
+        cols.forEach(col => {
+          let colW = 0;
+          for (const b of col) {
+            let w = b.title.length * CHAR_W;
+            for (const r of b.rows) w = Math.max(w, (r.label.length + 1 + r.text.length) * CHAR_W);
+            b.w = Math.max(96, Math.ceil(w) + 24);
+            b.h = 30 + b.rows.length * 20 + 8;
+            colW = Math.max(colW, b.w);
+          }
+          let y = 16;
+          for (const b of col) {
+            b.x = x;
+            b.y = y;
+            y += b.h + 22;
+          }
+          maxY = Math.max(maxY, y);
+          x += colW + 64;
+        });
+        for (const b of boxes.values()) {
+          b.rows.forEach((r, i) => {
+            for (const t of r.targets) {
+              const to = boxes.get("n" + t);
+              if (to) edges.push({ from: b, row: i, to });
+            }
+          });
+        }
+        return { boxes: [...boxes.values()], edges, width: Math.max(x, 120), height: Math.max(maxY, 60) };
+      }
+
+      function el(name, attrs, text) {
+        const e = document.createElementNS(SVG_NS, name);
+        for (const k in attrs) e.setAttribute(k, attrs[k]);
+        if (text !== undefined) e.textContent = text;
+        return e;
+      }
+
+      let shapeSeq = 0;
+      function renderShape(snap) {
+        const g = shapeLayout(snap);
+        const svg = el("svg", { width: g.width, height: g.height, viewBox: `0 0 ${g.width} ${g.height}` });
+        const marker = "ctj-arrow-" + shapeSeq++;
+        const defs = el("defs", {});
+        const mk = el("marker", { id: marker, viewBox: "0 0 10 10", refX: 9, refY: 5, markerWidth: 7, markerHeight: 7, orient: "auto-start-reverse" });
+        mk.appendChild(el("path", { d: "M0,0 L10,5 L0,10 z", fill: "#8ab4f8" }));
+        defs.appendChild(mk);
+        svg.appendChild(defs);
+        for (const e of g.edges) {
+          const x1 = e.from.x + e.from.w;
+          const y1 = e.from.y + 30 + e.row * 20 + 10;
+          const x2 = e.to.x;
+          const y2 = e.to.y + 14;
+          const dx = Math.max(40, Math.abs(x2 - x1) / 2);
+          svg.appendChild(el("path", { d: `M${x1},${y1} C${x1 + dx},${y1} ${x2 - dx},${y2} ${x2},${y2}`, fill: "none", stroke: "#8ab4f8", "stroke-width": 1.5, "marker-end": `url(#${marker})` }));
+        }
+        for (const b of g.boxes) {
+          const grp = el("g", {});
+          grp.appendChild(el("rect", { x: b.x, y: b.y, width: b.w, height: b.h, rx: 6, fill: "#1e2430", stroke: b.id === "root" ? "#e0b341" : "#5b7fa8" }));
+          grp.appendChild(el("text", { x: b.x + 10, y: b.y + 19, fill: "#e6edf3", "font-family": "ui-monospace, Consolas, monospace", "font-size": 13, "font-weight": 700 }, b.title));
+          grp.appendChild(el("line", { x1: b.x, y1: b.y + 26, x2: b.x + b.w, y2: b.y + 26, stroke: "#2c3445" }));
+          b.rows.forEach((r, i) => {
+            const ty = b.y + 30 + i * 20 + 14;
+            if (r.label) grp.appendChild(el("text", { x: b.x + 10, y: ty, fill: "#9aa1b1", "font-family": "ui-monospace, Consolas, monospace", "font-size": 13 }, r.label));
+            grp.appendChild(el("text", { x: b.x + 10 + (r.label ? (r.label.length + 1) * CHAR_W : 0), y: ty, fill: "#e6e6e6", "font-family": "ui-monospace, Consolas, monospace", "font-size": 13 }, r.text));
+          });
+          svg.appendChild(grp);
+        }
+        return svg;
+      }
+
+      function renderShapes(snaps) {
+        const body = $("shapes-body");
+        body.textContent = "";
+        if (!snaps.length) {
+          const hint = document.createElement("div");
+          hint.textContent = "在程序中写 __ctj_show(\"标签\", 表达式); 即可在这里看到对象图。";
+          body.appendChild(hint);
+          return;
+        }
+        for (const snap of snaps) {
+          const box = document.createElement("div");
+          box.className = "snap";
+          const h = document.createElement("h3");
+          h.textContent = snap.label;
+          box.appendChild(h);
+          box.appendChild(renderShape(snap));
+          body.appendChild(box);
+        }
+      }
+
       async function run() {
+        renderShapes([]);
         const prog = await transpile();
         if (!prog) return;
         const res = prog.run($("stdin").value);
+        const snaps = [];
+        const logLines = [];
+        for (const line of (res.stdlog || "").split("\n")) {
+          if (line.startsWith(SHOW_TAG)) snaps.push(JSON.parse(line.slice(SHOW_TAG.length)));
+          else logLines.push(line);
+        }
+        renderShapes(snaps);
         // stdout is the program's output; stderr and clog are shown after it.
         let text = res.stdout;
         for (const [body, label] of [
           [res.stderr, "[stderr]"],
-          [res.stdlog, "[clog]"],
+          [logLines.join("\n"), "[clog]"],
         ]) {
           if (!body) continue;
           if (text && !text.endsWith("\n")) text += "\n";

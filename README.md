@@ -48,6 +48,8 @@ const result = program.run("114514\n"); // 运行一次，input 即 cin 的输�
 
 转译器提供内建函数 `__ctj_js`，把字符串字面量原样嵌入生成的 JavaScript，`$1`、`$2`… 会被替换为对应实参在 JavaScript 中的表达式。标准库的输出流（`include/ostream`）就是用它实现的。
 
+内建函数 `__ctj_show("标签", 表达式)` 记录表达式能到达的对象图，供 Playground 的「数据形态」面板绘制。它沿指针遍历，节点按对象身份去重，别名与环都会保留；指向 `char` 的指针显示为字符串，`std::string` 与 `std::vector` 有专门的视图。每次快照在 `stdlog` 中占一行，以 `@@ctj-show ` 开头、后接一个 JSON 对象，因此不会混入 `stdout`。快照的数据结构见 `src/shape.ts`，测试用例在 `test/shape/`，由 `node test/shape.js` 运行。
+
 指针采用胖指针模型：`int*` 转译为 `{ a: 数组, i: 下标 }`，取地址得到 `{ v: … }` 盒子，`*p` 即 `p.a[p.i]`。类转译为 `class`，虚函数依赖 JavaScript 自身的动态派发，全局对象在 `main()` 之前构造。
 
 ## Playground
@@ -65,6 +67,8 @@ python3 -m http.server 8080
 ```
 
 打开 `http://127.0.0.1:8000/`（或 `http://127.0.0.1:8080/`）即可。左侧是 C++ 源码，右侧依次是转译得到的 JavaScript、警告、输入（stdin）和输出。「运行」会先转译再执行，Ctrl+Enter 只转译。`stderr` 与 `clog` 的内容显示在标准输出之后，非零退出码显示在最后一行。
+
+下方的「数据形态」面板显示程序中 `__ctj_show` 的快照，见下文。
 
 ## 命令
 
