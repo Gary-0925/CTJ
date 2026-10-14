@@ -1,0 +1,5 @@
+r=1 p=0xdeadbeef
+r=1 null=1
+r=4 12 -16 1 0.01
+r=3 inf -inf nan
+r=2 inf nan

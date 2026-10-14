@@ -294,12 +294,58 @@ namespace CTJ {
       return `let ${ns.join(", ")};`;
     }
 
+    // How a scalar union member is read and written at offset 0 of the union's
+    // block of bytes, or null when the member is not a scalar.
+    unionAccess(c: ClsInfo, name: string): { bytes: number; get: string; set: string } | null {
+      const ft = this.cx.fieldType(c, name);
+      if (ft.isBox() || ft.dims.length || ft.isFunc) return null;
+      const n = coreName(ft);
+      const view = "this.$bytes";
+      if (n === "float") return { bytes: 4, get: `${view}.getFloat32(0, true)`, set: `${view}.setFloat32(0, v, true)` };
+      if (n === "double") return { bytes: 8, get: `${view}.getFloat64(0, true)`, set: `${view}.setFloat64(0, v, true)` };
+      if (n === "bool") return { bytes: 1, get: `${view}.getUint8(0) !== 0`, set: `${view}.setUint8(0, v ? 1 : 0)` };
+      const k = this.cx.enums.has(this.cx.stripAll(ft)) ? { bits: 32, signed: true } : intKindOf(ft);
+      if (!k) return null;
+      const m = k.bits === 64 ? (k.signed ? "BigInt64" : "BigUint64") : `${k.signed ? "Int" : "Uint"}${k.bits}`;
+      return { bytes: k.bits / 8, get: `${view}.get${m}(0, true)`, set: `${view}.set${m}(0, v, true)` };
+    }
+
+    // Whether the members of a union can share one block of bytes.  A union with a
+    // pointer or class member keeps its members apart, as before.
+    unionShares(c: ClsInfo): boolean {
+      if (!c.isUnion) return false;
+      for (const [name] of c.fields) {
+        if (!c.fieldStatic.has(name) && !this.unionAccess(c, name)) return false;
+      }
+      return true;
+    }
+
+    // The members of a union share one block of bytes, a DataView.  Each member is
+    // an accessor that reads and writes its own type at offset 0, so every member
+    // sees the bits the others wrote.
+    emitUnionStorage(c: ClsInfo): void {
+      const accessors: string[] = [];
+      let size = 1;
+      for (const [name] of c.fields) {
+        if (c.fieldStatic.has(name)) continue;
+        const acc = this.unionAccess(c, name)!;
+        const fname = this.cx.fieldJsName(c, name);
+        size = Math.max(size, acc.bytes);
+        accessors.push(`get ${fname}() { return ${acc.get}; }`, `set ${fname}(v) { ${acc.set}; }`);
+      }
+      this.line(`$bytes = new DataView(new ArrayBuffer(${size}));`);
+      for (const a of accessors) this.line(a);
+    }
+
     emitClass(c: ClsInfo): void {
       const cn = c.mangled as string;
       const base = c.bases.length ? ((this.cx.classes.get(c.bases[0].fq) as ClsInfo).mangled as string) : "";
       this.block(base ? `class ${cn} extends ${base}` : `class ${cn}`, () => {
-        for (const [name] of c.fields) {
-          if (!c.fieldStatic.has(name)) this.line(`${this.cx.fieldJsName(c, name)};`);
+        if (this.unionShares(c)) this.emitUnionStorage(c);
+        else {
+          for (const [name] of c.fields) {
+            if (!c.fieldStatic.has(name)) this.line(`${this.cx.fieldJsName(c, name)};`);
+          }
         }
         const ctors = (c.methods.get("#ctor") || []).filter(f => f.referenced);
         const inherited = this.inheritedCtors(c);
@@ -658,15 +704,28 @@ namespace CTJ {
       }
       const copySrc = this.cx.isCopyCtor(fn) && ps.length ? (ps[0].type.ref || ps[0].type.ptr > 0 ? `($a[0] && $a[0].a ? $a[0].a[$a[0].i] : $a[0])` : `$a[0]`) : null;
       const copyDefault = !!(copySrc && (fn.isDefault || !fn.decl.body || !fn.decl.body.length));
-      for (const [name, fd] of c.fields) {
-        if (c.fieldStatic.has(name)) continue;
-        const ft = this.cx.fieldType(c, name);
-        const hit = !inh ? fn.decl.ctorInit.find(x => last(x.name).n === name) : null;
-        const fname = this.cx.fieldJsName(c, name);
-        if (!hit && copyDefault) {
-          this.fieldAssign(fname, ft, `${copySrc}.${fname}`);
-        } else {
-          this.fieldAssign(fname, ft, this.fieldInit(c, ft, fd, hit || null));
+      if (this.unionShares(c)) {
+        // Only the member the constructor initializes is active.  Assigning the
+        // others would overwrite its bytes, so they are left alone.
+        const hit = !inh ? fn.decl.ctorInit.find(x => c.fields.has(last(x.name).n) && !c.fieldStatic.has(last(x.name).n)) : null;
+        if (hit) {
+          const name = last(hit.name).n;
+          const ft = this.cx.fieldType(c, name);
+          this.fieldAssign(this.cx.fieldJsName(c, name), ft, this.fieldInit(c, ft, c.fields.get(name)!, hit));
+        } else if (copyDefault) {
+          this.line(`new Uint8Array(this.$bytes.buffer).set(new Uint8Array((${copySrc}).$bytes.buffer));`);
+        }
+      } else {
+        for (const [name, fd] of c.fields) {
+          if (c.fieldStatic.has(name)) continue;
+          const ft = this.cx.fieldType(c, name);
+          const hit = !inh ? fn.decl.ctorInit.find(x => last(x.name).n === name) : null;
+          const fname = this.cx.fieldJsName(c, name);
+          if (!hit && copyDefault) {
+            this.fieldAssign(fname, ft, `${copySrc}.${fname}`);
+          } else {
+            this.fieldAssign(fname, ft, this.fieldInit(c, ft, fd, hit || null));
+          }
         }
       }
       if (!inh) {

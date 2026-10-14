@@ -91,8 +91,10 @@ npm test                              # 运行 test/cases 下的全部用例
 
 - `include/` 还缺少 `bits/uniform_int_dist.h`，依赖它的 `<random>` 分布不可用。
 - `<sstream>`、`<fstream>` 仍不支持。
-- `include/stdio.h` 实现了 `printf`、`fprintf`、`sprintf`、`snprintf`、`puts`、`putchar` 等输出函数及其 `v*` 版本，格式化由一段 JavaScript（`_CTJ_VFMT_JS`）完成；`scanf` 一族仍未实现，输入请用 `cin`。
+- 标准输入输出由 `src/libc/stdio.ts` 中的 TypeScript 实现。`printf` 族（`printf`、`fprintf`、`sprintf`、`snprintf`、`puts`、`putchar` 及其 `v*` 版本）的格式化在 `vfmt` 中完成；`scanf` 族（`scanf`、`fscanf`、`sscanf` 及其 `v*` 版本）在 `vscan` 中完成，与 `cin`、`getchar` 共用同一个输入位置。`scanf` 支持 `*`、宽度、`hh h l ll L q j z t` 修饰符，转换符 `d i u o x X f e g a c s [ n p %`，返回值与 C 一致（输入结束且尚无赋值时为 `EOF`）。`%p` 读入的地址若不为 0，得到的指针只用于再次打印，不能解引用；十六进制浮点与 `inf` / `nan` 按 C 标准解析。CTJ 目前没有文件流，`fscanf` 只能读取标准输入。
 - `ostringstream` 不可用。
 - `std::bind` 尚不可用：`_Bind<R(A...)>` 的返回类型 `R` 为函数指针时，类型表示无法嵌套，实例化失败。
 - `const T` 偏特化对 `const` 实参的区分不完整：实例键（`CppType.key()`）忽略 `const`，`A<const int>` 与 `A<int>` 共用同一实例。直接在键中加入 `const` 会改变既有的名字修饰，暂未做。
 - `decltype(id)` 丢弃了声明的 `const`（`decltype(K)` 对 `const int K` 应为 `const int`）。
+- `union` 中全部成员都是标量（整数、枚举、`bool`、`float`、`double`）时，成员共享同一块字节（`$bytes`，一个 `DataView`），类型双关可用（见 `test/cases/73_union_float.cpp`）。含指针或类类型成员的 `union`（如标准库内部的 `_Storage`）仍按各成员独立存放，类型双关在这类 `union` 上不成立。匿名 `struct` / `union` 成员（如 `struct { union { int a; float b; }; }`）尚未支持。
+- 通过指针强转做类型双关（如 `unsigned* p = (unsigned*)&f;` 读取 `float` 的位模式）尚未支持，转译器不会报错，读到的是原来的数值，结果错误。

@@ -1,0 +1,9 @@
+count=4 sum=10
+r=1 ch=x
+r=1 rest=[ hello world]
+r=1 after=10
+eof r=-1
+r=1 used=3 buf=abc
+r=2 1500 -0.25
+r=2 511 255
+r=2 -123456 7

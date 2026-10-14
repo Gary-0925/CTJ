@@ -1,0 +1,12 @@
+r=1 n=42
+r=4 -9000000000 4000000000 -2 Z
+r=3 [hello] 2.500 1.25
+r=2 a=7 b=9
+sscanf r=2 x=12 y=34
+sscanf r=3 31 15 42
+r=2 key=key word=value cnt=10
+empty r=-1
+mismatch r=0
+next char 10
+cin got 55
+tail r=1 x=66
