@@ -2,3 +2,4 @@ node_modules/
 dist/
 include.json
 *.log
+test/
