@@ -22,6 +22,7 @@
     "src/expr.ts",
     "src/stmt.ts",
     "src/sem.ts",
+    "src/ext.ts",
     "src/subst.ts",
     "src/analyze.ts",
     "src/types.ts",

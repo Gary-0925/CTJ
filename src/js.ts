@@ -127,7 +127,8 @@ namespace CTJ {
     fnStack: FuncInfo[] = [];
     // Set when a library body is emitted: the program then declares the $L helpers.
     usesLibc = false;
-    usesShape = false;
+    // The run-time helpers of the optional builtins the program uses.
+    extRuntime = new Set<ExtBuiltin>();
 
     constructor(cx: Cx) {
       this.cx = cx;
@@ -179,7 +180,7 @@ namespace CTJ {
       }
       const head = ['"use strict";', "return {", '  run($input = "") {', "    const $io = {", '      inp: { s: $input == null ? "" : String($input), p: 0 },', '      out: "", err: "", log: "", vf: null, addr: 0,', "      write(fd, t) {", "        if (fd === 2) this.err += t;", "        else if (fd === 3) this.log += t;", "        else this.out += t;", "      },", "    };", "    let $rc = 0;", "    try {"];
       const tail = ["    } catch (e) {", '      if (typeof e === "object" && e !== null && "$exit" in e) $rc = e.$exit;', '      else if (typeof e === "object" && e !== null && "$fpe" in e) { $io.err += "Floating point exception\\n"; $rc = 136; }', "      else {", '        $io.err += String(e && e.message !== undefined ? e.message : e) + "\\n";', "        $rc = 1;", "      }", "    }", "    return { stdout: $io.out, stderr: $io.err, stdlog: $io.log, exitCode: $rc };", "  },", "};"];
-      if (this.usesShape) body.unshift(...shapePrelude());
+      for (const x of this.extRuntime) if (x.runtime) body.unshift(x.runtime);
       if (this.usesLibc) body.unshift(...libcPrelude());
       return [...head, ...body.map(l => "      " + l), ...tail].join("\n") + "\n";
     }
@@ -2603,10 +2604,10 @@ namespace CTJ {
     }
 
     exBuiltin(name: string, e: CallExpr): string {
-      if (name === "__ctj_show") {
-        const sh = this.cx.getAnn(e).call as { builtin: string; shape: ShapeTable };
-        this.usesShape = true;
-        return `$shape(${(e.args[0] as LitExpr).value}, ${this.exVal(e.args[1])}, ${JSON.stringify(sh.shape.tab)}, ${sh.shape.root})`;
+      const ext = EXT_BUILTINS.get(name);
+      if (ext) {
+        if (ext.runtime) this.extRuntime.add(ext);
+        return ext.emit(this, this.cx, e);
       }
       if (name === "__ctj_js") {
         if (!e.args.length || e.args[0].kind !== "lit" || (e.args[0] as LitExpr).lkind !== "string") {

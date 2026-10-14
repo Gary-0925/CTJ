@@ -13,8 +13,17 @@
 
 ```
 npm install
-npm run build
+npm run build          # 核心与全部可选模块
+npm run build:core     # 只有核心，不含可选模块
 ```
+
+`npm run build` 生成 `dist/ctj.js` 与各模块的文件；`npm run build:core` 不生成模块，对应的内建函数与 Playground 面板都不存在。
+
+### 可选模块
+
+核心不引用任何可选功能。模块在加载时向 `src/ext.ts` 中的注册表登记内建函数（检查、生成代码、运行时代码各一部分），因此不加载模块时，相应的名字就是未知的。
+
+目前的模块是 `shapes`：`src/shape.ts` 登记 `__ctj_show`，`playground/shapes-view.js` 是 Playground 的「数据形态」面板与示例。要新增模块，在 `scripts/build.js` 的 `MODULES` 中列出它的源文件与视图文件，并在 `tsconfig.json` 的 `files` 中登记源文件。
 
 ## 源码结构
 
@@ -25,7 +34,7 @@ npm run build
 | 工具 | `util.ts`、`token.ts` | 通用工具、词法单元定义 |
 | 词法与预处理 | `lexer.ts`、`pre.ts` | 词法分析，`#include` / `#define` / 条件编译，内置头文件表 |
 | 语法 | `ast.ts`、`parser.ts`、`decl.ts`、`expr.ts`、`stmt.ts` | AST 节点定义，以及声明、表达式、语句的解析 |
-| 语义模型 | `sem.ts`、`subst.ts` | 类型表示 `CppType`，程序状态 `Cx`，模板替换 |
+| 语义模型 | `sem.ts`、`subst.ts`、`ext.ts` | 类型表示 `CppType`，程序状态 `Cx`，模板替换，可选内建函数的注册表 |
 | 语义分析 | `analyze.ts`、`types.ts`、`calls.ts`、`ctors.ts`、`conversions.ts`、`deduction.ts`、`consteval.ts`、`builtins.ts` | 为每个表达式和声明标注类型与调用目标，包括重载决议、构造函数、模板推导、常量求值与内建函数 |
 | 代码生成 | `js.ts` | 把标注后的程序输出为 JavaScript |
 | 接口 | `api.ts` | 见下文「接口」 |
@@ -48,7 +57,7 @@ const result = program.run("114514\n"); // 运行一次，input 即 cin 的输�
 
 转译器提供内建函数 `__ctj_js`，把字符串字面量原样嵌入生成的 JavaScript，`$1`、`$2`… 会被替换为对应实参在 JavaScript 中的表达式。标准库的输出流（`include/ostream`）就是用它实现的。
 
-内建函数 `__ctj_show("标签", 表达式)` 记录表达式能到达的对象图，供 Playground 的「数据形态」面板绘制。它沿指针遍历，节点按对象身份去重，别名与环都会保留；指向 `char` 的指针显示为字符串，`std::string` 与 `std::vector` 有专门的视图。每次快照在 `stdlog` 中占一行，以 `@@ctj-show ` 开头、后接一个 JSON 对象，因此不会混入 `stdout`。快照的数据结构见 `src/shape.ts`，测试用例在 `test/shape/`，由 `node test/shape.js` 运行。
+可选模块 `shapes` 提供内建函数 `__ctj_show("标签", 表达式)`，记录表达式能到达的对象图，供 Playground 的「数据形态」面板绘制。它沿指针遍历，节点按对象身份去重，别名与环都会保留；指向 `char` 的指针显示为字符串，`std::string` 与 `std::vector` 有专门的视图。每次快照在 `stdlog` 中占一行，以 `@@ctj-show ` 开头、后接一个 JSON 对象，因此不会混入 `stdout`。快照的数据结构见 `src/shape.ts`，测试用例在 `test/shape/`，由 `node test/shape.js` 运行。
 
 指针采用胖指针模型：`int*` 转译为 `{ a: 数组, i: 下标 }`，取地址得到 `{ v: … }` 盒子，`*p` 即 `p.a[p.i]`。类转译为 `class`，虚函数依赖 JavaScript 自身的动态派发，全局对象在 `main()` 之前构造。
 
@@ -68,7 +77,7 @@ python3 -m http.server 8080
 
 打开 `http://127.0.0.1:8000/`（或 `http://127.0.0.1:8080/`）即可。左侧是 C++ 源码，右侧依次是转译得到的 JavaScript、警告、输入（stdin）和输出。「运行」会先转译再执行，Ctrl+Enter 只转译。`stderr` 与 `clog` 的内容显示在标准输出之后，非零退出码显示在最后一行。
 
-下方的「数据形态」面板显示程序中 `__ctj_show` 的快照，见下文。
+若构建包含 `shapes` 模块，页面下方还有「数据形态」面板，显示程序中 `__ctj_show` 的快照，见上文。
 
 ## 命令
 

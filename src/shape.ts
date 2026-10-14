@@ -249,7 +249,19 @@ namespace CTJ {
     "}",
   ].join("\n");
 
-  export function shapePrelude(): string[] {
-    return [SHAPE_RUNTIME];
-  }
+  // This file is the optional "shapes" module: loading it registers __ctj_show.  Without
+  // the module, __ctj_show is an unknown name.
+  EXT_BUILTINS.set("__ctj_show", {
+    check(cx: Cx, e: CallExpr, argTs: { t: CppType; e: Expr }[]): CppType {
+      // __ctj_show("label", expr): the descriptor table is built for the type of expr.
+      if (argTs.length !== 2) cx.fail("__ctj_show takes a label and one expression", e);
+      cx.getAnn(e).call = { builtin: "__ctj_show", ext: shapeTableFor(cx, argTs[1].t) };
+      return CppType.basic("void");
+    },
+    emit(gen: ExtGen, cx: Cx, e: CallExpr): string {
+      const sh = (cx.getAnn(e).call as { ext: ShapeTable }).ext;
+      return `$shape(${(e.args[0] as LitExpr).value}, ${gen.exVal(e.args[1])}, ${JSON.stringify(sh.tab)}, ${sh.root})`;
+    },
+    runtime: SHAPE_RUNTIME,
+  });
 }

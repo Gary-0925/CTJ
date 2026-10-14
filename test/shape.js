@@ -4,6 +4,14 @@ const fs = require("fs");
 const path = require("path");
 require("../dist/ctj.js");
 const { loadHeaders } = require("./headers");
+
+// The shapes module is optional: a build without it has nothing to test here.
+const moduleFile = path.join(__dirname, "..", "dist", "shapes.js");
+if (!fs.existsSync(moduleFile)) {
+  console.log("shapes module not built, nothing to test");
+  process.exit(0);
+}
+require(moduleFile);
 const CTJ = globalThis.CTJ;
 
 const dir = path.join(__dirname, "shape");
