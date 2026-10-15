@@ -1,0 +1,476 @@
+[
+ {
+  "label": "built",
+  "root": {
+   "k": "arr",
+   "items": [
+    {
+     "k": "elem",
+     "to": 0
+    },
+    {
+     "k": "elem",
+     "to": 1
+    },
+    {
+     "k": "elem",
+     "to": 2
+    },
+    {
+     "k": "elem",
+     "to": 3
+    },
+    {
+     "k": "elem",
+     "to": 4
+    },
+    {
+     "k": "elem",
+     "to": 5
+    },
+    {
+     "k": "elem",
+     "to": 6
+    },
+    {
+     "k": "elem",
+     "to": 7
+    },
+    {
+     "k": "elem",
+     "to": 8
+    },
+    {
+     "k": "elem",
+     "to": 9
+    },
+    {
+     "k": "elem",
+     "to": 10
+    },
+    {
+     "k": "elem",
+     "to": 11
+    },
+    {
+     "k": "elem",
+     "to": 12
+    },
+    {
+     "k": "elem",
+     "to": 13
+    },
+    {
+     "k": "elem",
+     "to": 14
+    }
+   ],
+   "unused": 16,
+   "roots": [
+    0
+   ]
+  },
+  "nodes": [
+   {
+    "id": 0,
+    "type": "int",
+    "value": {
+     "k": "int",
+     "v": 36
+    },
+    "idx": 1,
+    "kids": [
+     1,
+     2
+    ]
+   },
+   {
+    "id": 1,
+    "type": "int",
+    "value": {
+     "k": "int",
+     "v": 10
+    },
+    "idx": 2,
+    "kids": [
+     3,
+     4
+    ]
+   },
+   {
+    "id": 2,
+    "type": "int",
+    "value": {
+     "k": "int",
+     "v": 26
+    },
+    "idx": 3,
+    "kids": [
+     5,
+     6
+    ]
+   },
+   {
+    "id": 3,
+    "type": "int",
+    "value": {
+     "k": "int",
+     "v": 3
+    },
+    "idx": 4,
+    "kids": [
+     7,
+     8
+    ]
+   },
+   {
+    "id": 4,
+    "type": "int",
+    "value": {
+     "k": "int",
+     "v": 7
+    },
+    "idx": 5,
+    "kids": [
+     9,
+     10
+    ]
+   },
+   {
+    "id": 5,
+    "type": "int",
+    "value": {
+     "k": "int",
+     "v": 11
+    },
+    "idx": 6,
+    "kids": [
+     11,
+     12
+    ]
+   },
+   {
+    "id": 6,
+    "type": "int",
+    "value": {
+     "k": "int",
+     "v": 15
+    },
+    "idx": 7,
+    "kids": [
+     13,
+     14
+    ]
+   },
+   {
+    "id": 7,
+    "type": "int",
+    "value": {
+     "k": "int",
+     "v": 1
+    },
+    "idx": 8
+   },
+   {
+    "id": 8,
+    "type": "int",
+    "value": {
+     "k": "int",
+     "v": 2
+    },
+    "idx": 9
+   },
+   {
+    "id": 9,
+    "type": "int",
+    "value": {
+     "k": "int",
+     "v": 3
+    },
+    "idx": 10
+   },
+   {
+    "id": 10,
+    "type": "int",
+    "value": {
+     "k": "int",
+     "v": 4
+    },
+    "idx": 11
+   },
+   {
+    "id": 11,
+    "type": "int",
+    "value": {
+     "k": "int",
+     "v": 5
+    },
+    "idx": 12
+   },
+   {
+    "id": 12,
+    "type": "int",
+    "value": {
+     "k": "int",
+     "v": 6
+    },
+    "idx": 13
+   },
+   {
+    "id": 13,
+    "type": "int",
+    "value": {
+     "k": "int",
+     "v": 7
+    },
+    "idx": 14
+   },
+   {
+    "id": 14,
+    "type": "int",
+    "value": {
+     "k": "int",
+     "v": 8
+    },
+    "idx": 15
+   }
+  ]
+ },
+ {
+  "label": "updated",
+  "root": {
+   "k": "arr",
+   "items": [
+    {
+     "k": "elem",
+     "to": 0
+    },
+    {
+     "k": "elem",
+     "to": 1
+    },
+    {
+     "k": "elem",
+     "to": 2
+    },
+    {
+     "k": "elem",
+     "to": 3
+    },
+    {
+     "k": "elem",
+     "to": 4
+    },
+    {
+     "k": "elem",
+     "to": 5
+    },
+    {
+     "k": "elem",
+     "to": 6
+    },
+    {
+     "k": "elem",
+     "to": 7
+    },
+    {
+     "k": "elem",
+     "to": 8
+    },
+    {
+     "k": "elem",
+     "to": 9
+    },
+    {
+     "k": "elem",
+     "to": 10
+    },
+    {
+     "k": "elem",
+     "to": 11
+    },
+    {
+     "k": "elem",
+     "to": 12
+    },
+    {
+     "k": "elem",
+     "to": 13
+    },
+    {
+     "k": "elem",
+     "to": 14
+    }
+   ],
+   "unused": 16,
+   "roots": [
+    0
+   ]
+  },
+  "nodes": [
+   {
+    "id": 0,
+    "type": "int",
+    "value": {
+     "k": "int",
+     "v": 43
+    },
+    "idx": 1,
+    "kids": [
+     1,
+     2
+    ]
+   },
+   {
+    "id": 1,
+    "type": "int",
+    "value": {
+     "k": "int",
+     "v": 17
+    },
+    "idx": 2,
+    "kids": [
+     3,
+     4
+    ]
+   },
+   {
+    "id": 2,
+    "type": "int",
+    "value": {
+     "k": "int",
+     "v": 26
+    },
+    "idx": 3,
+    "kids": [
+     5,
+     6
+    ]
+   },
+   {
+    "id": 3,
+    "type": "int",
+    "value": {
+     "k": "int",
+     "v": 3
+    },
+    "idx": 4,
+    "kids": [
+     7,
+     8
+    ]
+   },
+   {
+    "id": 4,
+    "type": "int",
+    "value": {
+     "k": "int",
+     "v": 14
+    },
+    "idx": 5,
+    "kids": [
+     9,
+     10
+    ]
+   },
+   {
+    "id": 5,
+    "type": "int",
+    "value": {
+     "k": "int",
+     "v": 11
+    },
+    "idx": 6,
+    "kids": [
+     11,
+     12
+    ]
+   },
+   {
+    "id": 6,
+    "type": "int",
+    "value": {
+     "k": "int",
+     "v": 15
+    },
+    "idx": 7,
+    "kids": [
+     13,
+     14
+    ]
+   },
+   {
+    "id": 7,
+    "type": "int",
+    "value": {
+     "k": "int",
+     "v": 1
+    },
+    "idx": 8
+   },
+   {
+    "id": 8,
+    "type": "int",
+    "value": {
+     "k": "int",
+     "v": 2
+    },
+    "idx": 9
+   },
+   {
+    "id": 9,
+    "type": "int",
+    "value": {
+     "k": "int",
+     "v": 10
+    },
+    "idx": 10
+   },
+   {
+    "id": 10,
+    "type": "int",
+    "value": {
+     "k": "int",
+     "v": 4
+    },
+    "idx": 11
+   },
+   {
+    "id": 11,
+    "type": "int",
+    "value": {
+     "k": "int",
+     "v": 5
+    },
+    "idx": 12
+   },
+   {
+    "id": 12,
+    "type": "int",
+    "value": {
+     "k": "int",
+     "v": 6
+    },
+    "idx": 13
+   },
+   {
+    "id": 13,
+    "type": "int",
+    "value": {
+     "k": "int",
+     "v": 7
+    },
+    "idx": 14
+   },
+   {
+    "id": 14,
+    "type": "int",
+    "value": {
+     "k": "int",
+     "v": 8
+    },
+    "idx": 15
+   }
+  ]
+ }
+]

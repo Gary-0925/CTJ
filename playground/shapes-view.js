@@ -144,6 +144,7 @@
         }
         for (const b of boxes.values()) for (const r of b.rows) r.back = [];
         const depth = new Map([["root", 0]]);
+        const parentOf = new Map();
         const order = ["root"];
         const onPath = new Set();
         const walk = id => {
@@ -155,6 +156,7 @@
               if (onPath.has(to)) r.back.push(to);
               else if (!depth.has(to)) {
                 depth.set(to, depth.get(id) + 1);
+                parentOf.set(to, id);
                 order.push(to);
                 walk(to);
               }
@@ -172,6 +174,26 @@
           b.w = Math.max(96, Math.ceil(w) + 24);
           b.h = 30 + b.rows.length * 20 + 8;
         }
+        const kidsOf = new Map();
+        for (const id of order.slice(1)) {
+          const p = parentOf.get(id);
+          if (!kidsOf.has(p)) kidsOf.set(p, []);
+          kidsOf.get(p).push(id);
+        }
+        const SLOT_GAP = 22;
+        let nextLeaf = 16;
+        const placeY = id => {
+          const b = boxes.get(id);
+          const ks = kidsOf.get(id) || [];
+          if (!ks.length) {
+            b.ty = nextLeaf;
+            nextLeaf += b.h + SLOT_GAP;
+            return;
+          }
+          ks.forEach(placeY);
+          b.ty = (boxes.get(ks[0]).ty + boxes.get(ks[ks.length - 1]).ty) / 2;
+        };
+        placeY("root");
         const cols = [];
         for (const id of order) {
           const c = depth.get(id);
@@ -182,11 +204,13 @@
         cols.forEach(col => {
           let colW = 0;
           for (const b of col) colW = Math.max(colW, b.w);
+          // Boxes in a column keep their tidy height but never overlap.
+          col.sort((p, q) => p.ty - q.ty);
           let y = 16;
           for (const b of col) {
             b.x = x;
-            b.y = y;
-            y += b.h + 22;
+            b.y = Math.max(Math.round(b.ty), y);
+            y = b.y + b.h + SLOT_GAP;
           }
           maxY = Math.max(maxY, y);
           x += colW + 64;
