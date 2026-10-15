@@ -3050,14 +3050,29 @@ namespace CTJ {
 
     // "i += i & -i" steps an index by its own low bit (the Fenwick walk).  The run records the
     // step from the old value to the new one, so the tree can be drawn from it.
+    // A step is "i += S" or "i = i + S", where S is a structural function of i (i & -i).
     transitionKey(e: AssignExpr): string | null {
-      if (e.op !== "+=" || e.l.kind !== "id") return null;
-      const sv = this.structuralVar(e.r);
-      if (sv === null) return null;
-      const a = this.cx.getAnn(e.l).sym;
-      const b = this.cx.getAnn(sv).sym;
-      if (!a || !b || a.k !== "var" || b.k !== "var" || a.v !== b.v) return null;
-      return JSON.stringify(this.varName(a.v, this.cx.getAnn(e.l).needsThis));
+      if (e.l.kind !== "id") return null;
+      let step: Expr | null = null;
+      if (e.op === "+=") step = e.r;
+      else if (e.op === "=" && e.r.kind === "binary" && e.r.op === "+") {
+        if (this.sameVar(e.r.l, e.l)) step = e.r.r;
+        else if (this.sameVar(e.r.r, e.l)) step = e.r.l;
+      }
+      if (step === null) return null;
+      const sv = this.structuralVar(step);
+      if (sv === null || !this.sameVar(sv, e.l)) return null;
+      const sym = this.cx.getAnn(e.l).sym;
+      if (!sym || sym.k !== "var") return null;
+      return JSON.stringify(this.varName(sym.v, this.cx.getAnn(e.l).needsThis));
+    }
+
+    // Both are plain references to the same variable.
+    sameVar(x: Expr, y: Expr): boolean {
+      if (x.kind !== "id" || y.kind !== "id") return false;
+      const a = this.cx.getAnn(x).sym;
+      const b = this.cx.getAnn(y).sym;
+      return !!a && !!b && a.k === "var" && b.k === "var" && a.v === b.v;
     }
 
     // The variable a subscript is, by the name the steps on it are recorded under ("" if the
