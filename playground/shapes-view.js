@@ -89,11 +89,27 @@
       // One row per field: nested structs are flattened, base class fields join their owner.
       // link: the elements a field points at (set by the runtime, from the subscripts the run
       // made), drawn as dashed edges.
-      function shapeRows(label, v, rows, link) {
+      // A tree node of a map or set shows its key, its value and its two children, under those
+      // names: the library's own field names are not shown.
+      const NODE_LABELS = { _M_left: "left", _M_right: "right", "_M_value_field.first": "key", "_M_value_field.second": "value" };
+      function isMapView(v) {
+        return v.k === "struct" && v.f && v.f.length === 2 && v.f[0].n === "size" && v.f[1].n === "root";
+      }
+      function shapeRows(label, v, rows, link, inNode) {
+        // A map used as a value (a map of maps) is one row: its size, and an arrow to its tree.
+        if (label && isMapView(v)) {
+          const root = v.f[1].v;
+          rows.push({ label, text: "map(" + shapeText(v.f[0].v) + ")", targets: root.k === "ptr" ? [root.to] : [], inf: [] });
+          return rows;
+        }
         if (v.k === "struct") {
+          const node = inNode || v.n === "std::_Rb_tree_node";
           for (const f of v.f) {
-            const sub = f.base ? label : (label ? label + "." : "") + f.n;
-            shapeRows(sub, f.v, rows, f.to !== undefined ? [f.to] : undefined);
+            let sub = f.base ? label : (label ? label + "." : "") + f.n;
+            if (node && NODE_LABELS[sub] !== undefined) sub = NODE_LABELS[sub];
+            // A set's node keeps its key in the value field.
+            if (node && sub === "_M_value_field" && f.v.k !== "struct") sub = "key";
+            shapeRows(sub, f.v, rows, f.to !== undefined ? [f.to] : undefined, node);
           }
           return rows;
         }

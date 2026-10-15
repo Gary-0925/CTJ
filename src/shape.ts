@@ -495,11 +495,13 @@ namespace CTJ {
       // the whole program is checked).
       if (argTs.length !== 2) cx.fail("__ctj_show takes a label and one expression", e);
       cx.traceLinks = true;
-      cx.getAnn(e).call = { builtin: "__ctj_show", ext: shapeTableFor(cx, argTs[1].t) };
+      cx.getAnn(e).call = { builtin: "__ctj_show" };
       return CppType.basic("void");
     },
     emit(gen: ExtGen, cx: Cx, e: CallExpr): string {
-      const sh = (cx.getAnn(e).call as { ext: ShapeTable }).ext;
+      // The table is built here, after the whole program is checked: the classes a pointer may
+      // point at (its dyn list) are then all known, including the ones made later in the file.
+      const sh = shapeTableFor(cx, cx.getAnn(e.args[1]).t as CppType);
       return `$shape(${(e.args[0] as LitExpr).value}, ${gen.exVal(e.args[1])}, ${JSON.stringify(sh.tab)}, ${sh.root})`;
     },
     runtime: SHAPE_RUNTIME,
